@@ -4,8 +4,8 @@ import numpy as np
 import editdistance
 from sacrebleu.metrics import BLEU
 from collections import defaultdict, Counter
-from dataset_configs import tldr_config
-from generate import config
+from dataset_configs import TldrLoader
+from generator.generate import generate_config
 
 
 def clean_results(results):
@@ -15,7 +15,6 @@ def clean_results(results):
         if 'oracle_cmd' in result.keys() and result['oracle_cmd'] == 'xkcdpass': continue
         new_results.append(result)
     return new_results
-
 
 
 """match if exactly same"""
@@ -112,29 +111,31 @@ def charBLEU(gold_list, pred_list):
 
 
 """cmd consistency"""
-def calc_cmd_consistency(ret_cmd, pred):
+def calc_cmd_consistency(ret_cmds, pred):
     tok_pred = get_bag_of_words(pred)
     pred_cmd = tok_pred[0] if len(tok_pred) else "NONE_PRED"
-    ret_cmd = ret_cmd.split('-')[0].split('.')[0]
     pred_cmd = pred_cmd.split('-')[0].split('_')[0].split('.')[0]
-    m = {'cmd_consistency': int(ret_cmd == pred_cmd)}
-    if ret_cmd != pred_cmd: print(ret_cmd, pred_cmd)
+    _ret_cmds = list()
+    for cmd in ret_cmds:
+        _ret_cmds.append(cmd.split('-')[0].split('.')[0])
+
+    m = {'cmd_consistency': int(pred_cmd in _ret_cmds)}
+    # if pred_cmd not in _ret_cmds: print(ret_cmd, pred_cmd)
     return m
 
 
 def tldr_evaluate(args):
-    tldr_args = tldr_config()
-    tldr_qs = clean_results(json.load(open(tldr_args.qs_file, 'r')))
-    oracle_results = clean_results(json.load(open(tldr_args.oracle, 'r')))
-    gene_results = clean_results(json.load(open(args.save_file, 'r')))
-    print(len(gene_results))
-    assert len(gene_results) == len(tldr_qs)
+    tldr_loader = TldrLoader()
+    qs_list = tldr_loader.load_qs_list(args.dataset_type)
+    oracle_list = tldr_loader.load_oracle_list(args.dataset_type)
+    gene_results = json.load(open(args.save_file, 'r'))
+    assert len(gene_results) == len(qs_list) == len(oracle_list)
 
     metric_list = defaultdict(list)
     gold_list, pred_list = list(), list()
-    for qs_idx in range(len(tldr_qs)):
-        gold = oracle_results[qs_idx]['cmd']
-        pred = gene_results[qs_idx]['output']
+    for idx, qs in enumerate(qs_list):
+        gold = oracle_list[idx]['output']
+        pred = gene_results[qs['qs_id']]['output']
         gold_list.append(gold)
         pred_list.append(pred)
         for k, v in calc_template_matching(gold, pred).items():
@@ -143,9 +144,10 @@ def tldr_evaluate(args):
             metric_list[k].append(v)
         for k, v in calc_edit_distance(gold, pred).items():
             metric_list[k].append(v)
-        if len(gene_results[qs_idx]['ret_cmd']) > 0:
-            ret_cmd = gene_results[qs_idx]['ret_cmd'][0].split('_')[0]
-            for k, v in calc_cmd_consistency(ret_cmd, pred).items():
+        # cmd consistency
+        ret_cmds = gene_results[qs['qs_id']]['ret_cmd']
+        if len(ret_cmds) > 0:
+            for k, v in calc_cmd_consistency(ret_cmds, pred).items():
                 metric_list[k].append(v)
 
     for k, v in metric_list.items():
@@ -157,7 +159,7 @@ def tldr_evaluate(args):
 
 
 if __name__ == '__main__':
-    args = config('--dataset tldr --top_k 1 --k_line 5 --retriever unrelated --save_file "docprompting_data/tldr/gene_result_unrelated_test.json"')
+    args = generate_config('--dataset tldr --top_k 1 --k_line 5 --retriever unrelated --dataset_type dev')
 
     metric_list = tldr_evaluate(args)
 

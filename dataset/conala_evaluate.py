@@ -27,8 +27,8 @@ import json
 import os.path
 import re
 
-from dataset_configs import conala_config
-from generate import config
+from dataset_configs import ConalaLoader
+from generator.generate import generate_config
 
 
 def _get_ngrams(segment, max_order):
@@ -170,14 +170,16 @@ def _bleu(ref, trans, subword_option=None, smooth=True, code_tokenize=False):
 
 
 if __name__ == '__main__':
-    args = config('--dataset conala \
-                    --top_k 5 \
-                    --retriever codeT5-OTS')
-    conala_args = conala_config()
-    oracle = json.load(open(conala_args.oracle, 'r'))
-    gold = [item['cmd'] for item in oracle]
-    pred_results = json.load(open(args.save_file, 'r'))
-    pred = [item['output'] for item in pred_results]
+    args = generate_config('--dataset conala \
+                            --top_k 5 \
+                            --retriever bm25 \
+                            --dataset_type test')
+    conala_loader = ConalaLoader()
+    oracle_list = conala_loader.load_oracle_list(args.dataset_type)
+    gold = [oracle['output'] for oracle in oracle_list]
+    pred_list = json.load(open(args.save_file, 'r'))
+    pred = [pred['output'] for pred in pred_list]
+
     # idx = 0
     # for gold_tmp, pred_tmp in zip(gold, pred):
     #     if gold_tmp == 'getattr(test, a_string)':

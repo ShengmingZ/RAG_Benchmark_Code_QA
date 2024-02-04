@@ -183,7 +183,7 @@ class conala_BM25():
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset conala --dataset_type test'
+    in_program_call = '--dataset tldr --dataset_type dev'
     bm25_args = sparse_retriever_config(in_program_call)
 
     if bm25_args.dataset == 'tldr':

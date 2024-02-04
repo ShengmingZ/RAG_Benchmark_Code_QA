@@ -6,7 +6,6 @@ import numpy as np
 import torch
 import transformers
 from transformers import PreTrainedModel, AutoConfig, AutoTokenizer, RobertaModel, AutoModel
-from dense_retriever_utils import get_tokenizer, get_model
 
 
 # class RetrievalModel(PreTrainedModel):
@@ -114,7 +113,7 @@ class DenseRetrievalEncoder:
         self.sim_func = args.sim_func
         self.normalize_embed = args.normalize_embed
 
-        # todo: load more tokenizer and model
+        # todo: load more type of tokenizer and model
         self.tokenizer = transformers.RobertaTokenizer.from_pretrained(self.model_name)
         if 't5' in self.model_name:
             self.model = transformers.T5EncoderModel.from_pretrained(self.model_name)
@@ -144,7 +143,7 @@ class DenseRetrievalEncoder:
                     padded[i, : lens[i]] = torch.tensor(a, dtype=torch.long)
                     mask[i, : lens[i]] = 1
 
-                # todo: get embedding
+                # get embedding
                 input_ids, attention_mask, lengths = padded.to(self.device), mask.to(self.device), lens.to(self.device)
                 output = self.model(input_ids, attention_mask=attention_mask, output_hidden_states=False)
                 if 't5' in self.model_name:
@@ -165,3 +164,8 @@ class DenseRetrievalEncoder:
             if not os.path.exists(os.path.dirname(save_file)):
                 os.makedirs(os.path.dirname(save_file))
             np.save(save_file, all_embeddings)
+
+
+    # todo: training ref: https://github.com/princeton-nlp/SimCSE, https://github.com/shuyanzhou/docprompting/tree/main/retriever/simcse
+    def train(self):
+        pass

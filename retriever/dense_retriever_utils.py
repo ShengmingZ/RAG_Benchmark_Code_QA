@@ -1,3 +1,7 @@
+"""
+deprecated
+"""
+
 import torch
 import transformers
 from transformers import PreTrainedModel, AutoTokenizer, AutoModel
