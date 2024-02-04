@@ -6,4 +6,7 @@ docprompting_data/
 
 .ipynb_checkpoints
 
-__pychache__
+__pycache__
+dataset/__pycahe__
+retriever/__pycache__
+generator/__pycache__
