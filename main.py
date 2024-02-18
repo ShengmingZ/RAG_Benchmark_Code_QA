@@ -46,7 +46,7 @@ print(chatgpt(messages)[0])
 # 4 generate with oracle manual's retrieved sentence
 # 5 interactive generate and retrieve
 
-# create dataset for retrieval-based code generation
+# create dataset_utils for retrieval-based code generation
 # discover the flaws of famous code datasets (ineffective in evaluating the retrieval-based code generation system)
 # open domain code generation: larger docs, incomplete material, mixed of docs and code snippets
 # human-eval + retrieval

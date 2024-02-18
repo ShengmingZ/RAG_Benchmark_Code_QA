@@ -9,7 +9,7 @@ import random
 from tqdm import tqdm
 from generator.run_model import chatgpt
 from prompt import conala_prompt, tldr_prompt
-from dataset.dataset_configs import TldrLoader, ConalaLoader
+from dataset_utils.dataset_configs import TldrLoader, ConalaLoader
 from retriever.sparse_retriever import sparse_retriever_config
 from retriever.dense_retriever import dense_retriever_config
 
@@ -238,7 +238,7 @@ def gene_conala(args, retriever_args):
 
 def generate_config(in_program_call=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, default='tldr')
+    parser.add_argument('--dataset_utils', type=str, default='tldr')
     parser.add_argument('--top_k', type=int, default=1)     # k docs
     parser.add_argument('--k_line', type=int, default=5)    # for tldr
     parser.add_argument('--retriever', type=str, default='bm25',
@@ -271,16 +271,16 @@ def generate_config(in_program_call=None):
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset tldr --top_k 1 --k_line 10 --retriever bm25 --ret_doc_type oracle --prompt_type original'
-    # in_program_call = '--dataset conala --top_k 5 --retriever codeT5-OTS'
+    in_program_call = '--dataset_utils tldr --top_k 1 --k_line 10 --retriever bm25 --ret_doc_type oracle --prompt_type original'
+    # in_program_call = '--dataset_utils conala --top_k 5 --retriever codeT5-OTS'
     args = generate_config()
     if args.retriever == 'bm25':
-        retriever_args = sparse_retriever_config('--dataset tldr --dataset_type dev')
+        retriever_args = sparse_retriever_config('--dataset_utils tldr --dataset_type dev')
     elif args.retriever == 'codeT5-FT':
-        retriever_args = dense_retriever_config(f"--dataset conala --dataset_type test \
+        retriever_args = dense_retriever_config(f"--dataset_utils conala --dataset_type test \
                         --model_name neulab/docprompting-codet5-python-doc-retriever")
     elif args.retriever == 'codeT5-OTS':
-        retriever_args = dense_retriever_config(f"--dataset conala --dataset_type test \
+        retriever_args = dense_retriever_config(f"--dataset_utils conala --dataset_type test \
                         --model_name Salesforce/codet5-base")
     else:
         retriever_args = None

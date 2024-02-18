@@ -3,7 +3,7 @@ from collections import Counter
 import os
 
 
-# Todo: dataset split is weird, dev: 20%, test: 10%. Use dev set to get final results
+# Todo: dataset_utils split is weird, dev: 20%, test: 10%. Use dev set to get final results
 class TldrLoader:
     def __init__(self):
         self.root = '/Users/zhaoshengming/'
@@ -148,9 +148,9 @@ class ConalaLoader:
         """
         assert dataset in ['train', 'dev', 'test']
         # # load target qs id list for train, dev, test
-        # if dataset == 'train':
+        # if dataset_utils == 'train':
         #     oracle_list = json.load(open(self.train_oracle_file, 'r'))
-        # elif dataset == 'dev':
+        # elif dataset_utils == 'dev':
         #     oracle_list = json.load(open(self.dev_oracle_file, 'r'))
         # else:
         #     oracle_list = json.load(open(self.test_oracle_file, 'r'))

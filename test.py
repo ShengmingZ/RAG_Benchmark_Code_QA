@@ -1,4 +1,4 @@
-# bm25_args = sparse_retriever_config('--dataset tldr')
+# bm25_args = sparse_retriever_config('--dataset_utils tldr')
 # tldr_qs = json.load(open(bm25_args.tldr_qs_file, 'r'))
 # oracle_results = json.load(open(bm25_args.tldr_oracle, 'r'))
 # tldr_doc_whole = json.load(open(bm25_args.tldr_doc_whole, 'r'))
@@ -82,7 +82,7 @@
 # es = Elasticsearch("http://localhost:9200")
 # res = es.search(index='conala', body=query)['hits']['hits']
 #
-# sparse_retriever_args = sparse_retriever_config('--dataset conala')
+# sparse_retriever_args = sparse_retriever_config('--dataset_utils conala')
 # conala_args = conala_config()
 # conala_retriever = conala_BM25(sparse_retriever_args, conala_args)
 # conala_retriever.bm25_retrieve(query, 'conala')
@@ -95,7 +95,7 @@
 # res = es.search(index='conala', body=query)['hits']['hits']
 # print(len(res))
 
-from dataset.dataset_configs import TldrLoader
+from dataset_utils.dataset_configs import TldrLoader
 from collections import Counter
 
 tldr_loader = TldrLoader()

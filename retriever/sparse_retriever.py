@@ -5,14 +5,14 @@ import time
 import argparse
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
-from dataset.dataset_configs import TldrLoader, ConalaLoader
+from dataset_utils.dataset_configs import TldrLoader, ConalaLoader
 from retriever.retriaval_evaluate import tldr_eval, conala_eval
 import shlex
 
 
 def sparse_retriever_config(in_program_call=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, default='tldr', choices=['tldr', 'conala'])
+    parser.add_argument('--dataset_utils', type=str, default='tldr', choices=['tldr', 'conala'])
     parser.add_argument('--dataset_type', type=str, default='test', choices=['test', 'train', 'dev'])
     parser.add_argument('--tldr_ret_result_whole', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/dev_ret_result_whole_BM25.json")
     parser.add_argument('--tldr_ret_result_line', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/dev_ret_result_line_BM25.json")
@@ -185,7 +185,7 @@ class conala_BM25():
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset tldr --dataset_type dev'
+    in_program_call = '--dataset_utils tldr --dataset_type dev'
     bm25_args = sparse_retriever_config(in_program_call)
 
     if bm25_args.dataset == 'tldr':
