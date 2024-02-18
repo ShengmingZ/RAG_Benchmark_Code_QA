@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, '/Users/zhaoshengming/Code_RAG_Benchmark')
 import argparse
 import shlex
 import json

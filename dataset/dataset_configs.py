@@ -1,18 +1,20 @@
 import json
 from collections import Counter
+import os
 
 
 # Todo: dataset split is weird, dev: 20%, test: 10%. Use dev set to get final results
 class TldrLoader:
     def __init__(self):
-        self.doc_whole_file = "/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/manual_all_raw.json"
-        self.doc_line_file = "/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/manual_section.json"
-        self.dev_qs_file = "/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/cmd_dev.seed.json"
-        self.dev_oracle_file = "/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/cmd_dev.oracle_man.full.json"
-        self.test_qs_file = "/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/cmd_test.seed.json"
-        self.test_oracle_file = "/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/cmd_test.oracle_man.full.json"
-        self.train_qs_file = "/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/cmd_train.seed.json"
-        self.train_oracle_file = "/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/cmd_train.oracle_man.full.json"
+        self.root = '/Users/zhaoshengming/'
+        self.doc_whole_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/tldr/manual_all_raw.json")
+        self.doc_line_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/tldr/manual_section.json")
+        self.dev_qs_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/tldr/cmd_dev.seed.json")
+        self.dev_oracle_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/tldr/cmd_dev.oracle_man.full.json")
+        self.test_qs_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/tldr/cmd_test.seed.json")
+        self.test_oracle_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/tldr/cmd_test.oracle_man.full.json")
+        self.train_qs_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/tldr/cmd_train.seed.json")
+        self.train_oracle_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/tldr/cmd_train.oracle_man.full.json")
 
     def load_doc_list_whole(self):
         """
@@ -105,18 +107,19 @@ class TldrLoader:
 
 class ConalaLoader:
     def __init__(self):
-        self.qs_file = '/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/conala/conala_nl.txt'
+        self.root = '/Users/zhaoshengming'
+        self.qs_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/conala/conala_nl.txt")
         self.qs_idx_file = self.qs_file.replace(".txt", ".id")
-        self.train_qs_file = '/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/conala/train_qs.json'
-        self.test_qs_file = '/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/conala/test_qs.json'
-        self.dev_qs_file = '/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/conala/dev_qs.json'
-        self.doc_firstpara_file = '/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/conala/python_manual_firstpara.tok.txt'
+        self.train_qs_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/conala/train_qs.json")
+        self.test_qs_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/conala/test_qs.json")
+        self.dev_qs_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/conala/dev_qs.json")
+        self.doc_firstpara_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/conala/python_manual_firstpara.tok.txt")
         self.doc_firstpara_idx_file = self.doc_firstpara_file.replace(".txt", ".id")
-        self.doc_file = '/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/conala/conala_docs.json'
-        self.test_oracle_file = '/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/conala/cmd_test.oracle_man.full.json'
-        self.train_oracle_file = '/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/conala/cmd_train.oracle_man.full.json'
-        self.dev_oracle_file = '/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/conala/cmd_dev.oracle_man.full.json'
-        self.unittest_file = '/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/conala/unittest_docprompting_conala.json'
+        self.doc_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/conala/conala_docs.json")
+        self.test_oracle_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/conala/cmd_test.oracle_man.full.json")
+        self.train_oracle_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/conala/cmd_train.oracle_man.full.json")
+        self.dev_oracle_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/conala/cmd_dev.oracle_man.full.json")
+        self.unittest_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/conala/unittest_docprompting_conala.json")
 
     def load_doc_list(self):
         """
