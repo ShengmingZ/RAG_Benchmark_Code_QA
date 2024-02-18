@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, '/Users/zhaoshengming/Code_RAG_Benchmark')
 import re
 import json
 import numpy as np
@@ -117,10 +119,11 @@ def calc_cmd_consistency(ret_cmds, pred):
     pred_cmd = pred_cmd.split('-')[0].split('_')[0].split('.')[0]
     _ret_cmds = list()
     for cmd in ret_cmds:
-        _ret_cmds.append(cmd.split('-')[0].split('.')[0])
+        _ret_cmds.append(cmd.split('_')[0].split('-')[0].split('.')[0])
+    _ret_cmds = list(set(_ret_cmds))
 
     m = {'cmd_consistency': int(pred_cmd in _ret_cmds)}
-    # if pred_cmd not in _ret_cmds: print(ret_cmd, pred_cmd)
+    if pred_cmd not in _ret_cmds: print(_ret_cmds, pred_cmd)
     return m
 
 
@@ -128,6 +131,13 @@ def tldr_evaluate(args):
     tldr_loader = TldrLoader()
     qs_list = tldr_loader.load_qs_list(args.dataset_type)
     oracle_list = tldr_loader.load_oracle_list(args.dataset_type)
+    _qs_list, _oracle_list = list(), list()
+    for (qs, oracle) in zip(qs_list, oracle_list):
+        assert qs['qs_id'] == oracle['qs_id']
+        if oracle['doc_keys'][0] == 'xkcdpass': continue
+        _qs_list.append(qs)
+        _oracle_list.append(oracle)
+    qs_list, oracle_list = _qs_list, _oracle_list
     gene_results = json.load(open(args.save_file, 'r'))
     assert len(gene_results) == len(qs_list) == len(oracle_list)
 
@@ -135,7 +145,7 @@ def tldr_evaluate(args):
     gold_list, pred_list = list(), list()
     for idx, qs in enumerate(qs_list):
         gold = oracle_list[idx]['output']
-        pred = gene_results[qs['qs_id']]['output']
+        pred = gene_results[idx]['output']
         gold_list.append(gold)
         pred_list.append(pred)
         for k, v in calc_template_matching(gold, pred).items():
@@ -145,7 +155,7 @@ def tldr_evaluate(args):
         for k, v in calc_edit_distance(gold, pred).items():
             metric_list[k].append(v)
         # cmd consistency
-        ret_cmds = gene_results[qs['qs_id']]['ret_cmd']
+        ret_cmds = gene_results[idx]['ret_cmd']
         if len(ret_cmds) > 0:
             for k, v in calc_cmd_consistency(ret_cmds, pred).items():
                 metric_list[k].append(v)
@@ -159,7 +169,9 @@ def tldr_evaluate(args):
 
 
 if __name__ == '__main__':
-    args = generate_config('--dataset tldr --top_k 1 --k_line 5 --retriever unrelated --dataset_type dev')
+    in_program_call = '--dataset tldr --top_k 1 --k_line 5 --retriever unrelated --dataset_type dev'
+    args = generate_config()
+    args.dataset_type = 'dev'
 
     metric_list = tldr_evaluate(args)
 

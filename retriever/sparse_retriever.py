@@ -1,10 +1,12 @@
+import sys
+sys.path.insert(0, '/Users/zhaoshengming/Code_RAG_Benchmark')
 import json
 import time
 import argparse
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 from dataset.dataset_configs import TldrLoader, ConalaLoader
-from retriaval_evaluate import tldr_eval, conala_eval
+from retriever.retriaval_evaluate import tldr_eval, conala_eval
 import shlex
 
 

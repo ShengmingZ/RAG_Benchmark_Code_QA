@@ -6,8 +6,8 @@ from collections import OrderedDict
 import numpy as np
 import faiss
 from dataset.dataset_configs import TldrLoader, ConalaLoader
-from retriaval_evaluate import conala_eval, tldr_eval
-from dense_encoder import DenseRetrievalEncoder
+from retriever.retriaval_evaluate import conala_eval, tldr_eval
+from retriever.dense_encoder import DenseRetrievalEncoder
 
 
 model_name_dict = {'codet5_conala': 'neulab/docprompting-codet5-python-doc-retriever',
@@ -165,7 +165,8 @@ def dense_retriever_config(in_program_call=None):
 
 if __name__ == '__main__':
     model_name = model_name_dict['codet5_ots']
-    in_program_call = f"--dataset conala \
+    # normalize or not
+    in_program_call = f"--dataset tldr \
                         --dataset_type dev \
                         --model_name {model_name} \
                         --sim_func cls_distance.cosine"
@@ -187,20 +188,21 @@ if __name__ == '__main__':
         doc_list_whole = _doc_list_whole
         encoder.encode(dataset=doc_list_whole, save_file=ret_args.tldr_doc_whole_embed_save_file)
         # encode doc line-level
-        doc_list_line = tldr_loader.load_doc_list_line()
-        encoder.encode(dataset=doc_list_line, save_file=ret_args.tldr_doc_line_embed_save_file)
+        # doc_list_line = list(tldr_loader.load_doc_list_line().type())
+        # encoder.encode(dataset=doc_list_line, save_file=ret_args.tldr_doc_line_embed_save_file)
 
         tldr_whole_retrieve(ret_args)
-        tldr_line_retrieve(ret_args)
+        # tldr_line_retrieve(ret_args)
 
 
     elif ret_args.dataset == 'conala':
         conala_loader = ConalaLoader()
         # encode qs
         qs_list = conala_loader.load_qs_list(ret_args.dataset_type)
+        qs_list = [qs['nl'] for qs in qs_list]
         encoder.encode(dataset=qs_list, save_file=ret_args.conala_qs_embed_save_file)
         # encode doc firstpara
-        doc_list_firstpara = conala_loader.load_doc_list_firstpara()
+        doc_list_firstpara = list(conala_loader.load_doc_list_firstpara().values())
         encoder.encode(dataset=doc_list_firstpara, save_file=ret_args.conala_doc_firstpara_embed_save_file)
 
         conala_retrieve(ret_args)

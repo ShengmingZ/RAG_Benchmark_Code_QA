@@ -281,8 +281,8 @@ class ConalaLoader:
 
 
 if __name__ == '__main__':
-    tldr_dataloader = TldrLoader()
-    tldr_dataloader.remove_repeat()
-    # conala_dataloader = ConalaLoader()
-    # conala_dataloader.split_qs()
-    # conala_dataloader.remove_repeat()
+    # tldr_dataloader = TldrLoader()
+    # tldr_dataloader.remove_repeat()
+    conala_dataloader = ConalaLoader()
+    print(len(conala_dataloader.load_qs_list('dev')))
+    print(len(conala_dataloader.load_qs_list('test')))

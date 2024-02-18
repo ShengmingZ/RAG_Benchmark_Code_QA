@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, '/Users/zhaoshengming/Code_RAG_Benchmark')
 import os
 import json
 import shlex
@@ -5,7 +7,7 @@ import tiktoken
 import argparse
 import random
 from tqdm import tqdm
-from run_model import chatgpt
+from generator.run_model import chatgpt
 from prompt import conala_prompt, tldr_prompt
 from dataset.dataset_configs import TldrLoader, ConalaLoader
 from retriever.sparse_retriever import sparse_retriever_config
@@ -42,8 +44,8 @@ def gene_tldr(args, retriever_args):
     tldr_loader     = TldrLoader()
     doc_list_whole  = tldr_loader.load_doc_list_whole()
     doc_list_line   = tldr_loader.load_doc_list_line()
-    qs_list         = tldr_loader.load_qs_list(args.dataset_type)
-    oracle_list     = tldr_loader.load_oracle_list(args.dataset_type)
+    qs_list         = tldr_loader.load_qs_list(retriever_args.dataset_type)
+    oracle_list     = tldr_loader.load_oracle_list(retriever_args.dataset_type)
     if args.retriever == 'bm25':
         ret_result_whole = json.load(open(retriever_args.tldr_ret_result_whole, 'r'))
         ret_result_line = json.load(open(retriever_args.tldr_ret_result_line, 'r'))
@@ -55,13 +57,13 @@ def gene_tldr(args, retriever_args):
 
     gene_results = list()
     prompts = list()
-    for idx, qs, oracle in tqdm(enumerate(zip(qs_list, oracle_list))):
-        if oracle['doc_key'] == 'xkcdpass': continue  # cmd not exists in docs
+    for idx, (qs, oracle) in tqdm(enumerate(zip(qs_list, oracle_list))):
+        if oracle['doc_keys'][0] == 'xkcdpass': continue  # cmd not exists in docs
         qs_id = qs['qs_id']
         assert qs_id == oracle['qs_id']
 
         # prepare retrieved docs
-        # todo: now attach retrieved docs in line level
+        # todo: now only attach retrieved docs in line level
         # res whole: {'qs_id': [{'key1', 'score1'}, ...]} res line {'qs_id': [[{'key1_1', 'score1_1'}, ...], ...]
         if args.ret_doc_type == 'oracle':
             ret_cmd_line = oracle['line_keys'][:args.k_line]
@@ -112,11 +114,11 @@ def gene_tldr(args, retriever_args):
                     prompt = tldr_prompt.tldr_3shots_prompt_with_instruction
                 else:
                     raise Exception('no such prompt type')
-            prompt += '\n'
+            prompt += '\n\n'
             for doc in ret_docs:
                 prompt += doc
                 prompt += '\n'
-            prompt += f'# {qs}'
+            prompt += f'# {qs["nl"]}'
             return prompt
         prompt = prepare_prompt(args)
 
@@ -124,7 +126,7 @@ def gene_tldr(args, retriever_args):
         prompts.append(prompt)
         output = chatgpt(prompt=prompt, model=args.model, temperature=args.temperature, max_tokens=args.max_tokens)[0].replace('\n',' ').replace('#END','')
         gene_results.append(dict(nl=qs, output=output, ret_cmd=ret_cmd_line, oracle_cmd=oracle['doc_keys'][0], oracle_output=oracle['output'], oracle_ret=oracle['line_keys']))
-        # print(prompt)
+        if idx == 0: print(prompt)
         # print(output)
 
     # count tokens
@@ -149,8 +151,8 @@ def gene_conala(args, retriever_args):
     # load docs
     conala_loader = ConalaLoader()
     doc_list = conala_loader.load_doc_list()
-    qs_list = conala_loader.load_qs_list(args.dataset_type)
-    oracle_list = conala_loader.load_oracle_list(args.dataset_type)
+    qs_list = conala_loader.load_qs_list(retriever_args.dataset_type)
+    oracle_list = conala_loader.load_oracle_list(retriever_args.dataset_type)
     if args.retriever == 'bm25':
         ret_result = json.load(open(retriever_args.conala_ret_result, 'r'))
     elif 'codeT5' in args.retriever:
@@ -163,7 +165,7 @@ def gene_conala(args, retriever_args):
 
     gene_results = list()
     prompts = list()
-    for idx, qs, oracle in tqdm(enumerate(zip(qs_list, oracle_list))):
+    for idx, (qs, oracle) in tqdm(enumerate(zip(qs_list, oracle_list))):
         qs_id = qs['qs_id']
 
         # prepare retrieved docs
@@ -244,7 +246,7 @@ def generate_config(in_program_call=None):
     parser.add_argument('--ret_doc_type', type=str, default='retrieved',
                         choices=['oracle', 'retrieved', 'related', 'random', 'unrelated', 'none'])
     parser.add_argument('--prompt_type', type=str, default='original',
-                        choices=['0shots', 'instruct', 'CoT'])
+                        choices=['original', '0shots', 'instruct', 'CoT'])
     parser.add_argument('--model', type=str, default='gpt-3.5-turbo-1106')
     parser.add_argument('--temperature', type=float, default=0.7)
     parser.add_argument('--save_file', type=str, default=None)
@@ -252,7 +254,7 @@ def generate_config(in_program_call=None):
 
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
     if args.save_file is None and args.dataset == 'tldr':
-        args.save_file = (f'docprompting_data/conala/gene_result_'
+        args.save_file = (f'docprompting_data/tldr/gene_result_'
                           f'model_{args.model}_'
                           f'retriever_{args.retriever}_{args.ret_doc_type}_'
                           f'prompt_type_{args.prompt_type}_'
@@ -269,16 +271,16 @@ def generate_config(in_program_call=None):
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset tldr --top_k 1 --k_line 5 --retriever bm25'
+    in_program_call = '--dataset tldr --top_k 1 --k_line 10 --retriever bm25 --ret_doc_type oracle --prompt_type original'
     # in_program_call = '--dataset conala --top_k 5 --retriever codeT5-OTS'
-    args = config(in_program_call)
+    args = generate_config()
     if args.retriever == 'bm25':
-        retriever_args = sparse_retriever_config('')
+        retriever_args = sparse_retriever_config('--dataset tldr --dataset_type dev')
     elif args.retriever == 'codeT5-FT':
-        retriever_args = dense_retriever_config(f"--dataset conala \
+        retriever_args = dense_retriever_config(f"--dataset conala --dataset_type test \
                         --model_name neulab/docprompting-codet5-python-doc-retriever")
     elif args.retriever == 'codeT5-OTS':
-        retriever_args = dense_retriever_config(f"--dataset conala \
+        retriever_args = dense_retriever_config(f"--dataset conala --dataset_type test \
                         --model_name Salesforce/codet5-base")
     else:
         retriever_args = None
