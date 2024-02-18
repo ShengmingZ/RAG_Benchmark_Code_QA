@@ -59,13 +59,13 @@ from transformers import PreTrainedModel, AutoConfig, AutoTokenizer, RobertaMode
 #         self.model.to(self.device)
 #
 #     def encode(self, text_list, save_file):
-#         dataset_utils = text_list
-#         print(f"number of sentences to encode: {len(dataset_utils)}")
+#         dataset = text_list
+#         print(f"number of sentences to encode: {len(dataset)}")
 #
 #         with torch.no_grad():
 #             all_embeddings = []
-#             for i in range(0, len(dataset_utils), self.batch_size):
-#                 batch = dataset_utils[i:i + self.batch_size]
+#             for i in range(0, len(dataset), self.batch_size):
+#                 batch = dataset[i:i + self.batch_size]
 #
 #                 # pad batch
 #                 sent_features = self.tokenizer(batch, add_special_tokens=True,

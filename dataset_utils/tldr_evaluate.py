@@ -169,7 +169,7 @@ def tldr_evaluate(args):
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset_utils tldr --top_k 1 --k_line 5 --retriever unrelated --dataset_type dev'
+    in_program_call = '--dataset tldr --top_k 1 --k_line 5 --retriever unrelated --dataset_type dev'
     args = generate_config()
     args.dataset_type = 'dev'
 

@@ -170,7 +170,7 @@ def _bleu(ref, trans, subword_option=None, smooth=True, code_tokenize=False):
 
 
 if __name__ == '__main__':
-    args = generate_config('--dataset_utils conala \
+    args = generate_config('--dataset conala \
                             --top_k 5 \
                             --retriever bm25 \
                             --dataset_type test')

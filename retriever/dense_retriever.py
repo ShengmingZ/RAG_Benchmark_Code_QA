@@ -135,7 +135,7 @@ def tldr_line_retrieve(args):
 
 def dense_retriever_config(in_program_call=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset_utils', type=str, default='conala', choices=['conala', 'tldr'])
+    parser.add_argument('--dataset', type=str, default='conala', choices=['conala', 'tldr'])
     parser.add_argument('--dataset_type', type=str, default='test', choices=['train', 'test', 'dev'])
     parser.add_argument('--model_name', type=str)
     parser.add_argument('--batch_size', type=int, default=128)
@@ -168,7 +168,7 @@ def dense_retriever_config(in_program_call=None):
 if __name__ == '__main__':
     model_name = model_name_dict['codet5_ots']
     # normalize or not
-    in_program_call = f"--dataset_utils tldr \
+    in_program_call = f"--dataset tldr \
                         --dataset_type dev \
                         --model_name {model_name} \
                         --sim_func cls_distance.cosine"
@@ -191,7 +191,7 @@ if __name__ == '__main__':
         encoder.encode(dataset=doc_list_whole, save_file=ret_args.tldr_doc_whole_embed_save_file)
         # encode doc line-level
         # doc_list_line = list(tldr_loader.load_doc_list_line().type())
-        # encoder.encode(dataset_utils=doc_list_line, save_file=ret_args.tldr_doc_line_embed_save_file)
+        # encoder.encode(dataset=doc_list_line, save_file=ret_args.tldr_doc_line_embed_save_file)
 
         tldr_whole_retrieve(ret_args)
         # tldr_line_retrieve(ret_args)
