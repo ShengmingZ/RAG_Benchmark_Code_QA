@@ -41,11 +41,14 @@ def truncate_too_long_doc(doc, model='gpt-3.5-turbo', max_length=1000):
     return doc
 
 
-def get_dummy_text(model='gpt-3.5-turbo', prompt_length=1000):   # todo: could be docs from another corpus like wiki or just random words
+def get_dummy_text(model='gpt-3.5-turbo', prompt_length=1000, dataset='tldr'):   # todo: could be docs from another corpus like wiki or just random words
     encoding = tiktoken.encoding_for_model(model)
-    encoded_doc = encoding.encode(tldr_prompt.tldr_original_3shots_prompt)
-    doc_length = int((prompt_length - len(encoded_doc))/5)
-    dummy_docs = tldr_prompt.dummy_docs.split('\n')[:5]
+    if dataset == 'tldr':
+        encoded_doc = encoding.encode(tldr_prompt.tldr_original_3shots_prompt)
+    elif dataset == 'conala':
+        encoded_doc = encoding.encode(conala_prompt.conala_original_3shots_prompt)
+    doc_length = int((prompt_length - len(encoded_doc))/10)
+    dummy_docs = tldr_prompt.dummy_docs.split('\n')[:10]
     docs = list()
     for dummy_doc in dummy_docs:
         encoded_doc = encoding.encode(dummy_doc)[:doc_length]
@@ -110,7 +113,7 @@ def gene_tldr(args, retriever_args):
         for line_idx, cmd_line in enumerate(ret_cmd_line):
             ret_docs.append(f"potential document {line_idx}: {cmd_line}: {doc_list_line[cmd_line]}")
         if args.ret_doc_type == 'unrelated':
-            ret_docs = get_dummy_text()
+            ret_docs = get_dummy_text(prompt_length=1000, dataset='tldr')
 
         def prepare_prompt(args):
             if args.ret_doc_type == 'none':
@@ -206,12 +209,14 @@ def gene_conala(args, retriever_args):
             ret_docs.append(f"potential document {line_idx}: {ret_lib}: {doc_list[ret_lib]}")
             ret_docs[line_idx] = ret_docs[line_idx].replace('\n',' ')
         if args.ret_doc_type == 'unrelated':
-            ret_docs = get_dummy_text()
+            ret_docs = get_dummy_text(prompt_length=4000, dataset='conala')
 
         def prepare_prompt(args):
-            if args.retriever == 'none':
+            if args.ret_doc_type == 'none':
                 if args.prompt_type == 'original':
                     prompt = conala_prompt.conala_original_no_retrieval_prompt
+                elif args.prompt_type == 'instruct':
+                    prompt = conala_prompt.tldr_no_retrieval_prompt_with_instruction
                 else:
                     raise Exception('no such prompt type for non-retrieval')
             else:
@@ -219,6 +224,8 @@ def gene_conala(args, retriever_args):
                     prompt = conala_prompt.conala_0shot_prompt
                 elif args.prompt_type == 'original':
                     prompt = conala_prompt.conala_original_3shots_prompt
+                elif args.prompt_type == 'instruct':
+                    prompt = conala_prompt.conala_3shots_prompt_with_instruction
                 else:
                     raise Exception('no such prompt type')
             prompt += '\n'

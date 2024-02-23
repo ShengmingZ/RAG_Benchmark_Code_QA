@@ -1,12 +1,20 @@
 import json
 from collections import Counter
 import os
+import platform
+import sys
+system = platform.system()
+if system == 'Darwin':
+    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+elif system == 'Linux':
+    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+sys.path.insert(0, root_path)
 
 
 # Todo: dataset split is weird, dev: 20%, test: 10%. Use dev set to get final results
 class TldrLoader:
     def __init__(self):
-        self.root = '/Users/zhaoshengming/'
+        self.root = root_path
         self.doc_whole_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/tldr/manual_all_raw.json")
         self.doc_line_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/tldr/manual_section.json")
         self.dev_qs_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/tldr/cmd_dev.seed.json")
@@ -107,7 +115,7 @@ class TldrLoader:
 
 class ConalaLoader:
     def __init__(self):
-        self.root = '/Users/zhaoshengming'
+        self.root = root_path
         self.qs_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/conala/conala_nl.txt")
         self.qs_idx_file = self.qs_file.replace(".txt", ".id")
         self.train_qs_file = os.path.join(self.root, "Code_RAG_Benchmark/docprompting_data/conala/train_qs.json")

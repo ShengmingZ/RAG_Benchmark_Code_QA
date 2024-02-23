@@ -165,8 +165,8 @@ if __name__ == '__main__':
                         --model_name neulab/docprompting-codet5-python-doc-retriever")
     args.pass_k = 100
     args.save_file = args.save_file.replace('.json', '_unittest.json')
-    # print('begin unittest generate, save_to:', args.save_file)
-    # gene_k(args, retrieval_args)
+    print('begin unittest generate, save_to:', args.save_file)
+    gene_k(args, retrieval_args)
 
     print('begin eval')
     pass_at_k(args.save_file)

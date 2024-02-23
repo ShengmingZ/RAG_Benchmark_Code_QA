@@ -215,3 +215,7 @@ class DenseRetrievalEncoder:
     # todo: training ref: https://github.com/princeton-nlp/SimCSE, https://github.com/shuyanzhou/docprompting/tree/main/retriever/simcse
     def train(self):
         pass
+
+
+if __name__ == '__main__':
+    print(openai.api_key)
