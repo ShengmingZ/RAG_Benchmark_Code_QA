@@ -1,5 +1,11 @@
-import sys
-sys.path.insert(0, '/Users/zhaoshengming/Code_RAG_Benchmark')
+import platform
+import sys, os
+system = platform.system()
+if system == 'Darwin':
+    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+elif system == 'Linux':
+    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+sys.path.insert(0, root_path)
 import json
 import time
 import argparse
@@ -110,7 +116,8 @@ class tldr_BM25:
         assert len(qs_list) == len(ret_result_whole)
 
         res_list = dict()
-        for whole_ret, qs in zip(ret_result_whole, qs_list):
+        for qs in qs_list:
+            whole_ret = ret_result_whole[qs['qs_id']]
             retrieved_cmd_list = [item['doc_key'] for item in whole_ret][:self.top_k_cmd]
             res_list_for_cmd = list()
             for cmd in retrieved_cmd_list:
@@ -123,7 +130,7 @@ class tldr_BM25:
                         },
                     'size': self.top_k_sent}
                 res_list_for_cmd.append(self.bm25_retrieve(query=query, index=self.es_idx_line))
-            res_list[qs['nl']] = res_list_for_cmd
+            res_list[qs['qs_id']] = res_list_for_cmd
 
         with open(self.ret_result_path_line, 'w+') as f:
             json.dump(res_list, f, indent=2)
@@ -185,15 +192,15 @@ class conala_BM25():
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset tldr --dataset_type dev'
+    in_program_call = '--dataset conala --dataset_type test'
     bm25_args = sparse_retriever_config(in_program_call)
 
     if bm25_args.dataset == 'tldr':
         tldr_retriever = tldr_BM25(bm25_args)
         tldr_retriever.create_index()
         time.sleep(1)
-        tldr_retriever.retrieve_whole_level()
-        # tldr_retriever.retrieve_line_level()
+        # tldr_retriever.retrieve_whole_level()
+        tldr_retriever.retrieve_line_level()
 
     elif bm25_args.dataset == 'conala':
         conala_retriever = conala_BM25(bm25_args)

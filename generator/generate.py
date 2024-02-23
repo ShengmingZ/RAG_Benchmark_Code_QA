@@ -1,5 +1,11 @@
-import sys
-sys.path.insert(0, '/Users/zhaoshengming/Code_RAG_Benchmark')
+import platform
+import sys, os
+system = platform.system()
+if system == 'Darwin':
+    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+elif system == 'Linux':
+    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+sys.path.insert(0, root_path)
 import os
 import json
 import shlex
@@ -27,7 +33,7 @@ def approximate_token(prompts, model='gpt-3.5-turbo'):
 
 
 def truncate_too_long_doc(doc, model='gpt-3.5-turbo', max_length=1000):
-    encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+    encoding = tiktoken.encoding_for_model(model)
     encoded_doc = encoding.encode(doc)
     if len(encoded_doc) > max_length:
         encoded_doc = encoded_doc[:max_length]
@@ -35,8 +41,17 @@ def truncate_too_long_doc(doc, model='gpt-3.5-turbo', max_length=1000):
     return doc
 
 
-def get_dummy_text():   # todo: could be docs from another corpus like wiki or just random words
-    return ''
+def get_dummy_text(model='gpt-3.5-turbo', prompt_length=1000):   # todo: could be docs from another corpus like wiki or just random words
+    encoding = tiktoken.encoding_for_model(model)
+    encoded_doc = encoding.encode(tldr_prompt.tldr_original_3shots_prompt)
+    doc_length = int((prompt_length - len(encoded_doc))/5)
+    dummy_docs = tldr_prompt.dummy_docs.split('\n')[:5]
+    docs = list()
+    for dummy_doc in dummy_docs:
+        encoded_doc = encoding.encode(dummy_doc)[:doc_length]
+        doc = encoding.decode(encoded_doc)
+        docs.append(doc)
+    return docs
 
 
 def gene_tldr(args, retriever_args):
@@ -74,8 +89,8 @@ def gene_tldr(args, retriever_args):
         elif args.ret_doc_type == 'related':
             ret_cmd_idx = [idx for idx, ret_result in enumerate(ret_result_whole[qs_id]) if ret_result['doc_key'] not in oracle['doc_keys']][:args.top_k] # get top k cmd expect oracle
             ret_cmd_line = list()
-            for cmd_idx in enumerate(ret_cmd_idx):
-                assert ret_result_line[qs_id][cmd_idx][0]['doc_key'].split('_')[0] == ret_result_whole[qs_id][cmd_idx]['doc_key']
+            for cmd_idx in ret_cmd_idx:
+                assert ret_result_line[qs_id][cmd_idx][0]['doc_key'].rsplit('_', 1)[0] == ret_result_whole[qs_id][cmd_idx]['doc_key']
                 ret_cmd_line.extend([ret_result['doc_key'] for ret_result in ret_result_line[qs_id][cmd_idx][0:args.k_line]])
         elif args.ret_doc_type == 'random':
             doc_key_whole_list = list(doc_list_whole.keys())
@@ -94,11 +109,11 @@ def gene_tldr(args, retriever_args):
         ret_docs = list()
         for line_idx, cmd_line in enumerate(ret_cmd_line):
             ret_docs.append(f"potential document {line_idx}: {cmd_line}: {doc_list_line[cmd_line]}")
-        if args.retriever == 'unrelated':
+        if args.ret_doc_type == 'unrelated':
             ret_docs = get_dummy_text()
 
         def prepare_prompt(args):
-            if args.retriever == 'none':
+            if args.ret_doc_type == 'none':
                 if args.prompt_type == 'original':
                     prompt = tldr_prompt.tldr_original_no_retrieval_prompt
                 elif args.prompt_type == 'instruct':
@@ -106,7 +121,7 @@ def gene_tldr(args, retriever_args):
                 else:
                     raise Exception('no such prompt type for non-retrieval')
             else:
-                if args.prompt_type == '0shots':
+                if args.prompt_type == '0shot':
                     prompt = tldr_prompt.tldr_0shot_prompt
                 elif args.prompt_type == 'original':
                     prompt = tldr_prompt.tldr_original_3shots_prompt
@@ -116,6 +131,7 @@ def gene_tldr(args, retriever_args):
                     raise Exception('no such prompt type')
             prompt += '\n\n'
             for doc in ret_docs:
+                doc = truncate_too_long_doc(doc=doc, max_length=args.max_doc_tokens)
                 prompt += doc
                 prompt += '\n'
             prompt += f'# {qs["nl"]}'
@@ -199,25 +215,29 @@ def gene_conala(args, retriever_args):
                 else:
                     raise Exception('no such prompt type for non-retrieval')
             else:
-                if args.prompt_type == '0shots':
-                    prompt = conala_prompt.conala_0shots_prompt
+                if args.prompt_type == '0shot':
+                    prompt = conala_prompt.conala_0shot_prompt
                 elif args.prompt_type == 'original':
                     prompt = conala_prompt.conala_original_3shots_prompt
                 else:
                     raise Exception('no such prompt type')
             prompt += '\n'
             for doc in ret_docs:
-                doc = truncate_too_long_doc(doc)
+                doc = truncate_too_long_doc(doc, max_length=args.max_doc_tokens)
                 prompt += doc
                 prompt += '\n'
-            prompt += f'# {qs}'
+            prompt += f'# {qs["nl"]}'
             return prompt
         prompt = prepare_prompt(args)
 
         # gene response
         prompts.append(prompt)
         output = chatgpt(prompt=prompt, model=args.model, temperature=args.temperature, max_tokens=args.max_tokens)[0].replace('\n', ' ').replace('#END', '')
+        output = (output.replace("{{", " {{").replace("\n", ' ').replace("\r", "").
+               replace("<pad>", "").replace("<s>", "").replace("</s>", "").strip())
+        output = " ".join(output.split())
         gene_results.append(dict(nl=qs, output=output, ret_libs=ret_libs, oracle_libs=oracle['doc_keys'], oracle_output=oracle['output']))
+        if idx == 0: print(prompt)
 
     # count tokens
     approximate_token(prompts)
@@ -246,11 +266,12 @@ def generate_config(in_program_call=None):
     parser.add_argument('--ret_doc_type', type=str, default='retrieved',
                         choices=['oracle', 'retrieved', 'related', 'random', 'unrelated', 'none'])
     parser.add_argument('--prompt_type', type=str, default='original',
-                        choices=['original', '0shots', 'instruct', 'CoT'])
+                        choices=['original', '0shot', 'instruct', 'CoT'])
     parser.add_argument('--model', type=str, default='gpt-3.5-turbo-1106')
     parser.add_argument('--temperature', type=float, default=0.7)
     parser.add_argument('--save_file', type=str, default=None)
     parser.add_argument('--max_tokens', type=int, default=1000)
+    parser.add_argument('--max_doc_tokens', type=int, default=1000)
 
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
     if args.save_file is None and args.dataset == 'tldr':
@@ -258,14 +279,16 @@ def generate_config(in_program_call=None):
                           f'model_{args.model}_'
                           f'retriever_{args.retriever}_{args.ret_doc_type}_'
                           f'prompt_type_{args.prompt_type}_'
-                          f'top_k_{args.top_k}_k_line_{args.k_line}.json')
+                          f'top_k_{args.top_k}_k_line_{args.k_line}'
+                          f'doc_tokens_{args.max_doc_tokens}.json')
     elif args.save_file is None and args.dataset == 'conala':
         args.save_file = (f'docprompting_data/conala/gene_result_'
                           f'model_{args.model}_'
                           f'retriever_{args.retriever}_{args.ret_doc_type}_'
                           f'prompt_type_{args.prompt_type}_'
-                          f'top_k_{args.top_k}.json')
-
+                          f'top_k_{args.top_k}_'
+                          f'doc_tokens_{args.max_doc_tokens}.json')
+    args.save_file = os.path.join(root_path, args.save_file)
     print(json.dumps(vars(args), indent=2))
     return args
 

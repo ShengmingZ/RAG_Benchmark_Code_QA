@@ -1,12 +1,15 @@
 import argparse
 import shlex
 import json, os
-
+import openai
 import numpy as np
 import torch
 import transformers
+import tiktoken
 from transformers import PreTrainedModel, AutoConfig, AutoTokenizer, RobertaModel, AutoModel
+from sentence_transformers import SentenceTransformer
 
+openai.api_key = os.environ['OPENAI_API_KEY']
 
 # class RetrievalModel(PreTrainedModel):
 #     def __init__(self, config, model_name, tokenizer, model_args, batch_size=64, all_layers=False):
@@ -112,19 +115,62 @@ class DenseRetrievalEncoder:
         self.top_k = args.top_k
         self.sim_func = args.sim_func
         self.normalize_embed = args.normalize_embed
-
-        # todo: load more type of tokenizer and model
-        self.tokenizer = transformers.RobertaTokenizer.from_pretrained(self.model_name)
-        if 't5' in self.model_name:
-            self.model = transformers.T5EncoderModel.from_pretrained(self.model_name)
-        elif 'roberta' in self.model_name:
-            self.model = RobertaModel.from_pretrained(self.model_name)
-
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        self.model.to(self.device)
+        # todo: load more type of tokenizer and model
+        if 'sentence-transformers' in self.model_name:
+            self.model = SentenceTransformer(self.model_name)
+            self.tokenizer = None
+            self.model.to(self.device)
+        elif 'text-embedding' in self.model_name:
+            self.model = None
+            self.tokenizer = None
+        else:
+            if 't5' in self.model_name:
+                self.model = transformers.T5EncoderModel.from_pretrained(self.model_name)
+            elif 'roberta' in self.model_name:
+                self.model = RobertaModel.from_pretrained(self.model_name)
+            self.tokenizer = transformers.RobertaTokenizer.from_pretrained(self.model_name)
+            self.model.to(self.device)
+
 
     # todo: max token lens: 512, now truncate if input text too long
     def encode(self, dataset, save_file):
+        if 'sentence-transformers' in self.model_name:
+            all_embeddings = []
+            for i in range(0, len(dataset), self.batch_size):
+                batch = dataset[i:i + self.batch_size]
+                all_embeddings.append(self.model.encode(batch))
+
+            all_embeddings = np.concatenate(all_embeddings, axis=0)
+            print(f"done embedding: {all_embeddings.shape}")
+            if not os.path.exists(os.path.dirname(save_file)):
+                os.makedirs(os.path.dirname(save_file))
+            np.save(save_file, all_embeddings)
+            return
+
+        if 'text-embedding' in self.model_name:
+            OPENAI_TOKENIZER = "cl100k_base"
+            OPENAI_MAX_TOKENS = 500
+            encoding = tiktoken.get_encoding(OPENAI_TOKENIZER)
+            all_embeddings = []
+            for i in range(0, len(dataset), self.batch_size):
+                batch = dataset[i:i + self.batch_size]
+                # truncate
+                for j in range(len(batch)):
+                    encoded_doc = encoding.encode(batch[j])[:OPENAI_MAX_TOKENS]
+                    batch[j] = encoding.decode(encoded_doc)
+                response = openai.Embedding.create(model=self.model_name, input=batch)
+                embeds = [data["embedding"] for data in response['data']]
+                all_embeddings.append(np.array(embeds))
+
+            all_embeddings = np.concatenate(all_embeddings, axis=0)
+            print(f"done embedding: {all_embeddings.shape}")
+            if not os.path.exists(os.path.dirname(save_file)):
+                os.makedirs(os.path.dirname(save_file))
+            np.save(save_file, all_embeddings)
+            return
+
+
         with torch.no_grad():
             all_embeddings = []
             for i in range(0, len(dataset), self.batch_size):

@@ -1,5 +1,11 @@
-import sys
-sys.path.insert(0, '/Users/zhaoshengming/Code_RAG_Benchmark')
+import platform
+import sys, os
+system = platform.system()
+if system == 'Darwin':
+    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+elif system == 'Linux':
+    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+sys.path.insert(0, root_path)
 import argparse
 import shlex
 import json
@@ -15,7 +21,9 @@ from retriever.dense_encoder import DenseRetrievalEncoder
 model_name_dict = {'codet5_conala': 'neulab/docprompting-codet5-python-doc-retriever',
                    'codet5_ots': 'Salesforce/codet5-base',
                    'roberta_conala': '',
-                   'roberta_ots': 'roberta-large-mnli'}
+                   'roberta_ots': 'roberta-large-mnli',
+                   'minilm': 'sentence-transformers/all-MiniLM-L6-v2',
+                   'openai-embedding': 'text-embedding-3-small'}
 
 
 def retrieve(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, top_k):
@@ -34,6 +42,8 @@ def retrieve(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, top_k):
         for key, distance in zip(retrieved_doc_key, dist):
             results.append(dict(doc_key=key, score=float(distance)))
         ret_results[qs_id_list[qs_idx]] = results
+    print(save_file)
+    print(ret_results[qs_id_list[0]])
     with open(save_file, 'w+') as f:
         json.dump(ret_results, f, indent=2)
 
@@ -87,50 +97,62 @@ def tldr_whole_retrieve(args):
 def tldr_line_retrieve(args):
     tldr_loader = TldrLoader()
     doc_list_whole = tldr_loader.load_doc_list_whole()
-    key_list_whole = list(doc_list_whole.keys())
     doc_list_line = tldr_loader.load_doc_list_line()
+    key_list_whole = list(doc_list_whole.keys())
     key_list_line = list(doc_list_line.keys())
-    qs_list = tldr_loader.load_qs_list(args.dataset_type)
-    qs_id_list = [qs['qs_id'] for qs in qs_list]
-
-    qs_embed = np.load(args.tldr_qs_embed_save_file + '.npy')
-    doc_whole_embed = np.load(args.tldr_doc_whole_embed_save_file + '.npy')
+    # load whole results
+    save_file_whole = args.save_file.replace('.json', '_whole.json')
+    save_file_line = args.save_file.replace('.json', '_line.json')
     doc_line_embed = np.load(args.tldr_doc_line_embed_save_file + '.npy')
 
-    # way 1: retrieve sentence level
-    save_file_line = args.save_file.replace('.json', '_line.json')
-    results_line = retrieve(qs_embed, doc_line_embed, qs_id_list, key_list_line, save_file_line, args.top_k)
 
-    # evaluate
-    pred, gold = [], []
-    gold = [oracle['doc_keys'][0] for oracle in tldr_loader.load_oracle_list(args.dataset_type)]
-    for item in qs_list:
-        pred_result = results_line[item['qs_id']]
-        pred_key_list = [item['doc_key'].rsplit('_', 1)[0] for item in pred_result]
-        pred.append(list(OrderedDict.fromkeys(pred_key_list)))
-    tldr_eval(gold, pred, top_k=[1, 3, 5, 10, 15, 20, 30])
-
-    # way 2: calc mean of each sentence and then retrieve doc level
-    assert len(key_list_line) == doc_line_embed.shape[0]
-    doc_whole_mean_embed = np.zeros(doc_whole_embed.shape)
-    cmd, cmd_idx, cmd_length = key_list_line[0].rsplit('_', 1)[0], 0, 0
-    for idx, key in enumerate(key_list_line):
-        embed = doc_line_embed[idx]
-        if key.rsplit('_', 1)[0] != cmd:
-            doc_whole_mean_embed[cmd_idx] = doc_whole_mean_embed[cmd_idx] / cmd_length
-            cmd_idx += 1
-            cmd = key.rsplit('_', 1)[0]
-            cmd_length = 0
-        cmd_length += 1
-        doc_whole_mean_embed[cmd_idx] += embed
-
-    save_file_line = args.save_file.replace('.json', '_line.json')
-    results_line_sum = retrieve(qs_embed, doc_whole_mean_embed.astype(np.float32), qs_id_list, key_list_whole, save_file_line, args.top_k)
-
-    # evaluate
-    gold = [oracle['doc_keys'][0] for oracle in tldr_loader.load_oracle_list(args.dataset_type)]
-    pred = [results_line_sum[qs_id] for qs_id in qs_id_list]
-    tldr_eval(gold, pred, top_k=[1, 3, 5, 10, 15, 20, 30])
+# def old_tldr_line_retrieve(args):
+#     tldr_loader = TldrLoader()
+#     doc_list_whole = tldr_loader.load_doc_list_whole()
+#     key_list_whole = list(doc_list_whole.keys())
+#     doc_list_line = tldr_loader.load_doc_list_line()
+#     key_list_line = list(doc_list_line.keys())
+#     qs_list = tldr_loader.load_qs_list(args.dataset_type)
+#     qs_id_list = [qs['qs_id'] for qs in qs_list]
+#
+#     qs_embed = np.load(args.tldr_qs_embed_save_file + '.npy')
+#     doc_whole_embed = np.load(args.tldr_doc_whole_embed_save_file + '.npy')
+#     doc_line_embed = np.load(args.tldr_doc_line_embed_save_file + '.npy')
+#
+#     # way 1: retrieve sentence level
+#     save_file_line = args.save_file.replace('.json', '_line.json')
+#     results_line = retrieve(qs_embed, doc_line_embed, qs_id_list, key_list_line, save_file_line, args.top_k)
+#
+#     # evaluate
+#     pred, gold = [], []
+#     gold = [oracle['doc_keys'][0] for oracle in tldr_loader.load_oracle_list(args.dataset_type)]
+#     for item in qs_list:
+#         pred_result = results_line[item['qs_id']]
+#         pred_key_list = [item['doc_key'].rsplit('_', 1)[0] for item in pred_result]
+#         pred.append(list(OrderedDict.fromkeys(pred_key_list)))
+#     tldr_eval(gold, pred, top_k=[1, 3, 5, 10, 15, 20, 30])
+#
+#     # way 2: calc mean of each sentence and then retrieve doc level
+#     assert len(key_list_line) == doc_line_embed.shape[0]
+#     doc_whole_mean_embed = np.zeros(doc_whole_embed.shape)
+#     cmd, cmd_idx, cmd_length = key_list_line[0].rsplit('_', 1)[0], 0, 0
+#     for idx, key in enumerate(key_list_line):
+#         embed = doc_line_embed[idx]
+#         if key.rsplit('_', 1)[0] != cmd:
+#             doc_whole_mean_embed[cmd_idx] = doc_whole_mean_embed[cmd_idx] / cmd_length
+#             cmd_idx += 1
+#             cmd = key.rsplit('_', 1)[0]
+#             cmd_length = 0
+#         cmd_length += 1
+#         doc_whole_mean_embed[cmd_idx] += embed
+#
+#     save_file_line = args.save_file.replace('.json', '_line.json')
+#     results_line_sum = retrieve(qs_embed, doc_whole_mean_embed.astype(np.float32), qs_id_list, key_list_whole, save_file_line, args.top_k)
+#
+#     # evaluate
+#     gold = [oracle['doc_keys'][0] for oracle in tldr_loader.load_oracle_list(args.dataset_type)]
+#     pred = [results_line_sum[qs_id] for qs_id in qs_id_list]
+#     tldr_eval(gold, pred, top_k=[1, 3, 5, 10, 15, 20, 30])
 
 
 def dense_retriever_config(in_program_call=None):
@@ -151,25 +173,25 @@ def dense_retriever_config(in_program_call=None):
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
     model_name_splitted = args.model_name.rsplit('/',1)[-1]
     if args.save_file is None:
-        args.save_file = f'docprompting_data/{args.dataset}/ret_results_{model_name_splitted}.json'
+        args.save_file = os.path.join(root_path, f'docprompting_data/{args.dataset}/ret_results_{model_name_splitted}.json')
 
     if args.dataset == 'conala':
-        args.conala_qs_embed_save_file = f'docprompting_data/conala/embedding/qs_{model_name_splitted}'
-        args.conala_doc_firstpara_embed_save_file = f'docprompting_data/conala/embedding/doc_firstpara_{model_name_splitted}'
+        args.conala_qs_embed_save_file = os.path.join(root_path, f'docprompting_data/conala/embedding/qs_{model_name_splitted}')
+        args.conala_doc_firstpara_embed_save_file = os.path.join(root_path, f'docprompting_data/conala/embedding/doc_firstpara_{model_name_splitted}')
     elif args.dataset == 'tldr':
-        args.tldr_qs_embed_save_file = f'docprompting_data/tldr/embedding/qs_{model_name_splitted}'
-        args.tldr_doc_whole_embed_save_file = f'docprompting_data/tldr/embedding/doc_whole_{model_name_splitted}'
-        args.tldr_doc_line_embed_save_file = f'docprompting_data/tldr/embedding/doc_line_{model_name_splitted}'
+        args.tldr_qs_embed_save_file = os.path.join(root_path, f'docprompting_data/tldr/embedding/qs_{model_name_splitted}')
+        args.tldr_doc_whole_embed_save_file = os.path.join(root_path, 'docprompting_data/tldr/embedding/doc_whole_{model_name_splitted}')
+        args.tldr_doc_line_embed_save_file = os.path.join(root_path, f'docprompting_data/tldr/embedding/doc_line_{model_name_splitted}')
 
     print(json.dumps(vars(args), indent=2))
     return args
 
 
 if __name__ == '__main__':
-    model_name = model_name_dict['codet5_ots']
+    model_name = model_name_dict['codet5_conala']
     # normalize or not
-    in_program_call = f"--dataset tldr \
-                        --dataset_type dev \
+    in_program_call = f"--dataset conala \
+                        --dataset_type test \
                         --model_name {model_name} \
                         --sim_func cls_distance.cosine"
     ret_args = dense_retriever_config(in_program_call)
@@ -178,22 +200,17 @@ if __name__ == '__main__':
     if ret_args.dataset == 'tldr':
         tldr_loader = TldrLoader()
         # encode qs
-        qs_list = tldr_loader.load_qs_list(ret_args.dataset_type)
-        qs_list = [item['nl'] for item in qs_list]
-        encoder.encode(dataset=qs_list, save_file=ret_args.tldr_qs_embed_save_file)
+        # qs_list = tldr_loader.load_qs_list(ret_args.dataset_type)
+        # qs_list = [item['nl'] for item in qs_list]
+        # encoder.encode(dataset=qs_list, save_file=ret_args.tldr_qs_embed_save_file)
         # encode doc whole-level
-        doc_list_whole = tldr_loader.load_doc_list_whole()
-        _doc_list_whole = list()    # skip first line in docs
-        for key, doc in doc_list_whole.items():
-            if key == 'wp': _doc_list_whole.append(doc)
-            else: _doc_list_whole.append(doc.split('\n',1)[1])
-        doc_list_whole = _doc_list_whole
-        encoder.encode(dataset=doc_list_whole, save_file=ret_args.tldr_doc_whole_embed_save_file)
+        # doc_list_whole = list(tldr_loader.load_doc_list_whole().values())
+        # encoder.encode(dataset=doc_list_whole, save_file=ret_args.tldr_doc_whole_embed_save_file)
         # encode doc line-level
-        # doc_list_line = list(tldr_loader.load_doc_list_line().type())
-        # encoder.encode(dataset=doc_list_line, save_file=ret_args.tldr_doc_line_embed_save_file)
+        doc_list_line = list(tldr_loader.load_doc_list_line().values())
+        encoder.encode(dataset=doc_list_line, save_file=ret_args.tldr_doc_line_embed_save_file)
 
-        tldr_whole_retrieve(ret_args)
+        # tldr_whole_retrieve(ret_args)
         # tldr_line_retrieve(ret_args)
 
 

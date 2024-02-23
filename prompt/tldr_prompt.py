@@ -23,7 +23,7 @@ csvsort -c {{9}} {{data.csv}}
 
 tldr_3shots_prompt_with_instruction = '''Given the description, and some potential documents that might help, generate corresponding command,
 Only generate the command, and all variables in the command should be in the format of {{VAR}} and do not include "shell" or "bash". 
-And pay attention that potential documents might not be helpful when generating the command
+You should be careful that potential documents might not contain the right information for generating the command
 Potential document 0: fatlabel_3: fatlabel will display or change the volume label or volume ID on the MS- DOS filesystem located on DEVICE.  By default it works in label mode.  It can be switched to volume ID mode with the option -i or --volume-id.
 # get the label of a fat32 partition
 fatlabel {{/dev/sda1}}
@@ -81,3 +81,11 @@ w --short
 csvsort -c {{9}} {{data.csv}}
 
 #END'''
+
+
+dummy_docs = '''potential document 0: dummy: The twirling twizzle spun and swirled, while the jolly jibber-jabber jangled joyfully. Tippy-tops tiptoed in the bumpy-boop, and snuggle-snacks snuggled sweetly. Doodle-dums dawdled dreamily in the dilly-dally, and wobble-wumps wavered whimsically. Zig-zags zipped through the zigzag zone, and snicker-snacks giggled gently. Wobble-waddles wandered and wiggled in the jibber-jabber jungle, lost in the muddle-puddle of nonsensical wizzle-wazzle.
+potential document 1: dummy: The wiggly fluff went plop while the jibber-jabber bumbled and tumbled. Fizzle-flop danced around the wibbly-wobbly doodle, and snicker-snack bounced happily. Doodle-doo twirled and swirled in the zigzag zoom, and snuggle-bug snuggled close. Wobble-wobble wandered through the dilly-dally, giggling and jiggling all the while. Squiggle-squabble and waddle-waddle wobbled along, playing in the silly-sally world of random wozzle.
+potential document 2: dummy: The merry muddle meandered and murmured, while the jovial jingle-jangle jiggled joyously. Tiptoe-tots tiptoed tenderly in the bouncy-bop, and snuggle-snacks snuggled softly. Doodle-daisies dallied dreamily in the dilly-dally, and wobble-wumps wavered whimsically. Zig-zag zephyrs zipped through the zigzag zone, and snicker-snacks snickered softly. Wobble-waddles wobbled and wiggled in the jibber-jabber jungle, lost in the whimsical wuzzle-wazzle.
+potential document 3: dummy: The zippity-zap zonked and ziggled, while the wibbly-wobbly wuzzle wandered and wiggled. Flippity-flop fluttered and floundered in the doodle-doo, and snicker-snack snuggled up. Dingle-dangle doddled and dawdled in the pitter-patter, and wobble-wabble wiggled away. Toodle-oo twirled and twiddled through the zigzag zoom, and snuggle-bug snickered softly. Wibble-wobble wandered and waddled in the jiggle-juggle jungle, lost in the riddle-raddle of nonsensical doodle-doo.
+potential document 4: dummy: The whimsical wuzzle wobbled and wiggled, while the dainty doodle danced delicately. Bumbling bips bounced in the bobbly-boop, and snuggle-snacks snuggled snugly. Doodle-dees dawdled dreamily in the dilly-dally, and wibble-wobbles wavered warmly. Tippy-toes tiptoed through the ticklish tangle, and snuggle-bugs snickered softly. Wobble-wopples wandered and waddled in the jibber-jabber jungle, lost in the muddle-puddle of nonsensical doodle-doo.
+'''

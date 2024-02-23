@@ -27,6 +27,14 @@ import json
 import os.path
 import re
 
+import platform
+import sys, os
+system = platform.system()
+if system == 'Darwin':
+    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+elif system == 'Linux':
+    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+sys.path.insert(0, root_path)
 from dataset_configs import ConalaLoader
 from generator.generate import generate_config
 
@@ -170,10 +178,8 @@ def _bleu(ref, trans, subword_option=None, smooth=True, code_tokenize=False):
 
 
 if __name__ == '__main__':
-    args = generate_config('--dataset conala \
-                            --top_k 5 \
-                            --retriever bm25 \
-                            --dataset_type test')
+    args = generate_config()
+    args.dataset_type = 'test'
     conala_loader = ConalaLoader()
     oracle_list = conala_loader.load_oracle_list(args.dataset_type)
     gold = [oracle['output'] for oracle in oracle_list]

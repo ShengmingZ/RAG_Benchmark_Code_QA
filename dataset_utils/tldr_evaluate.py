@@ -1,5 +1,11 @@
-import sys
-sys.path.insert(0, '/Users/zhaoshengming/Code_RAG_Benchmark')
+import platform
+import sys, os
+system = platform.system()
+if system == 'Darwin':
+    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+elif system == 'Linux':
+    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+sys.path.insert(0, root_path)
 import re
 import json
 import numpy as np
@@ -22,6 +28,7 @@ def clean_results(results):
 """match if exactly same"""
 VAR_STR = "[[VAR]]"
 def clean_command(s):
+    s = re.sub(pattern=r'"([^"]+)"', repl=r'{{\1}}', string=s)
     s = s.replace("sudo", "").strip()
     s =  s.replace("`", "").replace('"', "").replace("'", "")
     #  '>', '|', '+'

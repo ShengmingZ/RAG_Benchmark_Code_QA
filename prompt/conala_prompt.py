@@ -45,6 +45,6 @@ df.fillna(0)
 #END
 '''
 
-conala_0shots_prompt = '''Given the description, and some potential documents that might help, generate corresponding Python command. 
+conala_0shot_prompt = '''Given the description, and some potential documents that might help, generate corresponding Python command. 
 Only generate the command, and remember that some of the documents might not be helpful when generating the command.'''
 # And pay attention that potential documents might not be helpful when generating the command
