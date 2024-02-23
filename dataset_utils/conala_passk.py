@@ -73,9 +73,11 @@ def gene_k(args, retriever_args):
             ret_docs = get_dummy_text()
 
         def prepare_prompt(args):
-            if args.retriever == 'none':
+            if args.ret_doc_type == 'none':
                 if args.prompt_type == 'original':
                     prompt = conala_prompt.conala_original_no_retrieval_prompt
+                elif args.prompt_type == 'instruct':
+                    prompt = conala_prompt.tldr_no_retrieval_prompt_with_instruction
                 else:
                     raise Exception('no such prompt type for non-retrieval')
             else:
@@ -83,6 +85,8 @@ def gene_k(args, retriever_args):
                     prompt = conala_prompt.conala_0shot_prompt
                 elif args.prompt_type == 'original':
                     prompt = conala_prompt.conala_original_3shots_prompt
+                elif args.prompt_type == 'instruct':
+                    prompt = conala_prompt.conala_3shots_prompt_with_instruction
                 else:
                     raise Exception('no such prompt type')
             prompt += '\n'
