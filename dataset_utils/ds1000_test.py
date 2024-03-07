@@ -25,6 +25,7 @@ def test_helper(problem_code_pair: Tuple[DS1000Problem, List[str]]):
     return test_results
 
 def ds1000_passk(result_file, mode='Completion', num_procs=16):
+    check_version()
     result_list = json.load(open(result_file, 'r'))
     ds1000 = DS1000Dataset(source_dir=root_path+'/DS-1000/ds1000_data', mode=mode, libs='all')
     # process generate code

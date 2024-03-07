@@ -5,7 +5,6 @@ import openai
 import numpy as np
 import torch
 import transformers
-import tiktoken
 from transformers import PreTrainedModel, AutoConfig, AutoTokenizer, RobertaModel, AutoModel
 from sentence_transformers import SentenceTransformer
 
@@ -135,6 +134,7 @@ class DenseRetrievalEncoder:
 
     # todo: max token lens: 512, now truncate if input text too long
     def encode(self, dataset, save_file):
+        import tiktoken
         if 'sentence-transformers' in self.model_name:
             all_embeddings = []
             for i in range(0, len(dataset), self.batch_size):
