@@ -58,7 +58,7 @@ if __name__ == '__main__':
     # args = generate_config(in_program_call)
     #
     # # ds1000_passk(args.save_file)
-    ds1000 = DS1000Dataset(source_dir='../DS-1000/ds1000_data', mode='completion', libs='all')
+    ds1000 = DS1000Dataset(source_dir=root_path+'/DS-1000/ds1000_data', mode='completion', libs='all')
     #
     # ds1000_loader = DS1000Loader()
     # qs_list = ds1000_loader.load_qs_list()
