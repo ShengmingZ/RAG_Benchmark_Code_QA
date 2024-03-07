@@ -298,7 +298,7 @@ class ConalaLoader:
 class DS1000Loader:
     def __init__(self):
         self.root = root_path
-        self.ds1000 = DS1000Dataset(source_dir=os.path.join(self.root, 'DS-1000/ds1000_data'), libs='all', mode='completion')
+        self.ds1000 = DS1000Dataset(source_dir=os.path.join(self.root, 'DS-1000/ds1000_data'), libs='all', mode='Completion')
         self.doc_file = os.path.join(self.root, "docprompting_data/conala/conala_docs.json")
 
     def load_qs_list(self):
