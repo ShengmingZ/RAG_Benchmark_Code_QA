@@ -98,16 +98,41 @@
 from dataset_utils.dataset_configs import TldrLoader
 from collections import Counter
 
-tldr_loader = TldrLoader()
-oracle_list = tldr_loader.load_oracle_list('test')
-qs_list = tldr_loader.load_qs_list('test')
-counter = Counter(d['qs_id'] for d in qs_list)
-print(counter)
+# tldr_loader = TldrLoader()
+# oracle_list = tldr_loader.load_oracle_list('test')
+# qs_list = tldr_loader.load_qs_list('test')
+# counter = Counter(d['qs_id'] for d in qs_list)
+# print(counter)
+#
+#
+# print(len(oracle_list), len(qs_list))
+# for idx, oracle in enumerate(oracle_list):
+#     if oracle['qs_id'] != qs_list[idx]['qs_id']:
+#         print(oracle)
+#         print(qs_list[idx])
+#         break
 
-
-print(len(oracle_list), len(qs_list))
-for idx, oracle in enumerate(oracle_list):
-    if oracle['qs_id'] != qs_list[idx]['qs_id']:
-        print(oracle)
-        print(qs_list[idx])
-        break
+# import sys
+# sys.path.append('/Users/zhaoshengming/Code_RAG_Benchmark/DS-1000')
+# from ds1000 import DS1000Dataset
+#
+# ds_data = DS1000Dataset("ds1000_data") # loads all questions into RAM
+#
+# # DS1000Dataset is splitted by different libraries
+# ds_data["Pandas"] # list of 291 Pandas questions
+# print(ds_data["Pandas"][0]) # get first Pandas question
+#
+# # you can query codex API by using the official prompt
+# # implement `api_call` with your inference logic
+# print(ds_data["Pandas"][0]["prompt"])
+#
+# # look at reference_code to understand the question
+# reference_code = ds_data["Pandas"][0]["reference_code"]
+# print(reference_code)
+#
+# # run official test on the generated code to
+# # is_correct = ds_data["Pandas"][0].test(generated_code)
+#
+# # checkout other available information in each question
+# # we will go over them in the next section
+# print(ds_data["Pandas"][0].keys())

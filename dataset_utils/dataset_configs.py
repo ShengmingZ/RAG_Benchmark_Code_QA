@@ -9,9 +9,13 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
+sys.path.insert(0, root_path + '/DS-1000')
+from abc import ABC, abstractmethod
+from ds1000 import DS1000Dataset
 
 
-# Todo: dataset split is weird, dev: 20%, test: 10%. Use dev set to get final results
+
+
 class TldrLoader:
     def __init__(self):
         self.root = root_path
@@ -289,6 +293,43 @@ class ConalaLoader:
         with open(self.dev_oracle_file, 'w+') as f:
             json.dump(oracle_list, f, indent=2)
         print('dev: ', len(qs_list))
+
+
+class DS1000Loader:
+    def __init__(self):
+        self.root = root_path
+        self.ds1000 = DS1000Dataset(source_dir=os.path.join(self.root, 'DS-1000/ds1000_data'), libs='all', mode='completion')
+        self.doc_file = os.path.join(self.root, "docprompting_data/conala/conala_docs.json")
+
+    def load_qs_list(self):
+        """
+        all elements in qs list should be in the format of {'nl': nl, 'qs_id': qs_id}
+        """
+        qs_list = []
+        for lib in self.ds1000.libs:
+            for idx in range(len(self.ds1000[lib])):
+                qs_id = lib + '_' + str(idx)
+                prompt = self.ds1000[lib][idx]['prompt']
+                qs_list.append(dict(qs_id=qs_id, nl=prompt))
+        return qs_list
+
+    def load_doc_list(self):
+        """
+        all docs should be in the format of {f'{doc_key}': content}
+        """
+        return json.load(open(self.doc_file, 'r'))
+
+    def load_oracle_list(self):
+        """
+        {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
+        """
+        oracle_list = []
+        for lib in self.ds1000.libs:
+            for idx in range(len(self.ds1000[lib])):
+                qs_id = lib + '_' + str(idx)
+                output = self.ds1000[lib][idx]['reference_code']
+                oracle_list.append(dict(qs_id=qs_id, output=output))
+        return oracle_list
 
 
 if __name__ == '__main__':

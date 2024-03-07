@@ -15,9 +15,10 @@ import random
 from tqdm import tqdm
 from generator.run_model import chatgpt
 from prompt import conala_prompt, tldr_prompt
-from dataset_utils.dataset_configs import TldrLoader, ConalaLoader
+from dataset_utils.dataset_configs import TldrLoader, ConalaLoader, DS1000Loader
 from retriever.sparse_retriever import sparse_retriever_config
 from retriever.dense_retriever import dense_retriever_config
+
 
 
 
@@ -263,6 +264,41 @@ def gene_conala(args, retriever_args):
             json.dump(gene_results, f, indent=2)
 
 
+def gene_ds1000(args, retriever_args):
+    # load dataset
+    ds1000_loader = DS1000Loader()
+    qs_list = ds1000_loader.load_qs_list()
+    oracle_list = ds1000_loader.load_oracle_list()
+
+    gene_results = []
+    for idx, (qs, oracle) in tqdm(enumerate(zip(qs_list, oracle_list))):
+        qs_id = qs['qs_id']
+        # todo: complete retrieval
+        if args.ret_doc_type == 'none':
+            ret_libs = []
+
+        # todo: complete prompt generation
+        if args.ret_doc_type == 'none':
+            prompt = qs['nl']
+
+        output = chatgpt(prompt=prompt, model=args.model, temperature=args.temperature, max_tokens=args.max_tokens, stop=["</code>", "# SOLUTION END"], n=args.n)[0]
+        # gene_results.append(dict(nl=qs, output=output, ret_libs=ret_libs, oracle_libs=oracle['doc_keys'], oracle_output=oracle['output']))
+        gene_results.append(dict(nl=qs, output=output, oracle_output=oracle['output']))
+
+    # save to files
+    if os.path.exists(args.save_file):
+        user_input = input(f'The file {args.save_file} already exists. Overwrite? (y/n): ').lower()
+        if user_input == 'y':
+            with open(args.save_file, 'w+') as f:
+                json.dump(gene_results, f, indent=2)
+            print('overwrite file done')
+        else:
+            print('save file not overwrite')
+    else:
+        with open(args.save_file, 'w+') as f:
+            json.dump(gene_results, f, indent=2)
+
+
 def generate_config(in_program_call=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='tldr')
@@ -276,6 +312,7 @@ def generate_config(in_program_call=None):
                         choices=['original', '0shot', 'instruct', 'CoT'])
     parser.add_argument('--model', type=str, default='gpt-3.5-turbo-1106')
     parser.add_argument('--temperature', type=float, default=0.7)
+    parser.add_argument('--n', type=int, default=100)
     parser.add_argument('--save_file', type=str, default=None)
     parser.add_argument('--max_tokens', type=int, default=1000)
     parser.add_argument('--max_doc_tokens', type=int, default=1000)
@@ -295,15 +332,22 @@ def generate_config(in_program_call=None):
                           f'prompt_type_{args.prompt_type}_'
                           f'top_k_{args.top_k}_'
                           f'doc_tokens_{args.max_doc_tokens}.json')
+    elif args.save_file is None and args.dataset == 'ds1000':
+        args.save_file = (f'docprompting_data/conala/gene_result_'
+                          f'model_{args.model}_'
+                          f'retriever_{args.retriever}_{args.ret_doc_type}_'
+                          f'prompt_type_{args.prompt_type}_'
+                          f'top_k_{args.top_k}_'
+                          f'doc_tokens_{args.max_doc_tokens}.json')
     args.save_file = os.path.join(root_path, args.save_file)
     print(json.dumps(vars(args), indent=2))
     return args
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset tldr --top_k 1 --k_line 10 --retriever bm25 --ret_doc_type oracle --prompt_type original'
+    in_program_call = '--dataset ds1000 --top_k 1 --k_line 10 --retriever bm25 --ret_doc_type none --prompt_type original'
     # in_program_call = '--dataset conala --top_k 5 --retriever codeT5-OTS'
-    args = generate_config()
+    args = generate_config(in_program_call)
     if args.retriever == 'bm25':
         retriever_args = sparse_retriever_config('--dataset tldr --dataset_type dev')
     elif args.retriever == 'codeT5-FT':
@@ -319,3 +363,5 @@ if __name__ == '__main__':
         gene_tldr(args, retriever_args)
     elif args.dataset == 'conala':
         gene_conala(args, retriever_args)
+    elif args.dataset == 'ds1000':
+        gene_ds1000(args, retriever_args)
