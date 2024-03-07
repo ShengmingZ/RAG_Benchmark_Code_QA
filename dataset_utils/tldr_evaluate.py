@@ -13,7 +13,7 @@ import editdistance
 from sacrebleu.metrics import BLEU
 from collections import defaultdict, Counter
 from dataset_configs import TldrLoader
-from generator.generate import generate_config
+from generator.generate_utils import generate_config
 
 
 def clean_results(results):

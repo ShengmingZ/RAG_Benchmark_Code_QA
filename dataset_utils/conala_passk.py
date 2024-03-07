@@ -9,12 +9,12 @@ sys.path.insert(0, root_path)
 import evaluate
 from tqdm import tqdm
 from retriever.dense_retriever import dense_retriever_config
-from generator.generate import gene_conala, generate_config
+from generator.generate_utils import gene_conala, generate_config
 import json
 from dataset_utils.dataset_configs import ConalaLoader
 import random
 from generator.run_model import chatgpt
-from generator.generate import get_dummy_text, truncate_too_long_doc
+from generator.generate_utils import get_dummy_text, truncate_too_long_doc
 from prompt import conala_prompt
 from datasets import load_metric
 import os

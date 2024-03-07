@@ -36,7 +36,7 @@ elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
 from dataset_configs import ConalaLoader
-from generator.generate import generate_config
+from generator.generate_utils import generate_config
 
 
 def _get_ngrams(segment, max_order):
