@@ -80,9 +80,9 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
             for problem_code_pair in tqdm(processed_gene_codes[lib]):
                 lib_results.append(test_helper(problem_code_pair))
 
-        if len(processed_gene_codes[lib][0]) == 1:
+        if len(processed_gene_codes[lib][1][0]) == 1:
             pass_scores = pass_rate(lib_results, [1])
-        elif len(processed_gene_codes[lib][0]) == 100:
+        elif len(processed_gene_codes[lib][1][0]) == 100:
             pass_scores = pass_rate(lib_results, [1, 5, 10, 50, 100])
         else:
             raise Exception('unexpected n')
@@ -103,6 +103,6 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset ds1000 --top_k 1 --k_line 10 --retriever bm25 --ret_doc_type none --prompt_type original --n 100'
+    in_program_call = '--dataset ds1000 --top_k 1 --retriever bm25 --ret_doc_type none --prompt_type original --n 1'
     args = generate_config(in_program_call)
     ds1000_passk(result_file=args.save_file)
