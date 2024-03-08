@@ -94,21 +94,21 @@ def generate_config(in_program_call=None):
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
     if args.save_file is None and args.dataset == 'tldr':
         args.save_file = (f'docprompting_data/tldr/gene_result_'
-                          f'model_{args.model}_sampled_{args.sampled}'
+                          f'model_{args.model}_sampled_{args.sampled}_'
                           f'retriever_{args.retriever}_{args.ret_doc_type}_'
                           f'prompt_type_{args.prompt_type}_'
-                          f'top_k_{args.top_k}_k_line_{args.k_line}'
+                          f'top_k_{args.top_k}_k_line_{args.k_line}_'
                           f'doc_tokens_{args.max_doc_tokens}.json')
     elif args.save_file is None and args.dataset == 'conala':
         args.save_file = (f'docprompting_data/conala/gene_result_'
-                          f'model_{args.model}_sampled_{args.sampled}'
+                          f'model_{args.model}_sampled_{args.sampled}_'
                           f'retriever_{args.retriever}_{args.ret_doc_type}_'
                           f'prompt_type_{args.prompt_type}_'
                           f'top_k_{args.top_k}_'
                           f'doc_tokens_{args.max_doc_tokens}.json')
     elif args.save_file is None and args.dataset == 'ds1000':
         args.save_file = (f'DS-1000/results/'
-                          f'model_{args.model}_sampled_{args.sampled}'
+                          f'model_{args.model}_sampled_{args.sampled}_'
                           f'retriever_{args.retriever}_{args.ret_doc_type}_'
                           f'prompt_type_{args.prompt_type}_'
                           f'top_k_{args.top_k}_'

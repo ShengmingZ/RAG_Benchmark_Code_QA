@@ -75,7 +75,7 @@ class GeneDS1000:
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset ds1000 --top_k 1 --k_line 10 --retriever bm25 --ret_doc_type none --prompt_type original --n 1'
+    in_program_call = '--dataset ds1000 --sampled --n 100 --top_k 1 --retriever bm25 --ret_doc_type none --prompt_type original'
     args = generate_config(in_program_call)
     retriever_args = None
 
