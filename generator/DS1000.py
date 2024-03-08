@@ -32,8 +32,8 @@ class GeneDS1000:
         # load docs
         self.ds1000_loader = DS1000Loader()
         self.doc_list = self.ds1000_loader.load_doc_list()
-        self.qs_list = self.ds1000_loader.load_qs_list()
-        self.oracle_list = self.ds1000_loader.load_oracle_list()
+        self.qs_list = self.ds1000_loader.load_qs_list(sampled=args.sampled)
+        self.oracle_list = self.ds1000_loader.load_oracle_list(sampled=args.sampled)
         # if args.retriever == 'bm25':
         #     self.ret_result = json.load(open(retriever_args.conala_ret_result, 'r'))
         # elif 'codeT5' in args.retriever:
@@ -60,8 +60,8 @@ class GeneDS1000:
     def gene_response(self):
         gene_results = []
         prompts = []
-        for idx, (qs, oracle) in tqdm(enumerate(zip(self.qs_list[:5], self.oracle_list[:5]))):
-
+        for idx, (qs, oracle) in tqdm(enumerate(zip(self.qs_list, self.oracle_list))):
+            assert qs['qs_id'] == oracle['qs_id']
             ret_libs, ret_docs = self.get_ret_docs()
             prompt = self.prepare_prompt(qs['nl'])
 
@@ -75,7 +75,7 @@ class GeneDS1000:
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset ds1000 --top_k 1 --k_line 10 --retriever bm25 --ret_doc_type none --prompt_type original --n 100'
+    in_program_call = '--dataset ds1000 --top_k 1 --k_line 10 --retriever bm25 --ret_doc_type none --prompt_type original --n 1'
     args = generate_config(in_program_call)
     retriever_args = None
 
