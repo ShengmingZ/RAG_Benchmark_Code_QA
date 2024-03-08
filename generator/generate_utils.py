@@ -72,7 +72,7 @@ def get_dummy_text(model='gpt-3.5-turbo', prompt_length=1000, dataset='tldr'):
 def generate_config(in_program_call=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='tldr')
-    parser.add_argument('--sampled', type=bool, action='store_true')
+    parser.add_argument('--sampled', action='store_true')
     parser.add_argument('--save_file', type=str, default=None)
     # retrieval parameters
     parser.add_argument('--retriever', type=str, default='bm25',
