@@ -65,7 +65,7 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
         if lib not in processed_gene_codes: processed_gene_codes[lib] = []
         processed_gene_codes[lib].append((ds1000[lib][problem_id], gene_codes))
 
-    total_pass_score = None
+    total_pass_score = dict()
     for lib in processed_gene_codes.keys():
         lib_results = []
         if num_procs > 1 and lib != "Sklearn":
@@ -86,15 +86,15 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
             pass_scores = pass_rate(lib_results, [1, 5, 10, 50, 100])
         else:
             raise Exception('unexpected n')
-        if total_pass_score is None:
-            total_pass_score = pass_scores
-        else:
-            for key in total_pass_score.keys():
-                total_pass_score[key] += pass_scores[key]
-        print(f'{lib} pass score: {pass_scores}')
-    for key in total_pass_score.keys():
-        total_pass_score[key] = total_pass_score[key] / len(processed_gene_codes.keys())
-    print(f'total pass score: {total_pass_score}')
+        total_pass_score[lib] = pass_scores
+    avg_pass_score = {key: 0 for key in pass_scores}
+    for lib in total_pass_score.keys():
+        print(f'{lib} pass score: {total_pass_score[lib]}')
+        for key in avg_pass_score.keys():
+            avg_pass_score[key] += total_pass_score[lib][key]
+    for key in avg_pass_score.keys():
+        avg_pass_score[key] = avg_pass_score[key] / len(total_pass_score.keys())
+    print(f'avg pass score: {avg_pass_score}')
 
 
 
