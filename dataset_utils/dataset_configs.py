@@ -2,6 +2,7 @@ import json
 from collections import Counter
 import os
 import random
+from human_eval.data import write_jsonl, read_problems
 import platform
 import sys
 system = platform.system()
@@ -10,9 +11,7 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-sys.path.insert(0, root_path + '/DS-1000')
-from abc import ABC, abstractmethod
-from ds1000 import DS1000Dataset
+from data.DS1000.ds1000 import DS1000Dataset
 
 random.seed(0)
 
@@ -20,14 +19,14 @@ random.seed(0)
 class TldrLoader:
     def __init__(self):
         self.root = root_path
-        self.doc_whole_file = os.path.join(self.root, "docprompting_data/tldr/manual_all_raw.json")
-        self.doc_line_file = os.path.join(self.root, "docprompting_data/tldr/manual_section.json")
-        self.dev_qs_file = os.path.join(self.root, "docprompting_data/tldr/cmd_dev.seed.json")
-        self.dev_oracle_file = os.path.join(self.root, "docprompting_data/tldr/cmd_dev.oracle_man.full.json")
-        self.test_qs_file = os.path.join(self.root, "docprompting_data/tldr/cmd_test.seed.json")
-        self.test_oracle_file = os.path.join(self.root, "docprompting_data/tldr/cmd_test.oracle_man.full.json")
-        self.train_qs_file = os.path.join(self.root, "docprompting_data/tldr/cmd_train.seed.json")
-        self.train_oracle_file = os.path.join(self.root, "docprompting_data/tldr/cmd_train.oracle_man.full.json")
+        self.doc_whole_file = os.path.join(self.root, "data/tldr/manual_all_raw.json")
+        self.doc_line_file = os.path.join(self.root, "data/tldr/manual_section.json")
+        self.dev_qs_file = os.path.join(self.root, "data/tldr/cmd_dev.seed.json")
+        self.dev_oracle_file = os.path.join(self.root, "data/tldr/cmd_dev.oracle_man.full.json")
+        self.test_qs_file = os.path.join(self.root, "data/tldr/cmd_test.seed.json")
+        self.test_oracle_file = os.path.join(self.root, "data/tldr/cmd_test.oracle_man.full.json")
+        self.train_qs_file = os.path.join(self.root, "data/tldr/cmd_train.seed.json")
+        self.train_oracle_file = os.path.join(self.root, "data/tldr/cmd_train.oracle_man.full.json")
 
     def load_doc_list_whole(self):
         """
@@ -121,18 +120,18 @@ class TldrLoader:
 class ConalaLoader:
     def __init__(self):
         self.root = root_path
-        self.qs_file = os.path.join(self.root, "docprompting_data/conala/conala_nl.txt")
+        self.qs_file = os.path.join(self.root, "data/conala/conala_nl.txt")
         self.qs_idx_file = self.qs_file.replace(".txt", ".id")
-        self.train_qs_file = os.path.join(self.root, "docprompting_data/conala/train_qs.json")
-        self.test_qs_file = os.path.join(self.root, "docprompting_data/conala/test_qs.json")
-        self.dev_qs_file = os.path.join(self.root, "docprompting_data/conala/dev_qs.json")
-        self.doc_firstpara_file = os.path.join(self.root, "docprompting_data/conala/python_manual_firstpara.tok.txt")
+        self.train_qs_file = os.path.join(self.root, "data/conala/train_qs.json")
+        self.test_qs_file = os.path.join(self.root, "data/conala/test_qs.json")
+        self.dev_qs_file = os.path.join(self.root, "data/conala/dev_qs.json")
+        self.doc_firstpara_file = os.path.join(self.root, "data/conala/python_manual_firstpara.tok.txt")
         self.doc_firstpara_idx_file = self.doc_firstpara_file.replace(".txt", ".id")
-        self.doc_file = os.path.join(self.root, "docprompting_data/conala/conala_docs.json")
-        self.test_oracle_file = os.path.join(self.root, "docprompting_data/conala/cmd_test.oracle_man.full.json")
-        self.train_oracle_file = os.path.join(self.root, "docprompting_data/conala/cmd_train.oracle_man.full.json")
-        self.dev_oracle_file = os.path.join(self.root, "docprompting_data/conala/cmd_dev.oracle_man.full.json")
-        self.unittest_file = os.path.join(self.root, "docprompting_data/conala/unittest_docprompting_conala.json")
+        self.doc_file = os.path.join(self.root, "data/conala/conala_docs.json")
+        self.test_oracle_file = os.path.join(self.root, "data/conala/cmd_test.oracle_man.full.json")
+        self.train_oracle_file = os.path.join(self.root, "data/conala/cmd_train.oracle_man.full.json")
+        self.dev_oracle_file = os.path.join(self.root, "data/conala/cmd_dev.oracle_man.full.json")
+        self.unittest_file = os.path.join(self.root, "data/conala/unittest_docprompting_conala.json")
 
     def load_doc_list(self):
         """
@@ -299,9 +298,9 @@ class ConalaLoader:
 class DS1000Loader:
     def __init__(self):
         self.root = root_path
-        self.ds1000 = DS1000Dataset(source_dir=os.path.join(self.root, 'DS-1000/ds1000_data'), libs='all', mode='Completion')
-        self.sampled_idx_file = os.path.join(self.root, 'DS-1000/sampled_idx.json')
-        self.doc_file = os.path.join(self.root, "docprompting_data/conala/conala_docs.json")
+        self.ds1000 = DS1000Dataset(source_dir=os.path.join(self.root, '/data/DS1000/ds1000_data'), libs='all', mode='Completion')
+        self.sampled_idx_file = os.path.join(self.root, '/data/DS1000/sampled_idx.json')
+        self.doc_file = os.path.join(self.root, "data/conala/conala_docs.json")
 
     def load_qs_list(self, sampled=False):
         """
@@ -350,6 +349,35 @@ class DS1000Loader:
             json.dump(sampled_idx_dict, f)
 
 
+class HumanEvalLoader:
+    def __init__(self):
+        self.root = root_path
+        self.problems = read_problems()
+        # self.doc_file = os.path.join(self.root, "data/conala/conala_docs.json")
+
+    def load_qs_list(self, sampled=False):
+        """
+        all elements in qs list should be in the format of {'nl': nl, 'qs_id': qs_id}
+        """
+        qs_list = list()
+        for task_id in self.problems.keys():
+            qs_list.append(dict(nl=self.problems[task_id]['prompt'], qs_id=task_id))
+        return qs_list
+
+    # def load_doc_list(self, sampled=False):
+    #     """
+    #     all docs should be in the format of {f'{doc_key}': content}
+    #     """
+    #     return json.load(open(self.doc_file, 'r'))
+
+    def load_oracle_list(self, sampled=False):
+        """
+        {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
+        """
+        oracle_list = []
+        for task_id in self.problems.keys():
+            oracle_list.append(dict(qs_id=task_id, output=self.problems[task_id]['canonical_solution']))
+        return oracle_list
 
 
 if __name__ == '__main__':
@@ -358,6 +386,8 @@ if __name__ == '__main__':
     # conala_dataloader = ConalaLoader()
     # print(len(conala_dataloader.load_qs_list('dev')))
     # print(len(conala_dataloader.load_qs_list('test')))
-    ds1000_loader = DS1000Loader()
-    ds1000_loader.sample_dataset()
-    print(len(ds1000_loader.load_qs_list(sampled=True)))
+    # ds1000_loader = DS1000Loader()
+    # ds1000_loader.sample_dataset()
+    # print(len(ds1000_loader.load_qs_list(sampled=True)))
+    humaneval_loader = HumanEvalLoader()
+    print(len(humaneval_loader.load_qs_list()))

@@ -16,26 +16,6 @@ from retriever.retriaval_evaluate import tldr_eval, conala_eval
 import shlex
 
 
-def sparse_retriever_config(in_program_call=None):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, default='tldr', choices=['tldr', 'conala'])
-    parser.add_argument('--dataset_type', type=str, default='test', choices=['test', 'train', 'dev'])
-    parser.add_argument('--tldr_ret_result_whole', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/dev_ret_result_whole_BM25.json")
-    parser.add_argument('--tldr_ret_result_line', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/dev_ret_result_line_BM25.json")
-    parser.add_argument('--tldr_idx_whole', type=str, default="tldr_whole")
-    parser.add_argument('--tldr_idx_line', type=str, default="tldr_line")
-    parser.add_argument('--tldr_top_k_cmd', type=int, default=35)
-    parser.add_argument('--tldr_top_k_line_cmd', type=int, default=5)
-    parser.add_argument('--tldr_top_k_line_sent', type=int, default=30)
-
-    parser.add_argument('--conala_ret_result', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/conala/ret_result_BM25.json")
-    parser.add_argument('--conala_idx', type=str, default="conala")
-    parser.add_argument('--conala_top_k', type=int, default=200)
-
-    args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
-    return args
-
-
 class tldr_BM25:
     def __init__(self, bm25_args):
         self.ret_result_path_whole = bm25_args.tldr_ret_result_whole
@@ -189,6 +169,30 @@ class conala_BM25():
             gold.append(item['doc_keys'])
             pred.append([tmp['doc_key'] for tmp in res_list[item['qs_id']]])
         conala_eval(gold=gold, pred=pred)
+
+
+def sparse_retriever_config(in_program_call=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset', type=str, default='tldr', choices=['tldr', 'conala', 'ds1000'])
+    parser.add_argument('--dataset_type', type=str, default='test', choices=['test', 'train', 'dev'])
+    parser.add_argument('--tldr_ret_result_whole', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/dev_ret_result_whole_BM25.json")
+    parser.add_argument('--tldr_ret_result_line', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/dev_ret_result_line_BM25.json")
+    parser.add_argument('--tldr_idx_whole', type=str, default="tldr_whole")
+    parser.add_argument('--tldr_idx_line', type=str, default="tldr_line")
+    parser.add_argument('--tldr_top_k_cmd', type=int, default=35)
+    parser.add_argument('--tldr_top_k_line_cmd', type=int, default=5)
+    parser.add_argument('--tldr_top_k_line_sent', type=int, default=30)
+
+    parser.add_argument('--conala_ret_result', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/conala/ret_result_BM25.json")
+    parser.add_argument('--conala_idx', type=str, default="conala")
+    parser.add_argument('--conala_top_k', type=int, default=200)
+
+    parser.add_argument('--ds1000_ret_result', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/DS-1000/ret_result_BM25.json")
+    parser.add_argument('--ds1000_idx', type=str, default="ds1000")
+    parser.add_argument('--ds1000_top_k', type=int, default=100)
+
+    args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
+    return args
 
 
 if __name__ == '__main__':
