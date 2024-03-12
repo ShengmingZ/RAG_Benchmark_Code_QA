@@ -2,6 +2,7 @@ import json
 import os
 from human_eval.data import write_jsonl, read_problems
 from human_eval.evaluation import evaluate_functional_correctness
+from tqdm impor tqdm
 import sys, platform
 system = platform.system()
 if system == 'Darwin':
@@ -20,7 +21,7 @@ if __name__ == '__main__':
     qs_list = humaneval_loader.load_qs_list()
     gene_results = []
     n = 1
-    for (qs, oracle) in zip(qs_list, oracle_list):
+    for (qs, oracle) in tqdm(zip(qs_list, oracle_list)):
         gold_output = oracle['output']
         func_list = extract_func_name(gold_output)
         outputs = chatgpt(prompt=qs['nl'], n=n)
