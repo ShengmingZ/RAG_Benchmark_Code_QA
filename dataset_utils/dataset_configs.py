@@ -3,6 +3,7 @@ from collections import Counter
 import os
 import random
 from human_eval.data import write_jsonl, read_problems
+from datasets import load_dataset
 import platform
 import sys
 system = platform.system()
@@ -353,6 +354,37 @@ class HumanEvalLoader:
     def __init__(self):
         self.root = root_path
         self.problems = read_problems()
+        # self.doc_file = os.path.join(self.root, "data/conala/conala_docs.json")
+
+    def load_qs_list(self, sampled=False):
+        """
+        all elements in qs list should be in the format of {'nl': nl, 'qs_id': qs_id}
+        """
+        qs_list = list()
+        for task_id in self.problems.keys():
+            qs_list.append(dict(nl=self.problems[task_id]['prompt'], qs_id=task_id))
+        return qs_list
+
+    # def load_doc_list(self, sampled=False):
+    #     """
+    #     all docs should be in the format of {f'{doc_key}': content}
+    #     """
+    #     return json.load(open(self.doc_file, 'r'))
+
+    def load_oracle_list(self, sampled=False):
+        """
+        {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
+        """
+        oracle_list = []
+        for task_id in self.problems.keys():
+            oracle_list.append(dict(qs_id=task_id, output=self.problems[task_id]['canonical_solution']))
+        return oracle_list
+
+
+class MBPPLoader:
+    def __init__(self):
+        self.root = root_path
+        self.dataset = load_dataset('mbpp')
         # self.doc_file = os.path.join(self.root, "data/conala/conala_docs.json")
 
     def load_qs_list(self, sampled=False):
