@@ -59,19 +59,29 @@ class GeneDS1000:
         return ret_libs, ret_docs
 
     def prepare_prompt(self, nl, ret_docs):
-        # todo: complete prompt generation
-        [problem, answer] = nl.split('\nA:\n')
-        problem = '# ' + problem + '\n'
-        answer = '# Answer:\n' + answer
+        if '\nA:\n' in nl:
+            prompt_with_problem = True
+        else:
+            prompt_with_problem = False
+
+        if prompt_with_problem:
+            [problem, code_snippet] = nl.split('\nA:\n')
+            problem = '# ' + problem + '\n'
+            code_snippet = '# Code Snippet:\n' + code_snippet
+        else:
+            code_snippet = '# Code Snippet:\n' + nl
         if self.ret_doc_type == 'none':
             prompt = nl
         else:
-            prompt = ds1000_prompt.original_retrieval_prompt + '\n' + problem + '# Potential Document:\n'
+            if prompt_with_problem:
+                prompt = ds1000_prompt.original_retrieval_prompt_1 + '\n' + problem + '# Potential Document:\n'
+            else:
+                prompt = ds1000_prompt.original_retrieval_prompt_2 + '\n' + '# Potential Document:\n'
             for doc in ret_docs:
                 doc = truncate_too_long_doc(doc, max_length=self.max_doc_tokens)
                 prompt += doc
                 prompt += '\n'
-            prompt += f'\n{answer}'
+            prompt += f'\n{code_snippet}'
 
         return prompt
 
@@ -79,24 +89,47 @@ class GeneDS1000:
         gene_results = []
         prompts = []
         for idx, (qs, oracle) in tqdm(enumerate(zip(self.qs_list, self.oracle_list))):
+            if qs['qs_id'].split('_')[0].lower == 'scipy': continue
             assert qs['qs_id'] == oracle['qs_id']
             ret_libs, ret_docs = self.get_ret_docs(oracle=oracle)
             prompt = self.prepare_prompt(nl=qs['nl'], ret_docs=ret_docs)
 
-            if idx == 0: print(prompt)
             prompts.append(prompt)
             outputs = chatgpt(prompt=prompt, model=self.model, temperature=self.temperature, max_tokens=self.max_tokens, stop=["</code>", "# SOLUTION END"], n=self.n)
             gene_results.append(dict(nl=qs, outputs=outputs, ret_libs=ret_libs, oracle_libs=oracle['oracle_docs'], oracle_output=oracle['output']))
             # gene_results.append(dict(nl=qs, outputs=outputs, oracle_output=oracle['output']))
+            if idx == 0: 
+                print(prompt)
+                print(outputs[0])
 
         approximate_token(prompts)
         save_results_to_files(save_file=self.save_file, gene_results=gene_results)
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset ds1000 --n 1 --top_k 1 --retriever bm25 --ret_doc_type oracle --prompt_type original'
-    args = generate_config(in_program_call)
-    retriever_args = None
+    # in_program_call = '--dataset ds1000 --n 1 --top_k 1 --retriever bm25 --ret_doc_type oracle --prompt_type original'
+    # args = generate_config(in_program_call)
+    # retriever_args = None
+    #
+    # gene_ds1000 = GeneDS1000(args, retriever_args)
+    # gene_ds1000.gene_response()
 
-    gene_ds1000 = GeneDS1000(args, retriever_args)
-    gene_ds1000.gene_response()
+    ds1000_loader = DS1000Loader()
+    qs_list = ds1000_loader.load_qs_list()
+    nl_with_problem_num, nl_wo_problem_num = 0, 0
+    exception_num = 0
+    for idx, qs in enumerate(qs_list):
+        nl = qs['nl']
+        try:
+            [problem, answer] = nl.split('\nA:\n')
+        except:
+            exception_num += 1
+            print('nl:\n', nl)
+        if 'Problem:' in nl:
+            nl_with_problem_num += 1
+        else:
+            nl_wo_problem_num += 1
+
+    print(exception_num)
+    print(nl_with_problem_num)
+    print(nl_wo_problem_num)

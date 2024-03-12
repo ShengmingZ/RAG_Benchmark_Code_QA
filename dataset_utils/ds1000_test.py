@@ -12,7 +12,7 @@ elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
 sys.path.insert(0, root_path + '/DS-1000')
-from ds1000 import DS1000Dataset, DS1000Problem, ScoreRecord, check_version, check_cpu_count
+from data.DS1000.ds1000 import DS1000Dataset, DS1000Problem, ScoreRecord, check_version, check_cpu_count
 from generator.generate_utils import generate_config
 from dataset_utils.dataset_configs import DS1000Loader
 from generator.run_model import chatgpt
@@ -40,6 +40,7 @@ def pass_rate(results, k_list):
             pass_scores['pass_50'] += pass_at_k(n=total_num, c=passed_num, k=50)
             pass_scores['pass_100'] += pass_at_k(n=total_num, c=passed_num, k=100)
     for key in pass_scores.keys():
+        if len(results) == 0: pass_scores[key] = 0
         pass_scores[key] = pass_scores[key]/len(results)
 
     return pass_scores
@@ -103,6 +104,6 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset ds1000 --top_k 1 --retriever bm25 --ret_doc_type none --prompt_type original --n 1'
+    in_program_call = '--dataset ds1000 --top_k 1 --retriever bm25 --ret_doc_type oracle --prompt_type original --n 1'
     args = generate_config(in_program_call)
     ds1000_passk(result_file=args.save_file)
