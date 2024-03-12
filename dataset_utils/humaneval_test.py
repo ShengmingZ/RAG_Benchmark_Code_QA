@@ -2,7 +2,7 @@ import json
 import os
 from human_eval.data import write_jsonl, read_problems
 from human_eval.evaluation import evaluate_functional_correctness
-from tqdm impor tqdm
+from tqdm import tqdm
 import sys, platform
 system = platform.system()
 if system == 'Darwin':
