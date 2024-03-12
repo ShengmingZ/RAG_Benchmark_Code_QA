@@ -11,7 +11,6 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-sys.path.insert(0, root_path + '/DS-1000')
 from data.DS1000.ds1000 import DS1000Dataset, DS1000Problem, ScoreRecord, check_version, check_cpu_count
 from generator.generate_utils import generate_config
 from dataset_utils.dataset_configs import DS1000Loader
@@ -56,7 +55,7 @@ def test_helper(problem_code_pair: Tuple[DS1000Problem, List[str]]):
 def ds1000_passk(result_file, mode='Completion', num_procs=16):
     check_version()
     result_list = json.load(open(result_file, 'r'))
-    ds1000 = DS1000Dataset(source_dir=root_path+'/DS-1000/ds1000_data', mode=mode, libs='all')
+    ds1000 = DS1000Dataset(source_dir=root_path+'/data/DS1000/ds1000_data', mode=mode, libs='all')
     # process generate code
     processed_gene_codes = dict()
     for result in result_list:
