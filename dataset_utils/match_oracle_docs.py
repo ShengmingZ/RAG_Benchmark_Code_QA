@@ -20,6 +20,7 @@ def extract_func_name(code_string):
     # clean code
     if 'BEGIN SOLUTION' in code_string: code_string = code_string.split('BEGIN SOLUTION')[1].split('END SOLUTION')[0].replace('\n    ','\n')
     if code_string.startswith('    '): code_string = code_string[4:].replace('\n    ', '\n')
+    if code_string.startswith('\n    '): code_string = code_string[5:].replace('\n    ', '\n')
     if code_string.startswith('\n   '): code_string = code_string[4:].replace('\n    ', '\n')
     if code_string.startswith(' \n'): code_string = code_string[1:].replace('\n    ', '\n')
     if code_string.startswith('# def '): code_string = code_string.split('\n', 1)[1].replace('    ', '')

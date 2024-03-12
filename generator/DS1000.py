@@ -10,7 +10,7 @@ elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
 from generator.run_model import chatgpt
-from prompt import conala_prompt
+from prompt import ds1000_prompt
 from dataset_utils.dataset_configs import DS1000Loader
 from retriever.sparse_retriever import sparse_retriever_config
 from retriever.dense_retriever import dense_retriever_config
@@ -44,17 +44,35 @@ class GeneDS1000:
         print('qs_num:', len(self.qs_list))
         print('save_to:', self.save_file)
 
-    def get_ret_docs(self):
+    def get_ret_docs(self, oracle):
         # todo: complete retrieval
         if self.ret_doc_type == 'none':
             ret_libs = []
-        ret_docs = []
+        elif self.ret_doc_type == 'oracle':
+            ret_libs = oracle['oracle_docs']
+        else:
+            raise Exception('no such ret doc type')
+        ret_docs = list()
+        for line_idx, ret_lib in enumerate(ret_libs):
+            ret_docs.append(f"potential document {line_idx}: {ret_lib}: {self.doc_list[ret_lib]}")
+            ret_docs[line_idx] = ret_docs[line_idx].replace('\n', ' ')
         return ret_libs, ret_docs
 
-    def prepare_prompt(self, nl):
+    def prepare_prompt(self, nl, ret_docs):
         # todo: complete prompt generation
+        [problem, answer] = nl.split('A:\n')
+        problem = '# ' + problem
+        answer = '# Answer:\n' + answer
         if self.ret_doc_type == 'none':
             prompt = nl
+        else:
+            prompt = ds1000_prompt.original_retrieval_prompt + '\n' + problem + '# Potential Document:\n'
+            for doc in ret_docs:
+                doc = truncate_too_long_doc(doc, max_length=self.max_doc_tokens)
+                prompt += doc
+                prompt += '\n'
+            prompt += f'\n{answer}'
+
         return prompt
 
     def gene_response(self):
@@ -62,20 +80,21 @@ class GeneDS1000:
         prompts = []
         for idx, (qs, oracle) in tqdm(enumerate(zip(self.qs_list, self.oracle_list))):
             assert qs['qs_id'] == oracle['qs_id']
-            ret_libs, ret_docs = self.get_ret_docs()
-            prompt = self.prepare_prompt(qs['nl'])
+            ret_libs, ret_docs = self.get_ret_docs(oracle=oracle)
+            prompt = self.prepare_prompt(nl=qs['nl'], ret_docs=ret_docs)
 
+            if idx == 0: print(prompt)
             prompts.append(prompt)
             outputs = chatgpt(prompt=prompt, model=self.model, temperature=self.temperature, max_tokens=self.max_tokens, stop=["</code>", "# SOLUTION END"], n=self.n)
-            # gene_results.append(dict(nl=qs, output=output, ret_libs=ret_libs, oracle_libs=oracle['doc_keys'], oracle_output=oracle['output']))
-            gene_results.append(dict(nl=qs, outputs=outputs, oracle_output=oracle['output']))
+            gene_results.append(dict(nl=qs, outputs=outputs, ret_libs=ret_libs, oracle_libs=oracle['oracle_docs'], oracle_output=oracle['output']))
+            # gene_results.append(dict(nl=qs, outputs=outputs, oracle_output=oracle['output']))
 
         approximate_token(prompts)
         save_results_to_files(save_file=self.save_file, gene_results=gene_results)
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset ds1000 --sampled --n 100 --top_k 1 --retriever bm25 --ret_doc_type none --prompt_type original'
+    in_program_call = '--dataset ds1000 --n 1 --top_k 1 --retriever bm25 --ret_doc_type oracle --prompt_type original'
     args = generate_config(in_program_call)
     retriever_args = None
 

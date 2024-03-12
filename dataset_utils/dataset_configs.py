@@ -299,8 +299,9 @@ class ConalaLoader:
 class DS1000Loader:
     def __init__(self):
         self.root = root_path
-        self.ds1000 = DS1000Dataset(source_dir=os.path.join(self.root, '/data/DS1000/ds1000_data'), libs='all', mode='Completion')
-        self.sampled_idx_file = os.path.join(self.root, '/data/DS1000/sampled_idx.json')
+        self.ds1000 = DS1000Dataset(source_dir=os.path.join(self.root, 'data/DS1000/ds1000_data'), libs='all', mode='Completion')
+        self.sampled_idx_file = os.path.join(self.root, 'data/DS1000/sampled_idx.json')
+        self.oracle_doc_file = os.path.join(self.root, 'data/DS1000/oracle_docs_matched.json')
         self.doc_file = os.path.join(self.root, "data/conala/conala_docs.json")
 
     def load_qs_list(self, sampled=False):
@@ -328,14 +329,20 @@ class DS1000Loader:
         {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
         """
         sampled_idx = json.load(open(self.sampled_idx_file, 'r'))
-        oracle_list = []
-        for lib in self.ds1000.libs:
-            for idx in range(len(self.ds1000[lib])):
-                if sampled is True and idx not in sampled_idx[lib]: continue
-                qs_id = lib + '_' + str(idx)
-                output = self.ds1000[lib][idx]['reference_code']
-                oracle_list.append(dict(qs_id=qs_id, output=output))
-        return oracle_list
+        # oracle_list = []
+        # for lib in self.ds1000.libs:
+        #     for idx in range(len(self.ds1000[lib])):
+        #         if sampled is True and idx not in sampled_idx[lib]: continue
+        #         qs_id = lib + '_' + str(idx)
+        #         output = self.ds1000[lib][idx]['reference_code']
+        #         oracle_list.append(dict(qs_id=qs_id, output=output))
+        oracle_list = json.load(open(self.oracle_doc_file))
+        sampled_oracle_list = []
+        for idx, oracle in enumerate(oracle_list):
+            lib = oracle['qs_id'].split('_')[0]
+            if sampled is True and idx not in sampled_idx[lib]: continue
+            sampled_oracle_list.append(oracle)
+        return sampled_oracle_list
 
     # sample 20%
     def sample_dataset(self):
