@@ -23,7 +23,7 @@ if __name__ == '__main__':
         gold_output = oracle['output']
         func_list = extract_func_name(gold_output)
         # output = chatgpt(prompt=qs['nl'])
-        output = oracle_list['output']
+        output = oracle['output']
         gene_results.append(dict(task_id=qs['qs_id'], completion=output))
 
     save_file = os.path.join(root_path, 'data/HumanEval/oracle')
