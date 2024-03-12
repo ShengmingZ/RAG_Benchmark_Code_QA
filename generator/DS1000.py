@@ -98,7 +98,7 @@ class GeneDS1000:
             outputs = chatgpt(prompt=prompt, model=self.model, temperature=self.temperature, max_tokens=self.max_tokens, stop=["</code>", "# SOLUTION END"], n=self.n)
             gene_results.append(dict(nl=qs, outputs=outputs, ret_libs=ret_libs, oracle_libs=oracle['oracle_docs'], oracle_output=oracle['output']))
             # gene_results.append(dict(nl=qs, outputs=outputs, oracle_output=oracle['output']))
-            if idx == 0: 
+            if idx == 0:
                 print(prompt)
                 print(outputs[0])
 
@@ -107,29 +107,29 @@ class GeneDS1000:
 
 
 if __name__ == '__main__':
-    # in_program_call = '--dataset ds1000 --n 1 --top_k 1 --retriever bm25 --ret_doc_type oracle --prompt_type original'
-    # args = generate_config(in_program_call)
-    # retriever_args = None
+    in_program_call = '--dataset ds1000 --n 1 --top_k 1 --retriever bm25 --ret_doc_type oracle --prompt_type original'
+    args = generate_config(in_program_call)
+    retriever_args = None
+
+    gene_ds1000 = GeneDS1000(args, retriever_args)
+    gene_ds1000.gene_response()
+
+    # ds1000_loader = DS1000Loader()
+    # qs_list = ds1000_loader.load_qs_list()
+    # nl_with_problem_num, nl_wo_problem_num = 0, 0
+    # exception_num = 0
+    # for idx, qs in enumerate(qs_list):
+    #     nl = qs['nl']
+    #     try:
+    #         [problem, answer] = nl.split('\nA:\n')
+    #     except:
+    #         exception_num += 1
+    #         print('nl:\n', nl)
+    #     if 'Problem:' in nl:
+    #         nl_with_problem_num += 1
+    #     else:
+    #         nl_wo_problem_num += 1
     #
-    # gene_ds1000 = GeneDS1000(args, retriever_args)
-    # gene_ds1000.gene_response()
-
-    ds1000_loader = DS1000Loader()
-    qs_list = ds1000_loader.load_qs_list()
-    nl_with_problem_num, nl_wo_problem_num = 0, 0
-    exception_num = 0
-    for idx, qs in enumerate(qs_list):
-        nl = qs['nl']
-        try:
-            [problem, answer] = nl.split('\nA:\n')
-        except:
-            exception_num += 1
-            print('nl:\n', nl)
-        if 'Problem:' in nl:
-            nl_with_problem_num += 1
-        else:
-            nl_wo_problem_num += 1
-
-    print(exception_num)
-    print(nl_with_problem_num)
-    print(nl_wo_problem_num)
+    # print(exception_num)
+    # print(nl_with_problem_num)
+    # print(nl_wo_problem_num)
