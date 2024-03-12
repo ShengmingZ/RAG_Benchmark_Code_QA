@@ -49,7 +49,7 @@ class GeneDS1000:
         if self.ret_doc_type == 'none':
             ret_libs = []
         elif self.ret_doc_type == 'oracle':
-            ret_libs = oracle['oracle_docs']
+            ret_libs = oracle['doc_keys']
         else:
             raise Exception('no such ret doc type')
         ret_docs = list()
@@ -89,14 +89,14 @@ class GeneDS1000:
         gene_results = []
         prompts = []
         for idx, (qs, oracle) in tqdm(enumerate(zip(self.qs_list, self.oracle_list))):
-            if qs['qs_id'].split('_')[0].lower == 'scipy': continue
+            if qs['qs_id'].split('_')[0].lower == 'scipy': continue     # now skip scipy
             assert qs['qs_id'] == oracle['qs_id']
             ret_libs, ret_docs = self.get_ret_docs(oracle=oracle)
             prompt = self.prepare_prompt(nl=qs['nl'], ret_docs=ret_docs)
 
             prompts.append(prompt)
             outputs = chatgpt(prompt=prompt, model=self.model, temperature=self.temperature, max_tokens=self.max_tokens, stop=["</code>", "# SOLUTION END"], n=self.n)
-            gene_results.append(dict(nl=qs, outputs=outputs, ret_libs=ret_libs, oracle_libs=oracle['oracle_docs'], oracle_output=oracle['output']))
+            gene_results.append(dict(nl=qs, outputs=outputs, ret_libs=ret_libs, oracle_libs=oracle['doc_keys'], oracle_output=oracle['output']))
             # gene_results.append(dict(nl=qs, outputs=outputs, oracle_output=oracle['output']))
             if idx == 0:
                 print(prompt)

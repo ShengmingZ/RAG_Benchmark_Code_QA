@@ -329,20 +329,21 @@ class DS1000Loader:
         {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
         """
         sampled_idx = json.load(open(self.sampled_idx_file, 'r'))
-        # oracle_list = []
-        # for lib in self.ds1000.libs:
-        #     for idx in range(len(self.ds1000[lib])):
-        #         if sampled is True and idx not in sampled_idx[lib]: continue
-        #         qs_id = lib + '_' + str(idx)
-        #         output = self.ds1000[lib][idx]['reference_code']
-        #         oracle_list.append(dict(qs_id=qs_id, output=output))
-        oracle_list = json.load(open(self.oracle_doc_file))
-        sampled_oracle_list = []
-        for idx, oracle in enumerate(oracle_list):
-            lib = oracle['qs_id'].split('_')[0]
-            if sampled is True and idx not in sampled_idx[lib]: continue
-            sampled_oracle_list.append(oracle)
-        return sampled_oracle_list
+        matched_doc_list = json.load(open(self.oracle_doc_file))
+        oracle_list = []
+        for lib in self.ds1000.libs:
+            for idx in range(len(self.ds1000[lib])):
+                if sampled is True and idx not in sampled_idx[lib]: continue
+                qs_id = lib + '_' + str(idx)
+                output = self.ds1000[lib][idx]['reference_code']
+                # get oracle docs
+                doc_keys = []
+                for item in matched_doc_list:
+                    if item['qs_id'] == qs_id:
+                        doc_keys = item['oracle_docs']
+                        break
+                oracle_list.append(dict(qs_id=qs_id, doc_keys=doc_keys, output=output))
+        return oracle_list
 
     # sample 20%
     def sample_dataset(self):
