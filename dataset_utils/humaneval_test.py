@@ -15,19 +15,19 @@ from generator.run_model import chatgpt
 
 
 if __name__ == '__main__':
-    humaneval_loader = HumanEvalLoader()
-    oracle_list = humaneval_loader.load_oracle_list()
-    qs_list = humaneval_loader.load_qs_list()
-    gene_results = []
-    for (qs, oracle) in zip(qs_list, oracle_list):
-        gold_output = oracle['output']
-        func_list = extract_func_name(gold_output)
-        # output = chatgpt(prompt=qs['nl'])
-        output = oracle['output']
-        gene_results.append(dict(task_id=qs['qs_id'], completion=output))
-
-    save_file = os.path.join(root_path, 'data/HumanEval/oracle')
-    write_jsonl(save_file, gene_results)
+    # humaneval_loader = HumanEvalLoader()
+    # oracle_list = humaneval_loader.load_oracle_list()
+    # qs_list = humaneval_loader.load_qs_list()
+    # gene_results = []
+    # for (qs, oracle) in zip(qs_list, oracle_list):
+    #     gold_output = oracle['output']
+    #     func_list = extract_func_name(gold_output)
+    #     # output = chatgpt(prompt=qs['nl'])
+    #     output = oracle['output']
+    #     gene_results.append(dict(task_id=qs['qs_id'], completion=output))
+    #
+    save_file = os.path.join(root_path, 'data/HumanEval/test_result.json')
+    # write_jsonl(save_file, gene_results)
 
     results = evaluate_functional_correctness(save_file, [1])
     print(results)
