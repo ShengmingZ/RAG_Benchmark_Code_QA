@@ -60,8 +60,8 @@ class GeneDS1000:
 
     def prepare_prompt(self, nl, ret_docs):
         # todo: complete prompt generation
-        [problem, answer] = nl.split('A:\n')
-        problem = '# ' + problem
+        [problem, answer] = nl.split('\nA:\n')
+        problem = '# ' + problem + '\n'
         answer = '# Answer:\n' + answer
         if self.ret_doc_type == 'none':
             prompt = nl
