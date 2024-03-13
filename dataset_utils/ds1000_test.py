@@ -105,7 +105,7 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
     print(f'avg pass score: {avg_pass_score}')
 
     with open(result_file.replace('.json', 'test_results.json'), 'w+') as f:
-        json.dump(result_list, f)
+        json.dump(result_list, f, indent=2)
 
 
 
