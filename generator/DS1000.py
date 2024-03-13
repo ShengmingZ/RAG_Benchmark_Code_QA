@@ -89,7 +89,7 @@ class GeneDS1000:
         gene_results = []
         prompts = []
         for idx, (qs, oracle) in tqdm(enumerate(zip(self.qs_list, self.oracle_list))):
-            if qs['qs_id'].split('_')[0].lower == 'scipy': continue     # now skip scipy
+            if qs['qs_id'].split('_')[0].lower() == 'scipy': continue     # now skip scipy
             assert qs['qs_id'] == oracle['qs_id']
             ret_libs, ret_docs = self.get_ret_docs(oracle=oracle)
             prompt = self.prepare_prompt(nl=qs['nl'], ret_docs=ret_docs)
@@ -112,7 +112,11 @@ if __name__ == '__main__':
     retriever_args = None
 
     gene_ds1000 = GeneDS1000(args, retriever_args)
-    gene_ds1000.gene_response()
+    # gene_ds1000.gene_response()
+
+    nl = "Problem:\nI have a set of data and I want to compare which line describes it best (polynomials of different orders, exponential or logarithmic).\nI use Python and Numpy and for polynomial fitting there is a function polyfit(). \nHow do I fit y = A + Blogx using polyfit()? The result should be an np.array of [A, B]\nA:\n<code>\nimport numpy as np\nimport scipy\nx = np.array([1, 7, 20, 50, 79])\ny = np.array([10, 19, 30, 35, 51])\n\n</code>\nresult = ... # put solution in this variable\nBEGIN SOLUTION\n<code>\n"
+    ret_libs = []
+    print(gene_ds1000.prepare_prompt(nl, ret_libs))
 
     # ds1000_loader = DS1000Loader()
     # qs_list = ds1000_loader.load_qs_list()

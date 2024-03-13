@@ -78,14 +78,14 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
                     lib_results.append(test_results)
                     for result in result_list:
                         [result_lib, result_problem_id] = result['nl']['qs_id'].split('_')
-                        if result_lib == lib and result_problem_id == problem_id:
+                        if result_lib == lib and int(result_problem_id) == problem_id:
                             result['test_results'] = test_results
         else:
             for problem_id, problem_code_pair in tqdm(enumerate(processed_gene_codes[lib])):
                 lib_results.append(test_helper(problem_code_pair))
                 for result in result_list:
                     [result_lib, result_problem_id] = result['nl']['qs_id'].split('_')
-                    if result_lib == lib and result_problem_id == problem_id:
+                    if result_lib == lib and int(result_problem_id) == problem_id:
                         result['test_results'] = test_results
 
         if len(processed_gene_codes[lib][0][1]) == 1:
@@ -104,7 +104,7 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
         avg_pass_score[key] = avg_pass_score[key] / len(total_pass_score.keys())
     print(f'avg pass score: {avg_pass_score}')
 
-    with open(result_file.replace('.json', 'test_results.json'), 'w+') as f:
+    with open(result_file.replace('.json', '_test_results.json'), 'w+') as f:
         json.dump(result_list, f, indent=2)
 
 
