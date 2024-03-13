@@ -67,18 +67,26 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
 
     total_pass_score = dict()
     for lib in processed_gene_codes.keys():
-        lib_results = []
+        lib_results = list()
         if num_procs > 1 and lib != "Sklearn":
             with Pool(processes=num_procs) as pool:
-                for test_results in tqdm(
-                        pool.imap(test_helper, processed_gene_codes[lib]),
+                for problem_id, test_results in tqdm(
+                        enumerate(pool.imap(test_helper, processed_gene_codes[lib])),
                         total=len(processed_gene_codes[lib]),
                         desc=f"Executing test for {lib} questions",
                 ):
                     lib_results.append(test_results)
+                    for result in result_list:
+                        [result_lib, result_problem_id] = result['nl']['qs_id'].split('_')
+                        if result_lib == lib and result_problem_id == problem_id:
+                            result['test_results'] = test_results
         else:
-            for problem_code_pair in tqdm(processed_gene_codes[lib]):
+            for problem_id, problem_code_pair in tqdm(enumerate(processed_gene_codes[lib])):
                 lib_results.append(test_helper(problem_code_pair))
+                for result in result_list:
+                    [result_lib, result_problem_id] = result['nl']['qs_id'].split('_')
+                    if result_lib == lib and result_problem_id == problem_id:
+                        result['test_results'] = test_results
 
         if len(processed_gene_codes[lib][0][1]) == 1:
             pass_scores = pass_rate(lib_results, [1])
@@ -96,7 +104,8 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
         avg_pass_score[key] = avg_pass_score[key] / len(total_pass_score.keys())
     print(f'avg pass score: {avg_pass_score}')
 
-
+    with open(result_file.replace('.json', 'test_results.json'), 'w+') as f:
+        json.dump(result_list, f)
 
 
 
