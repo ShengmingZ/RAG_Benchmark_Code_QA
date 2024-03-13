@@ -15,6 +15,8 @@ from generator.run_model import chatgpt
 
 random.seed(0)
 
+common_func_list = ['copy', 'replace', 'append', 'keys', 'shape']
+
 # todo: lib name duplicate, can only be analyzed dynamically
 def extract_func_name(code_string):
     # clean code

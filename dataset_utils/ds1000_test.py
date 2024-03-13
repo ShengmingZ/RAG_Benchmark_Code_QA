@@ -112,6 +112,20 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset ds1000 --top_k 1 --retriever bm25 --ret_doc_type oracle --prompt_type original --n 1'
-    args = generate_config(in_program_call)
-    ds1000_passk(result_file=args.save_file)
+    # in_program_call = '--dataset ds1000 --top_k 1 --retriever bm25 --ret_doc_type oracle --prompt_type original --n 1'
+    # args = generate_config(in_program_call)
+    # ds1000_passk(result_file=args.save_file)
+    ds1000 = DS1000Dataset(source_dir=root_path + '/data/DS1000/ds1000_data', mode='Completion', libs='all')
+    test_data = ds1000['Numpy'][20]
+    outputs = [
+        "import numpy as np\na = np.array([[10,50,30],[60,20,40]])\nresult = np.unravel_index(np.argmax(a), a.shape, order='F')\n"
+    ]
+    outputs = [
+        "result = np.unravel_index(np.argmax(a), a.shape, order='F')\n"
+    ]
+    outputs = ["result = np.unravel_index(a.argmax(), a.shape, order = 'F')\n"]
+    outputs = [
+      "result = np.unravel_index(np.argmax(a, axis=None), a.shape, order='F')\n"
+    ]
+    test_result = test_helper((test_data, outputs))
+    print(test_result)
