@@ -74,14 +74,14 @@ class GeneDS1000:
             prompt = nl
         else:
             if prompt_with_problem:
-                prompt = ds1000_prompt.original_retrieval_prompt_1 + '\n' + problem + '# Potential Document:\n'
+                prompt = ds1000_prompt.original_retrieval_prompt_1 + '\n\n' + problem + '# Potential Document:\n'
             else:
-                prompt = ds1000_prompt.original_retrieval_prompt_2 + '\n' + '# Potential Document:\n'
+                prompt = ds1000_prompt.original_retrieval_prompt_2 + '\n\n' + '# Potential Document:\n'
             for doc in ret_docs:
                 doc = truncate_too_long_doc(doc, max_length=self.max_doc_tokens)
                 prompt += doc
                 prompt += '\n'
-            prompt += f'\n{code_snippet}'
+            prompt += f'\n\n{code_snippet}'
 
         return prompt
 
@@ -112,11 +112,11 @@ if __name__ == '__main__':
     retriever_args = None
 
     gene_ds1000 = GeneDS1000(args, retriever_args)
-    # gene_ds1000.gene_response()
+    gene_ds1000.gene_response()
 
-    nl = "Problem:\nI have a set of data and I want to compare which line describes it best (polynomials of different orders, exponential or logarithmic).\nI use Python and Numpy and for polynomial fitting there is a function polyfit(). \nHow do I fit y = A + Blogx using polyfit()? The result should be an np.array of [A, B]\nA:\n<code>\nimport numpy as np\nimport scipy\nx = np.array([1, 7, 20, 50, 79])\ny = np.array([10, 19, 30, 35, 51])\n\n</code>\nresult = ... # put solution in this variable\nBEGIN SOLUTION\n<code>\n"
-    ret_libs = []
-    print(gene_ds1000.prepare_prompt(nl, ret_libs))
+    # nl = "Problem:\nI have a set of data and I want to compare which line describes it best (polynomials of different orders, exponential or logarithmic).\nI use Python and Numpy and for polynomial fitting there is a function polyfit(). \nHow do I fit y = A + Blogx using polyfit()? The result should be an np.array of [A, B]\nA:\n<code>\nimport numpy as np\nimport scipy\nx = np.array([1, 7, 20, 50, 79])\ny = np.array([10, 19, 30, 35, 51])\n\n</code>\nresult = ... # put solution in this variable\nBEGIN SOLUTION\n<code>\n"
+    # ret_libs = []
+    # print(gene_ds1000.prepare_prompt(nl, ret_libs))
 
     # ds1000_loader = DS1000Loader()
     # qs_list = ds1000_loader.load_qs_list()
