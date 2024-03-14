@@ -86,9 +86,9 @@ def match_ds1000_doc(gold_lib, gold_output, api_sign_collection):
 
 def match_ds1000():
     # load and process docs
-    docs_file = os.path.join(root_path, "docprompting_data/conala/conala_docs.json")
+    docs_file = os.path.join(root_path, "data/conala/conala_docs.json")
     docs = json.load(open(docs_file, 'r'))
-    api_signs_file = os.path.join(root_path, "docprompting_data/conala/python_manual_firstpara.tok.id")
+    api_signs_file = os.path.join(root_path, "data/conala/python_manual_firstpara.tok.id")
     with open(api_signs_file, 'r') as f:
         api_signs = list()
         for line in f:
@@ -116,8 +116,8 @@ def match_ds1000():
         match_success_rate += func_match_rate
         sampled_num += 1
 
-    with open('../DS-1000/oracle_docs_matched.json', 'w+') as f:
-        json.dump(result_list, f, indent=2)
+    # with open('../DS-1000/oracle_docs_matched.json', 'w+') as f:
+    #     json.dump(result_list, f, indent=2)
 
     print('Match success rate: ', match_success_rate / sampled_num)
 
