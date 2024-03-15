@@ -108,12 +108,10 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
 
 
 
-
-
 if __name__ == '__main__':
     in_program_call = '--dataset ds1000 --top_k 1 --retriever bm25 --ret_doc_type oracle --prompt_type original --n 1'
     args = generate_config(in_program_call)
-    # ds1000_passk(result_file=args.save_file)
+    ds1000_passk(result_file=args.save_file)
 
     # ds1000 = DS1000Dataset(source_dir=root_path + '/data/DS1000/ds1000_data', mode='Completion', libs='all')
     # test_data = ds1000['Numpy'][20]
@@ -130,28 +128,28 @@ if __name__ == '__main__':
     # test_result = test_helper((test_data, outputs))
     # print(test_result)
 
-    oracle_save_file = args.save_file.replace('.json', '_test_results.json')
-    none_save_file = oracle_save_file.replace('oracle', 'none')
-    oracle_results = json.load(open(oracle_save_file, 'r'))
-    none_results = json.load(open(none_save_file, 'r'))
-    _none_results = list()
-    for result in none_results:
-        if result['nl']['qs_id'].split('_')[0].lower() == 'scipy': continue
-        _none_results.append(result)
-    oracle_win_count = 0
-    none_win_count = 0
-    for (oracle_result, none_result) in zip(oracle_results, _none_results):
-        assert oracle_result['nl']['qs_id'] == none_result['nl']['qs_id'], print(oracle_result['nl']['qs_id'], none_result['nl']['qs_id'])
-        if oracle_result['test_results'][0] is True and none_result['test_results'][0] is False:
-            oracle_win_count += 1
-        elif oracle_result['test_results'][0] is False and none_result['test_results'][0] is True:
-            none_win_count += 1
-            print(oracle_result['nl']['qs_id'])
-            print(oracle_result['oracle_libs'])
-            print(oracle_result['nl']['nl'], end='\n\n')
-            print('oracle output:', oracle_result['outputs'][0], end='\n\n')
-            print('none output:', none_result['outputs'][0], end='\n\n\n\n')
-
-    print('oracle win count:', oracle_win_count)
-    print('none win count:', none_win_count)
+    # oracle_save_file = args.save_file.replace('.json', '_test_results.json')
+    # none_save_file = oracle_save_file.replace('oracle', 'none')
+    # oracle_results = json.load(open(oracle_save_file, 'r'))
+    # none_results = json.load(open(none_save_file, 'r'))
+    # _none_results = list()
+    # for result in none_results:
+    #     if result['nl']['qs_id'].split('_')[0].lower() == 'scipy': continue
+    #     _none_results.append(result)
+    # oracle_win_count = 0
+    # none_win_count = 0
+    # for (oracle_result, none_result) in zip(oracle_results, _none_results):
+    #     assert oracle_result['nl']['qs_id'] == none_result['nl']['qs_id'], print(oracle_result['nl']['qs_id'], none_result['nl']['qs_id'])
+    #     if oracle_result['test_results'][0] is True and none_result['test_results'][0] is False:
+    #         oracle_win_count += 1
+    #     elif oracle_result['test_results'][0] is False and none_result['test_results'][0] is True:
+    #         none_win_count += 1
+    #         print(oracle_result['nl']['qs_id'])
+    #         print(oracle_result['oracle_libs'])
+    #         print(oracle_result['nl']['nl'], end='\n\n')
+    #         print('oracle output:', oracle_result['outputs'][0], end='\n\n')
+    #         print('none output:', none_result['outputs'][0], end='\n\n\n\n')
+    #
+    # print('oracle win count:', oracle_win_count)
+    # print('none win count:', none_win_count)
 
