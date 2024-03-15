@@ -52,7 +52,7 @@ def test_helper(problem_code_pair: Tuple[DS1000Problem, List[str]]):
     return test_results
 
 def ds1000_passk(result_file, mode='Completion', num_procs=16):
-    check_version()
+    # check_version()
     result_list = json.load(open(result_file, 'r'))
     ds1000 = DS1000Dataset(source_dir=root_path+'/data/DS1000/ds1000_data', mode=mode, libs='all')
     # process generate code
@@ -72,7 +72,7 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
         if num_procs > 1 and lib != "Sklearn":
             with Pool(processes=num_procs) as pool:
                 for problem_id, test_results in tqdm(
-                        enumerate(pool.imap(test_helper, processed_gene_codes[lib])),
+                        enumerate(pool.map(test_helper, processed_gene_codes[lib])),
                         total=len(processed_gene_codes[lib]),
                         desc=f"Executing test for {lib} questions",
                 ):
@@ -83,7 +83,8 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
                             result['test_results'] = test_results
         else:
             for problem_id, problem_code_pair in tqdm(enumerate(processed_gene_codes[lib])):
-                lib_results.append(test_helper(problem_code_pair))
+                test_results = test_helper(problem_code_pair)
+                lib_results.append(test_results)
                 for result in result_list:
                     [result_lib, result_problem_id] = result['nl']['qs_id'].split('_')
                     if result_lib == lib and int(result_problem_id) == problem_id:
