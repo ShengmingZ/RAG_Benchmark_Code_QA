@@ -59,6 +59,8 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
     processed_gene_codes = dict()
     for result in result_list:
         gene_codes = result['outputs']
+        # for idx, gene_code in enumerate(gene_codes):
+        #     if gene_code.rsplit('\n', 1)[1] == 'df': gene_codes[idx] = gene_code.rsplit('\n', 1)[0]
         [lib, problem_id] = result['nl']['qs_id'].split('_')
         problem_id = int(problem_id)
         if lib not in processed_gene_codes: processed_gene_codes[lib] = []
@@ -109,7 +111,7 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset ds1000 --top_k 1 --retriever bm25 --ret_doc_type oracle --prompt_type original --n 1'
+    in_program_call = '--dataset ds1000 --top_k 1 --retriever bm25 --ret_doc_type oracle --prompt_type original --n 100 --sampled'
     args = generate_config(in_program_call)
     ds1000_passk(result_file=args.save_file)
 
