@@ -97,7 +97,7 @@ class GeneDS1000:
             prompt = self.prepare_prompt(nl=qs['nl'], ret_docs=ret_docs)
 
             prompts.append(prompt)
-            outputs = chatgpt(prompt=prompt, model=self.model, temperature=self.temperature, max_tokens=self.max_tokens, stop=["</code>", "###", "END", "# END", "# SOLUTION END"], n=self.n)
+            outputs = chatgpt(prompt=prompt, model=self.model, temperature=self.temperature, max_tokens=self.max_tokens, stop=["</code>", "###", "# SOLUTION END", "END"], n=self.n)
             gene_results.append(dict(nl=qs, outputs=outputs, ret_libs=ret_libs, oracle_libs=oracle['doc_keys'], oracle_output=oracle['output']))
             # gene_results.append(dict(nl=qs, outputs=outputs, oracle_output=oracle['output']))
             if idx == 0:
