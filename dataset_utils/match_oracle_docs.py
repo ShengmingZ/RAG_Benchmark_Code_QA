@@ -15,7 +15,7 @@ from generator.run_model import chatgpt
 
 random.seed(0)
 
-common_func_list = ['copy', 'replace', 'append', 'keys', 'shape']
+common_func_list = ['copy', 'replace', 'append', 'keys', 'shape', 'map']
 
 # todo: lib name duplicate, can only be analyzed dynamically
 def extract_func_name(code_string):
@@ -53,15 +53,18 @@ def extract_func_name(code_string):
 
 def match_ds1000_doc(gold_lib, gold_output, api_sign_collection):
     gold_func_list = extract_func_name(gold_output)
+    for func in common_func_list:
+        if func in gold_func_list: gold_func_list.remove(func)
     gold_func_length = len(gold_func_list)
     if gold_func_length == 0: return [], 1
     gold_lib = gold_lib.lower()
     if gold_lib == 'pytorch': gold_lib = 'torch'
     for idx in range(len(gold_func_list)): gold_func_list[idx] = gold_func_list[idx].lower()
 
-    matched_api_list, matched_func_list = [], []
+    matched_api_list = []
     # match golden lib
     for api_sign in api_sign_collection[gold_lib]:
+        if api_sign.startswith('tensorflow.compat.v1.'): continue
         func = api_sign.rsplit('.', 1)[-1].lower()
         if func in gold_func_list:
             matched_api_list.append(api_sign)
@@ -116,8 +119,8 @@ def match_ds1000():
         match_success_rate += func_match_rate
         sampled_num += 1
 
-    # with open('../DS-1000/oracle_docs_matched.json', 'w+') as f:
-    #     json.dump(result_list, f, indent=2)
+    with open(os.path.join(root_path, 'data/DS1000/oracle_docs_matched.json'), 'w+') as f:
+        json.dump(result_list, f, indent=2)
 
     print('Match success rate: ', match_success_rate / sampled_num)
 

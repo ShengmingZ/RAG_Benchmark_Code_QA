@@ -59,6 +59,9 @@ class GeneDS1000:
         return ret_libs, ret_docs
 
     def prepare_prompt(self, nl, ret_docs):
+        if self.ret_doc_type == 'none':
+            return nl
+
         if '\nA:\n' in nl:
             prompt_with_problem = True
         else:
@@ -66,22 +69,21 @@ class GeneDS1000:
 
         if prompt_with_problem:
             [problem, code_snippet] = nl.split('\nA:\n')
-            problem = '# ' + problem + '\n'
-            code_snippet = '# Code Snippet:\n' + code_snippet
+            problem = '### ' + problem + '\n\n'
+            code_snippet = '### Uncompleted Code Snippet:\n' + code_snippet
         else:
-            code_snippet = '# Code Snippet:\n' + nl
-        if self.ret_doc_type == 'none':
-            prompt = nl
+            code_snippet = '### Uncompleted Code Snippet:\n' + nl
+
+        if prompt_with_problem:
+            prompt = ds1000_prompt.retrieval_3shots_prompt_1 + '\n\n' + problem + '\n' + '### Potential Document:\n'
         else:
-            if prompt_with_problem:
-                prompt = ds1000_prompt.original_retrieval_prompt_1 + '\n\n' + problem + '# Potential Document:\n'
-            else:
-                prompt = ds1000_prompt.original_retrieval_prompt_2 + '\n\n' + '# Potential Document:\n'
-            for doc in ret_docs:
-                doc = truncate_too_long_doc(doc, max_length=self.max_doc_tokens)
-                prompt += doc
-                prompt += '\n'
-            prompt += f'\n\n{code_snippet}'
+            prompt = ds1000_prompt.retrieval_3shots_prompt_2 + '\n\n' + '### Potential Document:\n'
+        for doc in ret_docs:
+            doc = truncate_too_long_doc(doc, max_length=self.max_doc_tokens)
+            prompt += doc
+            prompt += '\n'
+        prompt += f'\n\n{code_snippet}'
+        prompt += f'\n\n### Answer:\n'
 
         return prompt
 
@@ -95,7 +97,7 @@ class GeneDS1000:
             prompt = self.prepare_prompt(nl=qs['nl'], ret_docs=ret_docs)
 
             prompts.append(prompt)
-            outputs = chatgpt(prompt=prompt, model=self.model, temperature=self.temperature, max_tokens=self.max_tokens, stop=["</code>", "# SOLUTION END"], n=self.n)
+            outputs = chatgpt(prompt=prompt, model=self.model, temperature=self.temperature, max_tokens=self.max_tokens, stop=["</code>", "###", "END", "# END", "# SOLUTION END"], n=self.n)
             gene_results.append(dict(nl=qs, outputs=outputs, ret_libs=ret_libs, oracle_libs=oracle['doc_keys'], oracle_output=oracle['output']))
             # gene_results.append(dict(nl=qs, outputs=outputs, oracle_output=oracle['output']))
             if idx == 0:
@@ -112,11 +114,11 @@ if __name__ == '__main__':
     retriever_args = None
 
     gene_ds1000 = GeneDS1000(args, retriever_args)
-    gene_ds1000.gene_response()
+    # gene_ds1000.gene_response()
 
-    # nl = "Problem:\nI have a set of data and I want to compare which line describes it best (polynomials of different orders, exponential or logarithmic).\nI use Python and Numpy and for polynomial fitting there is a function polyfit(). \nHow do I fit y = A + Blogx using polyfit()? The result should be an np.array of [A, B]\nA:\n<code>\nimport numpy as np\nimport scipy\nx = np.array([1, 7, 20, 50, 79])\ny = np.array([10, 19, 30, 35, 51])\n\n</code>\nresult = ... # put solution in this variable\nBEGIN SOLUTION\n<code>\n"
-    # ret_libs = []
-    # print(gene_ds1000.prepare_prompt(nl, ret_libs))
+    nl = "Problem:\nI have a set of data and I want to compare which line describes it best (polynomials of different orders, exponential or logarithmic).\nI use Python and Numpy and for polynomial fitting there is a function polyfit(). \nHow do I fit y = A + Blogx using polyfit()? The result should be an np.array of [A, B]\nA:\n<code>\nimport numpy as np\nimport scipy\nx = np.array([1, 7, 20, 50, 79])\ny = np.array([10, 19, 30, 35, 51])\n\n</code>\nresult = ... # put solution in this variable\nBEGIN SOLUTION\n<code>\n"
+    ret_libs = ["matplotlib._as_gen.matplotlib.axes.axes.add_patch"]
+    print(gene_ds1000.prepare_prompt(nl, ret_libs))
 
     # ds1000_loader = DS1000Loader()
     # qs_list = ds1000_loader.load_qs_list()
