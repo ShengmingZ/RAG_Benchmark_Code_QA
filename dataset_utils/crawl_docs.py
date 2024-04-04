@@ -42,7 +42,7 @@ import code, codeop
 import zipimport, pkgutil, modulefinder, runpy, importlib
 import parser, ast, symtable, symbol, token, keyword, tokenize, tabnanny, pyclbr, py_compile, compileall, dis, pickletools
 import formatter
-import msilib, msvcrtm, winreg, winsound, posix, pwd, spwd, grp, crypt, termios, tty, pty, fcntl, pipes, resource, nis, syslog
+import msvcrtm, winreg, winsound, posix, pwd, spwd, grp, crypt, termios, tty, pty, fcntl, pipes, resource, nis, syslog
 import optparse, imp
 
 py_builtin_lib_list = [
