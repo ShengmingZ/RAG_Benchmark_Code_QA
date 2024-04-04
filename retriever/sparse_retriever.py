@@ -17,6 +17,9 @@ import shlex
 
 
 class tldr_BM25:
+    """
+    still a
+    """
     def __init__(self, bm25_args):
         self.ret_result_path_whole = bm25_args.tldr_ret_result_whole
         self.ret_result_path_line = bm25_args.tldr_ret_result_line
@@ -175,6 +178,7 @@ def sparse_retriever_config(in_program_call=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='tldr', choices=['tldr', 'conala', 'ds1000'])
     parser.add_argument('--dataset_type', type=str, default='test', choices=['test', 'train', 'dev'])
+
     parser.add_argument('--tldr_ret_result_whole', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/dev_ret_result_whole_BM25.json")
     parser.add_argument('--tldr_ret_result_line', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/dev_ret_result_line_BM25.json")
     parser.add_argument('--tldr_idx_whole', type=str, default="tldr_whole")
@@ -183,11 +187,11 @@ def sparse_retriever_config(in_program_call=None):
     parser.add_argument('--tldr_top_k_line_cmd', type=int, default=5)
     parser.add_argument('--tldr_top_k_line_sent', type=int, default=30)
 
-    parser.add_argument('--conala_ret_result', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/conala/ret_result_BM25.json")
+    parser.add_argument('--conala_ret_result', type=str, default=f"{root_path}/data/conala/ret_result_BM25.json")
     parser.add_argument('--conala_idx', type=str, default="conala")
     parser.add_argument('--conala_top_k', type=int, default=200)
 
-    parser.add_argument('--ds1000_ret_result', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/DS-1000/ret_result_BM25.json")
+    parser.add_argument('--ds1000_ret_result', type=str, default=f"{root_path}/DS-1000/ret_result_BM25.json")
     parser.add_argument('--ds1000_idx', type=str, default="ds1000")
     parser.add_argument('--ds1000_top_k', type=int, default=100)
 
@@ -211,6 +215,3 @@ if __name__ == '__main__':
         conala_retriever.create_index()
         time.sleep(1)
         conala_retriever.retrieve()
-
-
-

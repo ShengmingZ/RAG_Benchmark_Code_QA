@@ -72,7 +72,7 @@ def ds1000_passk(result_file, mode='Completion', num_procs=16):
         if num_procs > 1 and lib != "Sklearn":
             with Pool(processes=num_procs) as pool:
                 for problem_id, test_results in tqdm(
-                        enumerate(pool.map(test_helper, processed_gene_codes[lib])),
+                        enumerate(pool.imap(test_helper, processed_gene_codes[lib])),
                         total=len(processed_gene_codes[lib]),
                         desc=f"Executing test for {lib} questions",
                 ):

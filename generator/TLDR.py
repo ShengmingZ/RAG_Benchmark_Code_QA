@@ -14,21 +14,31 @@ from prompt import tldr_prompt
 from dataset_utils.dataset_configs import TldrLoader
 from retriever.sparse_retriever import sparse_retriever_config
 from retriever.dense_retriever import dense_retriever_config
-from generator.generate_utils import truncate_too_long_doc, approximate_token, get_dummy_text, generate_config, save_results_to_files
+from generator.generate_utils import truncate_doc, approximate_token, get_dummy_text, generate_config, save_results_to_files
 
+
+
+# Todo: now abandon TLDR, for no pass@k evaluation, and retrieval acc, oracle docs not robust
 
 class GeneTldr:
     def __init__(self, args, retriever_args):
         # load parameters
         self.save_file = args.save_file
-        self.top_k = args.top_k
-        self.k_line = args.k_line
-        self.ret_doc_type = args.ret_doc_type
-        self.prompt_type = args.prompt_type
-        self.max_doc_tokens = args.max_doc_tokens
+        self.sampled = args.sampled
+        # model
         self.model = args.model
         self.temperature = args.temperature
+        self.n = args.n
         self.max_tokens = args.max_tokens
+        # analysis
+        self.analysis_type = args.analysis_type
+        self.retriever = args.retriever
+        self.retrieval_acc = args.retrieval_acc
+        self.ret_info_type = args.ret_info_type
+        self.top_k = args.top_k
+        # self.k_line = args.k_line
+        self.doc_max_length = args.doc_max_length
+        self.prompt_type = args.prompt_type
         # load docs
         self.tldr_loader    = TldrLoader()
         self.doc_list_whole = self.tldr_loader.load_doc_list_whole()
@@ -101,7 +111,7 @@ class GeneTldr:
                 raise Exception('no such prompt type')
         prompt += '\n\n'
         for doc in ret_docs:
-            doc = truncate_too_long_doc(doc=doc, max_length=self.max_doc_tokens)
+            doc = truncate_doc(doc=doc, max_length=self.max_doc_tokens)
             prompt += doc
             prompt += '\n'
         prompt += f'# {nl}'

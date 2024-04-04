@@ -1,4 +1,5 @@
 import json
+import gzip
 from collections import Counter
 import os
 import random
@@ -395,11 +396,12 @@ class MBPPLoader:
         self.dataset = load_dataset('mbpp')
         # self.doc_file = os.path.join(self.root, "data/conala/conala_docs.json")
 
-    def load_qs_list(self, sampled=False):
+    def load_qs_list(self, dataset='test', sampled=False):
         """
         all elements in qs list should be in the format of {'nl': nl, 'qs_id': qs_id}
         """
         qs_list = list()
+        self.dataset['test']
         for task_id in self.problems.keys():
             qs_list.append(dict(nl=self.problems[task_id]['prompt'], qs_id=task_id))
         return qs_list
@@ -410,7 +412,7 @@ class MBPPLoader:
     #     """
     #     return json.load(open(self.doc_file, 'r'))
 
-    def load_oracle_list(self, sampled=False):
+    def load_oracle_list(self, dataset='test', sampled=False):
         """
         {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
         """
@@ -418,6 +420,45 @@ class MBPPLoader:
         for task_id in self.problems.keys():
             oracle_list.append(dict(qs_id=task_id, output=self.problems[task_id]['canonical_solution']))
         return oracle_list
+
+
+class PandasNumpyEvalLoader:
+    def __init__(self):
+        self.root = root_path
+        self.pandas_eval_file = os.path.join(self.root, 'data/pandas-numpy-eval/data/PandasEval.jsonl.gz')
+        self.numpy_eval_file = self.pandas_eval_file.replace('PandasEval', 'NumpyEval')
+        self.pandas_eval_data = list()
+        with gzip.open(self.pandas_eval_file, 'rt') as f:
+            for line in f:
+                self.pandas_eval_data.append(json.loads(line))
+
+        self.numpy_eval_data = list()
+        with gzip.open(self.numpy_eval_file, 'rt') as f:
+            for line in f:
+                self.numpy_eval_data.append(json.loads(line))
+
+    def load_qs_list(self, sampled=False):
+        """
+        all elements in qs list should be in the format of {'nl': nl, 'qs_id': qs_id}
+        """
+        qs_list = list()
+        for data in self.pandas_eval_data:
+            qs_list.append(dict(qs_id=data['task_id'], nl=data['prompt']))
+        for data in self.numpy_eval_data:
+            qs_list.append(dict(qs_id=data['task_id'], nl=data['prompt']))
+        return qs_list
+
+    def load_oracle_list(self, sampled=False):
+        """
+        {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
+        """
+        oracle_list = []
+        for data in self.pandas_eval_data:
+            oracle_list.append(dict(qs_id=data['task_id'], outputs=data['canonical_solution']))
+        for data in self.numpy_eval_data:
+            oracle_list.append(dict(qs_id=data['task_id'], outputs=data['canonical_solution']))
+        return oracle_list
+
 
 
 if __name__ == '__main__':
@@ -429,5 +470,8 @@ if __name__ == '__main__':
     # ds1000_loader = DS1000Loader()
     # ds1000_loader.sample_dataset()
     # print(len(ds1000_loader.load_qs_list(sampled=True)))
-    humaneval_loader = HumanEvalLoader()
-    print(len(humaneval_loader.load_qs_list()))
+    # humaneval_loader = HumanEvalLoader()
+    # print(len(humaneval_loader.load_qs_list()))
+
+    mbpp_dataset = load_dataset('mbpp')
+    print(len(mbpp_dataset['test']))
