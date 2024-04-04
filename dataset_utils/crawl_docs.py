@@ -42,7 +42,7 @@ import code, codeop
 import zipimport, pkgutil, modulefinder, runpy, importlib
 import parser, ast, symtable, symbol, token, keyword, tokenize, tabnanny, pyclbr, py_compile, compileall, dis, pickletools
 import formatter
-import msvcrtm, winreg, winsound, posix, pwd, spwd, grp, crypt, termios, tty, pty, fcntl, pipes, resource, nis, syslog
+import winreg, winsound, posix, pwd, spwd, grp, crypt, termios, tty, pty, fcntl, pipes, resource, nis, syslog
 import optparse, imp
 
 py_builtin_lib_list = [
@@ -67,7 +67,7 @@ py_builtin_lib_list = [
     audioop, aifc, sunau, wave, chunk, colorsys, imghdr, sndhdr, ossaudiodev,
     gettext, locale,
     turtle, cmd, shlex,
-    tkinter, tkinter.ttk, tkinter.tix, tkinter.scrolledtext, IDLE,
+    tkinter, tkinter.ttk, tkinter.tix, tkinter.scrolledtext,
     typing, pydoc, doctest, unittest, unittest.mock, lib2to3, test, test.support, test.support.script_helper,
     bdb, faulthandler, pdb, cProfile, profile, timeit, trace, tracemalloc,
     distutils, ensurepip, venv, zipapp,
@@ -76,7 +76,7 @@ py_builtin_lib_list = [
     zipimport, pkgutil, modulefinder, runpy, importlib,
     parser, ast, symtable, symbol, token, keyword, tokenize, tabnanny, pyclbr, py_compile, compileall, dis, pickletools,
     formatter,
-    msilib, msvcrtm, winreg, winsound, posix, pwd, spwd, grp, crypt, termios, tty, pty, fcntl, pipes, resource, nis, syslog,
+    winreg, winsound, posix, pwd, spwd, grp, crypt, termios, tty, pty, fcntl, pipes, resource, nis, syslog,
     optparse, imp
 ]
 
