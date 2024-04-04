@@ -33,7 +33,7 @@ import webbrowser, cgi, cgitb, wsgiref, urllib, urllib.request, urllib.response,
 import audioop, aifc, sunau, wave, chunk, colorsys, imghdr, sndhdr, ossaudiodev
 import gettext, locale
 import turtle, cmd, shlex
-import tkinter, tkinter.ttk, tkinter.tix, tkinter.scrolledtext, IDLE
+import tkinter, tkinter.ttk, tkinter.tix, tkinter.scrolledtext
 import typing, pydoc, doctest, unittest, unittest.mock, lib2to3, test, test.support, test.support.script_helper
 import bdb, faulthandler, pdb, cProfile, profile, timeit, trace, tracemalloc
 import distutils, ensurepip, venv, zipapp
