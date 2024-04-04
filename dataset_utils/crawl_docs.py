@@ -41,9 +41,10 @@ import sys, sysconfig, builtins, __main__, warnings, dataclasses, contextlib, ab
 import code, codeop
 import zipimport, pkgutil, modulefinder, runpy, importlib
 import parser, ast, symtable, symbol, token, keyword, tokenize, tabnanny, pyclbr, py_compile, compileall, dis, pickletools
-import formatter
-import winreg, winsound, posix, pwd, spwd, grp, crypt, termios, tty, pty, fcntl, pipes, resource, nis, syslog
-import optparse, imp
+# import formatter
+# import mislib, msvcrt, winreg, winsound
+# import posix, pwd, spwd, grp, crypt, termios, tty, pty, fcntl, pipes, resource, nis, syslog
+# import optparse, imp
 
 py_builtin_lib_list = [
     builtins,
@@ -75,9 +76,10 @@ py_builtin_lib_list = [
     code, codeop,
     zipimport, pkgutil, modulefinder, runpy, importlib,
     parser, ast, symtable, symbol, token, keyword, tokenize, tabnanny, pyclbr, py_compile, compileall, dis, pickletools,
-    formatter,
-    winreg, winsound, posix, pwd, spwd, grp, crypt, termios, tty, pty, fcntl, pipes, resource, nis, syslog,
-    optparse, imp
+    # formatter,
+    # msilib, msvcrtm, winreg, winsound
+    # posix, pwd, spwd, grp, crypt, termios, tty, pty, fcntl, pipes, resource, nis, syslog,
+    # optparse, imp
 ]
 
 def crawl_callable_attributes(module, library_name):
