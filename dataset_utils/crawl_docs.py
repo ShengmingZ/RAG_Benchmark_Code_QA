@@ -123,6 +123,7 @@ def get_doc(api_sign):
         helped_api_sign = module + '.' + method
         assert helped_api_sign == api_sign
     except:
+        sys.stdout = sys.__stdout__
         print(api_sign)
         content = None
     finally:
