@@ -101,7 +101,7 @@ def crawl_callable_attributes(module, library_name):
         elif inspect.ismodule(attr_obj):
             crawl_callable_attributes(attr_obj, library_name)
 
-def crawl_lib_docs(library_list):
+def crawl_api_signs(library_list):
     for library in library_list:
         crawl_callable_attributes(library, library.__name__)
 
@@ -116,14 +116,14 @@ def crawl_lib_docs(library_list):
 
 
 if __name__ == '__main__':
-    library_list = third_party_lib_list
-    save_file = '../data/python_docs/api_sign_third_party.json'
-    # library_list = py_builtin_lib_list
-    # save_file = '../data/python_docs/api_sign_builtin.json'
+    # library_list = third_party_lib_list
+    # save_file = '../data/python_docs/api_sign_third_party.txt'
+    library_list = py_builtin_lib_list
+    save_file = '../data/python_docs/api_sign_builtin.txt'
     func_list = list()
     module_list = list()
 
-    crawl_lib_docs(library_list)
+    crawl_api_signs(library_list)
 
     with open(save_file, 'w+') as f:
         for func in func_list:
