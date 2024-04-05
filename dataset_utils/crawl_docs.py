@@ -1,4 +1,5 @@
 import inspect
+import os, sys
 
 # common used data science libs
 import tensorflow
@@ -105,26 +106,60 @@ def crawl_api_signs(library_list):
     for library in library_list:
         crawl_callable_attributes(library, library.__name__)
 
+def get_doc(api_sign):
+    buffer = io.StringIO()
+    sys.stdout = buffer
 
-# crawl_callable_attributes(tensorflow, 'tensorflow')
-# crawl_callable_attributes(matplotlib, 'matplotlib')
-# crawl_callable_attributes(sklearn, 'sklearn')
-# crawl_callable_attributes(numpy, 'numpy')
-# crawl_callable_attributes(torch, 'torch')
-# crawl_callable_attributes(pandas, 'pandas')
-# crawl_callable_attributes(scipy, 'scipy')
+    try:
+        help(api_sign)
+        doc = buffer.getvalue()
+        helped_api_sign, content = doc.split('\n\n',1)
+        # use the same way in match oracle docs to identify api sign and verify if its same
+        if 'built-in' in helped_api_sign:
+            module = 'builtins'
+        else:
+            module = helped_api_sign.split('module ')[1].replace(':', '')
+        method = api_sign.rsplit('.', 1)[1]
+        helped_api_sign = module + '.' + method
+        assert helped_api_sign == api_sign
+    except:
+        print(api_sign)
+        content = None
+    finally:
+        sys.stdout = sys.__stdout__
+
+    return content
+
+
+def crawl_api_docs(api_sign_list):
+    api_doc_dict = dict()
+    for api_sign in api_sign_list:
+        content = get_doc(api_sign)
+        if content is not None:
+            api_doc_dict[api_sign] = content
+
+    return api_doc_dict
 
 
 if __name__ == '__main__':
     # library_list = third_party_lib_list
-    # save_file = '../data/python_docs/api_sign_third_party.txt'
+    # api_sign_file = '../data/python_docs/api_sign_third_party.txt'
+    # api_doc_file = '../data/python_docs/api_doc_third_party.json'
     library_list = py_builtin_lib_list
-    save_file = '../data/python_docs/api_sign_builtin.txt'
+    api_sign_file = '../data/python_docs/api_sign_builtin.txt'
+    api_doc_file = '../data/python_docs/api_doc_builtin.json'
+
+    # crawl api sign
     func_list = list()
     module_list = list()
-
     crawl_api_signs(library_list)
-
-    with open(save_file, 'w+') as f:
+    with open(api_sign_file, 'w+') as f:
         for func in func_list:
             f.write(str(func) + '\n')
+
+    # crawl api docs based on signs
+    with open(api_sign_file, 'r') as f:
+        api_sign_list = [line.strip() for line in f.readlines()]
+    api_doc_dict = crawl_api_docs(api_sign_list)
+    with open(api_doc_file, 'w+') as f:
+        json.dump(api_doc_dict, f, indent=2)
