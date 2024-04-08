@@ -85,6 +85,7 @@ py_builtin_lib_list = [
 
 
 def get_doc(attr_obj, full_name):
+    if full_name == 'pydoc.help': return None
     buffer = io.StringIO()
     sys.stdout = buffer
 
