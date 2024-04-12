@@ -514,7 +514,7 @@ if __name__ == '__main__':
         program = f"{code_snippet}{gold_output}"
         test_func = f"\n{data['test']}\ncheck({data['entry_point']})"
 
-        preds.append(program)
+        preds.append([program])
         tests.append(test_func)
 
     r = code_eval_metric.compute(
