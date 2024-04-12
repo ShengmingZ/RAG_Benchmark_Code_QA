@@ -3,7 +3,6 @@ import gzip
 from collections import Counter
 import os
 import random
-from datasets import load_dataset
 import platform
 import sys
 system = platform.system()
@@ -439,5 +438,4 @@ if __name__ == '__main__':
     # humaneval_loader = HumanEvalLoader()
     # print(len(humaneval_loader.load_qs_list()))
 
-    mbpp_dataset = load_dataset('mbpp')
-    print(len(mbpp_dataset['test']))
+    ...
