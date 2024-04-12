@@ -513,7 +513,7 @@ if __name__ == '__main__':
         gold_output = data['canonical_solution']
         code_snippet = data['prompt']
 
-        program = f"{code_snippet}{gold_output}"
+        program = f"{code_snippet}{gold_output}{data['suffix']}"
         test_func = f"\n{data['test']}\ncheck({data['entry_point']})"
 
         preds.append([program])
