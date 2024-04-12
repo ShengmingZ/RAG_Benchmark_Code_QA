@@ -498,6 +498,8 @@ if __name__ == '__main__':
 
     # match_docs(dataset_name='DS1000')
 
+    import os
+    os.environ["HF_ALLOW_CODE_EVAL"] = "1"
 
     import evaluate
     code_eval_metric = evaluate.load("code_eval")
