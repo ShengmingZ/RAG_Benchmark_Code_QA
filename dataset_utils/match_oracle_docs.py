@@ -497,7 +497,35 @@ def match_docs(dataset_name):
 
 if __name__ == '__main__':
 
-    match_docs(dataset_name='DS1000')
+    # match_docs(dataset_name='DS1000')
+
+
+    import evaluate
+    code_eval_metric = evaluate.load("code_eval")
+
+    data_file = '../data/conala/unittest_docprompting_conala.json'
+    dataset = list(json.load(open(data_file, 'r')).values())
+
+    preds = []
+    tests = []
+    for data in dataset:
+        gold_output = data['canonical_solution']
+        code_snippet = data['prompt']
+
+        program = f"{code_snippet}{gold_output}"
+        test_func = f"\n{data['test']}\ncheck({data['entry_point']})"
+
+        preds.append(program)
+        tests.append(test_func)
+
+    r = code_eval_metric.compute(
+        predictions=preds,
+        references=tests,
+        k=[1],
+        num_workers=8,
+    )
+    print(r[0])
+
 
 
     # ds1000_loader = DS1000Loader()
