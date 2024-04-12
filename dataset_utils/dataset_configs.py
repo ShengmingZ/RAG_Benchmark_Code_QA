@@ -122,90 +122,58 @@ class TldrLoader:
 class ConalaLoader:
     def __init__(self):
         self.root = root_path
-        self.qs_file = os.path.join(self.root, "data/conala/conala_nl.txt")
-        self.qs_idx_file = self.qs_file.replace(".txt", ".id")
-        self.train_qs_file = os.path.join(self.root, "data/conala/train_qs.json")
-        self.test_qs_file = os.path.join(self.root, "data/conala/test_qs.json")
-        self.dev_qs_file = os.path.join(self.root, "data/conala/dev_qs.json")
-        self.doc_firstpara_file = os.path.join(self.root, "data/conala/python_manual_firstpara.tok.txt")
-        self.doc_firstpara_idx_file = self.doc_firstpara_file.replace(".txt", ".id")
-        self.doc_file = os.path.join(self.root, "data/conala/conala_docs.json")
-        self.test_oracle_file = os.path.join(self.root, "data/conala/cmd_test.oracle_man.full.json")
-        self.train_oracle_file = os.path.join(self.root, "data/conala/cmd_train.oracle_man.full.json")
-        self.dev_oracle_file = os.path.join(self.root, "data/conala/cmd_dev.oracle_man.full.json")
+        # self.qs_file = os.path.join(self.root, "data/conala/conala_nl.txt")
+        # self.qs_idx_file = self.qs_file.replace(".txt", ".id")
+        # self.train_qs_file = os.path.join(self.root, "data/conala/train_qs.json")
+        # self.test_qs_file = os.path.join(self.root, "data/conala/test_qs.json")
+        # self.dev_qs_file = os.path.join(self.root, "data/conala/dev_qs.json")
+        # self.doc_firstpara_file = os.path.join(self.root, "data/conala/python_manual_firstpara.tok.txt")
+        # self.doc_firstpara_idx_file = self.doc_firstpara_file.replace(".txt", ".id")
+        # self.doc_file = os.path.join(self.root, "data/conala/conala_docs.json")
+        # self.test_oracle_file = os.path.join(self.root, "data/conala/cmd_test.oracle_man.full.json")
+        # self.train_oracle_file = os.path.join(self.root, "data/conala/cmd_train.oracle_man.full.json")
+        # self.dev_oracle_file = os.path.join(self.root, "data/conala/cmd_dev.oracle_man.full.json")
         self.unittest_file = os.path.join(self.root, "data/conala/unittest_docprompting_conala.json")
 
-    def load_doc_list(self):
-        """
-        all docs should be in the format of {f'{doc_key}': content}
-        """
-        return json.load(open(self.doc_file, 'r'))
+    # def load_doc_list(self):
+    #     """
+    #     all docs should be in the format of {f'{doc_key}': content}
+    #     """
+    #     return json.load(open(self.doc_file, 'r'))
 
-    def load_doc_list_firstpara(self):
-        doc_firstpara_content_list = list()
-        with open(self.doc_firstpara_file, 'r') as f:
-            for line in f:
-                doc_firstpara_content_list.append(line.strip())
-        doc_firstpara_id_list = list()
-        with open(self.doc_firstpara_idx_file, 'r') as f:
-            for line in f:
-                doc_firstpara_id_list.append(line.strip())
-        assert len(doc_firstpara_content_list) == len(doc_firstpara_id_list)
-        doc_list_firstpara = dict()
-        for doc_firstpara_id, doc_firstpara_content in zip(doc_firstpara_id_list, doc_firstpara_content_list):
-            doc_list_firstpara[doc_firstpara_id] = doc_firstpara_content
-        return doc_list_firstpara
+    # def load_doc_list_firstpara(self):
+    #     doc_firstpara_content_list = list()
+    #     with open(self.doc_firstpara_file, 'r') as f:
+    #         for line in f:
+    #             doc_firstpara_content_list.append(line.strip())
+    #     doc_firstpara_id_list = list()
+    #     with open(self.doc_firstpara_idx_file, 'r') as f:
+    #         for line in f:
+    #             doc_firstpara_id_list.append(line.strip())
+    #     assert len(doc_firstpara_content_list) == len(doc_firstpara_id_list)
+    #     doc_list_firstpara = dict()
+    #     for doc_firstpara_id, doc_firstpara_content in zip(doc_firstpara_id_list, doc_firstpara_content_list):
+    #         doc_list_firstpara[doc_firstpara_id] = doc_firstpara_content
+    #     return doc_list_firstpara
 
-    def load_qs_list(self, dataset):
+    def load_qs_list(self):
         """
         all elements in qs list should be in the format of {'nl': nl, 'qs_id': qs_id}
         """
-        assert dataset in ['train', 'dev', 'test']
-        # # load target qs id list for train, dev, test
-        # if dataset == 'train':
-        #     oracle_list = json.load(open(self.train_oracle_file, 'r'))
-        # elif dataset == 'dev':
-        #     oracle_list = json.load(open(self.dev_oracle_file, 'r'))
-        # else:
-        #     oracle_list = json.load(open(self.test_oracle_file, 'r'))
-        # target_qs_id_list = [item['question_id'] for item in oracle_list]
-        # # assemble qs list
-        # qs_content_list = []
-        # with open(self.qs_file, 'r') as f:
-        #     for line in f:
-        #         qs_content_list.append(line.strip())
-        # qs_id_list = []
-        # with open(self.qs_idx_file, 'r') as f:
-        #     for line in f:
-        #         qs_id_list.append(line.strip())
-        # qs_list = []
-        # for id in target_qs_id_list:
-        #     for idx in range(len(qs_id_list)):
-        #         if qs_id_list[idx] == id:
-        #             qs_list.append(dict(nl=qs_content_list[idx], qs_id=qs_id_list[idx]))
-        # return qs_list
-        if dataset == 'train':
-            qs_list = json.load(open(self.train_qs_file, 'r'))
-        elif dataset == 'dev':
-            qs_list = json.load(open(self.dev_qs_file, 'r'))
-        else:
-            qs_list = json.load(open(self.test_qs_file, 'r'))
+        dataset = json.load(open(self.unittest_file, 'r'))
+        qs_list = []
+        for data in dataset.items():
+            qs_list.append(dict(qs_id=data['task_id'], nl=data['intent']))
         return qs_list
 
-    def load_oracle_list(self, dataset):
+    def load_oracle_list(self):
         """
         {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
         """
-        assert dataset in ['train', 'dev', 'test']
-        if dataset == 'train':
-            oracle_list = json.load(open(self.train_oracle_file, 'r'))
-        elif dataset == 'dev':
-            oracle_list = json.load(open(self.dev_oracle_file, 'r'))
-        else:
-            oracle_list = json.load(open(self.test_oracle_file, 'r'))
-        oracle_list = [dict(qs_id=oracle['question_id'],
-                            output=oracle['cmd'],
-                            doc_keys=oracle['oracle_man']) for oracle in oracle_list]
+        dataset = json.load(open(self.unittest_file, 'r'))
+        oracle_list = []
+        for data in dataset.values():
+            oracle_list.append(dict(qs_id=data['task_id'], output=data['canonical_solution']))
         return oracle_list
 
     def split_qs(self):
@@ -300,63 +268,60 @@ class ConalaLoader:
 class DS1000Loader:
     def __init__(self):
         self.root = root_path
-        self.ds1000 = DS1000Dataset(source_dir=os.path.join(self.root, 'data/DS1000/ds1000_data'), libs='all', mode='Completion')
-        self.sampled_idx_file = os.path.join(self.root, 'data/DS1000/sampled_idx.json')
+        # self.ds1000 = DS1000Dataset(source_dir=os.path.join(self.root, 'data/DS1000/ds1000_data'), libs='all', mode='Completion')
+        # self.sampled_idx_file = os.path.join(self.root, 'data/DS1000/sampled_idx.json')
+        self.sampled_data_file = os.path.join(self.root, 'data/DS1000/sampled_data.json')
         self.oracle_doc_file = os.path.join(self.root, 'data/DS1000/oracle_docs_matched.json')
         self.doc_file = os.path.join(self.root, "data/conala/conala_docs.json")
 
-    def load_qs_list(self, sampled=False):
+    def load_qs_list(self):
         """
         all elements in qs list should be in the format of {'nl': nl, 'qs_id': qs_id}
         """
-        sampled_idx = json.load(open(self.sampled_idx_file, 'r'))
+        sampled_data = json.load(open(self.sampled_data_file, 'r'))
         qs_list = []
-        for lib in self.ds1000.libs:
-            for idx in range(len(self.ds1000[lib])):
-                if sampled is True and idx not in sampled_idx[lib]: continue
-                qs_id = lib + '_' + str(idx)
-                prompt = self.ds1000[lib][idx]['prompt']
-                qs_list.append(dict(qs_id=qs_id, nl=prompt))
+        for data in sampled_data:
+            qs_list.append(dict(nl=data['prompt'], qs_id=data['qs_id']))
         return qs_list
 
-    def load_doc_list(self, sampled=False):
-        """
-        all docs should be in the format of {f'{doc_key}': content}
-        """
-        return json.load(open(self.doc_file, 'r'))
+    # def load_doc_list(self):
+    #     """
+    #     all docs should be in the format of {f'{doc_key}': content}
+    #     """
+    #     return json.load(open(self.doc_file, 'r'))
 
-    def load_oracle_list(self, sampled=False):
+    def load_oracle_list(self):
         """
         {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
         """
-        sampled_idx = json.load(open(self.sampled_idx_file, 'r'))
-        matched_doc_list = json.load(open(self.oracle_doc_file))
-        oracle_list = []
-        for lib in self.ds1000.libs:
-            for idx in range(len(self.ds1000[lib])):
-                if sampled is True and idx not in sampled_idx[lib]: continue
-                qs_id = lib + '_' + str(idx)
-                output = self.ds1000[lib][idx]['reference_code']
-                # get oracle docs
-                doc_keys = []
-                for item in matched_doc_list:
-                    if item['qs_id'] == qs_id:
-                        doc_keys = item['oracle_docs']
-                        break
-                oracle_list.append(dict(qs_id=qs_id, doc_keys=doc_keys, output=output))
-        return oracle_list
+        return json.load(open(self.oracle_doc_file))
 
     # sample 20%
     def sample_dataset(self):
+        import data.DS1000.ds1000
+        import random
+
+        random.seed(0)
+
+        ds1000 = DS1000Dataset(source_dir='../data/DS1000/ds1000_data', libs='all', mode='Completion')
+
         sampled_idx_dict = dict()
-        for lib in self.ds1000.libs:
-            num_sampled = int(len(self.ds1000[lib]) * 0.2)
-            problem_id_list = list(range(0, len(self.ds1000[lib])))
+        sampled_data_list = list()
+        for lib in ds1000.libs:
+            num_sampled = int(len(ds1000[lib]) * 0.2)
+            problem_id_list = list(range(0, len(ds1000[lib])))
             sampled_idx = random.sample(problem_id_list, num_sampled)
             sampled_idx_dict[lib] = sampled_idx
+            print(len(sampled_idx))
+            for idx in sampled_idx:
+                sampled_data = ds1000[lib][idx]
+                sampled_data_list.append(dict(qs_id=f'{lib}_{idx}',
+                                              reference_code=sampled_data['reference_code'],
+                                              code_context=sampled_data['code_context'],
+                                              prompt=sampled_data['prompt']))
 
-        with open(self.sampled_idx_file, 'w+') as f:
-            json.dump(sampled_idx_dict, f)
+        with open('../data/DS1000/sampled_data.json', 'w+') as f:
+            json.dump(sampled_data_list, f, indent=2)
 
 
 class HumanEvalLoader:
@@ -427,6 +392,7 @@ class PandasNumpyEvalLoader:
         self.root = root_path
         self.pandas_eval_file = os.path.join(self.root, 'data/pandas-numpy-eval/data/PandasEval.jsonl.gz')
         self.numpy_eval_file = self.pandas_eval_file.replace('PandasEval', 'NumpyEval')
+        self.oracle_docs_matched_file = os.path.join(self.root, 'data/pandas-numpy-eval/data/oracle_docs_matched.json')
         self.pandas_eval_data = list()
         with gzip.open(self.pandas_eval_file, 'rt') as f:
             for line in f:
@@ -452,12 +418,13 @@ class PandasNumpyEvalLoader:
         """
         {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
         """
-        oracle_list = []
-        for data in self.pandas_eval_data:
-            oracle_list.append(dict(qs_id=data['task_id'], outputs=data['canonical_solution']))
-        for data in self.numpy_eval_data:
-            oracle_list.append(dict(qs_id=data['task_id'], outputs=data['canonical_solution']))
-        return oracle_list
+        # oracle_list = []
+        # for data in self.pandas_eval_data:
+        #     oracle_list.append(dict(qs_id=data['task_id'], outputs=data['canonical_solution']))
+        # for data in self.numpy_eval_data:
+        #     oracle_list.append(dict(qs_id=data['task_id'], outputs=data['canonical_solution']))
+        # return oracle_list
+        return json.load(open(self.oracle_docs_matched_file, 'r'))
 
 
 

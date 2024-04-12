@@ -11,8 +11,9 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from dataset_utils.dataset_configs import DS1000Loader, HumanEvalLoader, PandasNumpyEvalLoader
+from dataset_utils.dataset_configs import DS1000Loader, PandasNumpyEvalLoader
 from generator.run_model import chatgpt
+from data.DS1000.ds1000 import DS1000Dataset
 
 random.seed(0)
 
@@ -90,7 +91,7 @@ def remove_unbalanced_and_special_characters(text):
         text = text[max(unbalanced_indexes) + 1:]
 
     # detect special chars and remove the content before them
-    special_char = ['+', '-', '*', '/', '<', '>', ';', '?', '%', '^']
+    special_char = ['+', '-', '*', '/', '<', '>', ';', '?', '%', '^', '=']
     stack = []
     special_indexes = []
     for idx, char in enumerate(text):
@@ -133,6 +134,155 @@ def augment_with_prefix(gold_output, gold_func_list):
     return func_list_full_name
 
 
+def augment_program_pandas_numpy_eval(data):
+    gold_output = data['canonical_solution'][0]
+    prompt = data['prompt']
+    entry_point = data['entry_point']
+
+    # extract func names
+    gold_func_list = extract_func_name(prompt + gold_output)
+
+    # covert to the format of help()
+    # todo: this method is not sound
+    func_list_full_name = augment_with_prefix(gold_output, gold_func_list)
+
+    program = prompt + gold_output
+    lines = program.split('\n')
+    last_comment_idx = max((i for i, line in enumerate(lines) if "#" in line), default=-1)
+    return_idx = max((i for i, line in enumerate(lines) if "return " in line and "#" not in line), default=-1)
+    # gene help command
+    indent = get_indent(lines[last_comment_idx])
+    help_strings = list()
+    for full_name in func_list_full_name:
+        help_strings.append('\n' + indent + f'try: help({full_name})\n' + indent + 'except: pass\n')
+    # combine help and program
+    programs = list()
+    for help_string in help_strings:
+        if return_idx == -1:
+            programs.append(program + help_string)
+        else:
+            prompt_before_return = "\n".join(lines[:return_idx])
+            prompt_after_return = "\n".join(lines[return_idx:])
+            programs.append(prompt_before_return + help_string + prompt_after_return)
+    # process and add test code
+    split_string = data['test'].split('assert')
+    if len(split_string) > 1:
+        test_code = split_string[0] + 'assert' + split_string[1] + '\n'
+        test_code += 'check()' if entry_point == 'none' else f'check({entry_point})'
+    else:
+        test_code = data['test']
+    for idx, program in enumerate(programs):
+        programs[idx] = program + '\n' + test_code
+
+    return programs, func_list_full_name
+
+
+def get_indent(line):
+    """
+    get indent of a code statement
+    :return:
+    """
+    indent = 0
+    for char in line:
+        if char == " ":
+            indent += 1
+        else:
+            break
+    indent = indent * ' '
+    return indent
+
+
+def postprocess(lib, generated_code: str):
+    if lib == "Matplotlib":
+        code_lines = generated_code.split("\n")
+        postprocessed_lines = []
+        for line in code_lines:
+            skip_line_flag = False
+            # Matplotlib removes function calls that will clear the global figure object
+            # Removing these functions helps running execution-based evaluation
+            for phrase in ["plt.show()", "plt.clf()", "plt.close()", "savefig"]:
+                if phrase in line:
+                    skip_line_flag = True
+                    break
+
+            if skip_line_flag:
+                continue
+            else:
+                postprocessed_lines.append(line)
+        generated_code = "\n".join(postprocessed_lines)
+    return generated_code
+
+
+
+def augment_program_ds1000(data):
+    # ds1000 = DS1000Dataset(source_dir='../data/DS1000/ds1000_data', libs='all', mode='Completion')
+    gold_output = data['reference_code']
+    code_snippet = data['code_context']
+    lib, problem_id = data['qs_id'].split('_')
+
+    # extract func names
+    gold_func_list = extract_func_name(code_snippet.replace("[insert]", gold_output))
+
+    # covert to the format of help()
+    # todo: this func is not robust
+    func_list_full_name = augment_with_prefix(gold_output, gold_func_list)
+    # gene augmented gold_output
+    output_lines = gold_output.split('\n')
+    aug_gold_outputs = list()
+    current_gold_output = ''
+    aug_gold_outputs = ['' for _ in range(len(func_list_full_name))]    # keep the index of aug_gold_outputs and full_name_list the same
+    for line in output_lines:
+        line_indent = get_indent(line)
+        for idx, full_name in enumerate(func_list_full_name):
+            if full_name in line:
+                aug_gold_outputs[idx] = current_gold_output + line_indent + f'try: help({full_name})\n' + line_indent + 'except: pass\n'
+        current_gold_output = current_gold_output + line + '\n'
+        for idx, aug_gold_output in enumerate(aug_gold_outputs):
+            aug_gold_outputs[idx] = aug_gold_outputs[idx] + line + '\n'
+
+
+    # augment the code snippet
+    # todo: analysis execution process of ds1000
+    # lines = code_snippet.split('\n')
+    # insert_idx = [i for i, line in enumerate(lines) if "[insert]" in line]
+    # assert len(insert_idx) == 1
+    # insert_indent = get_indent(lines[insert_idx[0]])
+    # # augment wth [insert_help]
+    # aug_prompt = ''
+    # for idx, line in enumerate(lines):
+    #     aug_prompt = aug_prompt + line + '\n'
+    #     if idx == insert_idx:
+    #         aug_prompt = aug_prompt + insert_indent + '[insert_help]' + '\n'
+
+
+    # # remove `with open`
+    # lines = code_snippet.split('\n')
+    # if lib == 'Matplotlib':
+    #     with_open_idx = [i for i, line in enumerate(lines) if "plt.savefig" in line]
+    # else:
+    #     with_open_idx = [i for i, line in enumerate(lines) if "with open" in line]
+    #     if data['qs_id'] in ['Sklearn_35', 'Sklearn_36', 'Sklearn_113']:
+    #         ...
+    # new_prompt = ''
+
+    programs = list()
+    for aug_gold_output in aug_gold_outputs:
+        program = code_snippet.replace('[insert]', aug_gold_output)
+        programs.append(postprocess(lib, program))
+
+    return programs, func_list_full_name
+
+
+
+def augment_program_conala(data):
+    gold_output = data['canonical_solution']
+    code_snippet = data['prompt']
+
+    program = f"{code_snippet}{gold_output}"
+    test_func = f"\n{data['test']}\ncheck({data['entry_point']})"
+
+
+
 def match_oracle_doc(data, dataset):
     """
     Given executable code, match API usage utilizing help()
@@ -143,55 +293,23 @@ def match_oracle_doc(data, dataset):
     """
     # for pandas_numpy_eval
     if dataset == 'PandasNumpyEval':
-        gold_output = data['canonical_solution'][0]
-        prompt = data['prompt']
-        entry_point = data['entry_point']
+        programs, func_list_full_name = augment_program_pandas_numpy_eval(data)
 
-        # extract func names
-        gold_func_list = extract_func_name(prompt+gold_output)
+    elif dataset == 'DS1000':
+        programs, func_list_full_name = augment_program_ds1000(data)
 
-        # covert to the format of help()
-        func_list_full_name = augment_with_prefix(gold_output, gold_func_list)
-
-        # augment program with help()
-        program = prompt + gold_output
-        lines = program.split('\n')
-        last_comment_idx = max((i for i, line in enumerate(lines) if "#" in line), default=-1)
-        return_idx = max((i for i, line in enumerate(lines) if "return " in line and "#" not in line), default=-1)
-        # gene help command
-        indent = 0
-        for char in lines[last_comment_idx]:
-            if char == " ":
-                indent += 1
-            else:
-                break
-        indent = indent * ' '
-        help_strings = list()
-        for full_name in func_list_full_name:
-            help_strings.append('\n' + indent + f'try: help({full_name})\n' + indent + 'except: pass\n')
-        # combine help and program
-        programs = list()
-        for help_string in help_strings:
-            if return_idx == -1:
-                programs.append(program+help_string)
-            else:
-                prompt_before_return = "\n".join(lines[:return_idx])
-                prompt_after_return = "\n".join(lines[return_idx:])
-                programs.append(prompt_before_return + help_string + prompt_after_return)
-        # gene test code
-        split_string = data['test'].split('assert')
-        if len(split_string) > 1:
-            test_code = split_string[0] + 'assert' + split_string[1] + '\n'
-            test_code += 'check()' if entry_point == 'none' else f'check({entry_point})'
-        else:
-            test_code = data['test']
-        for idx, program in enumerate(programs):
-            programs[idx] = program + '\n' + test_code
+    elif dataset == 'CoNaLa':
+        programs, func_list_full_name = augment_program_conala(data)
 
     # exec and get output
     oracle_docs = list()
     for idx, program in enumerate(programs):
-        printed_output = exec_program(program)
+        if dataset == 'PandasNumpyEval':
+            printed_output = pandas_numpy_eval_exec(program)
+        elif dataset == 'DS1000':
+            lib, problem_id = data['qs_id'].split('_')
+            problem_path = os.path.join(root_path, 'data/DS1000/ds1000_data', f'{lib}/Completion/q{problem_id}')
+            printed_output = ds1000_exec(program, problem_path)
         try:
             if 'Help on' in printed_output:
                 api_sign, content = printed_output.split('\n\n', 1)
@@ -207,13 +325,46 @@ def match_oracle_doc(data, dataset):
                     oracle_doc = dict(api_sign=api_sign, content=content)
                     oracle_docs.append(oracle_doc['api_sign'])
                 else:
-                    print(api_sign)
+                    print(method, api_sign)
         except:
             ...
     return oracle_docs
 
 
-def exec_program(program):
+
+def ds1000_exec(program, problem_path='../data/DS1000/ds1000_data'):
+    """
+    an augmented version of DS1000.test
+    :return:
+    """
+    import shutil
+
+    cwd = os.getcwd()
+    os.chdir(problem_path)
+
+    # generated outputs will be put into `result`
+    result_path = os.path.join(problem_path, "result")
+    if os.path.exists(result_path):
+        shutil.rmtree(result_path)
+    os.mkdir(result_path)
+
+    # exec
+    old_stdout = sys.stdout
+    new_stdout = StringIO()
+    sys.stdout = new_stdout
+    try:
+        exec(program, {})
+        printed_output = new_stdout.getvalue()
+    except:
+        printed_output = None
+    finally:
+        sys.stdout = old_stdout
+        os.chdir(cwd)
+
+    return printed_output
+
+
+def pandas_numpy_eval_exec(program):
     old_stdout = sys.stdout
     new_stdout = StringIO()
     sys.stdout = new_stdout
@@ -229,50 +380,50 @@ def exec_program(program):
 
 
 
-def match_oracle_doc_old(gold_lib, gold_output, api_sign_collection):
-    """
-    match API usage of gold output
-    :param gold_lib:
-    :param gold_output:
-    :param api_sign_collection: a collection of API signatures
-    :return:
-    """
-    gold_func_list = extract_func_name(gold_output)
-    # for func in common_func_list:
-    #     if func in gold_func_list: gold_func_list.remove(func)
-    gold_func_length = len(gold_func_list)
-    if gold_func_length == 0: return [], 1
-    gold_lib = gold_lib.lower()
-    if gold_lib == 'pytorch': gold_lib = 'torch'
-    for idx in range(len(gold_func_list)): gold_func_list[idx] = gold_func_list[idx].lower()
+# def match_oracle_doc_old(gold_lib, gold_output, api_sign_collection):
+#     """
+#     match API usage of gold output
+#     :param gold_lib:
+#     :param gold_output:
+#     :param api_sign_collection: a collection of API signatures
+#     :return:
+#     """
+#     gold_func_list = extract_func_name(gold_output)
+#     # for func in common_func_list:
+#     #     if func in gold_func_list: gold_func_list.remove(func)
+#     gold_func_length = len(gold_func_list)
+#     if gold_func_length == 0: return [], 1
+#     gold_lib = gold_lib.lower()
+#     if gold_lib == 'pytorch': gold_lib = 'torch'
+#     for idx in range(len(gold_func_list)): gold_func_list[idx] = gold_func_list[idx].lower()
+#
+#     matched_api_list = []
+#     # match golden lib
+#     for api_sign in api_sign_collection[gold_lib]:
+#         if api_sign.startswith('tensorflow.compat.v1.'): continue
+#         func = api_sign.rsplit('.', 1)[-1].lower()
+#         if func in gold_func_list:
+#             matched_api_list.append(api_sign)
+#             gold_func_list.remove(func)
+#     # match other libs
+#     for lib in api_sign_collection:
+#         if lib == gold_lib: continue
+#         for api_sign in api_sign_collection[lib]:
+#             func = api_sign.rsplit('.', 1)[-1].lower()
+#             if func in gold_func_list:
+#                 matched_api_list.append(api_sign)
+#                 gold_func_list.remove(func)
+#     matched_rate = 1 - len(gold_func_list) / gold_func_length
+#
+#     # if matched_rate < 1.0:
+#     #     print(gold_lib)
+#     #     print([oracle['output']])
+#     #     print(gold_func_list)
+#
+#     return matched_api_list, matched_rate
 
-    matched_api_list = []
-    # match golden lib
-    for api_sign in api_sign_collection[gold_lib]:
-        if api_sign.startswith('tensorflow.compat.v1.'): continue
-        func = api_sign.rsplit('.', 1)[-1].lower()
-        if func in gold_func_list:
-            matched_api_list.append(api_sign)
-            gold_func_list.remove(func)
-    # match other libs
-    for lib in api_sign_collection:
-        if lib == gold_lib: continue
-        for api_sign in api_sign_collection[lib]:
-            func = api_sign.rsplit('.', 1)[-1].lower()
-            if func in gold_func_list:
-                matched_api_list.append(api_sign)
-                gold_func_list.remove(func)
-    matched_rate = 1 - len(gold_func_list) / gold_func_length
 
-    # if matched_rate < 1.0:
-    #     print(gold_lib)
-    #     print([oracle['output']])
-    #     print(gold_func_list)
-
-    return matched_api_list, matched_rate
-
-
-def match_docs(dataset, dataset_name):
+def match_docs(dataset_name):
     # load API signatures
     # api_signs_file = os.path.join(root_path, "data/conala/python_manual_firstpara.tok.id")
     # with open(api_signs_file, 'r') as f:
@@ -290,36 +441,50 @@ def match_docs(dataset, dataset_name):
     # match oracle list
     assert dataset_name in ['DS1000', 'PandasNumpyEval']
 
+    # get dataset
+    if dataset_name == 'PandasNumpyEval':
+        pandas_eval_file = '/Users/zhaoshengming/Code_RAG_Benchmark/data/pandas-numpy-eval/data/PandasEval.jsonl.gz'
+        numpy_eval_file = pandas_eval_file.replace('PandasEval', 'NumpyEval')
+        import gzip
+        pandas_eval_data = list()
+        with gzip.open(pandas_eval_file, 'rt') as f:
+            for line in f:
+                pandas_eval_data.append(json.loads(line))
+        numpy_eval_data = list()
+        with gzip.open(numpy_eval_file, 'rt') as f:
+            for line in f:
+                numpy_eval_data.append(json.loads(line))
+        dataset = pandas_eval_data + numpy_eval_data
+    elif dataset_name == 'DS1000':
+        data_file = '../data/DS1000/sampled_data.json'
+        dataset = json.load(open(data_file, 'r'))
+        # ds1000 = DS1000Dataset(source_dir='../data/DS1000/ds1000_data', libs='all', mode='Completion')
+        # dataset = []
+        # for lib in ds1000.libs:
+        #     for idx, data in enumerate(ds1000[lib]):
+        #         data['qs_id'] = lib + '_' + str(idx)
+        #         dataset.append(data)
+    elif dataset_name == 'CoNaLa':
+        data_file = '../data/conala/unittest_docprompting_conala.json'
+        dataset = list(json.load(open(data_file, 'r')).values())
+    else:
+        raise Exception('Unknown dataset')
+
+    # match oracle docs
     oracle_list = []
     for idx, data in enumerate(dataset):
         if dataset_name == 'DS1000':
-            ...
+            qs_id = data['qs_id']
+            output = data['reference_code']
         elif dataset_name == 'PandasNumpyEval':
             qs_id = data['task_id']
             output = data['canonical_solution'][0]
             if idx == 19: data['canonical_solution'][0] = data['canonical_solution'][0].replace('    ', '', 1)
+        else:
+            qs_id = data['task_id']
+            output = data['canonical_solution']
         oracle_docs = match_oracle_doc(data=data, dataset=dataset_name)
         oracle_list.append(dict(qs_id=qs_id, oracle_docs=oracle_docs, output=output))
-
-
-    # if dataset == 'DS1000':
-    #     for idx, oracle in enumerate(oracle_list):
-    #         lib = oracle['qs_id'].split('_')[0]
-    #         matched_api_list, func_match_rate = match_oracle_doc(lib, oracle['output'])
-    #         result_list.append(dict(qs_id=oracle['qs_id'], oracle_docs=matched_api_list, output=oracle['output']))
-    # elif dataset == 'PandasNumpyEval':
-    #     for idx, oracle in enumerate(oracle_list):
-    #         lib = oracle['qs_id'].split('Eval')[0]
-    #         matched_api_list = list()
-    #         func_match_rate = 0
-    #         for output in oracle['outputs']:
-    #             if idx == 19: output = output.replace('    ', '', 1)
-    #             temp_matched_api_list, temp_func_match_rate = match_oracle_doc(lib, qs_list[idx]['nl']+output)
-    #             matched_api_list.extend(temp_matched_api_list)
-    #             func_match_rate += temp_func_match_rate
-    #         matched_api_list = list(set(matched_api_list))
-    #         func_match_rate = func_match_rate/len(oracle['outputs'])
-    #         result_list.append(dict(qs_id=oracle['qs_id'], oracle_docs=matched_api_list, outputs=oracle['outputs']))
 
     if dataset_name == 'DS1000':
         save_file = os.path.join(root_path, 'data/DS1000/oracle_docs_matched.json')
@@ -331,6 +496,10 @@ def match_docs(dataset, dataset_name):
 
 
 if __name__ == '__main__':
+
+    match_docs(dataset_name='DS1000')
+
+
     # ds1000_loader = DS1000Loader()
     # oracle_list = ds1000_loader.load_oracle_list()
     # dataset = 'DS1000'
@@ -386,35 +555,35 @@ if __name__ == '__main__':
     # module_attributes = dir(scipy)
     # print(len(module_attributes))
 
-    pandas_eval_file = '/Users/zhaoshengming/Code_RAG_Benchmark/data/pandas-numpy-eval/data/PandasEval.jsonl.gz'
-    numpy_eval_file = pandas_eval_file.replace('PandasEval', 'NumpyEval')
-
-    import gzip
-    import json
-
-    pandas_eval_data = list()
-    with gzip.open(pandas_eval_file, 'rt') as f:
-        for line in f:
-            pandas_eval_data.append(json.loads(line))
-
-    numpy_eval_data = list()
-    with gzip.open(numpy_eval_file, 'rt') as f:
-        for line in f:
-            numpy_eval_data.append(json.loads(line))
-
-    # data = pandas_eval_data[90]
-    # prompt = data["prompt"]
-    # gold_output = data['canonical_solution'][0]
-    # print(prompt + gold_output)
-    # names = extract_func_name(prompt + gold_output)
-    # # re.search("idx\\(", prompt+gold_output)
-    # print(names)
-
-    # for data in pandas_eval_data[50:55]:
-    #     print(data['canonical_solution'][0])
-    #     print(extract_func_name(data['prompt']+data['canonical_solution'][0]))
-    #     match_oracle_doc(data, 'pandas_numpy_eval', None)
-    #     print('\n\n')
-
-    dataset = pandas_eval_data + numpy_eval_data
-    match_docs(dataset=dataset, dataset_name='PandasNumpyEval')
+    # pandas_eval_file = '/Users/zhaoshengming/Code_RAG_Benchmark/data/pandas-numpy-eval/data/PandasEval.jsonl.gz'
+    # numpy_eval_file = pandas_eval_file.replace('PandasEval', 'NumpyEval')
+    #
+    # import gzip
+    # import json
+    #
+    # pandas_eval_data = list()
+    # with gzip.open(pandas_eval_file, 'rt') as f:
+    #     for line in f:
+    #         pandas_eval_data.append(json.loads(line))
+    #
+    # numpy_eval_data = list()
+    # with gzip.open(numpy_eval_file, 'rt') as f:
+    #     for line in f:
+    #         numpy_eval_data.append(json.loads(line))
+    #
+    # # data = pandas_eval_data[90]
+    # # prompt = data["prompt"]
+    # # gold_output = data['canonical_solution'][0]
+    # # print(prompt + gold_output)
+    # # names = extract_func_name(prompt + gold_output)
+    # # # re.search("idx\\(", prompt+gold_output)
+    # # print(names)
+    #
+    # # for data in pandas_eval_data[50:55]:
+    # #     print(data['canonical_solution'][0])
+    # #     print(extract_func_name(data['prompt']+data['canonical_solution'][0]))
+    # #     match_oracle_doc(data, 'pandas_numpy_eval', None)
+    # #     print('\n\n')
+    #
+    # dataset = pandas_eval_data + numpy_eval_data
+    # match_docs(dataset=dataset, dataset_name='PandasNumpyEval')
