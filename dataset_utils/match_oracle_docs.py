@@ -12,7 +12,6 @@ elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
 from dataset_utils.dataset_configs import DS1000Loader, PandasNumpyEvalLoader
-from generator.run_model import chatgpt
 from data.DS1000.ds1000 import DS1000Dataset
 
 random.seed(0)
