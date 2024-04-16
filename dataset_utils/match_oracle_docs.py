@@ -519,19 +519,27 @@ if __name__ == '__main__':
         preds.append([program])
         tests.append(test_func)
 
-    pass_list = []
-    for idx, (pred, test) in enumerate(zip(preds, tests)):
-        r = code_eval_metric.compute(
-            predictions=[pred],
-            references=[test],
-            k=[1],
-            num_workers=1,
-        )
-        if r[0]['pass@1'] != 1:
-            pass_list.append(idx)
+    # pass_list = []
+    # for idx, (pred, test) in enumerate(zip(preds, tests)):
+    #     r = code_eval_metric.compute(
+    #         predictions=[pred],
+    #         references=[test],
+    #         k=[1],
+    #         num_workers=1,
+    #     )
+    #     if r[0]['pass@1'] != 1:
+    #         pass_list.append(idx)
+    #
+    # for idx in pass_list:
+    #     print(idx, preds[idx])
 
-    for idx in pass_list:
-        print(idx, preds[idx])
+    r = code_eval_metric.compute(
+        predictions=preds,
+        references=tests,
+        k=[1],
+        num_workers=1,
+    )
+    print(r[0])
 
 
 
