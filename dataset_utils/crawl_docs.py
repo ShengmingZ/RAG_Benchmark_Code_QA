@@ -1,4 +1,4 @@
-import inspect
+import inspect, pkgutil
 import io, os, sys, json
 
 # common used data science libs
@@ -9,8 +9,9 @@ import numpy
 import torch
 import pandas
 import scipy
+import seaborn
 
-third_party_lib_list = [tensorflow, matplotlib, sklearn, numpy, torch, pandas, scipy]
+third_party_lib_list = [tensorflow, matplotlib, sklearn, numpy, torch, pandas, scipy, seaborn]
 
 """
 # python default libs from https://docs.python.org/3.7/library/index.html
@@ -94,7 +95,7 @@ def get_doc(attr_obj, full_name):
     try:
         help(attr_obj)
         doc = buffer.getvalue()
-        helped_api_sign, content = doc.split('\n\n',1)
+        # helped_api_sign, content = doc.split('\n\n',1)
         # use the same way in match oracle docs to identify api sign and verify if its same
         # if 'built-in' in helped_api_sign:
         #     module = 'builtins'
@@ -107,34 +108,54 @@ def get_doc(attr_obj, full_name):
     except:
         sys.stdout = sys.__stdout__
         print('exception for get doc on: ', full_name)
-        content = None
+        doc = None
     finally:
         sys.stdout = sys.__stdout__
 
-    return content
+    return doc
+
+
+# def crawl_callable_attributes(module, library_name):
+#     if not module.__name__.startswith(library_name): return     # filter module not belong to this lib
+#     if module in module_list: return    # filter already traversed module
+#     module_list.append(module)
+#
+#     for attr_name in dir(module):
+#         try:
+#             attr_obj = getattr(module, attr_name)
+#         except:
+#             # print(module.__name__ + '.' + attr_name)
+#             continue
+#         # attr_obj = getattr(module, attr_name)
+#         if callable(attr_obj):
+#             if attr_name.startswith('_'): continue
+#             full_name = module.__name__ + '.' + attr_name
+#             if full_name not in func_list:
+#                 func_list.append(full_name)
+#                 # content = get_doc(attr_obj, full_name)
+#                 # if content is not None: api_doc_dict[full_name] = content
+#         elif inspect.ismodule(attr_obj):
+#             crawl_callable_attributes(attr_obj, library_name)
 
 
 def crawl_callable_attributes(module, library_name):
-    if not module.__name__.startswith(library_name): return     # filter module not belong to this lib
+    if not module.__name__.startswith(library_name): return  # filter module not belong to this lib
     if module in module_list: return    # filter already traversed module
     module_list.append(module)
 
-    for attr_name in dir(module):
-        try:
-            attr_obj = getattr(module, attr_name)
-        except:
-            # print(module.__name__ + '.' + attr_name)
-            continue
-        # attr_obj = getattr(module, attr_name)
-        if callable(attr_obj):
+    for module_info in pkgutil.iter_modules(path=module.__path__):
+        attr_name = module_info.name
+        attr_obj = getattr(module, attr_name)
+        if module_info.ispkg:
+            crawl_callable_attributes(attr_obj, library_name)
+        elif callable(attr_obj):
             if attr_name.startswith('_'): continue
             full_name = module.__name__ + '.' + attr_name
             if full_name not in func_list:
                 func_list.append(full_name)
-                content = get_doc(attr_obj, full_name)
-                if content is not None: api_doc_dict[full_name] = content
-        elif inspect.ismodule(attr_obj):
-            crawl_callable_attributes(attr_obj, library_name)
+                doc = get_doc(attr_obj, full_name)
+                if doc: api_doc_dict[full_name] = doc
+
 
 def crawl_python_doc(library_list):
     for library in library_list:
@@ -162,8 +183,8 @@ if __name__ == '__main__':
     #     json.dump(api_doc_dict, f, indent=2)
 
     library_list = third_party_lib_list
-    api_sign_file = '../data/python_docs/api_sign_third_party.txt'
-    api_doc_file = '../data/python_docs/api_doc_third_party.json'
+    api_sign_file = '../data/python_docs/api_sign_third_party_new.txt'
+    api_doc_file = '../data/python_docs/api_doc_third_party_new.json'
 
     import json
 

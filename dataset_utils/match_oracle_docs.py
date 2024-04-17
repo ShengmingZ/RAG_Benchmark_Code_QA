@@ -276,9 +276,22 @@ def augment_program_ds1000(data):
 def augment_program_conala(data):
     gold_output = data['canonical_solution']
     code_snippet = data['prompt']
-
-    program = f"{code_snippet}{gold_output}"
+    program = f"{code_snippet}{gold_output}{data['suffix']}"
     test_func = f"\n{data['test']}\ncheck({data['entry_point']})"
+
+    # extract func names
+    gold_func_list = extract_func_name(program)
+
+    # covert to the format of help()
+    func_list_full_name = augment_with_prefix(gold_output, gold_func_list)
+
+    program1, program2 = program.split('\n', 1)
+    programs = list()
+    for full_name in func_list_full_name:
+        help_string = '\n\t' + f'try: help({full_name})\n' + '\t' + 'except: pass\n'
+        programs.append(program1 + help_string + program2 + test_func)
+
+    return programs, func_list_full_name
 
 
 
@@ -309,24 +322,27 @@ def match_oracle_doc(data, dataset):
             lib, problem_id = data['qs_id'].split('_')
             problem_path = os.path.join(root_path, 'data/DS1000/ds1000_data', f'{lib}/Completion/q{problem_id}')
             printed_output = ds1000_exec(program, problem_path)
-        try:
-            if 'Help on' in printed_output:
-                api_sign, content = printed_output.split('\n\n', 1)
-                # get method
-                method = func_list_full_name[idx].split('.')[-1].split(' ')[-1]
-                if method in api_sign:
-                    # get module
-                    if 'built-in' in api_sign:
-                        module = 'builtins'
-                    else:
-                        module = api_sign.split('module ')[1].replace(':', '')
-                    api_sign = module + '.' + method
-                    oracle_doc = dict(api_sign=api_sign, content=content)
-                    oracle_docs.append(oracle_doc['api_sign'])
-                else:
-                    print(method, api_sign)
-        except:
-            ...
+        elif dataset == 'CoNaLa':
+            printed_output = pandas_numpy_eval_exec(program)
+        # try:
+        #     if 'Help on' in printed_output:
+        #         api_sign, content = printed_output.split('\n\n', 1)
+        #         # get method
+        #         method = func_list_full_name[idx].split('.')[-1].split(' ')[-1]
+        #         if method in api_sign:
+        #             # get module
+        #             if 'built-in' in api_sign:
+        #                 module = 'builtins'
+        #             else:
+        #                 module = api_sign.split('module ')[1].replace(':', '')
+        #             api_sign = module + '.' + method
+        #             oracle_doc = dict(api_sign=api_sign, content=content)
+        #             oracle_docs.append(oracle_doc['api_sign'])
+        #         else:
+        #             print(method, api_sign)
+        # except:
+        #     ...
+        oracle_docs.append(printed_output)
     return oracle_docs
 
 
@@ -438,7 +454,7 @@ def match_docs(dataset_name):
     #     api_sign_collection[lib.lower()].append(api_sign)
 
     # match oracle list
-    assert dataset_name in ['DS1000', 'PandasNumpyEval']
+    assert dataset_name in ['DS1000', 'PandasNumpyEval', 'CoNaLa']
 
     # get dataset
     if dataset_name == 'PandasNumpyEval':
@@ -489,57 +505,88 @@ def match_docs(dataset_name):
         save_file = os.path.join(root_path, 'data/DS1000/oracle_docs_matched.json')
     elif dataset_name == 'PandasNumpyEval':
         save_file = os.path.join(root_path, 'data/pandas-numpy-eval/data/oracle_docs_matched.json')
+    elif dataset_name == 'CoNaLa':
+        save_file = os.path.join(root_path, 'data/conala/oracle_docs_matched.json')
     with open(save_file, 'w+') as f:
         json.dump(oracle_list, f, indent=2)
 
 
+def match_api_sign_with_doc(dataset_name):
+    if dataset_name == 'DS1000':
+        save_file = os.path.join(root_path, 'data/DS1000/oracle_docs_matched.json')
+    elif dataset_name == 'PandasNumpyEval':
+        save_file = os.path.join(root_path, 'data/pandas-numpy-eval/data/oracle_docs_matched.json')
+    elif dataset_name == 'CoNaLa':
+        save_file = os.path.join(root_path, 'data/conala/oracle_docs_matched.json')
+    oracle_list = json.load(open(save_file, 'r'))
+
+    python_doc_id_third, python_doc_id_builtins = [], []
+    with open('../data/python_docs/api_sign_third_party.txt', 'r') as f:
+        for line in f:
+            python_doc_id_third.append(line.strip())
+    with open('../data/python_docs/api_sign_builtin.txt', 'r') as f:
+        for line in f:
+            python_doc_id_builtins.append(line.strip())
+    python_doc_id_list = python_doc_id_third + python_doc_id_builtins
+
+    count = 0
+    for oracle in oracle_list:
+        for oracle_doc in oracle['oracle_docs']:
+            if oracle_doc not in python_doc_id_list:
+                print(oracle['qs_id'], oracle_doc)
+                if not oracle_doc.startswith('builtins'): count += 1
+
+    print(count)
+
 
 if __name__ == '__main__':
 
-    # match_docs(dataset_name='DS1000')
+    # match_docs(dataset_name='CoNaLa')
 
-    import os
-    os.environ["HF_ALLOW_CODE_EVAL"] = "1"
+    match_api_sign_with_doc('CoNaLa')
 
-    import evaluate
-    code_eval_metric = evaluate.load("code_eval")
-
-    data_file = '../data/conala/unittest_docprompting_conala.json'
-    dataset = list(json.load(open(data_file, 'r')).values())
-
-    preds = []
-    tests = []
-    for data in dataset:
-        gold_output = data['canonical_solution']
-        code_snippet = data['prompt']
-
-        program = f"{code_snippet}{gold_output}{data['suffix']}"
-        test_func = f"\n{data['test']}\ncheck({data['entry_point']})"
-
-        preds.append([program])
-        tests.append(test_func)
-
-    # pass_list = []
-    # for idx, (pred, test) in enumerate(zip(preds, tests)):
-    #     r = code_eval_metric.compute(
-    #         predictions=[pred],
-    #         references=[test],
-    #         k=[1],
-    #         num_workers=1,
-    #     )
-    #     if r[0]['pass@1'] != 1:
-    #         pass_list.append(idx)
+    # import os
+    # os.environ["HF_ALLOW_CODE_EVAL"] = "1"
     #
-    # for idx in pass_list:
-    #     print(idx, preds[idx])
-
-    r = code_eval_metric.compute(
-        predictions=preds,
-        references=tests,
-        k=[1],
-        num_workers=1,
-    )
-    print(r[0])
+    # import evaluate
+    # code_eval_metric = evaluate.load("code_eval")
+    #
+    # data_file = '../data/conala/unittest_docprompting_conala.json'
+    # dataset = list(json.load(open(data_file, 'r')).values())
+    #
+    # preds = []
+    # tests = []
+    # for data in dataset:
+    #     gold_output = data['canonical_solution']
+    #     code_snippet = data['prompt']
+    #
+    #     program = f"{code_snippet}{gold_output}{data['suffix']}"
+    #     test_func = f"\n{data['test']}\ncheck({data['entry_point']})"
+    #
+    #     preds.append([program])
+    #     tests.append(test_func)
+    #
+    # # pass_list = []
+    # # for idx, (pred, test) in enumerate(zip(preds, tests)):
+    # #     r = code_eval_metric.compute(
+    # #         predictions=[pred],
+    # #         references=[test],
+    # #         k=[1],
+    # #         num_workers=1,
+    # #     )
+    # #     if r[0]['pass@1'] != 1:
+    # #         pass_list.append(idx)
+    # #
+    # # for idx in pass_list:
+    # #     print(idx, preds[idx])
+    #
+    # r = code_eval_metric.compute(
+    #     predictions=preds,
+    #     references=tests,
+    #     k=[1],
+    #     num_workers=1,
+    # )
+    # print(r[0])
 
 
 
