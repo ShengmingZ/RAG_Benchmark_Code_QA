@@ -145,7 +145,10 @@ def crawl_callable_attributes(module, library_name):
 
     for module_info in pkgutil.iter_modules(path=module.__path__):
         attr_name = module_info.name
-        attr_obj = getattr(module, attr_name)
+        try:
+            attr_obj = getattr(module, attr_name)
+        except:
+            print(module.__name__ + '.' + attr_name)
         if module_info.ispkg:
             crawl_callable_attributes(attr_obj, library_name)
         elif callable(attr_obj):
