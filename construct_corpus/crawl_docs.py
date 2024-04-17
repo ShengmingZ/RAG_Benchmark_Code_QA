@@ -138,21 +138,19 @@ def crawl_callable_attributes(module, library_name):
 
     if not hasattr(module, '__path__'):
         for attr_name in dir(module):
-            # if attr_name.startswith('_'): continue
-            item_count += 1
-            full_name = module_name + '.' + attr_name
+            if attr_name.startswith('_'): continue
             try:
                 attr_obj = getattr(module, attr_name)
-                # evenif not a module, still could have multiple attributions
+                # even if not a module, still could have multiple attributions
                 crawl_callable_attributes(attr_obj, library_name)
+
                 # only record callable attrs
                 if callable(attr_obj):
+                    full_name = module_name + '.' + attr_name
                     if full_name not in func_list:
                         func_list.append(full_name)
                         # doc = get_doc(attr_obj, full_name)
                         # if doc: api_doc_dict[full_name] = doc
-                # else:
-                #     crawl_callable_attributes(attr_obj, library_name)
             except:
                 # print(full_name)
                 continue
@@ -162,8 +160,8 @@ def crawl_callable_attributes(module, library_name):
         for module_info in pkgutil.iter_modules(path=module.__path__):
             file_name = module_info.name
             # filter some default and internal modules
-            if file_name == '_xla_ops': continue
-            # if file_name in ['setup', 'tests'] or file_name.startswith('_'): continue
+            # if file_name == '_xla_ops': continue
+            if file_name in ['setup', 'tests'] or file_name.startswith('_'): continue
             # actively import the module
             try:
                 full_name = module_name + '.' + file_name
@@ -196,13 +194,13 @@ if __name__ == '__main__':
 
     crawl_python_doc(library_list)
 
-    print(item_count)
+    # print(item_count)
 
-    # with open(api_sign_file, 'w+') as f:
-    #     for func in func_list:
-    #         f.write(str(func) + '\n')
-    # with open(api_doc_file, 'w+') as f:
-    #     json.dump(api_doc_dict, f, indent=2)
+    with open(api_sign_file, 'w+') as f:
+        for func in func_list:
+            f.write(str(func) + '\n')
+    with open(api_doc_file, 'w+') as f:
+        json.dump(api_doc_dict, f, indent=2)
 
     # library_list = third_party_lib_list
     # api_sign_file = '../data/python_docs/api_sign_third_party_new.txt'
