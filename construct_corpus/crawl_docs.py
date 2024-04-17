@@ -1,4 +1,4 @@
-import inspect, pkgutil
+import inspect, pkgutil, importlib
 import io, os, sys, json
 
 # common used data science libs
@@ -143,22 +143,33 @@ def crawl_callable_attributes(module, library_name):
     if module in module_list: return    # filter already traversed module
     module_list.append(module)
 
-    for module_info in pkgutil.iter_modules(path=module.__path__):
-        attr_name = module_info.name
-        try:
-            attr_obj = getattr(module, attr_name)
-        except:
-            print(module.__name__ + '.' + attr_name)
-            continue
-        if module_info.ispkg:
-            crawl_callable_attributes(attr_obj, library_name)
-        elif callable(attr_obj):
-            if attr_name.startswith('_'): continue
+    if not hasattr(module, '__path__'):
+        for attr_name in dir(module):
             full_name = module.__name__ + '.' + attr_name
-            if full_name not in func_list:
-                func_list.append(full_name)
-                doc = get_doc(attr_obj, full_name)
-                if doc: api_doc_dict[full_name] = doc
+            try:
+                attr_obj = getattr(module, attr_name)
+                if callable(attr_obj):
+                    if attr_name.startswith('_'): continue
+                    if full_name not in func_list:
+                        func_list.append(full_name)
+            except:
+                print(full_name)
+
+    else:
+        for module_info in pkgutil.iter_modules(path=module.__path__):
+            file_name = module_info.name
+            # filter some default modules
+            if file_name in ['setup', 'tests'] or file_name.startswith('_'): continue
+            # to deal with lazy import, actively import the submodule
+            full_name = module.__name__ + '.' + file_name
+            # each submodule is a py file or a dir, import the submodule to deal with lazy import
+            try:
+                submodule = importlib.import_module(full_name)
+            except:
+                print(full_name)
+                continue
+            crawl_callable_attributes(submodule, library_name)
+
 
 
 def crawl_python_doc(library_list):
