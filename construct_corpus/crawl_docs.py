@@ -139,6 +139,7 @@ def get_doc(attr_obj, full_name):
 
 
 def crawl_callable_attributes(module, library_name):
+    global third_party_item_count
     if not module.__name__.startswith(library_name): return  # filter module not belong to this lib
     if module in module_list: return    # filter already traversed module
     module_list.append(module)
@@ -148,6 +149,7 @@ def crawl_callable_attributes(module, library_name):
             full_name = module.__name__ + '.' + attr_name
             try:
                 attr_obj = getattr(module, attr_name)
+                third_party_item_count += 1
                 if callable(attr_obj):
                     if attr_name.startswith('_'): continue
                     if full_name not in func_list:
@@ -159,14 +161,13 @@ def crawl_callable_attributes(module, library_name):
         for module_info in pkgutil.iter_modules(path=module.__path__):
             file_name = module_info.name
             # filter some default modules
-            if file_name in ['setup', 'tests'] or file_name.startswith('_'): continue
-            # to deal with lazy import, actively import the submodule
+            # if file_name in ['setup', 'tests'] or file_name.startswith('_'): continue
             full_name = module.__name__ + '.' + file_name
             # each submodule is a py file or a dir, import the submodule to deal with lazy import
             try:
                 submodule = importlib.import_module(full_name)
             except:
-                print(full_name)
+                # print(full_name)
                 continue
             crawl_callable_attributes(submodule, library_name)
 
@@ -188,14 +189,16 @@ if __name__ == '__main__':
     func_list = list()
     module_list = list()
     api_doc_dict = dict()
+    third_party_item_count = 0
+
 
     crawl_python_doc(library_list)
 
-    with open(api_sign_file, 'w+') as f:
-        for func in func_list:
-            f.write(str(func) + '\n')
-    with open(api_doc_file, 'w+') as f:
-        json.dump(api_doc_dict, f, indent=2)
+    # with open(api_sign_file, 'w+') as f:
+    #     for func in func_list:
+    #         f.write(str(func) + '\n')
+    # with open(api_doc_file, 'w+') as f:
+    #     json.dump(api_doc_dict, f, indent=2)
 
     # library_list = third_party_lib_list
     # api_sign_file = '../data/python_docs/api_sign_third_party_new.txt'
