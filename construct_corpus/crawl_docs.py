@@ -161,6 +161,7 @@ def crawl_callable_attributes(module, library_name):
         for module_info in pkgutil.iter_modules(path=module.__path__):
             file_name = module_info.name
             # filter some default modules
+            if file_name in ['setup', 'tests'] or file_name == '_xla_ops': continue
             # if file_name in ['setup', 'tests'] or file_name.startswith('_'): continue
             full_name = module.__name__ + '.' + file_name
             # each submodule is a py file or a dir, import the submodule to deal with lazy import
@@ -193,6 +194,8 @@ if __name__ == '__main__':
 
 
     crawl_python_doc(library_list)
+
+    print(third_party_item_count)
 
     # with open(api_sign_file, 'w+') as f:
     #     for func in func_list:
