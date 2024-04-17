@@ -149,6 +149,7 @@ def crawl_callable_attributes(module, library_name):
             attr_obj = getattr(module, attr_name)
         except:
             print(module.__name__ + '.' + attr_name)
+            continue
         if module_info.ispkg:
             crawl_callable_attributes(attr_obj, library_name)
         elif callable(attr_obj):
