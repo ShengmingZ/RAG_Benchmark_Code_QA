@@ -129,7 +129,7 @@ def get_doc(attr_obj, full_name):
 
 
 def crawl_callable_attributes(module, library_name):
-    global third_party_item_count
+    global item_count
     if not module.__name__.startswith(library_name): return  # filter module not belong to this lib
     if module in module_list: return    # filter already traversed module
     module_list.append(module)
@@ -139,20 +139,22 @@ def crawl_callable_attributes(module, library_name):
             full_name = module.__name__ + '.' + attr_name
             try:
                 attr_obj = getattr(module, attr_name)
-                third_party_item_count += 1
                 if callable(attr_obj):
                     if attr_name.startswith('_'): continue
                     if full_name not in func_list:
                         func_list.append(full_name)
+                        doc = get_doc(attr_obj, full_name)
+                        if doc: api_doc_dict[full_name] = doc
             except:
-                print(full_name)
+                # print(full_name)
+                continue
 
     else:
         for module_info in pkgutil.iter_modules(path=module.__path__):
             file_name = module_info.name
-            # filter some default modules
-            if file_name in ['setup', 'tests'] or file_name == '_xla_ops': continue
-            # if file_name in ['setup', 'tests'] or file_name.startswith('_'): continue
+            # filter some default and internal modules
+            # if file_name == '_xla_ops': continue
+            if file_name in ['setup', 'tests'] or file_name.startswith('_'): continue
             full_name = module.__name__ + '.' + file_name
             # each submodule is a py file or a dir, import the submodule to deal with lazy import
             try:
@@ -170,28 +172,26 @@ def crawl_python_doc(library_list):
 
 
 if __name__ == '__main__':
-    # library_list = third_party_lib_list
-    # api_sign_file = '../data/python_docs/api_sign_third_party_new.txt'
-    # api_doc_file = '../data/python_docs/api_doc_third_party_new.json'
-    library_list = py_builtin_lib_list
-    api_sign_file = '../data/python_docs/api_sign_builtin_new.txt'
-    api_doc_file = '../data/python_docs/api_doc_builtin_new.json'
+    library_list = third_party_lib_list
+    api_sign_file = '../data/python_docs/api_sign_third_party_new.txt'
+    api_doc_file = '../data/python_docs/api_doc_third_party_new.json'
+    # library_list = py_builtin_lib_list
+    # api_sign_file = '../data/python_docs/api_sign_builtin_new.txt'
+    # api_doc_file = '../data/python_docs/api_doc_builtin_new.json'
 
     func_list = list()
     module_list = list()
     api_doc_dict = dict()
-    third_party_item_count = 0
+    item_count = 0
 
 
     crawl_python_doc(library_list)
 
-    print(third_party_item_count)
-
-    # with open(api_sign_file, 'w+') as f:
-    #     for func in func_list:
-    #         f.write(str(func) + '\n')
-    # with open(api_doc_file, 'w+') as f:
-    #     json.dump(api_doc_dict, f, indent=2)
+    with open(api_sign_file, 'w+') as f:
+        for func in func_list:
+            f.write(str(func) + '\n')
+    with open(api_doc_file, 'w+') as f:
+        json.dump(api_doc_dict, f, indent=2)
 
     # library_list = third_party_lib_list
     # api_sign_file = '../data/python_docs/api_sign_third_party_new.txt'
