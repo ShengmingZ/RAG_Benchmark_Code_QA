@@ -343,7 +343,7 @@ def match_oracle_doc(data, dataset):
         # except:
         #     ...
         oracle_docs.append(printed_output)
-    return oracle_docs
+    return oracle_docs, func_list_full_name
 
 
 
@@ -498,26 +498,26 @@ def match_docs(dataset_name):
         else:
             qs_id = data['task_id']
             output = data['canonical_solution']
-        oracle_docs = match_oracle_doc(data=data, dataset=dataset_name)
-        oracle_list.append(dict(qs_id=qs_id, oracle_docs=oracle_docs, output=output))
+        oracle_docs, full_name_list = match_oracle_doc(data=data, dataset=dataset_name)
+        oracle_list.append(dict(qs_id=qs_id, oracle_docs=oracle_docs, output=output, full_name_list=full_name_list))
 
     if dataset_name == 'DS1000':
-        save_file = os.path.join(root_path, 'data/DS1000/oracle_docs_matched.json')
+        save_file = os.path.join(root_path, 'data/DS1000/oracle_docs_matched_new.json')
     elif dataset_name == 'PandasNumpyEval':
-        save_file = os.path.join(root_path, 'data/pandas-numpy-eval/data/oracle_docs_matched.json')
+        save_file = os.path.join(root_path, 'data/pandas-numpy-eval/data/oracle_docs_matched_new.json')
     elif dataset_name == 'CoNaLa':
-        save_file = os.path.join(root_path, 'data/conala/oracle_docs_matched.json')
+        save_file = os.path.join(root_path, 'data/conala/oracle_docs_matched_new.json')
     with open(save_file, 'w+') as f:
         json.dump(oracle_list, f, indent=2)
 
 
 def match_api_sign_with_doc(dataset_name):
     if dataset_name == 'DS1000':
-        save_file = os.path.join(root_path, 'data/DS1000/oracle_docs_matched.json')
+        save_file = os.path.join(root_path, 'data/DS1000/oracle_docs_matched_new.json')
     elif dataset_name == 'PandasNumpyEval':
-        save_file = os.path.join(root_path, 'data/pandas-numpy-eval/data/oracle_docs_matched.json')
+        save_file = os.path.join(root_path, 'data/pandas-numpy-eval/data/oracle_docs_matched_new.json')
     elif dataset_name == 'CoNaLa':
-        save_file = os.path.join(root_path, 'data/conala/oracle_docs_matched.json')
+        save_file = os.path.join(root_path, 'data/conala/oracle_docs_matched_new.json')
     oracle_list = json.load(open(save_file, 'r'))
 
     python_doc_id_third, python_doc_id_builtins = [], []
@@ -543,7 +543,7 @@ if __name__ == '__main__':
 
     # match_docs(dataset_name='CoNaLa')
 
-    match_api_sign_with_doc('CoNaLa')
+    match_docs('PandasNumpyEval')
 
     # import os
     # os.environ["HF_ALLOW_CODE_EVAL"] = "1"
