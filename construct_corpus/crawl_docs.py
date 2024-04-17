@@ -163,51 +163,51 @@ def crawl_python_doc(library_list):
 
 
 if __name__ == '__main__':
-    # library_list = third_party_lib_list
-    # api_sign_file = '../data/python_docs/api_sign_third_party.txt'
-    # api_doc_file = '../data/python_docs/api_doc_third_party.json'
-    # # library_list = py_builtin_lib_list
-    # # api_sign_file = '../data/python_docs/api_sign_builtin.txt'
-    # # api_doc_file = '../data/python_docs/api_doc_builtin.json'
-    #
-    # func_list = list()
-    # module_list = list()
-    # api_doc_dict = dict()
-    #
-    # crawl_python_doc(library_list)
-    #
-    # with open(api_sign_file, 'w+') as f:
-    #     for func in func_list:
-    #         f.write(str(func) + '\n')
-    # with open(api_doc_file, 'w+') as f:
-    #     json.dump(api_doc_dict, f, indent=2)
-
     library_list = third_party_lib_list
     api_sign_file = '../data/python_docs/api_sign_third_party_new.txt'
     api_doc_file = '../data/python_docs/api_doc_third_party_new.json'
+    # library_list = py_builtin_lib_list
+    # api_sign_file = '../data/python_docs/api_sign_builtin_new.txt'
+    # api_doc_file = '../data/python_docs/api_doc_builtin_new.json'
 
-    import json
-
-    with open(api_sign_file, 'r') as f:
-        existing_func_list = [line.strip() for line in f.readlines()]
-    with open(api_doc_file, 'r') as f:
-        existing_api_doc_dict = json.load(f)
-    assert len(existing_func_list) == len(existing_api_doc_dict.items())
-
-    import seaborn
-
-    func_list = []
-    module_list = []
+    func_list = list()
+    module_list = list()
     api_doc_dict = dict()
-    crawl_callable_attributes(seaborn, 'seaborn')
 
-    for full_name in func_list:
-        assert full_name not in existing_func_list
-        existing_func_list.append(full_name)
-        existing_api_doc_dict[full_name] = api_doc_dict[full_name]
+    crawl_python_doc(library_list)
 
     with open(api_sign_file, 'w+') as f:
-        for func in existing_func_list:
+        for func in func_list:
             f.write(str(func) + '\n')
     with open(api_doc_file, 'w+') as f:
-        json.dump(existing_api_doc_dict, f, indent=2)
+        json.dump(api_doc_dict, f, indent=2)
+
+    # library_list = third_party_lib_list
+    # api_sign_file = '../data/python_docs/api_sign_third_party_new.txt'
+    # api_doc_file = '../data/python_docs/api_doc_third_party_new.json'
+    #
+    # import json
+    #
+    # with open(api_sign_file, 'r') as f:
+    #     existing_func_list = [line.strip() for line in f.readlines()]
+    # with open(api_doc_file, 'r') as f:
+    #     existing_api_doc_dict = json.load(f)
+    # assert len(existing_func_list) == len(existing_api_doc_dict.items())
+    #
+    # import seaborn
+    #
+    # func_list = []
+    # module_list = []
+    # api_doc_dict = dict()
+    # crawl_callable_attributes(seaborn, 'seaborn')
+    #
+    # for full_name in func_list:
+    #     assert full_name not in existing_func_list
+    #     existing_func_list.append(full_name)
+    #     existing_api_doc_dict[full_name] = api_doc_dict[full_name]
+    #
+    # with open(api_sign_file, 'w+') as f:
+    #     for func in existing_func_list:
+    #         f.write(str(func) + '\n')
+    # with open(api_doc_file, 'w+') as f:
+    #     json.dump(existing_api_doc_dict, f, indent=2)
