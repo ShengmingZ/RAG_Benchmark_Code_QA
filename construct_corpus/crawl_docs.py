@@ -13,7 +13,7 @@ import seaborn
 
 third_party_lib_list = [tensorflow, matplotlib, sklearn, numpy, torch, pandas, scipy, seaborn]
 
-"""
+
 # python default libs from https://docs.python.org/3.7/library/index.html
 import builtins
 import string, re, difflib, textwrap, unicodedata, stringprep, readline, rlcompleter
@@ -84,7 +84,7 @@ py_builtin_lib_list = [
     # posix, pwd, spwd, grp, crypt, termios, tty, pty, fcntl, pipes, resource, nis, syslog,
     # optparse, imp
 ]
-"""
+
 
 
 def get_doc(attr_obj, full_name):
@@ -95,16 +95,6 @@ def get_doc(attr_obj, full_name):
     try:
         help(attr_obj)
         doc = buffer.getvalue()
-        # helped_api_sign, content = doc.split('\n\n',1)
-        # use the same way in match oracle docs to identify api sign and verify if its same
-        # if 'built-in' in helped_api_sign:
-        #     module = 'builtins'
-        # else:
-        #     module = helped_api_sign.split('module ')[1].replace(':', '')
-        # method = full_name.rsplit('.', 1)[1]
-        # helped_api_sign = module + '.' + method
-        # if helped_api_sign == full_name:
-        #     print('unmatched api_sign name on:', full_name)
     except:
         sys.stdout = sys.__stdout__
         print('exception for get doc on: ', full_name)
@@ -180,12 +170,12 @@ def crawl_python_doc(library_list):
 
 
 if __name__ == '__main__':
-    library_list = third_party_lib_list
-    api_sign_file = '../data/python_docs/api_sign_third_party_new.txt'
-    api_doc_file = '../data/python_docs/api_doc_third_party_new.json'
-    # library_list = py_builtin_lib_list
-    # api_sign_file = '../data/python_docs/api_sign_builtin_new.txt'
-    # api_doc_file = '../data/python_docs/api_doc_builtin_new.json'
+    # library_list = third_party_lib_list
+    # api_sign_file = '../data/python_docs/api_sign_third_party_new.txt'
+    # api_doc_file = '../data/python_docs/api_doc_third_party_new.json'
+    library_list = py_builtin_lib_list
+    api_sign_file = '../data/python_docs/api_sign_builtin_new.txt'
+    api_doc_file = '../data/python_docs/api_doc_builtin_new.json'
 
     func_list = list()
     module_list = list()
