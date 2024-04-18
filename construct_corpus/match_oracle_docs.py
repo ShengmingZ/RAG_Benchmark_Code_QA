@@ -458,7 +458,7 @@ def match_docs(dataset_name):
 
     # get dataset
     if dataset_name == 'PandasNumpyEval':
-        pandas_eval_file = '/Users/zhaoshengming/Code_RAG_Benchmark/data/pandas-numpy-eval/data/PandasEval.jsonl.gz'
+        pandas_eval_file = os.path.join(root_path, 'data/pandas-numpy-eval/data/PandasEval.jsonl.gz')
         numpy_eval_file = pandas_eval_file.replace('PandasEval', 'NumpyEval')
         import gzip
         pandas_eval_data = list()
@@ -471,7 +471,7 @@ def match_docs(dataset_name):
                 numpy_eval_data.append(json.loads(line))
         dataset = pandas_eval_data + numpy_eval_data
     elif dataset_name == 'DS1000':
-        data_file = '../data/DS1000/sampled_data.json'
+        data_file = os.path.join(root_path, 'data/DS1000/sampled_data.json')
         dataset = json.load(open(data_file, 'r'))
         # ds1000 = DS1000Dataset(source_dir='../data/DS1000/ds1000_data', libs='all', mode='Completion')
         # dataset = []
@@ -480,7 +480,7 @@ def match_docs(dataset_name):
         #         data['qs_id'] = lib + '_' + str(idx)
         #         dataset.append(data)
     elif dataset_name == 'CoNaLa':
-        data_file = '../data/conala/unittest_docprompting_conala.json'
+        data_file = os.path.join(root_path, 'data/conala/unittest_docprompting_conala.json')
         dataset = list(json.load(open(data_file, 'r')).values())
     else:
         raise Exception('Unknown dataset')
