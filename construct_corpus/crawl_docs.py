@@ -139,6 +139,8 @@ def crawl_callable_attributes(module, library_name):
     if not hasattr(module, '__path__'):
         for attr_name in dir(module):
             if attr_name.startswith('_'): continue
+            full_name = module_name + '.' + attr_name
+            print(full_name)
             try:
                 attr_obj = getattr(module, attr_name)
                 # even if not a module, still could have multiple attributions
@@ -146,11 +148,10 @@ def crawl_callable_attributes(module, library_name):
 
                 # only record callable attrs
                 if callable(attr_obj):
-                    full_name = module_name + '.' + attr_name
                     if full_name not in func_list:
                         func_list.append(full_name)
-                        # doc = get_doc(attr_obj, full_name)
-                        # if doc: api_doc_dict[full_name] = doc
+                        doc = get_doc(attr_obj, full_name)
+                        if doc: api_doc_dict[full_name] = doc
             except:
                 # print(full_name)
                 continue
