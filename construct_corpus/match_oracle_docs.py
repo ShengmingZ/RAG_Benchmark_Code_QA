@@ -541,8 +541,8 @@ def match_api_sign_with_doc(dataset_name):
 
 if __name__ == '__main__':
 
-    # match_docs(dataset_name='CoNaLa')
-
+    match_docs('CoNaLa')
+    match_docs('DS1000')
     match_docs('PandasNumpyEval')
 
     # import os
