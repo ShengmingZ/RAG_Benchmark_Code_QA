@@ -160,7 +160,8 @@ def crawl_callable_attributes(module, library_name):
             file_name = module_info.name
             # filter some default and internal modules
             # if file_name == '_xla_ops': continue
-            if file_name in ['setup', 'tests'] or file_name.startswith('_'): continue
+            # if file_name in ['setup', 'tests'] or file_name.startswith('_'): continue
+            if file_name in ['setup', 'tests', '_testing', '_libs']: continue
             # actively import the module
             try:
                 full_name = module_name + '.' + file_name
