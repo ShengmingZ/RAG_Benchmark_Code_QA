@@ -34,7 +34,6 @@ def load_wiki_corpus():
     elif system == 'Linux':
         wiki_corpus_file = '/data/zhaoshengming/wikipedia/psgs_w100.tsv'
     data_list = list()
-    wiki_corpus_file = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
     with open(wiki_corpus_file, 'r', newline='') as tsvfile:
         reader = csv.reader(tsvfile, delimiter='\t')
         for row in reader:
