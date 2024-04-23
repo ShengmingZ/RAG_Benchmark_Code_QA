@@ -13,7 +13,7 @@ from collections import OrderedDict
 
 import numpy as np
 import faiss
-from dataset_utils.dataset_configs import TldrLoader, ConalaLoader
+from dataset_utils.dataset_configs import TldrLoader, ConalaLoader, load_wiki_corpus
 from retriever.retriaval_evaluate import conala_eval, tldr_eval
 from retriever.dense_encoder import DenseRetrievalEncoder
 
@@ -22,11 +22,21 @@ model_name_dict = {'codet5_conala': 'neulab/docprompting-codet5-python-doc-retri
                    'codet5_ots': 'Salesforce/codet5-base',
                    'roberta_conala': '',
                    'roberta_ots': 'roberta-large-mnli',
-                   'minilm': 'sentence-transformers/all-MiniLM-L6-v2',
+                   'miniLM': 'sentence-transformers/all-MiniLM-L6-v2',
                    'openai-embedding': 'text-embedding-3-small'}
 
 
 def retrieve(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, top_k):
+    """
+    compute similarity using FAISS
+    :param qs_embed: a numpy array consists of qs embedding
+    :param doc_embed: a numpy array consists of doc embedding
+    :param qs_id_list: a list of qs id, in accordance with qs_embed
+    :param doc_key_list: a list of doc id, in accordance with doc_embed
+    :param save_file: save retrieval result
+    :param top_k:
+    :return:
+    """
     # retrieve
     assert qs_embed.shape[0] == len(qs_id_list)
     assert doc_embed.shape[0] == len(doc_key_list)
@@ -42,8 +52,8 @@ def retrieve(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, top_k):
         for key, distance in zip(retrieved_doc_key, dist):
             results.append(dict(doc_key=key, score=float(distance)))
         ret_results[qs_id_list[qs_idx]] = results
-    print(save_file)
-    print(ret_results[qs_id_list[0]])
+    # print(save_file)
+    # print(ret_results[qs_id_list[0]])
     with open(save_file, 'w+') as f:
         json.dump(ret_results, f, indent=2)
 
@@ -72,38 +82,38 @@ def conala_retrieve(args):
     conala_eval(gold=gold, pred=pred)
 
 
-def tldr_whole_retrieve(args):
-    tldr_loader = TldrLoader()
-    doc_list_whole = tldr_loader.load_doc_list_whole()
-    key_list_whole = list(doc_list_whole.keys())
-    qs_list = tldr_loader.load_qs_list(args.dataset_type)
-    qs_id_list = [qs['qs_id'] for qs in qs_list]
-
-    source_embed = np.load(args.tldr_qs_embed_save_file + '.npy')
-    doc_whole_embed = np.load(args.tldr_doc_whole_embed_save_file + '.npy')
-
-    # truncate doc and retrieve
-    save_file_whole = args.save_file.replace('.json', '_whole.json')
-    results_whole = retrieve(source_embed, doc_whole_embed, qs_id_list, key_list_whole, save_file_whole, args.top_k)
-
-    # evaluate
-    gold = [oracle['doc_keys'][0] for oracle in tldr_loader.load_oracle_list(args.dataset_type)]
-    pred = list()
-    for res_key in results_whole.keys():
-        pred.append([item['doc_key'] for item in results_whole[res_key]])
-    tldr_eval(src=gold, pred=pred, top_k=[1, 3, 5, 10, 15, 20, 30])
-
-
-def tldr_line_retrieve(args):
-    tldr_loader = TldrLoader()
-    doc_list_whole = tldr_loader.load_doc_list_whole()
-    doc_list_line = tldr_loader.load_doc_list_line()
-    key_list_whole = list(doc_list_whole.keys())
-    key_list_line = list(doc_list_line.keys())
-    # load whole results
-    save_file_whole = args.save_file.replace('.json', '_whole.json')
-    save_file_line = args.save_file.replace('.json', '_line.json')
-    doc_line_embed = np.load(args.tldr_doc_line_embed_save_file + '.npy')
+# def tldr_whole_retrieve(args):
+#     tldr_loader = TldrLoader()
+#     doc_list_whole = tldr_loader.load_doc_list_whole()
+#     key_list_whole = list(doc_list_whole.keys())
+#     qs_list = tldr_loader.load_qs_list(args.dataset_type)
+#     qs_id_list = [qs['qs_id'] for qs in qs_list]
+#
+#     source_embed = np.load(args.tldr_qs_embed_save_file + '.npy')
+#     doc_whole_embed = np.load(args.tldr_doc_whole_embed_save_file + '.npy')
+#
+#     # truncate doc and retrieve
+#     save_file_whole = args.save_file.replace('.json', '_whole.json')
+#     results_whole = retrieve(source_embed, doc_whole_embed, qs_id_list, key_list_whole, save_file_whole, args.top_k)
+#
+#     # evaluate
+#     gold = [oracle['doc_keys'][0] for oracle in tldr_loader.load_oracle_list(args.dataset_type)]
+#     pred = list()
+#     for res_key in results_whole.keys():
+#         pred.append([item['doc_key'] for item in results_whole[res_key]])
+#     tldr_eval(src=gold, pred=pred, top_k=[1, 3, 5, 10, 15, 20, 30])
+#
+#
+# def tldr_line_retrieve(args):
+#     tldr_loader = TldrLoader()
+#     doc_list_whole = tldr_loader.load_doc_list_whole()
+#     doc_list_line = tldr_loader.load_doc_list_line()
+#     key_list_whole = list(doc_list_whole.keys())
+#     key_list_line = list(doc_list_line.keys())
+#     # load whole results
+#     save_file_whole = args.save_file.replace('.json', '_whole.json')
+#     save_file_line = args.save_file.replace('.json', '_line.json')
+#     doc_line_embed = np.load(args.tldr_doc_line_embed_save_file + '.npy')
 
 
 # def old_tldr_line_retrieve(args):
@@ -155,73 +165,82 @@ def tldr_line_retrieve(args):
 #     tldr_eval(gold, pred, top_k=[1, 3, 5, 10, 15, 20, 30])
 
 
+def embed_corpus(ret_args):
+    encoder = DenseRetrievalEncoder(ret_args)
+    if ret_args.corpus == 'wiki':
+        wiki_data = load_wiki_corpus()
+        wiki_data = [item['text'] for item in wiki_data]
+        encoder.encode(dataset=wiki_data, save_file=ret_args.wikipedia_docs_embed_save_file)
+    elif ret_args.corpus == 'python_docs':
+        ...
+
+
 def dense_retriever_config(in_program_call=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, default='conala', choices=['conala', 'tldr'])
-    parser.add_argument('--dataset_type', type=str, default='test', choices=['train', 'test', 'dev'])
-    parser.add_argument('--model_name', type=str)
+    parser.add_argument('--dataset', type=str, choices=['conala', 'tldr', 'hotpotQA'])
+    parser.add_argument('--corpus', type=str, choices=['wiki', 'python_docs'])
+    # parser.add_argument('--dataset_type', type=str, default='test', choices=['train', 'test', 'dev'])
+    parser.add_argument('--model_name', type=str, choices=['miniLM', 'openai-embedding'])
     parser.add_argument('--batch_size', type=int, default=128)
     parser.add_argument('--top_k', type=int, default=200)
-    # parser.add_argument('--cpu', action='store_true')
-    # parser.add_argument('--pooler', choices=('cls', 'cls_before_pooler'), default='cls')
-    # parser.add_argument('--log_level', default='verbose')
     parser.add_argument('--sim_func', default='cls_distance.cosine', choices=('cls_distance.cosine', 'cls_distance.l2', 'bertscore'))
-    # parser.add_argument('--num_layers', type=int, default=12)
     parser.add_argument('--normalize_embed', action='store_true')
-    parser.add_argument('--save_file', default=None)
+    parser.add_argument('--result_file', default=None)
 
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
-    model_name_splitted = args.model_name.rsplit('/',1)[-1]
-    if args.save_file is None:
-        args.save_file = os.path.join(root_path, f'docprompting_data/{args.dataset}/ret_results_{model_name_splitted}.json')
-
-    if args.dataset == 'conala':
-        args.conala_qs_embed_save_file = os.path.join(root_path, f'docprompting_data/conala/embedding/qs_{model_name_splitted}')
-        args.conala_doc_firstpara_embed_save_file = os.path.join(root_path, f'docprompting_data/conala/embedding/doc_firstpara_{model_name_splitted}')
-    elif args.dataset == 'tldr':
-        args.tldr_qs_embed_save_file = os.path.join(root_path, f'docprompting_data/tldr/embedding/qs_{model_name_splitted}')
-        args.tldr_doc_whole_embed_save_file = os.path.join(root_path, 'docprompting_data/tldr/embedding/doc_whole_{model_name_splitted}')
-        args.tldr_doc_line_embed_save_file = os.path.join(root_path, f'docprompting_data/tldr/embedding/doc_line_{model_name_splitted}')
+    if args.result_file is None:
+        args.result_file = os.path.join(root_path, f'data/{args.dataset}/ret_results_{args.model_name}.json')
+    # record qs and corpus embeddings
+    args.conala_qs_embed_save_file = os.path.join(root_path, f'data/conala/embedding/qs_{args.model_name}')
+    args.conala_doc_firstpara_embed_save_file = os.path.join(root_path, f'data/conala/embedding/doc_firstpara_{args.model_name}')
+    # elif args.dataset == 'tldr':
+    #     args.tldr_qs_embed_save_file = os.path.join(root_path, f'docprompting_data/tldr/embedding/qs_{model_name_splitted}')
+    #     args.tldr_doc_whole_embed_save_file = os.path.join(root_path, 'docprompting_data/tldr/embedding/doc_whole_{model_name_splitted}')
+    #     args.tldr_doc_line_embed_save_file = os.path.join(root_path, f'docprompting_data/tldr/embedding/doc_line_{model_name_splitted}')
+    args.hotpotQA_qs_embed_save_file = os.path.join(root_path, f'data/hotpotQA/qs_embed_{args.model_name}')
+    args.python_docs_embed_save_file = os.path.join(root_path, f'data/python_docs/embed_{args.model_name}')
+    args.wikipedia_docs_embed_save_file = os.path.join(root_path, f'data/wikipedia/embed_{args.model_name}')
+    args.model_name = model_name_dict[args.model_name]
 
     print(json.dumps(vars(args), indent=2))
     return args
 
 
 if __name__ == '__main__':
-    model_name = model_name_dict['codet5_conala']
     # normalize or not
-    in_program_call = f"--dataset conala \
-                        --dataset_type test \
-                        --model_name {model_name} \
+    in_program_call = f"--dataset hotpotQA \
+                        --corpus wiki \
+                        --model_name miniLM \
                         --sim_func cls_distance.cosine"
     ret_args = dense_retriever_config(in_program_call)
-    encoder = DenseRetrievalEncoder(ret_args)
 
-    if ret_args.dataset == 'tldr':
-        tldr_loader = TldrLoader()
-        # encode qs
-        # qs_list = tldr_loader.load_qs_list(ret_args.dataset_type)
-        # qs_list = [item['nl'] for item in qs_list]
-        # encoder.encode(dataset=qs_list, save_file=ret_args.tldr_qs_embed_save_file)
-        # encode doc whole-level
-        # doc_list_whole = list(tldr_loader.load_doc_list_whole().values())
-        # encoder.encode(dataset=doc_list_whole, save_file=ret_args.tldr_doc_whole_embed_save_file)
-        # encode doc line-level
-        doc_list_line = list(tldr_loader.load_doc_list_line().values())
-        encoder.encode(dataset=doc_list_line, save_file=ret_args.tldr_doc_line_embed_save_file)
+    embed_corpus(ret_args)
 
-        # tldr_whole_retrieve(ret_args)
-        # tldr_line_retrieve(ret_args)
-
-
-    elif ret_args.dataset == 'conala':
-        conala_loader = ConalaLoader()
-        # encode qs
-        qs_list = conala_loader.load_qs_list(ret_args.dataset_type)
-        qs_list = [qs['nl'] for qs in qs_list]
-        encoder.encode(dataset=qs_list, save_file=ret_args.conala_qs_embed_save_file)
-        # encode doc firstpara
-        doc_list_firstpara = list(conala_loader.load_doc_list_firstpara().values())
-        encoder.encode(dataset=doc_list_firstpara, save_file=ret_args.conala_doc_firstpara_embed_save_file)
-
-        conala_retrieve(ret_args)
+    # if ret_args.dataset == 'tldr':
+    #     tldr_loader = TldrLoader()
+    #     # encode qs
+    #     # qs_list = tldr_loader.load_qs_list(ret_args.dataset_type)
+    #     # qs_list = [item['nl'] for item in qs_list]
+    #     # encoder.encode(dataset=qs_list, save_file=ret_args.tldr_qs_embed_save_file)
+    #     # encode doc whole-level
+    #     # doc_list_whole = list(tldr_loader.load_doc_list_whole().values())
+    #     # encoder.encode(dataset=doc_list_whole, save_file=ret_args.tldr_doc_whole_embed_save_file)
+    #     # encode doc line-level
+    #     doc_list_line = list(tldr_loader.load_doc_list_line().values())
+    #     encoder.encode(dataset=doc_list_line, save_file=ret_args.tldr_doc_line_embed_save_file)
+    #
+    #     # tldr_whole_retrieve(ret_args)
+    #     # tldr_line_retrieve(ret_args)
+    #
+    #
+    # elif ret_args.dataset == 'conala':
+    #     conala_loader = ConalaLoader()
+    #     # encode qs
+    #     qs_list = conala_loader.load_qs_list(ret_args.dataset_type)
+    #     qs_list = [qs['nl'] for qs in qs_list]
+    #     encoder.encode(dataset=qs_list, save_file=ret_args.conala_qs_embed_save_file)
+    #     # encode doc firstpara
+    #     doc_list_firstpara = list(conala_loader.load_doc_list_firstpara().values())
+    #     encoder.encode(dataset=doc_list_firstpara, save_file=ret_args.conala_doc_firstpara_embed_save_file)
+    #
+    #     conala_retrieve(ret_args)

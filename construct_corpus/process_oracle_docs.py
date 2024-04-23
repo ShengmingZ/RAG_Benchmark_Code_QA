@@ -79,7 +79,8 @@ def process_oracle_docs(oracle_list_file):
     oracle_list = json.load(open(oracle_list_file, 'r'))
     regex_prefix = re.compile('method of (.+) instance')
     regex_method = re.compile('method (.+) in module')
-    for oracle in oracle_list:
+    for idx, oracle in enumerate(oracle_list):
+        oracle_doc_ids = []
         for oracle_doc in oracle['oracle_docs']:
             # match_prefix = regex_prefix.search(oracle_doc)
             # match_method = regex_method.search(oracle_doc)
@@ -103,7 +104,13 @@ def process_oracle_docs(oracle_list_file):
                     matched_doc_ids.append(doc_id)
             if len(matched_doc_ids) == 0:
                 print(oracle['qs_id'])
+            else:
+                oracle_doc_ids.append(matched_doc_ids[0])
 
+        oracle_list[idx]['oracle_docs'] = oracle_doc_ids
+
+    with open(oracle_list_file.replace('new', 'processed'), 'w+') as f:
+        json.dump(oracle_list, f, indent=2)
 
 
 if __name__ == '__main__':
@@ -111,9 +118,9 @@ if __name__ == '__main__':
     pandas_numpy_eval_oracle_file = '../data/pandas-numpy-eval/data/oracle_docs_matched_new.json'
     conala_oracle_file = '../data/conala/oracle_docs_matched_new.json'
 
-    process_oracle_docs(ds1000_oracle_file)
+    # process_oracle_docs(ds1000_oracle_file)
     # process_oracle_docs(pandas_numpy_eval_oracle_file)
-    # process_oracle_docs(conala_oracle_file)
+    process_oracle_docs(conala_oracle_file)
 
     # process_python_docs()
 

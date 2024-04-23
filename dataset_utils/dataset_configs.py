@@ -1,5 +1,6 @@
 import json
 import gzip
+import csv
 from collections import Counter
 import os
 import random
@@ -15,6 +16,44 @@ from data.DS1000.ds1000 import DS1000Dataset
 
 random.seed(0)
 
+
+def load_wiki_corpus_iter():
+    wiki_corpus_file = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
+    with open(wiki_corpus_file, 'r', newline='') as tsvfile:
+        reader = csv.reader(tsvfile, delimiter='\t')
+        for row in reader:
+            data = dict(id=row[2]+'_'+row[0], text=row[1])
+            yield data
+
+def load_wiki_corpus():
+    data_list = list()
+    wiki_corpus_file = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
+    with open(wiki_corpus_file, 'r', newline='') as tsvfile:
+        reader = csv.reader(tsvfile, delimiter='\t')
+        for row in reader:
+            data_list.append(dict(id=row[2]+'_'+row[0], text=row[1]))
+    return data_list
+
+
+class HotpotQALoader:
+    def __init__(self):
+        self.root = root_path
+        self.qs_file = os.path.join(self.root, 'data/hotpotqa/hotpot_dev_distractor_v1.json')
+
+    def load_qs_list(self):
+        qs_list = json.load(open(self.qs_file, 'r'))
+        _qs_list = []
+        for qs in qs_list:
+            _qs_list.append(dict(qs_id=qs['_id'], question=qs['question']))
+
+        return _qs_list
+    def load_oracle_list(self):
+        qs_list = json.load(open(self.qs_file, 'r'))
+        _qs_list = []
+        for qs in qs_list:
+            _qs_list.append(dict(qs_id=qs['_id'], oracle_docs=qs['supporting_facts'], answer=qs['answer']))
+
+        return _qs_list
 
 class TldrLoader:
     def __init__(self):

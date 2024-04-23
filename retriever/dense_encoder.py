@@ -212,7 +212,7 @@ class DenseRetrievalEncoder:
             np.save(save_file, all_embeddings)
 
 
-    # todo: training ref: https://github.com/princeton-nlp/SimCSE, https://github.com/shuyanzhou/docprompting/tree/main/retriever/simcse
+    # todo: training
     def train(self):
         pass
 

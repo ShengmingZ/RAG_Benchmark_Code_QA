@@ -10,10 +10,11 @@ import json
 import time
 import argparse
 from elasticsearch import Elasticsearch
-from elasticsearch.helpers import bulk
-from dataset_utils.dataset_configs import TldrLoader, ConalaLoader
+from elasticsearch.helpers import bulk, streaming_bulk
+from dataset_utils.dataset_configs import TldrLoader, ConalaLoader, HotpotQALoader, load_wiki_corpus_iter
 from retriever.retriaval_evaluate import tldr_eval, conala_eval
 import shlex
+import csv
 
 
 class tldr_BM25:
@@ -174,10 +175,44 @@ class conala_BM25():
         conala_eval(gold=gold, pred=pred)
 
 
+class hotpotQA_BM25:
+    def __init__(self, bm25_args):
+        self.ret_result_path = bm25_args.hotpotqa_ret_result
+        self.top_k = bm25_args.top_k
+        self.es_idx = bm25_args.conala_idx
+        hotpotqa_loader = HotpotQALoader()
+        self.qs_list = hotpotqa_loader.load_qs_list()
+        """
+            run 
+            docker run --rm -p 9200:9200 -p 9300:9300 -e "xpack.security.enabled=false" -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:8.7.0
+            to launch elasticsearch server
+        """
+        self.es = Elasticsearch("http://localhost:9200")
+        print(self.es.info().body)
+
+    def create_index(self):
+        def steam_wiki_data():
+            wiki_corpus_file = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
+            with open(wiki_corpus_file, 'r', newline='') as tsvfile:
+                reader = csv.reader(tsvfile, delimiter='\t')
+                for row in reader:
+                    data = dict(_id=self.es_idx, doc_key=[row[2], row[0]], doc=row[1])
+                    yield data
+
+        if not self.es.indices.exists(index=self.es_idx):
+            self.es.indices.create(index=self.es_idx)
+            stream = steam_wiki_data()
+            for ok, res in streaming_bulk(self.es, actions=stream):
+                if not ok:
+                    print(res)
+
+
+
 def sparse_retriever_config(in_program_call=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='tldr', choices=['tldr', 'conala', 'ds1000'])
     parser.add_argument('--dataset_type', type=str, default='test', choices=['test', 'train', 'dev'])
+    parser.add_argument('--top_k', type=int, default=200)
 
     parser.add_argument('--tldr_ret_result_whole', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/dev_ret_result_whole_BM25.json")
     parser.add_argument('--tldr_ret_result_line', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/dev_ret_result_line_BM25.json")
@@ -194,6 +229,9 @@ def sparse_retriever_config(in_program_call=None):
     parser.add_argument('--ds1000_ret_result', type=str, default=f"{root_path}/DS-1000/ret_result_BM25.json")
     parser.add_argument('--ds1000_idx', type=str, default="ds1000")
     parser.add_argument('--ds1000_top_k', type=int, default=100)
+
+    parser.add_argument('--hotpotqa_ret_result', type=str, default=f"{root_path}/hotpotqa/ret_result_BM25.json")
+    parser.add_argument('hotpotqa_idx', type=str, default="hotpotqa")
 
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
     return args
