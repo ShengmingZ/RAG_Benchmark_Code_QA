@@ -199,7 +199,7 @@ def dense_retriever_config(in_program_call=None):
     #     args.tldr_doc_line_embed_save_file = os.path.join(root_path, f'docprompting_data/tldr/embedding/doc_line_{model_name_splitted}')
     args.hotpotQA_qs_embed_save_file = os.path.join(root_path, f'data/hotpotQA/qs_embed_{args.model_name}')
     args.python_docs_embed_save_file = os.path.join(root_path, f'data/python_docs/embed_{args.model_name}')
-    args.wikipedia_docs_embed_save_file = os.path.join(root_path, f'data/wikipedia/embed_{args.model_name}')
+    args.wikipedia_docs_embed_save_file = f'/data/zhaoshengming/wikipedia/embed_{args.model_name}'
     args.model_name = model_name_dict[args.model_name]
 
     print(json.dumps(vars(args), indent=2))

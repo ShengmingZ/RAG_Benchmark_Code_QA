@@ -18,7 +18,10 @@ random.seed(0)
 
 
 def load_wiki_corpus_iter():
-    wiki_corpus_file = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
+    if system == 'Darwin':
+        wiki_corpus_file = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
+    elif system == 'Linux':
+        wiki_corpus_file = '/data/zhaoshengming/wikipedia/psgs_w100.tsv'
     with open(wiki_corpus_file, 'r', newline='') as tsvfile:
         reader = csv.reader(tsvfile, delimiter='\t')
         for row in reader:
@@ -26,6 +29,10 @@ def load_wiki_corpus_iter():
             yield data
 
 def load_wiki_corpus():
+    if system == 'Darwin':
+        wiki_corpus_file = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
+    elif system == 'Linux':
+        wiki_corpus_file = '/data/zhaoshengming/wikipedia/psgs_w100.tsv'
     data_list = list()
     wiki_corpus_file = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
     with open(wiki_corpus_file, 'r', newline='') as tsvfile:
