@@ -17,29 +17,42 @@ from data.DS1000.ds1000 import DS1000Dataset
 random.seed(0)
 
 
-def load_wiki_corpus_iter():
-    if system == 'Darwin':
-        wiki_corpus_file = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
-    elif system == 'Linux':
-        wiki_corpus_file = '/data/zhaoshengming/wikipedia/psgs_w100.tsv'
-    with open(wiki_corpus_file, 'r', newline='') as tsvfile:
-        reader = csv.reader(tsvfile, delimiter='\t')
-        for row in reader:
-            data = dict(id=row[2]+'_'+row[0], text=row[1])
-            yield data
+class WikiCorpusLoader:
+    def __init__(self):
+        if system == 'Darwin':
+            self.wiki_corpus_file = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
+        elif system == 'Linux':
+            self.wiki_corpus_file = '/data/zhaoshengming/wikipedia/psgs_w100.tsv'
+    def load_wiki_corpus_iter(self):
+        with open(self.wiki_corpus_file, 'r', newline='') as tsvfile:
+            reader = csv.reader(tsvfile, delimiter='\t')
+            for row in reader:
+                data = dict(id=row[2]+'_'+row[0], text=row[1])
+                yield data
 
-def load_wiki_corpus():
-    if system == 'Darwin':
-        wiki_corpus_file = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
-    elif system == 'Linux':
-        wiki_corpus_file = '/data/zhaoshengming/wikipedia/psgs_w100.tsv'
-    data_list = list()
-    with open(wiki_corpus_file, 'r', newline='') as tsvfile:
-        reader = csv.reader(tsvfile, delimiter='\t')
-        for row in reader:
-            data_list.append(dict(id=row[2]+'_'+row[0], text=row[1]))
-    return data_list
+    def load_wiki_corpus(self):
+        data_list = list()
+        with open(self.wiki_corpus_file, 'r', newline='') as tsvfile:
+            reader = csv.reader(tsvfile, delimiter='\t')
+            for row in reader:
+                data_list.append(dict(id=row[2]+'_'+row[0], text=row[1]))
+        return data_list
 
+    def process_wiki_corpus(self):
+        wiki_rec_file = self.wiki_corpus_file.replace('.tsv', 'rec.tsv')
+        with open(wiki_rec_file, 'r', newline='') as infile, open(self.wiki_corpus_file, 'w', newline='') as outfile:
+            reader = csv.reader(infile, delimiter='\t')
+            writer = csv.writer(outfile, delimiter='\t')
+
+            key = None
+            for row in reader:
+                if key is None or key != row[2]:
+                    key = row[2]
+                    key_count = 0
+                else:
+                    key_count += 1
+                processed_doc_key = key + '_' + str(key_count)
+                writer.writerow([row[0], processed_doc_key, row[1]])
 
 class HotpotQALoader:
     def __init__(self):
@@ -57,7 +70,7 @@ class HotpotQALoader:
         qs_list = json.load(open(self.qs_file, 'r'))
         _qs_list = []
         for qs in qs_list:
-            _qs_list.append(dict(qs_id=qs['_id'], oracle_docs=qs['supporting_facts'], answer=qs['answer']))
+            _qs_list.append(dict(qs_id=qs['_id'], oracle_docs=[sp[0]+'_'+str(sp[1]) for sp in qs['supporting_facts']], answer=qs['answer']))
 
         return _qs_list
 
@@ -483,4 +496,5 @@ if __name__ == '__main__':
     # humaneval_loader = HumanEvalLoader()
     # print(len(humaneval_loader.load_qs_list()))
 
-    ...
+    wikicorpus_loader = WikiCorpusLoader()
+    wikicorpus_loader.process_wiki_corpus()

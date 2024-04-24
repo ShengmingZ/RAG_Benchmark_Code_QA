@@ -13,6 +13,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk, streaming_bulk
 from dataset_utils.dataset_configs import TldrLoader, ConalaLoader, HotpotQALoader, load_wiki_corpus_iter
 from retriever.retriaval_evaluate import tldr_eval, conala_eval
+from dataset_utils.hotpot_evaluate_v1 import eval_sp
 import shlex
 import csv
 
@@ -179,9 +180,10 @@ class hotpotQA_BM25:
     def __init__(self, bm25_args):
         self.ret_result_path = bm25_args.hotpotqa_ret_result
         self.top_k = bm25_args.top_k
-        self.es_idx = bm25_args.conala_idx
+        self.es_idx = bm25_args.hotpotqa_idx
         hotpotqa_loader = HotpotQALoader()
         self.qs_list = hotpotqa_loader.load_qs_list()
+        self.oracle_list = hotpotqa_loader.load_oracle_list()
         """
             run 
             docker run --rm -p 9200:9200 -p 9300:9300 -e "xpack.security.enabled=false" -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:8.7.0
@@ -196,7 +198,7 @@ class hotpotQA_BM25:
             with open(wiki_corpus_file, 'r', newline='') as tsvfile:
                 reader = csv.reader(tsvfile, delimiter='\t')
                 for row in reader:
-                    data = dict(_id=self.es_idx, doc_key=[row[2], row[0]], doc=row[1])
+                    data = dict(_index=self.es_idx, doc_key=row[2] + '_' + row[0], doc=row[1])
                     yield data
 
         if not self.es.indices.exists(index=self.es_idx):
@@ -206,12 +208,38 @@ class hotpotQA_BM25:
                 if not ok:
                     print(res)
 
+    def bm25_retrieve(self, query, index):
+        res = self.es.search(index=index, body=query)['hits']['hits']
+        _res = list()
+        for item in res:
+            _res.append({'doc_key': item['_source']['doc_key'], 'score': item['_score']})
+        return _res
+
+    def retrieve(self):
+        res_dict = dict()
+        for idx, qs in enumerate(self.qs_list):
+            query = {'query':
+                         {'match':
+                              {'doc': qs['question']}},
+                     'size': self.top_k}
+            res_dict[qs['qs_id']] = self.bm25_retrieve(query=query, index=self.es_idx)
+
+        with open(self.ret_result_path, 'w+') as f:
+            json.dump(res_dict, f, indent=2)
+
+        # calc hit rate
+        gold, pred = list(), list()
+        for item in self.oracle_list:
+            gold.append(item['oracle_docs'])
+            pred.append([tmp['doc_key'] for tmp in res_dict[item['qs_id']]])
+        metrics = eval_sp(golds=gold, preds=pred, top_k=[1,3,5,10,20])
+        print(metrics)
 
 
 def sparse_retriever_config(in_program_call=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, default='tldr', choices=['tldr', 'conala', 'ds1000'])
-    parser.add_argument('--dataset_type', type=str, default='test', choices=['test', 'train', 'dev'])
+    parser.add_argument('--dataset', type=str, choices=['tldr', 'conala', 'ds1000', 'hotpotqa'])
+    # parser.add_argument('--dataset_type', type=str, default='test', choices=['test', 'train', 'dev'])
     parser.add_argument('--top_k', type=int, default=200)
 
     parser.add_argument('--tldr_ret_result_whole', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/dev_ret_result_whole_BM25.json")
@@ -226,30 +254,34 @@ def sparse_retriever_config(in_program_call=None):
     parser.add_argument('--conala_idx', type=str, default="conala")
     parser.add_argument('--conala_top_k', type=int, default=200)
 
-    parser.add_argument('--ds1000_ret_result', type=str, default=f"{root_path}/DS-1000/ret_result_BM25.json")
+    parser.add_argument('--ds1000_ret_result', type=str, default=f"{root_path}/data/DS1000/ret_result_BM25.json")
     parser.add_argument('--ds1000_idx', type=str, default="ds1000")
     parser.add_argument('--ds1000_top_k', type=int, default=100)
 
-    parser.add_argument('--hotpotqa_ret_result', type=str, default=f"{root_path}/hotpotqa/ret_result_BM25.json")
-    parser.add_argument('hotpotqa_idx', type=str, default="hotpotqa")
+    parser.add_argument('--hotpotqa_ret_result', type=str, default=f"{root_path}/data/hotpotqa/ret_result_BM25.json")
+    parser.add_argument('--hotpotqa_idx', type=str, default="hotpotqa")
 
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
     return args
 
 
+
 if __name__ == '__main__':
-    in_program_call = '--dataset conala --dataset_type test'
+    in_program_call = '--dataset hotpotqa'
     bm25_args = sparse_retriever_config(in_program_call)
 
-    if bm25_args.dataset == 'tldr':
-        tldr_retriever = tldr_BM25(bm25_args)
-        tldr_retriever.create_index()
-        time.sleep(1)
-        # tldr_retriever.retrieve_whole_level()
-        tldr_retriever.retrieve_line_level()
+    # if bm25_args.dataset == 'tldr':
+    #     tldr_retriever = tldr_BM25(bm25_args)
+    #     tldr_retriever.create_index()
+    #     time.sleep(1)
+    #     # tldr_retriever.retrieve_whole_level()
+    #     tldr_retriever.retrieve_line_level()
+    #
+    # elif bm25_args.dataset == 'conala':
+    #     conala_retriever = conala_BM25(bm25_args)
+    #     conala_retriever.create_index()
+    #     time.sleep(1)
+    #     conala_retriever.retrieve()
 
-    elif bm25_args.dataset == 'conala':
-        conala_retriever = conala_BM25(bm25_args)
-        conala_retriever.create_index()
-        time.sleep(1)
-        conala_retriever.retrieve()
+    hotpotQA_retriever = hotpotQA_BM25(bm25_args)
+    hotpotQA_retriever.retrieve()
