@@ -39,7 +39,7 @@ class WikiCorpusLoader:
         return data_list
 
     def process_wiki_corpus(self):
-        wiki_rec_file = self.wiki_corpus_file.replace('.tsv', 'rec.tsv')
+        wiki_rec_file = self.wiki_corpus_file.replace('.tsv', '_rec.tsv')
         with open(wiki_rec_file, 'r', newline='') as infile, open(self.wiki_corpus_file, 'w', newline='') as outfile:
             reader = csv.reader(infile, delimiter='\t')
             writer = csv.writer(outfile, delimiter='\t')
