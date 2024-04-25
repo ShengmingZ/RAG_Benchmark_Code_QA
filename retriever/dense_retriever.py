@@ -198,6 +198,7 @@ def hotpotqa_retrieve(args):
         pred.append([tmp['doc_key'] for tmp in ret_results[item['qs_id']]])
     eval_sp(preds=pred, golds=gold, top_k=[1,3,5,10,15,20])
 
+
 def dense_retriever_config(in_program_call=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, choices=['conala', 'tldr', 'hotpotQA'])
@@ -237,7 +238,9 @@ if __name__ == '__main__':
                         --sim_func cls_distance.cosine"
     ret_args = dense_retriever_config(in_program_call)
 
-    embed_corpus(ret_args)
+    # embed_corpus(ret_args)
+    hotpotqa_retrieve(ret_args)
+
 
     # if ret_args.dataset == 'tldr':
     #     tldr_loader = TldrLoader()
