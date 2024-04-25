@@ -13,9 +13,10 @@ from collections import OrderedDict
 
 import numpy as np
 import faiss
-from dataset_utils.dataset_configs import TldrLoader, ConalaLoader, load_wiki_corpus
+from dataset_utils.dataset_configs import TldrLoader, ConalaLoader, WikiCorpusLoader, HotpotQALoader
 from retriever.retriaval_evaluate import conala_eval, tldr_eval
 from retriever.dense_encoder import DenseRetrievalEncoder
+from dataset_utils.hotpot_evaluate_v1 import eval_sp
 
 
 model_name_dict = {'codet5_conala': 'neulab/docprompting-codet5-python-doc-retriever',
@@ -165,15 +166,37 @@ def conala_retrieve(args):
 #     tldr_eval(gold, pred, top_k=[1, 3, 5, 10, 15, 20, 30])
 
 
-def embed_corpus(ret_args):
-    encoder = DenseRetrievalEncoder(ret_args)
-    if ret_args.corpus == 'wiki':
-        wiki_data = load_wiki_corpus()
+def embed_corpus(args):
+    encoder = DenseRetrievalEncoder(args)
+    if args.corpus == 'wiki':
+        wiki_loader = WikiCorpusLoader()
+        wiki_data = wiki_loader.load_wiki_corpus()
         wiki_data = [item['text'] for item in wiki_data]
-        encoder.encode(dataset=wiki_data, save_file=ret_args.wikipedia_docs_embed_save_file)
-    elif ret_args.corpus == 'python_docs':
+        encoder.encode(dataset=wiki_data, save_file=args.wikipedia_docs_embed_save_file)
+    elif args.corpus == 'python_docs':
         ...
 
+
+def hotpotqa_retrieve(args):
+    encoder = DenseRetrievalEncoder(args)
+    hotpotqa_loader = HotpotQALoader()
+    qs_list = hotpotqa_loader.load_qs_list()
+    encoder.encode(dataset=[qs['question'] for qs in qs_list], save_file=args.hotpotqa_qs_embed_save_file)
+
+    qs_embed = np.load(args.hotpotqa_qs_embed_save_file + '.npy')
+    doc_embed = np.load(args.wikipedia_docs_embed_save_file + '.npy')
+    qs_id_list = [qs['qs_id'] for qs in qs_list]
+    wiki_loader = WikiCorpusLoader()
+    wiki_id_list = wiki_loader.load_wiki_id()
+
+    ret_results = retrieve(qs_embed, doc_embed, qs_id_list, wiki_id_list, args.retrieve_file, args.top_k)
+
+    oracle_list = hotpotqa_loader.load_oracle_list()
+    gold, pred = list(), list()
+    for item in oracle_list:
+        gold.append(item['oracle_docs'])
+        pred.append([tmp['doc_key'] for tmp in ret_results[item['qs_id']]])
+    eval_sp(preds=pred, golds=gold, top_k=[1,3,5,10,15,20])
 
 def dense_retriever_config(in_program_call=None):
     parser = argparse.ArgumentParser()

@@ -17,8 +17,8 @@ from retriever.dense_retriever import dense_retriever_config
 from generator.generate_utils import truncate_doc, approximate_token, get_dummy_text, generate_config, save_results_to_files
 
 
-class GeneConala:
-    def __init__(self, args, retriever_args):
+class GeneHotpotQA:
+    def __init__(self, args):
         # load parameters
         self.save_file = args.save_file
         self.top_k = args.top_k
@@ -28,17 +28,7 @@ class GeneConala:
         self.model = args.model
         self.temperature = args.temperature
         self.max_tokens = args.max_tokens
-        # load docs
-        self.conala_loader = ConalaLoader()
-        self.doc_list = self.conala_loader.load_doc_list()
-        self.qs_list = self.conala_loader.load_qs_list(retriever_args.dataset_type)
-        self.oracle_list = self.conala_loader.load_oracle_list(retriever_args.dataset_type)
-        if args.retriever == 'bm25':
-            self.ret_result = json.load(open(retriever_args.conala_ret_result, 'r'))
-        elif 'codeT5' in args.retriever:
-            self.ret_result = json.load(open(retriever_args.save_file, 'r'))
-        else:
-            raise Exception('retriever type not supported')
+
 
         print('qs_num:', len(self.qs_list))
         print('save_to:', self.save_file)
@@ -91,7 +81,7 @@ class GeneConala:
                 raise Exception('no such prompt type')
         prompt += '\n'
         for doc in ret_docs:
-            doc = truncate_doc(doc, max_length=self.max_doc_tokens)
+            doc = truncate_too_long_doc(doc, max_length=self.max_doc_tokens)
             prompt += doc
             prompt += '\n'
         prompt += f'# {nl}'
@@ -118,14 +108,10 @@ class GeneConala:
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset conala --top_k 10 --retriever codet5-FT --ret_doc_type retrieved --prompt_type original'
+    in_program_call = '--dataset hotpotqa --sampled --analysis_type retrieval_quality --retriever bm25 --retrieval_acc 1'
     args = generate_config(in_program_call)
-    if args.retriever == 'codeT5-FT':
-        retriever_args = dense_retriever_config(f"--dataset conala --dataset_type test \
-                            --model_name neulab/docprompting-codet5-python-doc-retriever")
-    elif args.retriever == 'codeT5-OTS':
-        retriever_args = dense_retriever_config(f"--dataset conala --dataset_type test \
-                            --model_name Salesforce/codet5-base")
+    args.retrieval_file = ...
 
-    gene_conala = GeneConala(args, retriever_args)
+
+    gene_conala = GeneHotpotQA(args)
     gene_conala.gene_response()

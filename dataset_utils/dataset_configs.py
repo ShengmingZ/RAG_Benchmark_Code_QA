@@ -27,7 +27,7 @@ class WikiCorpusLoader:
         with open(self.wiki_corpus_file, 'r', newline='') as tsvfile:
             reader = csv.reader(tsvfile, delimiter='\t')
             for row in reader:
-                data = dict(id=row[2]+'_'+row[0], text=row[1])
+                data = dict(id=row[1], text=row[2])
                 yield data
 
     def load_wiki_corpus(self):
@@ -35,7 +35,15 @@ class WikiCorpusLoader:
         with open(self.wiki_corpus_file, 'r', newline='') as tsvfile:
             reader = csv.reader(tsvfile, delimiter='\t')
             for row in reader:
-                data_list.append(dict(id=row[2]+'_'+row[0], text=row[1]))
+                data_list.append(dict(id=row[1], text=row[2]))
+        return data_list
+
+    def load_wiki_id(self):
+        data_list = list()
+        with open(self.wiki_corpus_file, 'r', newline='') as tsvfile:
+            reader = csv.reader(tsvfile, delimiter='\t')
+            for row in reader:
+                data_list.append(row[1])
         return data_list
 
     def process_wiki_corpus(self):
@@ -58,21 +66,39 @@ class HotpotQALoader:
     def __init__(self):
         self.root = root_path
         self.qs_file = os.path.join(self.root, 'data/hotpotqa/hotpot_dev_distractor_v1.json')
+        self.sample_qs_file = os.path.join(self.root, 'data/hotpotqa/sampled_data.json')
 
     def load_qs_list(self):
-        qs_list = json.load(open(self.qs_file, 'r'))
+        qs_list = json.load(open(self.sample_qs_file, 'r'))
         _qs_list = []
         for qs in qs_list:
             _qs_list.append(dict(qs_id=qs['_id'], question=qs['question']))
 
         return _qs_list
     def load_oracle_list(self):
-        qs_list = json.load(open(self.qs_file, 'r'))
+        qs_list = json.load(open(self.sample_qs_file, 'r'))
         _qs_list = []
         for qs in qs_list:
             _qs_list.append(dict(qs_id=qs['_id'], oracle_docs=[sp[0]+'_'+str(sp[1]) for sp in qs['supporting_facts']], answer=qs['answer']))
 
         return _qs_list
+
+    def sample_dataset(self):
+        """
+        sample 20%
+        :return:
+        """
+        qs_list = json.load(open(self.qs_file, 'r'))
+        num_sampled = int(len(qs_list)*0.2)
+        problem_id_list = list(range(0, len(qs_list)))
+        sampled_id_list = random.sample(problem_id_list, num_sampled)
+        sampled_data = list()
+        for id in sampled_id_list:
+            sampled_data.append(qs_list[id])
+
+        with open(os.path.join(self.root, 'data/hotpotqa/sampled_data.json'), 'w+') as f:
+            json.dump(sampled_data, f, indent=2)
+
 
 class TldrLoader:
     def __init__(self):
@@ -496,5 +522,8 @@ if __name__ == '__main__':
     # humaneval_loader = HumanEvalLoader()
     # print(len(humaneval_loader.load_qs_list()))
 
-    wikicorpus_loader = WikiCorpusLoader()
-    wikicorpus_loader.process_wiki_corpus()
+    # wikicorpus_loader = WikiCorpusLoader()
+    # wikicorpus_loader.process_wiki_corpus()
+
+    hotpotqa_loader = HotpotQALoader()
+    hotpotqa_loader.sample_dataset()

@@ -72,7 +72,7 @@ def get_dummy_text(model='gpt-3.5-turbo', prompt_length=1000, dataset='tldr'):
 
 def generate_config(in_program_call=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, choices=['tldr', 'conala', 'ds1000', 'pandas_numpy_eval'])
+    parser.add_argument('--dataset', type=str, choices=['tldr', 'conala', 'ds1000', 'pandas_numpy_eval', 'hotpotqa'])
     parser.add_argument('--sampled', action='store_true')
     parser.add_argument('--save_file', type=str, default=None)
     # model parameters
@@ -81,7 +81,7 @@ def generate_config(in_program_call=None):
     parser.add_argument('--n', type=int, default=100)
     parser.add_argument('--max_tokens', type=int, default=1000)
     # analysis type
-    parser.add_argument('--analysis_type', type=str, choice=['retrieval_quality', 'info_processing', 'prompt_method'])
+    parser.add_argument('--analysis_type', type=str, choice=['retrieval_quality', 'prompt_generation'])
     # retrieval quality analysis, default: retriever with best performance
     parser.add_argument('--retriever', type=str, default='best', choices=['best', 'bm25', 'codeT5-FT'])
     parser.add_argument('--retrieval_acc', type=float, default=1)
@@ -104,11 +104,10 @@ def generate_config(in_program_call=None):
             args.save_file += (f'retriever_{args.retriever}_'
                                f'retrieval_acc_{args.retrieval_acc}_'
                                f'ret_info_type_{args.ret_info_type}.json')
-        elif args.analysis_type == 'info_processing':
+        elif args.analysis_type == 'prompt_generation':
             args.save_file += (f'top_k_{args.top_k}_'
-                               f'doc_max_length_{args.doc_max_length}.json')
-        elif args.analysis_type == 'prompt_method':
-            args.save_file += (f'prompt_type_{args.prompt_type}.json')
+                               f'doc_max_length_{args.doc_max_length}_'
+                               f'prompt_type_{args.prompt_type}.json')
         args.save_file = os.path.join(root_path, args.save_file)
 
     print(json.dumps(vars(args), indent=2))
