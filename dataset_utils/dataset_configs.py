@@ -65,8 +65,8 @@ class WikiCorpusLoader:
 class HotpotQALoader:
     def __init__(self):
         self.root = root_path
-        self.qs_file = os.path.join(self.root, 'data/hotpotqa/hotpot_dev_distractor_v1.json')
-        self.sample_qs_file = os.path.join(self.root, 'data/hotpotqa/sampled_data.json')
+        self.qs_file = os.path.join(self.root, 'data/hotpotQA/hotpot_dev_distractor_v1.json')
+        self.sample_qs_file = os.path.join(self.root, 'data/hotpotQA/sampled_data.json')
 
     def load_qs_list(self):
         qs_list = json.load(open(self.sample_qs_file, 'r'))
@@ -96,7 +96,7 @@ class HotpotQALoader:
         for id in sampled_id_list:
             sampled_data.append(qs_list[id])
 
-        with open(os.path.join(self.root, 'data/hotpotqa/sampled_data.json'), 'w+') as f:
+        with open(os.path.join(self.root, 'data/hotpotQA/sampled_data.json'), 'w+') as f:
             json.dump(sampled_data, f, indent=2)
 
 
