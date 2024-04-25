@@ -178,19 +178,23 @@ def embed_corpus(args):
 
 
 def hotpotqa_retrieve(args):
+    # encode
     encoder = DenseRetrievalEncoder(args)
     hotpotqa_loader = HotpotQALoader()
     qs_list = hotpotqa_loader.load_qs_list()
-    encoder.encode(dataset=[qs['question'] for qs in qs_list], save_file=args.hotpotqa_qs_embed_save_file)
+    encoder.encode(dataset=[qs['question'] for qs in qs_list], save_file=args.hotpotQA_qs_embed_save_file)
 
+    # load vectors
     qs_embed = np.load(args.hotpotqa_qs_embed_save_file + '.npy')
     doc_embed = np.load(args.wikipedia_docs_embed_save_file + '.npy')
     qs_id_list = [qs['qs_id'] for qs in qs_list]
     wiki_loader = WikiCorpusLoader()
     wiki_id_list = wiki_loader.load_wiki_id()
 
+    # retrieve
     ret_results = retrieve(qs_embed, doc_embed, qs_id_list, wiki_id_list, args.retrieve_file, args.top_k)
 
+    # eval
     oracle_list = hotpotqa_loader.load_oracle_list()
     gold, pred = list(), list()
     for item in oracle_list:
