@@ -185,7 +185,7 @@ def hotpotqa_retrieve(args):
     encoder.encode(dataset=[qs['question'] for qs in qs_list], save_file=args.hotpotQA_qs_embed_save_file)
 
     # load vectors
-    qs_embed = np.load(args.hotpotqa_qs_embed_save_file + '.npy')
+    qs_embed = np.load(args.hotpotQA_qs_embed_save_file + '.npy')
     doc_embed = np.load(args.wikipedia_docs_embed_save_file + '.npy')
     qs_id_list = [qs['qs_id'] for qs in qs_list]
     wiki_loader = WikiCorpusLoader()
