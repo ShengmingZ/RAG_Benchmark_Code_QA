@@ -192,7 +192,7 @@ def hotpotqa_retrieve(args):
     wiki_id_list = wiki_loader.load_wiki_id()
 
     # retrieve
-    ret_results = retrieve(qs_embed, doc_embed, qs_id_list, wiki_id_list, args.retrieve_file, args.top_k)
+    ret_results = retrieve(qs_embed, doc_embed, qs_id_list, wiki_id_list, args.result_file, args.top_k)
 
     # eval
     oracle_list = hotpotqa_loader.load_oracle_list()
@@ -200,7 +200,8 @@ def hotpotqa_retrieve(args):
     for item in oracle_list:
         gold.append(item['oracle_docs'])
         pred.append([tmp['doc_key'] for tmp in ret_results[item['qs_id']]])
-    eval_sp(preds=pred, golds=gold, top_k=[1,3,5,10,15,20])
+    metrics = eval_sp(preds=pred, golds=gold, top_k=[1,3,5,10,15,20])
+    print(metrics)
 
 
 def dense_retriever_config(in_program_call=None):
