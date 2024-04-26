@@ -192,15 +192,18 @@ def hotpotqa_retrieve(args):
     wiki_id_list = wiki_loader.load_wiki_id()
 
     # retrieve
-    ret_results = retrieve(qs_embed, doc_embed, qs_id_list, wiki_id_list, args.result_file, args.top_k)
+    retrieve(qs_embed, doc_embed, qs_id_list, wiki_id_list, args.result_file, args.top_k)
 
-    # eval
+
+def hotpotqa_eval(args):
+    hotpotqa_loader = HotpotQALoader()
     oracle_list = hotpotqa_loader.load_oracle_list()
+    ret_results = json.load(open(args.result_file, 'r'))
     gold, pred = list(), list()
     for item in oracle_list:
         gold.append(item['oracle_docs'])
         pred.append([tmp['doc_key'] for tmp in ret_results[item['qs_id']]])
-    metrics = eval_sp(preds=pred, golds=gold, top_k=[1,3,5,10,15,20])
+    metrics = eval_sp(preds=pred, golds=gold, top_k=[1,3,5,10,20,50,100])
     print(metrics)
 
 
@@ -244,7 +247,8 @@ if __name__ == '__main__':
     ret_args = dense_retriever_config(in_program_call)
 
     # embed_corpus(ret_args)
-    hotpotqa_retrieve(ret_args)
+    # hotpotqa_retrieve(ret_args)
+    hotpotqa_eval(ret_args)
 
 
     # if ret_args.dataset == 'tldr':
