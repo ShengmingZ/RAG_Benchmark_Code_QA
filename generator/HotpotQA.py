@@ -11,7 +11,7 @@ elif system == 'Linux':
 sys.path.insert(0, root_path)
 from generator.run_model import chatgpt
 from prompt import conala_prompt
-from dataset_utils.dataset_configs import ConalaLoader
+from dataset_utils.dataset_configs import HotpotQALoader
 from retriever.sparse_retriever import sparse_retriever_config
 from retriever.dense_retriever import dense_retriever_config
 from generator.generate_utils import truncate_doc, approximate_token, get_dummy_text, generate_config, save_results_to_files
@@ -28,17 +28,19 @@ class GeneHotpotQA:
         self.model = args.model
         self.temperature = args.temperature
         self.max_tokens = args.max_tokens
-
+        self.hotpotqa_loader = HotpotQALoader()
+        self.qs_list = self.hotpotqa_loader.load_qs_list()
+        self.oracle_list = self.hotpotqa_loader.load_oracle_list()
 
         print('qs_num:', len(self.qs_list))
         print('save_to:', self.save_file)
 
 
-    def get_ret_docs(self, qs_id, oracle):
+    def get_ret_docs(self, qs_id, oracle, doc_type):
         # prepare retrieved docs
-        if self.ret_doc_type == 'oracle':
+        if doc_type == 'oracle':
             ret_libs = oracle['doc_keys']
-        elif self.ret_doc_type == 'retrieved':
+        elif doc_type == 'retrieved':
             ret_libs = [result['doc_key'] for result in self.ret_result[qs_id][0:self.top_k]]
         elif self.ret_doc_type == 'related':
             ret_libs = [result['doc_key'] for result in self.ret_result[qs_id] if
@@ -62,7 +64,9 @@ class GeneHotpotQA:
 
         return ret_libs, ret_docs
 
-    def prepare_prompt(self, nl, ret_docs):
+
+
+    def gene_prompt(self, nl, ret_docs):
         if self.ret_doc_type == 'none':
             if self.prompt_type == 'original':
                 prompt = conala_prompt.conala_original_no_retrieval_prompt
@@ -93,7 +97,7 @@ class GeneHotpotQA:
         for idx, (qs, oracle) in tqdm(enumerate(zip(self.qs_list, self.oracle_list))):
 
             ret_libs, ret_docs = self.get_ret_docs(qs['qs_id'], oracle)
-            prompt = self.prepare_prompt(qs['nl'], ret_docs)
+            prompt = self.gene_prompt(qs['question'], ret_docs)
 
             # gene response
             prompts.append(prompt)
@@ -111,7 +115,6 @@ if __name__ == '__main__':
     in_program_call = '--dataset hotpotqa --sampled --analysis_type retrieval_quality --retriever bm25 --retrieval_acc 1'
     args = generate_config(in_program_call)
     args.retrieval_file = ...
-
 
     gene_conala = GeneHotpotQA(args)
     gene_conala.gene_response()

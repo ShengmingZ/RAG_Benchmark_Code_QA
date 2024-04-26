@@ -46,6 +46,15 @@ class WikiCorpusLoader:
                 data_list.append(row[1])
         return data_list
 
+    def get_docs(self, doc_key_list):
+        docs = list()
+        with open(self.wiki_corpus_file, 'r', newline='') as tsvfile:
+            reader = csv.reader(tsvfile, delimiter='\t')
+            for row in reader:
+                if row[1] in doc_key_list:
+                    docs.append(dict(doc_key=row[1], doc=row[2]))
+        return docs
+
     def process_wiki_corpus(self):
         wiki_rec_file = self.wiki_corpus_file.replace('.tsv', '_rec.tsv')
         with open(wiki_rec_file, 'r', newline='') as infile, open(self.wiki_corpus_file, 'w', newline='') as outfile:
@@ -61,6 +70,50 @@ class WikiCorpusLoader:
                     key_count += 1
                 processed_doc_key = key + '_' + str(key_count)
                 writer.writerow([row[0], processed_doc_key, row[1]])
+
+
+class NQLoader:
+    def __init__(self):
+        self.root = root_path
+        self.qs_file = os.path.join(self.root, 'data/NQ/nq-test.json')
+        self.filtered_qs_file = os.path.join(self.root, 'data/NQ/nq-test-filtered.json')
+
+    def load_qs_list(self):
+        qs_list = json.load(open(self.filtered_qs_file, 'r'))
+        _qs_list = [dict(qs_id=idx, question=item['question']) for idx, item in enumerate(qs_list)]
+        return _qs_list
+
+    def load_oracle_list(self):
+        """
+        each oracle paragraph contains the info to answer the question, so just pick one para that has answer as oracle
+        :return:
+        """
+        qs_list = json.load(open(self.filtered_qs_file, 'r'))
+        oracle_list = []
+        for idx, qs in enumerate(qs_list):
+            oracle_doc = None
+            for doc in qs['ctxs']:
+                if doc['has_answer']:
+                    oracle_doc = doc['id']
+                    break
+            if oracle_doc is None: raise Exception(f'no oracle found in qs {qs["question"]}')
+            oracle_list.append(dict(qs_id=idx, answers=qs['answers'], oracle_doc=oracle_doc))
+        return oracle_list
+
+    def remove_no_oracle(self):
+        qs_list = json.load(open(self.qs_file, 'r'))
+        _qs_list = []
+        for idx, qs in enumerate(qs_list):
+            oracle_doc = None
+            for doc in qs['ctxs']:
+                if doc['has_answer']:
+                    oracle_doc = doc['id']
+                    break
+            if oracle_doc is not None: _qs_list.append(qs)
+
+        with open(self.filtered_qs_file, 'w+') as f:
+            json.dump(_qs_list, f, indent=2)
+
 
 class HotpotQALoader:
     def __init__(self):
@@ -98,6 +151,24 @@ class HotpotQALoader:
 
         with open(os.path.join(self.root, 'data/hotpotQA/sampled_data.json'), 'w+') as f:
             json.dump(sampled_data, f, indent=2)
+
+    def get_sample(self, sample_num):
+        qs_list = json.load(open(self.qs_file, 'r'))
+        problem_id_list = list(range(0, len(qs_list)))
+        sampled_qs_list = json.load(open(self.sample_qs_file, 'r'))
+        new_sampled_id_list = []
+        while len(new_sampled_id_list) < sample_num:
+            sampled_id = random.sample(problem_id_list, 1)[0]
+            if sampled_id not in new_sampled_id_list and qs_list[sampled_id] not in sampled_qs_list:
+                new_sampled_id_list.append(sampled_id)
+        new_sampled_qs_list = []
+        for id in new_sampled_id_list:
+            new_sampled_qs_list.append(qs_list[id])
+
+        return new_sampled_qs_list
+
+
+
 
 
 class TldrLoader:
@@ -525,5 +596,15 @@ if __name__ == '__main__':
     # wikicorpus_loader = WikiCorpusLoader()
     # wikicorpus_loader.process_wiki_corpus()
 
-    hotpotqa_loader = HotpotQALoader()
-    hotpotqa_loader.sample_dataset()
+    # hotpotqa_loader = HotpotQALoader()
+    # sampled_qs_list = hotpotqa_loader.get_sample(3)
+    #
+    # for qs in sampled_qs_list:
+    #     print(qs['question'])
+    #     print(qs['answer'])
+    #     print(qs['supporting_facts'])
+    #     print(qs['context'])
+
+    nq_loader = NQLoader()
+    nq_loader.remove_no_oracle()
+    oracle_list = nq_loader.load_oracle_list()

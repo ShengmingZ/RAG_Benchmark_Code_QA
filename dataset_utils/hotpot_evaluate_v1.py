@@ -87,7 +87,9 @@ def eval_sp(preds, golds, top_k):
         metrics[k] = {'sp_em': 0, 'sp_f1': 0, 'sp_prec': 0, 'sp_recall': 0}
         for pred, gold in zip(preds, golds):
             update_sp(metrics=metrics[k], prediction=pred[:k], gold=gold)
-
+        N = len(golds)
+        for key in metrics[k].keys():
+            metrics[k][key] /= N
     return metrics
 
 

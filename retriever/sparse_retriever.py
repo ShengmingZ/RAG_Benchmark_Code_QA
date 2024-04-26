@@ -11,7 +11,7 @@ import time
 import argparse
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk, streaming_bulk
-from dataset_utils.dataset_configs import TldrLoader, ConalaLoader, HotpotQALoader, load_wiki_corpus_iter
+from dataset_utils.dataset_configs import TldrLoader, ConalaLoader, HotpotQALoader, WikiCorpusLoader
 from retriever.retriaval_evaluate import tldr_eval, conala_eval
 from dataset_utils.hotpot_evaluate_v1 import eval_sp
 import shlex
@@ -232,7 +232,7 @@ class hotpotQA_BM25:
         for item in self.oracle_list:
             gold.append(item['oracle_docs'])
             pred.append([tmp['doc_key'] for tmp in res_dict[item['qs_id']]])
-        metrics = eval_sp(golds=gold, preds=pred, top_k=[1,3,5,10,20])
+        metrics = eval_sp(golds=gold, preds=pred, top_k=[1,3,5,10,20,50,100])
         print(metrics)
 
 
@@ -258,7 +258,7 @@ def sparse_retriever_config(in_program_call=None):
     parser.add_argument('--ds1000_idx', type=str, default="ds1000")
     parser.add_argument('--ds1000_top_k', type=int, default=100)
 
-    parser.add_argument('--hotpotqa_ret_result', type=str, default=f"{root_path}/data/hotpotqa/ret_result_BM25.json")
+    parser.add_argument('--hotpotqa_ret_result', type=str, default=f"{root_path}/data/hotpotQA/ret_result_BM25.json")
     parser.add_argument('--hotpotqa_idx', type=str, default="hotpotqa")
 
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
