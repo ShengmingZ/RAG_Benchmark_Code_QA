@@ -177,6 +177,22 @@ def embed_corpus(args):
         ...
 
 
+def normalize_embed(embed_file):
+    def normalize(vectors):
+        # normalize an array of vectors
+        nor_vectors = list()
+        for vector in vectors:
+            vector = vector / vector.norm(dim=1, keepdim=True)
+            nor_vectors.append(vector)
+        nor_vectors = np.concatenate(nor_vectors, axis=0)
+        return nor_vectors
+
+    embed = np.load(embed_file + '.npy')
+    nor_embed = normalize(embed)
+    save_file = embed_file + '_normalized'
+    np.save(save_file, nor_embed)
+
+
 def hotpotqa_retrieve(args):
     # encode
     encoder = DenseRetrievalEncoder(args)
@@ -247,7 +263,13 @@ if __name__ == '__main__':
     ret_args = dense_retriever_config(in_program_call)
 
     # embed_corpus(ret_args)
-    # hotpotqa_retrieve(ret_args)
+
+    # normalize
+    normalize_embed(ret_args.wikipedia_docs_embed_save_file)
+    normalize_embed(ret_args.hotpotQA_qs_embed_save_file)
+    ret_args.result_file = ret_args.result_file.replace('.json', '_normalized.json')
+
+    hotpotqa_retrieve(ret_args)
     hotpotqa_eval(ret_args)
 
 
