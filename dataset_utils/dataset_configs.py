@@ -17,6 +17,33 @@ from data.DS1000.ds1000 import DS1000Dataset
 random.seed(0)
 
 
+class PythonDocsLoader:
+    def __init__(self):
+        self.root = root_path
+        self.api_docs_builtins = os.path.join(root_path, 'python_docs/api_doc_builtin.json')
+        self.api_sign_builtins = os.path.join(root_path, 'python_docs/api_sign_builtin.txt')
+        self.api_docs_third_party = self.api_docs_builtins.replace('builtin', 'third_party')
+        self.api_sign_third_party = self.api_sign_builtins.replace('builtin', 'third_party')
+
+    def load_python_docs(self):
+        # api_doc_third_party_file = '../data/python_docs/api_doc_third_party_new.json'
+        # api_doc_builtin_file = '../data/python_docs/api_doc_builtin_new.json'
+        # python_docs_third = json.load(open(api_doc_third_party_file, 'r'))
+        # python_docs_builtins = json.load(open(api_doc_builtin_file, 'r'))
+        # python_docs_third.update(python_docs_builtins)
+        #
+        # _python_docs_third = dict()
+        # for key, value in python_docs_third.items():
+        #     _python_docs_third[key] = value
+        ...
+
+    def load_doc_id(self):
+        ...
+
+    def get_docs(self):
+        ...
+
+
 class WikiCorpusLoader:
     def __init__(self):
         if system == 'Darwin':
