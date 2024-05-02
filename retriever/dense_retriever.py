@@ -267,8 +267,9 @@ if __name__ == '__main__':
     # normalize
     normalize_embed(ret_args.wikipedia_docs_embed_save_file)
     normalize_embed(ret_args.hotpotQA_qs_embed_save_file)
+    ret_args.wikipedia_docs_embed_save_file = ret_args.wikipedia_docs_embed_save_file + '_normalized'
+    ret_args.hotpotQA_qs_embed_save_file = ret_args.hotpotQA_qs_embed_save_file + '_normalized'
     ret_args.result_file = ret_args.result_file.replace('.json', '_normalized.json')
-
     hotpotqa_retrieve(ret_args)
     hotpotqa_eval(ret_args)
 
