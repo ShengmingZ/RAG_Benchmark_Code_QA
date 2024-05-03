@@ -4,6 +4,7 @@ import argparse
 import platform
 import sys, os
 import random
+from prompt.hotpotqa_prompt import original_prompt
 from copy import deepcopy
 system = platform.system()
 if system == 'Darwin':
@@ -11,7 +12,7 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from prompt import conala_prompt, tldr_prompt
+from prompt import conala_prompt, tldr_prompt, hotpotqa_prompt
 from dataset_utils.dataset_configs import HotpotQALoader, WikiCorpusLoader, PythonDocsLoader
 from retriever.sparse_retriever import sparse_retriever_config
 from retriever.dense_retriever import dense_retriever_config
@@ -78,7 +79,7 @@ def get_irrelevant_doc(irrelevant_type, doc_length, model_type, n):
 
 def generate_config(in_program_call=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, choices=['tldr', 'conala', 'ds1000', 'pandas_numpy_eval', 'hotpotqa'])
+    parser.add_argument('--dataset', type=str, choices=['tldr', 'conala', 'DS1000', 'pandas-numpy-eval', 'hotpotQA'])
     parser.add_argument('--save_file', type=str, default=None)
     # model parameters
     parser.add_argument('--model', type=str, default='gpt-3.5-turbo-1106')
@@ -219,8 +220,18 @@ def process_retrieval_doc():
     ...
 
 
-def apply_prompt_method():
-    ...
+def apply_prompt_method(questions, ret_docs, prompt_type, dataset):
+    assert dataset in ['hotpotQA', 'conala', 'DS1000', 'pandas-numpy-eval']
+    prompts = []
+    if dataset == 'hotpotQA':
+        if prompt_type == 'original':
+            for question, ret_doc in zip(questions, ret_docs):
+                assert len(ret_doc) == 2
+                prompt = hotpotqa_prompt.original_prompt.replace('<QUESTION>', question).replace('<POTENTIAL DOCUMENTS 1>', f'1: {ret_doc[0]}').replace('<POTENTIAL DOCUMENTS 2>', f'2: {ret_doc[1]}')
+                prompts.append(prompt)
+    return prompts
+
+
 
 
 

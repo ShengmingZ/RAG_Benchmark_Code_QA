@@ -22,6 +22,7 @@ from retriever.retriever_utils import get_ret_results
 class GeneHotpotQA:
     def __init__(self, args):
         # load parameters
+        self.dataset = args.dataset
         self.save_file = args.save_file
         self.analysis_type = args.analysis_type
         self.dataset_type = 'nlp'
@@ -47,14 +48,12 @@ class GeneHotpotQA:
         self.qs_list = self.hotpotqa_loader.load_qs_list()
         self.oracle_list = self.hotpotqa_loader.load_oracle_list()
         self.wiki_loader = WikiCorpusLoader()
-        self.ret_results = get_ret_results("hotpotQA", self.retriever)
+        self.ret_results = get_ret_results(self.dataset, self.retriever)
 
         print('qs_num:', len(self.qs_list))
         print('save_to:', self.save_file)
 
     def gene_response(self):
-        gene_results = list()
-        prompts = list()
         # perturb retrieval files
         if self.ret_acc != 1 and self.ret_info_type == 'oracle':
             ret_doc_key_list, ret_docs = control_ret_acc(self.ret_acc, [oracle["oracle_docs"] for oracle in self.oracle_list], self.wiki_loader.load_wiki_id())
@@ -68,15 +67,12 @@ class GeneHotpotQA:
             raise Exception('You cannot perturb both retrieval acc and ret doc type')
 
         # generate prompt
-        prompts = ...
-        # for idx, (qs, ret_doc) in tqdm(enumerate(zip(self.qs_list, ret_docs))):
-        #     prompt = self.gene_prompt(qs['question'], ret_docs)
-        #     prompts.append(prompt)
-        #     if idx == 0: print(prompt)
+        prompts = apply_prompt_method(questions=[qs['question'] for qs in self.qs_list], ret_docs=ret_docs, prompt_type=self.prompt_type, dataset=self.dataset)
         print(prompts[0])
         approximate_token(prompts)
 
         # gene response
+        gene_results = list()
         for idx, prompt in prompts:
             if self.model_type == 'gpt':
                 outputs, logprobs = chatgpt(prompt=prompt, model=self.model, temperature=self.temperature, max_tokens=self.max_tokens, n=self.n)
@@ -87,9 +83,6 @@ class GeneHotpotQA:
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset hotpotqa --analysis_type retrieval_quality --retriever bm25 --retrieval_acc 1'
+    in_program_call = '--dataset hotpotQA --analysis_type retrieval_quality --retriever bm25 --retrieval_acc 1'
     args = generate_config(in_program_call)
-    args.retrieval_file = ...
-
-    gene_conala = GeneHotpotQA(args)
-    gene_conala.gene_response()
+    GeneHotpotQA(args).gene_response()
