@@ -96,4 +96,8 @@ if __name__ == '__main__':
     generator.gene_response()
     generator.eval()
 
+    """
+    python generator/HotpotQA.py --dataset hotpotQA --model gpt-3.5-turbo-1106 --n 1 \
+    --analysis_type retrieval_quality --retriever bm25 --ret_acc 1 --ret_info_type oracle
+    """
 

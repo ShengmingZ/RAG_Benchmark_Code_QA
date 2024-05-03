@@ -183,7 +183,8 @@ def normalize_embed(embed_file):
         # normalize an array of vectors
         nor_vectors = list()
         for vector in vectors:
-            nor_vector = (vector - np.mean(vector)) / np.std(vector)
+            # nor_vector = (vector - np.mean(vector)) / np.std(vector)
+            nor_vector = vector / np.linalg.norm(vector)
             nor_vectors.append(nor_vector)
         nor_vectors = np.stack(nor_vectors)
         assert nor_vectors.shape == vectors.shape
