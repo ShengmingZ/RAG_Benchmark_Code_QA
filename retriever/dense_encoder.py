@@ -7,6 +7,7 @@ import torch
 import transformers
 from transformers import PreTrainedModel, AutoConfig, AutoTokenizer, RobertaModel, AutoModel
 from sentence_transformers import SentenceTransformer
+from retriever.contriever.src.contriever import Contriever
 
 openai.api_key = os.environ['OPENAI_API_KEY']
 
@@ -123,6 +124,9 @@ class DenseRetrievalEncoder:
         elif 'text-embedding' in self.model_name:
             self.model = None
             self.tokenizer = None
+        elif 'contriever' in self.model_name:
+            self.model = Contriever.from_pretrained(self.model_name)
+            self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         else:
             if 't5' in self.model_name:
                 self.model = transformers.T5EncoderModel.from_pretrained(self.model_name)
@@ -169,6 +173,22 @@ class DenseRetrievalEncoder:
                 os.makedirs(os.path.dirname(save_file))
             np.save(save_file, all_embeddings)
             return
+
+        if 'contriever' in self.model_name:
+            with torch.no_grad():
+                all_embeddings = []
+                for i in range(0, len(dataset), self.batch_size):
+                    batch = dataset[i:i + self.batch_size]
+                    inputs = self.tokenizer(batch, padding=True, truncation=True, return_tensors="pt")
+                    embeds = self.model(**inputs)
+                    all_embeddings.append(embeds)
+
+                all_embeddings = np.concatenate(all_embeddings, axis=0)
+                print(f"done embedding: {all_embeddings.shape}")
+                if not os.path.exists(os.path.dirname(save_file)):
+                    os.makedirs(os.path.dirname(save_file))
+                np.save(save_file, all_embeddings)
+                return
 
 
         with torch.no_grad():

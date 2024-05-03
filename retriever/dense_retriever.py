@@ -24,7 +24,8 @@ model_name_dict = {'codet5_conala': 'neulab/docprompting-codet5-python-doc-retri
                    'roberta_conala': '',
                    'roberta_ots': 'roberta-large-mnli',
                    'miniLM': 'sentence-transformers/all-MiniLM-L6-v2',
-                   'openai-embedding': 'text-embedding-3-small'}
+                   'openai-embedding': 'text-embedding-3-small',
+                   'contriever': 'facebook/contriever'}
 
 
 def retrieve(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, top_k):
@@ -182,6 +183,7 @@ def normalize_embed(embed_file):
         # normalize an array of vectors
         nor_vectors = list()
         for vector in vectors:
+            print(vector.shape)
             vector = vector / vector.norm(dim=1, keepdim=True)
             nor_vectors.append(vector)
         nor_vectors = np.concatenate(nor_vectors, axis=0)
@@ -228,7 +230,7 @@ def dense_retriever_config(in_program_call=None):
     parser.add_argument('--dataset', type=str, choices=['conala', 'tldr', 'hotpotQA'])
     parser.add_argument('--corpus', type=str, choices=['wiki', 'python_docs'])
     # parser.add_argument('--dataset_type', type=str, default='test', choices=['train', 'test', 'dev'])
-    parser.add_argument('--model_name', type=str, choices=['miniLM', 'openai-embedding'])
+    parser.add_argument('--model_name', type=str, choices=['miniLM', 'openai-embedding', 'contriever'])
     parser.add_argument('--batch_size', type=int, default=128)
     parser.add_argument('--top_k', type=int, default=200)
     parser.add_argument('--sim_func', default='cls_distance.cosine', choices=('cls_distance.cosine', 'cls_distance.l2', 'bertscore'))
@@ -254,24 +256,27 @@ def dense_retriever_config(in_program_call=None):
     return args
 
 
+
 if __name__ == '__main__':
     # normalize or not
     in_program_call = f"--dataset hotpotQA \
                         --corpus wiki \
-                        --model_name miniLM \
+                        --model_name openai-embedding \
                         --sim_func cls_distance.cosine"
     ret_args = dense_retriever_config(in_program_call)
 
-    # embed_corpus(ret_args)
-
-    # normalize
-    normalize_embed(ret_args.wikipedia_docs_embed_save_file)
-    normalize_embed(ret_args.hotpotQA_qs_embed_save_file)
-    ret_args.wikipedia_docs_embed_save_file = ret_args.wikipedia_docs_embed_save_file + '_normalized'
-    ret_args.hotpotQA_qs_embed_save_file = ret_args.hotpotQA_qs_embed_save_file + '_normalized'
-    ret_args.result_file = ret_args.result_file.replace('.json', '_normalized.json')
+    embed_corpus(ret_args)
     hotpotqa_retrieve(ret_args)
     hotpotqa_eval(ret_args)
+
+    # normalize
+    # normalize_embed(ret_args.wikipedia_docs_embed_save_file)
+    # normalize_embed(ret_args.hotpotQA_qs_embed_save_file)
+    # ret_args.wikipedia_docs_embed_save_file = ret_args.wikipedia_docs_embed_save_file + '_normalized'
+    # ret_args.hotpotQA_qs_embed_save_file = ret_args.hotpotQA_qs_embed_save_file + '_normalized'
+    # ret_args.result_file = ret_args.result_file.replace('.json', '_normalized.json')
+    # hotpotqa_retrieve(ret_args)
+    # hotpotqa_eval(ret_args)
 
 
     # if ret_args.dataset == 'tldr':

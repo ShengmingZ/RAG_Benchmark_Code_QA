@@ -238,30 +238,13 @@ class hotpotQA_BM25:
 
 def sparse_retriever_config(in_program_call=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, choices=['tldr', 'conala', 'ds1000', 'hotpotqa'])
+    parser.add_argument('--dataset', type=str, choices=['conala', 'DS1000', 'pandas-numpy-eval', 'hotpotQA', 'NQ', 'TriviaQA'])
     # parser.add_argument('--dataset_type', type=str, default='test', choices=['test', 'train', 'dev'])
     parser.add_argument('--top_k', type=int, default=200)
-
-    parser.add_argument('--tldr_ret_result_whole', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/dev_ret_result_whole_BM25.json")
-    parser.add_argument('--tldr_ret_result_line', type=str, default="/Users/zhaoshengming/Code_RAG_Benchmark/docprompting_data/tldr/dev_ret_result_line_BM25.json")
-    parser.add_argument('--tldr_idx_whole', type=str, default="tldr_whole")
-    parser.add_argument('--tldr_idx_line', type=str, default="tldr_line")
-    parser.add_argument('--tldr_top_k_cmd', type=int, default=35)
-    parser.add_argument('--tldr_top_k_line_cmd', type=int, default=5)
-    parser.add_argument('--tldr_top_k_line_sent', type=int, default=30)
-
-    parser.add_argument('--conala_ret_result', type=str, default=f"{root_path}/data/conala/ret_result_BM25.json")
-    parser.add_argument('--conala_idx', type=str, default="conala")
-    parser.add_argument('--conala_top_k', type=int, default=200)
-
-    parser.add_argument('--ds1000_ret_result', type=str, default=f"{root_path}/data/DS1000/ret_result_BM25.json")
-    parser.add_argument('--ds1000_idx', type=str, default="ds1000")
-    parser.add_argument('--ds1000_top_k', type=int, default=100)
-
-    parser.add_argument('--hotpotqa_ret_result', type=str, default=f"{root_path}/data/hotpotQA/ret_result_BM25.json")
-    parser.add_argument('--hotpotqa_idx', type=str, default="hotpotqa")
-
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
+    args.ret_result = f'{root_path}/data/{args.dataset}/ret_result_BM25.json'
+    args.bm25_idx = f'{args.dataset}'
+
     return args
 
 
