@@ -183,8 +183,7 @@ def normalize_embed(embed_file):
         # normalize an array of vectors
         nor_vectors = list()
         for vector in vectors:
-            print(vector.shape)
-            vector = vector / vector.norm(dim=1, keepdim=True)
+            vector = (vector - np.mean(vector)) / np.std(vector)
             nor_vectors.append(vector)
         nor_vectors = np.concatenate(nor_vectors, axis=0)
         return nor_vectors
