@@ -261,7 +261,7 @@ if __name__ == '__main__':
     # normalize or not
     in_program_call = f"--dataset hotpotQA \
                         --corpus wiki \
-                        --model_name openai-embedding \
+                        --model_name miniLM \
                         --sim_func cls_distance.cosine"
     ret_args = dense_retriever_config(in_program_call)
 
