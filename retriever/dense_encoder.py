@@ -8,6 +8,7 @@ import transformers
 from transformers import PreTrainedModel, AutoConfig, AutoTokenizer, RobertaModel, AutoModel
 from sentence_transformers import SentenceTransformer
 from retriever.contriever.src.contriever import Contriever
+from tqdm import tqdm
 
 openai.api_key = os.environ['OPENAI_API_KEY']
 
@@ -127,6 +128,7 @@ class DenseRetrievalEncoder:
         elif 'contriever' in self.model_name:
             self.model = Contriever.from_pretrained(self.model_name)
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+            self.model.to(self.device)
         else:
             if 't5' in self.model_name:
                 self.model = transformers.T5EncoderModel.from_pretrained(self.model_name)
@@ -177,7 +179,7 @@ class DenseRetrievalEncoder:
         if 'contriever' in self.model_name:
             with torch.no_grad():
                 all_embeddings = []
-                for i in range(0, len(dataset), self.batch_size):
+                for i in tqdm(range(0, len(dataset), self.batch_size)):
                     batch = dataset[i:i + self.batch_size]
                     inputs = self.tokenizer(batch, padding=True, truncation=True, return_tensors="pt")
                     embeds = self.model(**inputs)
