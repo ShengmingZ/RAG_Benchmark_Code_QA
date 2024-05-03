@@ -14,9 +14,10 @@ from prompt import conala_prompt
 from dataset_utils.dataset_configs import HotpotQALoader, WikiCorpusLoader
 from retriever.sparse_retriever import sparse_retriever_config
 from retriever.dense_retriever import dense_retriever_config
-from generator.generate_utils import (truncate_doc, approximate_token, get_dummy_text, generate_config, save_results_to_files, control_ret_acc,
-                                      perturb_ret_doc_type, process_retrieval_doc, apply_prompt_method)
-
+from generator.generate_utils import (approximate_token, generate_config, save_results_to_files,
+                                      control_ret_acc, perturb_ret_doc_type,
+                                      process_retrieval_doc, apply_prompt_method)
+from retriever.retriever_utils import get_ret_results
 
 class GeneHotpotQA:
     def __init__(self, args):
@@ -46,6 +47,7 @@ class GeneHotpotQA:
         self.qs_list = self.hotpotqa_loader.load_qs_list()
         self.oracle_list = self.hotpotqa_loader.load_oracle_list()
         self.wiki_loader = WikiCorpusLoader()
+        self.ret_results = get_ret_results("hotpotQA", self.retriever)
 
         print('qs_num:', len(self.qs_list))
         print('save_to:', self.save_file)
@@ -53,26 +55,34 @@ class GeneHotpotQA:
     def gene_response(self):
         gene_results = list()
         prompts = list()
+        # perturb retrieval files
         if self.ret_acc != 1 and self.ret_info_type == 'oracle':
             ret_doc_key_list, ret_docs = control_ret_acc(self.ret_acc, [oracle["oracle_docs"] for oracle in self.oracle_list], self.wiki_loader.load_wiki_id())
         elif self.ret_acc == 1 and self.ret_info_type != 'oracle':
-            ret_results = ...
-            ret_doc_key_list, ret_docs = perturb_ret_doc_type(self.ret_info_type, ..., [oracle["oracle_docs"] for oracle in self.oracle_list], self.dataset_type, self.model_type)
+            ret_doc_key_list = []
+            for idx, (qs_id, result) in enumerate(self.ret_results.items()):
+                assert qs_id == self.oracle_list[idx]['qs_id']
+                ret_doc_key_list.append([item['doc_key'] for item in result])
+            ret_doc_key_list, ret_docs = perturb_ret_doc_type(self.ret_info_type, ret_doc_key_list, [oracle["oracle_docs"] for oracle in self.oracle_list], self.dataset_type, self.model_type)
         else:
             raise Exception('You cannot perturb both retrieval acc and ret doc type')
-        for idx, (qs, ret_doc) in tqdm(enumerate(zip(self.qs_list, ret_docs))):
-            prompt = self.gene_prompt(qs['question'], ret_docs)
-            prompts.append(prompt)
-            if idx == 0: print(prompt)
 
-            # gene response
+        # generate prompt
+        prompts = ...
+        # for idx, (qs, ret_doc) in tqdm(enumerate(zip(self.qs_list, ret_docs))):
+        #     prompt = self.gene_prompt(qs['question'], ret_docs)
+        #     prompts.append(prompt)
+        #     if idx == 0: print(prompt)
+        print(prompts[0])
+        approximate_token(prompts)
+
+        # gene response
+        for idx, prompt in prompts:
             if self.model_type == 'gpt':
                 outputs, logprobs = chatgpt(prompt=prompt, model=self.model, temperature=self.temperature, max_tokens=self.max_tokens, n=self.n)
             elif self.model_type == 'llama':
                 ...
-            gene_results.append(dict(question=qs, output=outputs[0], logprob=logprobs[0], ret_libs=ret_doc_key_list[idx]))
-
-        approximate_token(prompts)
+            gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'], output=outputs[0], logprob=logprobs[0], ret_libs=ret_doc_key_list[idx]))
         save_results_to_files(save_file=self.save_file, gene_results=gene_results)
 
 

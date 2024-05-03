@@ -11,14 +11,12 @@ BEST_RETRIEVER = {
     "pandas-numpy-eval": ""
 }
 
-def get_ret_result(dataset, retriever, normalize):
+def get_ret_results(dataset, retriever, normalize=False):
     if retriever == "best":
         retriever = BEST_RETRIEVER[dataset]
     if retriever == "BM25":
         args = sparse_retriever_config(f"--dataset {dataset}")
         ret_result_file = args.ret_result
-    elif retriever == "Contriever":
-        ...
     else:
         args = dense_retriever_config(f"--dataset {dataset} --model_name {retriever}")
         if normalize:
