@@ -220,8 +220,8 @@ class DenseRetrievalEncoder:
                 # pooling token embedding to get sentence embedding
                 emb.masked_fill_(~attention_mask.bool().unsqueeze(-1), 0)
                 emb = emb.sum(dim=1) / lengths.unsqueeze(-1)
-                if self.normalize_embed:
-                    emb = emb / emb.norm(dim=1, keepdim=True)
+                # if self.normalize_embed:
+                #     emb = emb / emb.norm(dim=1, keepdim=True)
                 all_embeddings.append(emb.cpu())
 
             all_embeddings = np.concatenate(all_embeddings, axis=0)
