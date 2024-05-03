@@ -18,6 +18,7 @@ from generator.generate_utils import (approximate_token, generate_config, save_r
                                       control_ret_acc, perturb_ret_doc_type,
                                       process_retrieval_doc, apply_prompt_method)
 from retriever.retriever_utils import get_ret_results
+from dataset_utils.hotpot_evaluate_v1 import eval_pred
 
 class GeneHotpotQA:
     def __init__(self, args):
@@ -55,8 +56,8 @@ class GeneHotpotQA:
 
     def gene_response(self):
         # perturb retrieval files
-        if self.ret_acc != 1 and self.ret_info_type == 'oracle':
-            ret_doc_key_list, ret_docs = control_ret_acc(self.ret_acc, [oracle["oracle_docs"] for oracle in self.oracle_list], self.wiki_loader.load_wiki_id())
+        if self.ret_info_type == 'oracle':
+            ret_doc_key_list, ret_docs = control_ret_acc(self.ret_acc, [oracle["oracle_docs"] for oracle in self.oracle_list], self.dataset_type)
         elif self.ret_acc == 1 and self.ret_info_type != 'oracle':
             ret_doc_key_list = []
             for idx, (qs_id, result) in enumerate(self.ret_results.items()):
@@ -73,7 +74,7 @@ class GeneHotpotQA:
 
         # gene response
         gene_results = list()
-        for idx, prompt in prompts:
+        for idx, prompt in tqdm(prompts):
             if self.model_type == 'gpt':
                 outputs, logprobs = chatgpt(prompt=prompt, model=self.model, temperature=self.temperature, max_tokens=self.max_tokens, n=self.n)
             elif self.model_type == 'llama':
@@ -81,8 +82,18 @@ class GeneHotpotQA:
             gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'], output=outputs[0], logprob=logprobs[0], ret_libs=ret_doc_key_list[idx]))
         save_results_to_files(save_file=self.save_file, gene_results=gene_results)
 
+    def eval(self):
+        pred_list = json.load(open(self.save_file, 'r'))
+        eval_pred(pred_list, self.oracle_list)
+
+
 
 if __name__ == '__main__':
-    in_program_call = '--dataset hotpotQA --analysis_type retrieval_quality --retriever bm25 --retrieval_acc 1'
-    args = generate_config(in_program_call)
-    GeneHotpotQA(args).gene_response()
+    # in_program_call = '--dataset hotpotQA --analysis_type retrieval_quality --retriever bm25 --retrieval_acc 1'
+    # args = generate_config(in_program_call)
+    args = generate_config()
+    generator = GeneHotpotQA(args)
+    generator.gene_response()
+    generator.eval()
+
+

@@ -84,12 +84,12 @@ def generate_config(in_program_call=None):
     # model parameters
     parser.add_argument('--model', type=str, default='gpt-3.5-turbo-1106')
     parser.add_argument('--temperature', type=float, default=0.7)
-    parser.add_argument('--n', type=int, default=100)
+    parser.add_argument('--n', type=int, default=1)
     parser.add_argument('--max_tokens', type=int, default=1000)
     # analysis type
-    parser.add_argument('--analysis_type', type=str, choice=['retrieval_quality', 'prompt_generation'])
+    parser.add_argument('--analysis_type', type=str, choices=['retrieval_quality', 'prompt_generation'])
     # retrieval quality analysis, default: retriever with best performance
-    parser.add_argument('--retriever', type=str, default='best', choices=['best', 'bm25', 'codeT5-FT'])
+    parser.add_argument('--retriever', type=str, default='best', choices=['best', 'bm25', 'contriever', 'miniLM', 'openai-embedding'])
     parser.add_argument('--ret_acc', type=float, default=1)
     parser.add_argument('--ret_info_type', type=str, default='retrieved', choices=['oracle', 'retrieved', 'related', 'random', 'unrelated', 'none'])
     # info processing analysis, default: top_k 5, truncate 4000
@@ -103,12 +103,11 @@ def generate_config(in_program_call=None):
     # construct save file
     if args.save_file is None:
         args.save_file = (f'data/{args.dataset}/results/'
-                          f'sampled_{args.sampled}_'
                           f'model_{args.model}_temperature_{args.temperature}_n_{args.n}_'
                           f'analysis_type_{args.analysis_type}_')
         if args.analysis_type == 'retrieval_quality':
             args.save_file += (f'retriever_{args.retriever}_'
-                               f'retrieval_acc_{args.retrieval_acc}_'
+                               f'retrieval_acc_{args.ret_acc}_'
                                f'ret_info_type_{args.ret_info_type}.json')
         elif args.analysis_type == 'prompt_generation':
             args.save_file += (f'top_k_{args.top_k}_'

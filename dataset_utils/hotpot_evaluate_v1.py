@@ -93,6 +93,17 @@ def eval_sp(preds, golds, top_k):
     return metrics
 
 
+def eval_pred(pred_list, oracle_list):
+
+    metrics = {'em': 0, 'f1': 0, 'prec': 0, 'recall': 0}
+    for pred, oracle in zip(pred_list, oracle_list):
+        assert pred['qs_id'] == oracle['qs_id']
+        update_answer(metrics, pred['output'], oracle['output'])
+    N = len(oracle_list)
+    for k in metrics.keys():
+        metrics[k] /= N
+    print(metrics)
+
 
 def eval(prediction_file, gold_file):
     with open(prediction_file) as f:
