@@ -198,13 +198,19 @@ def normalize_embed(embed_file):
 
 def hotpotqa_retrieve(args):
     # encode
-    encoder = DenseRetrievalEncoder(args)
     hotpotqa_loader = HotpotQALoader()
     qs_list = hotpotqa_loader.load_qs_list()
-    encoder.encode(dataset=[qs['question'] for qs in qs_list], save_file=args.hotpotQA_qs_embed_save_file)
+    if not os.path.exists(args.hotpotQA_qs_embed_save_file):
+        encoder = DenseRetrievalEncoder(args)
+        encoder.encode(dataset=[qs['question'] for qs in qs_list], save_file=args.hotpotQA_qs_embed_save_file)
+    if args.normalize_embed is True:
+        normalize_embed(args.hotpotQA_qs_embed_save_file)
+        qs_embed = np.load(args.hotpotQA_qs_embed_save_file + '_normalized' + '.npy')
+        args.result_file = args.result_file.replace('.json', '_normalized.json')
+    else:
+        qs_embed = np.load(args.hotpotQA_embed_save_file + '.npy')
 
     # load vectors
-    qs_embed = np.load(args.hotpotQA_qs_embed_save_file + '.npy')
     doc_embed = np.load(args.wikipedia_docs_embed_save_file + '.npy')
     qs_id_list = [qs['qs_id'] for qs in qs_list]
     wiki_loader = WikiCorpusLoader()
@@ -266,19 +272,18 @@ if __name__ == '__main__':
                         --sim_func cls_distance.cosine"
     ret_args = dense_retriever_config(in_program_call)
 
-    if ret_args.dataset == 'hotpotQA':
-        if ret_args.normalize_embed is False:
-            embed_corpus(ret_args)
-            hotpotqa_retrieve(ret_args)
-            hotpotqa_eval(ret_args)
-        else:
-            normalize_embed(ret_args.hotpotQA_qs_embed_save_file)
+    # encode and normalize corpus
+    if not os.path.exists(ret_args.wikipedia_docs_embed_save_file + '_normalized' + '.npy'):
+        embed_corpus(ret_args)
+    if ret_args.normalize_embed is True:
+        if not os.path.exists(ret_args.wikipedia_docs_embed_save_file + '_normalized' + '.npy'):
             normalize_embed(ret_args.wikipedia_docs_embed_save_file)
-            ret_args.wikipedia_docs_embed_save_file = ret_args.wikipedia_docs_embed_save_file + '_normalized'
-            ret_args.hotpotQA_qs_embed_save_file = ret_args.hotpotQA_qs_embed_save_file + '_normalized'
-            ret_args.result_file = ret_args.result_file.replace('.json', '_normalized.json')
-            hotpotqa_retrieve(ret_args)
-            hotpotqa_eval(ret_args)
+        ret_args.wikipedia_docs_embed_save_file += '_normalized'
+
+    # encode qs and retrieve
+    if ret_args.dataset == 'hotpotQA':
+        hotpotqa_retrieve(ret_args)
+        hotpotqa_eval(ret_args)
 
 
     # if ret_args.dataset == 'tldr':
