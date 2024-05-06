@@ -181,7 +181,7 @@ class DenseRetrievalEncoder:
                 all_embeddings = []
                 for i in tqdm(range(0, len(dataset), self.batch_size)):
                     batch = dataset[i:i + self.batch_size]
-                    inputs = self.tokenizer(batch, padding=True, truncation=True, return_tensors="pt")
+                    inputs = self.tokenizer(batch, padding=True, truncation=True, return_tensors="pt").to(self.device)
                     embeds = self.model(**inputs)
                     all_embeddings.append(embeds)
 
