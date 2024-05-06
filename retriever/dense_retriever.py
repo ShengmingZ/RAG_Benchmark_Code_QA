@@ -266,18 +266,19 @@ if __name__ == '__main__':
                         --sim_func cls_distance.cosine"
     ret_args = dense_retriever_config(in_program_call)
 
-    embed_corpus(ret_args)
-    hotpotqa_retrieve(ret_args)
-    hotpotqa_eval(ret_args)
-
-    # normalize
-    # normalize_embed(ret_args.hotpotQA_qs_embed_save_file)
-    # normalize_embed(ret_args.wikipedia_docs_embed_save_file)
-    # ret_args.wikipedia_docs_embed_save_file = ret_args.wikipedia_docs_embed_save_file + '_normalized'
-    # ret_args.hotpotQA_qs_embed_save_file = ret_args.hotpotQA_qs_embed_save_file + '_normalized'
-    # ret_args.result_file = ret_args.result_file.replace('.json', '_normalized.json')
-    # hotpotqa_retrieve(ret_args)
-    # hotpotqa_eval(ret_args)
+    if ret_args.dataset == 'hotpotQA':
+        if ret_args.normalize_embed is False:
+            embed_corpus(ret_args)
+            hotpotqa_retrieve(ret_args)
+            hotpotqa_eval(ret_args)
+        else:
+            normalize_embed(ret_args.hotpotQA_qs_embed_save_file)
+            normalize_embed(ret_args.wikipedia_docs_embed_save_file)
+            ret_args.wikipedia_docs_embed_save_file = ret_args.wikipedia_docs_embed_save_file + '_normalized'
+            ret_args.hotpotQA_qs_embed_save_file = ret_args.hotpotQA_qs_embed_save_file + '_normalized'
+            ret_args.result_file = ret_args.result_file.replace('.json', '_normalized.json')
+            hotpotqa_retrieve(ret_args)
+            hotpotqa_eval(ret_args)
 
 
     # if ret_args.dataset == 'tldr':

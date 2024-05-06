@@ -94,7 +94,6 @@ def eval_sp(preds, golds, top_k):
 
 
 def eval_pred(pred_list, oracle_list):
-
     metrics = {'em': 0, 'f1': 0, 'prec': 0, 'recall': 0}
     for pred, oracle in zip(pred_list, oracle_list):
         assert pred['qs_id'] == oracle['qs_id']

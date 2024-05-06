@@ -50,6 +50,7 @@ class WikiCorpusLoader:
             self.wiki_corpus_file = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
         elif system == 'Linux':
             self.wiki_corpus_file = '/data/zhaoshengming/wikipedia/psgs_w100.tsv'
+
     def load_wiki_corpus_iter(self):
         with open(self.wiki_corpus_file, 'r', newline='') as tsvfile:
             reader = csv.reader(tsvfile, delimiter='\t')
@@ -80,6 +81,9 @@ class WikiCorpusLoader:
             for row in reader:
                 if row[1] in doc_key_list:
                     docs.append(dict(doc_key=row[1], doc=row[2]))
+                    if len(docs) == len(doc_key_list):
+                        break
+        assert len(docs) == len(doc_key_list)
         return docs
 
     def process_wiki_corpus(self):
@@ -87,7 +91,6 @@ class WikiCorpusLoader:
         with open(wiki_rec_file, 'r', newline='') as infile, open(self.wiki_corpus_file, 'w', newline='') as outfile:
             reader = csv.reader(infile, delimiter='\t')
             writer = csv.writer(outfile, delimiter='\t')
-
             key = None
             for row in reader:
                 if key is None or key != row[2]:
@@ -124,7 +127,7 @@ class NQLoader:
                     oracle_doc = doc['id']
                     break
             if oracle_doc is None: raise Exception(f'no oracle found in qs {qs["question"]}')
-            oracle_list.append(dict(qs_id=idx, answers=qs['answers'], oracle_doc=oracle_doc))
+            oracle_list.append(dict(qs_id=idx, outputs=qs['answers'], oracle_doc=oracle_doc))
         return oracle_list
 
     def remove_no_oracle(self):
