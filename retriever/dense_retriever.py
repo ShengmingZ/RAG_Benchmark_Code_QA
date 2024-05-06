@@ -273,7 +273,7 @@ if __name__ == '__main__':
     ret_args = dense_retriever_config(in_program_call)
 
     # encode and normalize corpus
-    if not os.path.exists(ret_args.wikipedia_docs_embed_save_file + '_normalized' + '.npy'):
+    if not os.path.exists(ret_args.wikipedia_docs_embed_save_file + '.npy'):
         embed_corpus(ret_args)
     if ret_args.normalize_embed is True:
         if not os.path.exists(ret_args.wikipedia_docs_embed_save_file + '_normalized' + '.npy'):
