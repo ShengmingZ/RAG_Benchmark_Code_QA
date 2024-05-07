@@ -4,6 +4,7 @@ import argparse
 import platform
 import sys, os
 import random
+from tqdm import tqdm
 from prompt.hotpotqa_prompt import original_prompt
 from copy import deepcopy
 system = platform.system()
@@ -128,11 +129,11 @@ def control_ret_acc(ret_acc, oracle_list, dataset_type):
     :param dataset_type:
     :return:
     """
+    ret_acc_per_sample = [1] * len(oracle_list)
+    cur_ret_acc = sum(ret_acc_per_sample) / len(ret_acc_per_sample)
     assert dataset_type in ['nlp', 'se']
     if dataset_type == 'nlp':
         corpus_doc_keys = WikiCorpusLoader().load_wiki_id()
-    ret_acc_per_sample = [1] * len(oracle_list)
-    cur_ret_acc = sum(ret_acc_per_sample) / len(ret_acc_per_sample)
     perturb_oracle_list = deepcopy(oracle_list)
     while cur_ret_acc > ret_acc:
         random_idx = random.randint(0, len(perturb_oracle_list) - 1)
@@ -146,7 +147,7 @@ def control_ret_acc(ret_acc, oracle_list, dataset_type):
     docs = []
     if dataset_type == 'nlp':
         wiki_loader = WikiCorpusLoader()
-        for doc_key in perturb_oracle_list:
+        for doc_key in tqdm(perturb_oracle_list):
             docs.append(wiki_loader.get_docs(doc_key))
     elif dataset_type == 'se':
         ...

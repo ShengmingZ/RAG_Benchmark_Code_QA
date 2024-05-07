@@ -196,7 +196,7 @@ def _normalize(text):
     return unicodedata.normalize("NFD", text)
 
 
-def _normalize_answer(s):
+def normalize_answer(s):
     def remove_articles(text):
         return re.sub(r"\b(a|an|the)\b", " ", text)
 
@@ -235,9 +235,7 @@ def retrieval_eval(doc_key_list, answer_list, top_k):
     hits_list = list()
     for doc_keys, answers in zip(doc_key_list, answer_list):
         docs = wiki_loader.get_docs(doc_keys)
-        hits = list()
-        for item in docs:
-            hits.append(has_answer(answers, item['doc']))
+        hits = [has_answer(answers, doc) for doc in docs]
         hits_list.append(hits)
 
     hits_rate = dict()
@@ -251,9 +249,19 @@ def retrieval_eval(doc_key_list, answer_list, top_k):
 
 
 
-def pred_eval(pred):
+def pred_eval(preds, answer_list):
     """
     follow DPR and In-context RALM, if pred matches to any of the answers, then exact match
-    :param pred:
+    :param preds:
     :return:
     """
+    exact_match = 0
+    for pred, answers in zip(preds, answer_list):
+        is_correct = False
+        for answer in answers:
+            if normalize_answer(pred) == normalize_answer(answer):
+                is_correct = True
+        if is_correct: exact_match += 1
+    exact_match_rate = exact_match / len(preds)
+
+    return exact_match_rate

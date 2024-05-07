@@ -1,11 +1,13 @@
 import json
 import gzip
 import csv
+import unicodedata
 from collections import Counter
 import os
 import random
 import platform
 import sys
+from typing import List
 system = platform.system()
 if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
@@ -74,17 +76,45 @@ class WikiCorpusLoader:
                 data_list.append(row[1])
         return data_list
 
-    def get_docs(self, doc_key_list):
-        docs = list()
+    def get_docs(self, doc_keys_list: List[List[str]]):
+        """
+        given doc key, return corresponding doc, each element in doc_key_list is a list of doc keys of a sample
+        :param doc_keys_list:
+        :return:
+        """
+        # normalize doc key
+        _doc_keys_list = list()
+        for doc_keys in doc_keys_list:
+            _doc_keys_list.append([unicodedata.normalize('NFD', key) for key in doc_keys])
+        doc_keys_list = _doc_keys_list
+
+        # docs_list = [[] for _ in range(len(doc_keys_list))]
+        docs_list = []
+        for doc_keys in doc_keys_list:
+            docs_list.append([None for _ in range(len(doc_keys))])
         with open(self.wiki_corpus_file, 'r', newline='') as tsvfile:
             reader = csv.reader(tsvfile, delimiter='\t')
             for row in reader:
-                if row[1] in doc_key_list:
-                    docs.append(dict(doc_key=row[1], doc=row[2]))
-                    if len(docs) == len(doc_key_list):
-                        break
-        assert len(docs) == len(doc_key_list)
-        return docs
+                temp_key = unicodedata.normalize('NFD', row[1])
+                # for each sample's doc keys, match and store results
+                for sample_idx, doc_keys in enumerate(doc_keys_list):
+                    for idx, key in enumerate(doc_keys):
+                        if key == temp_key:
+                            docs_list[sample_idx][idx] = key
+
+        for sample_idx, docs in enumerate(docs_list):
+            for idx, doc in enumerate(docs):
+                if doc is None:
+                    print(f'Error: doc of {docs_list[sample_idx][idx]} is not found')
+        # _docs_list = [[] for _ in range(len(doc_keys_list))]
+        # for doc_key in doc_key_list:
+        #     for item in docs:
+        #         if item['doc_key'] == doc_key:
+        #             _docs.append(item['doc'])
+        #             break
+        # if len(_docs) != len(doc_key_list):
+        #     print(doc_key_list)
+        return docs_list
 
     def process_wiki_corpus(self):
         wiki_rec_file = self.wiki_corpus_file.replace('.tsv', '_rec.tsv')
@@ -159,7 +189,7 @@ class HotpotQALoader:
 
         return _qs_list
     def load_oracle_list(self):
-        qs_list = json.load(open(self.sample_qs_file, 'r'))
+        qs_list = json.load(open(self.sample_qs_file, 'r', encoding='utf-8'))
         _qs_list = []
         for qs in qs_list:
             _qs_list.append(dict(qs_id=qs['_id'], oracle_docs=[sp[0]+'_'+str(sp[1]) for sp in qs['supporting_facts']], answer=qs['answer']))
@@ -635,6 +665,37 @@ if __name__ == '__main__':
     #     print(qs['supporting_facts'])
     #     print(qs['context'])
 
-    nq_loader = NQLoader()
-    nq_loader.remove_no_oracle()
-    oracle_list = nq_loader.load_oracle_list()
+    # nq_loader = NQLoader()
+    # nq_loader.remove_no_oracle()
+    # oracle_list = nq_loader.load_oracle_list()
+
+
+    """
+    test wiki get_docs()
+    """
+    hotpot_loader = HotpotQALoader()
+    oracle_list = hotpot_loader.load_oracle_list()
+    print(oracle_list[1]['oracle_docs'])
+
+    wiki_loader = WikiCorpusLoader()
+    wiki_loader.get_docs([oracle_list[1]['oracle_docs']])
+
+    # test_doc_key_list = []
+    # wiki_corpus_file = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
+    # with open(wiki_corpus_file, 'r', newline='') as tsvfile:
+    #     reader = csv.reader(tsvfile, delimiter='\t')
+    #     for row in reader:
+    #         if 'Medell' in row[1] and 'Cartel' in row[1]:
+    #             print(row[1])
+    #             test_doc_key_list.append(row[1])
+    #             break
+
+    # with open('temp_file.txt', 'r', encoding='utf-8') as f:
+    #     temp_doc_key = f.readlines()[0].strip()
+    # print(temp_doc_key)
+
+    # for temp_char, char in zip(temp_doc_key, oracle_list[1]['oracle_docs'][0]):
+    #     if temp_char != char:
+    #         print(temp_char, char)
+    # if unicodedata.normalize('NFD', temp_doc_key) == unicodedata.normalize('NFD', oracle_list[1]['oracle_docs'][0]):
+    #     print('ok')

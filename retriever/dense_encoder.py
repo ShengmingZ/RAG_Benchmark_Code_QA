@@ -183,6 +183,7 @@ class DenseRetrievalEncoder:
                     batch = dataset[i:i + self.batch_size]
                     inputs = self.tokenizer(batch, padding=True, truncation=True, return_tensors="pt").to(self.device)
                     embeds = self.model(**inputs)
+                    embeds.to(self.device)
                     all_embeddings.append(embeds)
 
                 all_embeddings = np.concatenate(all_embeddings, axis=0)
