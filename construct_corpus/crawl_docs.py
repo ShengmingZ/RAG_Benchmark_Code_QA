@@ -3,9 +3,6 @@ import io, os, sys, json
 
 # common used data science lib
 third_party_lib_list = ['tensorflow', 'matplotlib', 'sklearn', 'numpy', 'torch', 'pandas', 'scipy', 'seaborn']
-for lib in third_party_lib_list:
-    importlib.import_module(lib)
-
 
 # python default libs from https://docs.python.org/3.7/library/index.html
 py_builtin_lib_list = [
@@ -43,8 +40,6 @@ py_builtin_lib_list = [
     # posix, pwd, spwd, grp, crypt, termios, tty, pty, fcntl, pipes, resource, nis, syslog,
     # optparse, imp
 ]
-for lib in py_builtin_lib_list:
-    importlib.import_module(lib)
 
 
 def get_doc(attr_obj, full_name):
@@ -108,8 +103,9 @@ def crawl_callable_attributes(module, library_name):
 
 
 def crawl_python_doc(library_list):
-    for library in library_list:
-        crawl_callable_attributes(library, library.__name__)
+    for lib_name in library_list:
+        lib = importlib.import_module(lib_name)
+        crawl_callable_attributes(lib, lib.__name__)
 
 
 if __name__ == '__main__':
