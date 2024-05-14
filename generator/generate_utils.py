@@ -146,9 +146,10 @@ def control_ret_acc(ret_acc, oracle_list, dataset_type):
 
     docs = []
     if dataset_type == 'nlp':
-        wiki_loader = WikiCorpusLoader()
-        for doc_key in tqdm(perturb_oracle_list):
-            docs.append(wiki_loader.get_docs(doc_key))
+        # wiki_loader = WikiCorpusLoader()
+        # for doc_key in tqdm(perturb_oracle_list):
+        #     docs.append(wiki_loader.get_docs(doc_key))
+        docs = WikiCorpusLoader().get_docs(perturb_oracle_list)
     elif dataset_type == 'se':
         ...
 
@@ -205,9 +206,10 @@ def perturb_ret_doc_type(perturb_doc_type, ret_doc_key_list, oracle_doc_key_list
 
         docs = []
         if dataset_type == 'nlp':
-            wiki_loader = WikiCorpusLoader()
-            for doc_key in doc_key_list:
-                docs.append(wiki_loader.get_docs(doc_key))
+            # wiki_loader = WikiCorpusLoader()
+            # for doc_key in doc_key_list:
+            #     docs.append(wiki_loader.get_docs(doc_key))
+            docs = WikiCorpusLoader().get_docs(doc_key_list)
         elif dataset_type == 'se':
             ...
 

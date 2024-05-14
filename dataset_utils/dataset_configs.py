@@ -4,6 +4,7 @@ import csv
 import unicodedata
 from collections import Counter
 import os
+import bz2
 import random
 import platform
 import sys
@@ -17,216 +18,6 @@ sys.path.insert(0, root_path)
 from data.DS1000.ds1000 import DS1000Dataset
 
 random.seed(0)
-
-
-class PythonDocsLoader:
-    def __init__(self):
-        self.root = root_path
-        self.api_docs_builtins = os.path.join(root_path, 'python_docs/api_doc_builtin.json')
-        self.api_sign_builtins = os.path.join(root_path, 'python_docs/api_sign_builtin.txt')
-        self.api_docs_third_party = self.api_docs_builtins.replace('builtin', 'third_party')
-        self.api_sign_third_party = self.api_sign_builtins.replace('builtin', 'third_party')
-
-    def load_python_docs(self):
-        # api_doc_third_party_file = '../data/python_docs/api_doc_third_party_new.json'
-        # api_doc_builtin_file = '../data/python_docs/api_doc_builtin_new.json'
-        # python_docs_third = json.load(open(api_doc_third_party_file, 'r'))
-        # python_docs_builtins = json.load(open(api_doc_builtin_file, 'r'))
-        # python_docs_third.update(python_docs_builtins)
-        #
-        # _python_docs_third = dict()
-        # for key, value in python_docs_third.items():
-        #     _python_docs_third[key] = value
-        ...
-
-    def load_doc_id(self):
-        ...
-
-    def get_docs(self):
-        ...
-
-
-class WikiCorpusLoader:
-    def __init__(self):
-        if system == 'Darwin':
-            self.wiki_corpus_file = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
-        elif system == 'Linux':
-            self.wiki_corpus_file = '/data/zhaoshengming/wikipedia/psgs_w100.tsv'
-
-    def load_wiki_corpus_iter(self):
-        with open(self.wiki_corpus_file, 'r', newline='') as tsvfile:
-            reader = csv.reader(tsvfile, delimiter='\t')
-            for row in reader:
-                data = dict(id=row[1], text=row[2])
-                yield data
-
-    def load_wiki_corpus(self):
-        data_list = list()
-        with open(self.wiki_corpus_file, 'r', newline='') as tsvfile:
-            reader = csv.reader(tsvfile, delimiter='\t')
-            for row in reader:
-                data_list.append(dict(id=row[1], text=row[2]))
-        return data_list
-
-    def load_wiki_id(self):
-        data_list = list()
-        with open(self.wiki_corpus_file, 'r', newline='') as tsvfile:
-            reader = csv.reader(tsvfile, delimiter='\t')
-            for row in reader:
-                data_list.append(row[1])
-        return data_list
-
-    def get_docs(self, doc_keys_list: List[List[str]]):
-        """
-        given doc key, return corresponding doc, each element in doc_key_list is a list of doc keys of a sample
-        :param doc_keys_list:
-        :return:
-        """
-        # normalize doc key
-        _doc_keys_list = list()
-        for doc_keys in doc_keys_list:
-            _doc_keys_list.append([unicodedata.normalize('NFD', key) for key in doc_keys])
-        doc_keys_list = _doc_keys_list
-
-        # docs_list = [[] for _ in range(len(doc_keys_list))]
-        docs_list = []
-        for doc_keys in doc_keys_list:
-            docs_list.append([None for _ in range(len(doc_keys))])
-        with open(self.wiki_corpus_file, 'r', newline='') as tsvfile:
-            reader = csv.reader(tsvfile, delimiter='\t')
-            for row in reader:
-                temp_key = unicodedata.normalize('NFD', row[1])
-                # for each sample's doc keys, match and store results
-                for sample_idx, doc_keys in enumerate(doc_keys_list):
-                    for idx, key in enumerate(doc_keys):
-                        if key == temp_key:
-                            docs_list[sample_idx][idx] = key
-
-        for sample_idx, docs in enumerate(docs_list):
-            for idx, doc in enumerate(docs):
-                if doc is None:
-                    print(f'Error: doc of {docs_list[sample_idx][idx]} is not found')
-        # _docs_list = [[] for _ in range(len(doc_keys_list))]
-        # for doc_key in doc_key_list:
-        #     for item in docs:
-        #         if item['doc_key'] == doc_key:
-        #             _docs.append(item['doc'])
-        #             break
-        # if len(_docs) != len(doc_key_list):
-        #     print(doc_key_list)
-        return docs_list
-
-    def process_wiki_corpus(self):
-        wiki_rec_file = self.wiki_corpus_file.replace('.tsv', '_rec.tsv')
-        with open(wiki_rec_file, 'r', newline='') as infile, open(self.wiki_corpus_file, 'w', newline='') as outfile:
-            reader = csv.reader(infile, delimiter='\t')
-            writer = csv.writer(outfile, delimiter='\t')
-            key = None
-            for row in reader:
-                if key is None or key != row[2]:
-                    key = row[2]
-                    key_count = 0
-                else:
-                    key_count += 1
-                processed_doc_key = key + '_' + str(key_count)
-                writer.writerow([row[0], processed_doc_key, row[1]])
-
-
-class NQLoader:
-    def __init__(self):
-        self.root = root_path
-        self.qs_file = os.path.join(self.root, 'data/NQ/nq-test.json')
-        self.filtered_qs_file = os.path.join(self.root, 'data/NQ/nq-test-filtered.json')
-
-    def load_qs_list(self):
-        qs_list = json.load(open(self.filtered_qs_file, 'r'))
-        _qs_list = [dict(qs_id=idx, question=item['question']) for idx, item in enumerate(qs_list)]
-        return _qs_list
-
-    def load_oracle_list(self):
-        """
-        each oracle paragraph contains the info to answer the question, so just pick one para that has answer as oracle
-        :return:
-        """
-        qs_list = json.load(open(self.filtered_qs_file, 'r'))
-        oracle_list = []
-        for idx, qs in enumerate(qs_list):
-            oracle_doc = None
-            for doc in qs['ctxs']:
-                if doc['has_answer']:
-                    oracle_doc = doc['id']
-                    break
-            if oracle_doc is None: raise Exception(f'no oracle found in qs {qs["question"]}')
-            oracle_list.append(dict(qs_id=idx, outputs=qs['answers'], oracle_doc=oracle_doc))
-        return oracle_list
-
-    def remove_no_oracle(self):
-        qs_list = json.load(open(self.qs_file, 'r'))
-        _qs_list = []
-        for idx, qs in enumerate(qs_list):
-            oracle_doc = None
-            for doc in qs['ctxs']:
-                if doc['has_answer']:
-                    oracle_doc = doc['id']
-                    break
-            if oracle_doc is not None: _qs_list.append(qs)
-
-        with open(self.filtered_qs_file, 'w+') as f:
-            json.dump(_qs_list, f, indent=2)
-
-
-class HotpotQALoader:
-    def __init__(self):
-        self.root = root_path
-        self.qs_file = os.path.join(self.root, 'data/hotpotQA/hotpot_dev_distractor_v1.json')
-        self.sample_qs_file = os.path.join(self.root, 'data/hotpotQA/sampled_data.json')
-
-    def load_qs_list(self):
-        qs_list = json.load(open(self.sample_qs_file, 'r'))
-        _qs_list = []
-        for qs in qs_list:
-            _qs_list.append(dict(qs_id=qs['_id'], question=qs['question']))
-
-        return _qs_list
-    def load_oracle_list(self):
-        qs_list = json.load(open(self.sample_qs_file, 'r', encoding='utf-8'))
-        _qs_list = []
-        for qs in qs_list:
-            _qs_list.append(dict(qs_id=qs['_id'], oracle_docs=[sp[0]+'_'+str(sp[1]) for sp in qs['supporting_facts']], answer=qs['answer']))
-
-        return _qs_list
-
-    def sample_dataset(self):
-        """
-        sample 20%
-        :return:
-        """
-        qs_list = json.load(open(self.qs_file, 'r'))
-        num_sampled = int(len(qs_list)*0.2)
-        problem_id_list = list(range(0, len(qs_list)))
-        sampled_id_list = random.sample(problem_id_list, num_sampled)
-        sampled_data = list()
-        for id in sampled_id_list:
-            sampled_data.append(qs_list[id])
-
-        with open(os.path.join(self.root, 'data/hotpotQA/sampled_data.json'), 'w+') as f:
-            json.dump(sampled_data, f, indent=2)
-
-    def get_sample(self, sample_num):
-        qs_list = json.load(open(self.qs_file, 'r'))
-        problem_id_list = list(range(0, len(qs_list)))
-        sampled_qs_list = json.load(open(self.sample_qs_file, 'r'))
-        new_sampled_id_list = []
-        while len(new_sampled_id_list) < sample_num:
-            sampled_id = random.sample(problem_id_list, 1)[0]
-            if sampled_id not in new_sampled_id_list and qs_list[sampled_id] not in sampled_qs_list:
-                new_sampled_id_list.append(sampled_id)
-        new_sampled_qs_list = []
-        for id in new_sampled_id_list:
-            new_sampled_qs_list.append(qs_list[id])
-
-        return new_sampled_qs_list
-
 
 
 
@@ -642,6 +433,8 @@ class PandasNumpyEvalLoader:
 
 
 if __name__ == '__main__':
+    ...
+
     # tldr_dataloader = TldrLoader()
     # tldr_dataloader.remove_repeat()
     # conala_dataloader = ConalaLoader()
@@ -673,12 +466,18 @@ if __name__ == '__main__':
     """
     test wiki get_docs()
     """
-    hotpot_loader = HotpotQALoader()
-    oracle_list = hotpot_loader.load_oracle_list()
-    print(oracle_list[1]['oracle_docs'])
+    # hotpot_loader = HotpotQALoader()
+    # oracle_list = hotpot_loader.load_oracle_list()
+    # doc_key_list = [oracle['oracle_docs'] for oracle in oracle_list]
+    #
+    # wiki_loader = WikiCorpusLoader()
+    # docs = wiki_loader.get_docs([oracle_list[1]['oracle_docs']])
+    # print(docs[0][0])
+    # print(docs[0][1])
+    # print(docs[0][2])
 
-    wiki_loader = WikiCorpusLoader()
-    wiki_loader.get_docs([oracle_list[1]['oracle_docs']])
+    # hotpot_loader = HotpotQALoader()
+    # hotpot_loader.sample_dataset()
 
     # test_doc_key_list = []
     # wiki_corpus_file = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')

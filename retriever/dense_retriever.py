@@ -13,7 +13,7 @@ from collections import OrderedDict
 
 import numpy as np
 import faiss
-from dataset_utils.dataset_configs import TldrLoader, ConalaLoader, WikiCorpusLoader, HotpotQALoader
+from dataset_utils.dataset_configs import TldrLoader, ConalaLoader, WikiCorpusLoader, HotpotQALoader, NQLoader
 from retriever.retriaval_evaluate import conala_eval, tldr_eval
 from retriever.dense_encoder import DenseRetrievalEncoder
 from dataset_utils.hotpot_evaluate_v1 import eval_sp
@@ -196,15 +196,21 @@ def normalize_embed(embed_file):
     np.save(save_file, nor_embed)
 
 
-def hotpotqa_retrieve(args):
+def nlp_retrieve(args):
     # encode
-    hotpotqa_loader = HotpotQALoader()
-    qs_list = hotpotqa_loader.load_qs_list()
-    if not os.path.exists(args.hotpotQA_qs_embed_save_file):
+    if args.dataset == 'hotpotQA':
+        hotpotqa_loader = HotpotQALoader()
+        qs_list = hotpotqa_loader.load_qs_list()
+        embed_save_file = args.hotpotqa_qs_embed_save_file
+    elif args.dataset == 'NQ':
+        nq_loader = NQLoader()
+        qs_list = nq_loader.load_qs_list()
+        embed_save_file = args.NQ_qs_embed_save_file
+    if not os.path.exists(embed_save_file):
         encoder = DenseRetrievalEncoder(args)
-        encoder.encode(dataset=[qs['question'] for qs in qs_list], save_file=args.hotpotQA_qs_embed_save_file)
+        encoder.encode(dataset=[qs['question'] for qs in qs_list], save_file=embed_save_file)
     if args.normalize_embed is True:
-        normalize_embed(args.hotpotQA_qs_embed_save_file)
+        normalize_embed(embed_save_file)
         qs_embed = np.load(args.hotpotQA_qs_embed_save_file + '_normalized' + '.npy')
         args.result_file = args.result_file.replace('.json', '_normalized.json')
     else:
@@ -234,7 +240,7 @@ def hotpotqa_eval(args):
 
 def dense_retriever_config(in_program_call=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, choices=['conala', 'tldr', 'hotpotQA'])
+    parser.add_argument('--dataset', type=str, choices=['conala', 'hotpotQA', 'NQ', 'TriviaQA'])
     parser.add_argument('--corpus', type=str, choices=['wiki', 'python_docs'])
     # parser.add_argument('--dataset_type', type=str, default='test', choices=['train', 'test', 'dev'])
     parser.add_argument('--model_name', type=str, choices=['miniLM', 'openai-embedding', 'contriever'])
@@ -255,6 +261,7 @@ def dense_retriever_config(in_program_call=None):
     #     args.tldr_doc_whole_embed_save_file = os.path.join(root_path, 'docprompting_data/tldr/embedding/doc_whole_{model_name_splitted}')
     #     args.tldr_doc_line_embed_save_file = os.path.join(root_path, f'docprompting_data/tldr/embedding/doc_line_{model_name_splitted}')
     args.hotpotQA_qs_embed_save_file = os.path.join(root_path, f'data/hotpotQA/qs_embed_{args.model_name}')
+    args.NQ_qs_embed_save_file = os.path.join(root_path, f'data/NQ/qs_embed_{args.model_name}')
     args.python_docs_embed_save_file = os.path.join(root_path, f'data/python_docs/embed_{args.model_name}')
     args.wikipedia_docs_embed_save_file = f'/data/zhaoshengming/wikipedia/embed_{args.model_name}'
     args.model_name = model_name_dict[args.model_name]
@@ -281,8 +288,8 @@ if __name__ == '__main__':
         ret_args.wikipedia_docs_embed_save_file += '_normalized'
 
     # encode qs and retrieve
+    nlp_retrieve(ret_args)
     if ret_args.dataset == 'hotpotQA':
-        hotpotqa_retrieve(ret_args)
         hotpotqa_eval(ret_args)
 
 

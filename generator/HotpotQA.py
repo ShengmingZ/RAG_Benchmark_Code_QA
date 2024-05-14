@@ -66,6 +66,7 @@ class GeneHotpotQA:
             ret_doc_key_list, ret_docs = perturb_ret_doc_type(self.ret_info_type, ret_doc_key_list, [oracle["oracle_docs"] for oracle in self.oracle_list], self.dataset_type, self.model_type)
         else:
             raise Exception('You cannot perturb both retrieval acc and ret doc type')
+        print('get retrieval documentations done')
 
         # generate prompt
         prompts = apply_prompt_method(questions=[qs['question'] for qs in self.qs_list], ret_docs=ret_docs, prompt_type=self.prompt_type, dataset=self.dataset)
@@ -80,6 +81,7 @@ class GeneHotpotQA:
             elif self.model_type == 'llama':
                 ...
             gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'], output=outputs[0], logprob=logprobs[0], ret_libs=ret_doc_key_list[idx]))
+        print('model generation done')
         save_results_to_files(save_file=self.save_file, gene_results=gene_results)
 
     def eval(self):

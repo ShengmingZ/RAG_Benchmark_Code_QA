@@ -1,0 +1,356 @@
+import json
+import os
+import ijson
+import random
+import platform
+import sys
+import re, string
+import unicodedata
+import regex
+import copy
+from typing import List
+system = platform.system()
+if system == 'Darwin':
+    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+elif system == 'Linux':
+    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+sys.path.insert(0, root_path)
+from corpus_utils import WikiCorpusLoader
+
+random.seed(0)
+
+
+class Tokens(object):
+    """A class to represent a list of tokenized text."""
+
+    TEXT = 0
+    TEXT_WS = 1
+    SPAN = 2
+    POS = 3
+    LEMMA = 4
+    NER = 5
+
+    def __init__(self, data, annotators, opts=None):
+        self.data = data
+        self.annotators = annotators
+        self.opts = opts or {}
+
+    def __len__(self):
+        """The number of tokens."""
+        return len(self.data)
+
+    def slice(self, i=None, j=None):
+        """Return a view of the list of tokens from [i, j)."""
+        new_tokens = copy.copy(self)
+        new_tokens.data = self.data[i:j]
+        return new_tokens
+
+    def untokenize(self):
+        """Returns the original text (with whitespace reinserted)."""
+        return "".join([t[self.TEXT_WS] for t in self.data]).strip()
+
+    def words(self, uncased=False):
+        """Returns a list of the text of each token
+
+        Args:
+            uncased: lower cases text
+        """
+        if uncased:
+            return [t[self.TEXT].lower() for t in self.data]
+        else:
+            return [t[self.TEXT] for t in self.data]
+
+    def offsets(self):
+        """Returns a list of [start, end) character offsets of each token."""
+        return [t[self.SPAN] for t in self.data]
+
+    def pos(self):
+        """Returns a list of part-of-speech tags of each token.
+        Returns None if this annotation was not included.
+        """
+        if "pos" not in self.annotators:
+            return None
+        return [t[self.POS] for t in self.data]
+
+    def lemmas(self):
+        """Returns a list of the lemmatized text of each token.
+        Returns None if this annotation was not included.
+        """
+        if "lemma" not in self.annotators:
+            return None
+        return [t[self.LEMMA] for t in self.data]
+
+    def entities(self):
+        """Returns a list of named-entity-recognition tags of each token.
+        Returns None if this annotation was not included.
+        """
+        if "ner" not in self.annotators:
+            return None
+        return [t[self.NER] for t in self.data]
+
+    def ngrams(self, n=1, uncased=False, filter_fn=None, as_strings=True):
+        """Returns a list of all ngrams from length 1 to n.
+
+        Args:
+            n: upper limit of ngram length
+            uncased: lower cases text
+            filter_fn: user function that takes in an ngram list and returns
+              True or False to keep or not keep the ngram
+            as_string: return the ngram as a string vs list
+        """
+
+        def _skip(gram):
+            if not filter_fn:
+                return False
+            return filter_fn(gram)
+
+        words = self.words(uncased)
+        ngrams = [
+            (s, e + 1)
+            for s in range(len(words))
+            for e in range(s, min(s + n, len(words)))
+            if not _skip(words[s : e + 1])
+        ]
+
+        # Concatenate into strings
+        if as_strings:
+            ngrams = ["{}".format(" ".join(words[s:e])) for (s, e) in ngrams]
+
+        return ngrams
+
+    def entity_groups(self):
+        """Group consecutive entity tokens with the same NER tag."""
+        entities = self.entities()
+        if not entities:
+            return None
+        non_ent = self.opts.get("non_ent", "O")
+        groups = []
+        idx = 0
+        while idx < len(entities):
+            ner_tag = entities[idx]
+            # Check for entity tag
+            if ner_tag != non_ent:
+                # Chomp the sequence
+                start = idx
+                while idx < len(entities) and entities[idx] == ner_tag:
+                    idx += 1
+                groups.append((self.slice(start, idx).untokenize(), ner_tag))
+            else:
+                idx += 1
+        return groups
+
+
+class Tokenizer(object):
+    """Base tokenizer class.
+    Tokenizers implement tokenize, which should return a Tokens class.
+    """
+
+    def tokenize(self, text):
+        raise NotImplementedError
+
+    def shutdown(self):
+        pass
+
+    def __del__(self):
+        self.shutdown()
+
+
+class SimpleTokenizer(Tokenizer):
+    ALPHA_NUM = r"[\p{L}\p{N}\p{M}]+"
+    NON_WS = r"[^\p{Z}\p{C}]"
+
+    def __init__(self, **kwargs):
+        """
+        Args:
+            annotators: None or empty set (only tokenizes).
+        """
+        self._regexp = regex.compile(
+            "(%s)|(%s)" % (self.ALPHA_NUM, self.NON_WS),
+            flags=regex.IGNORECASE + regex.UNICODE + regex.MULTILINE,
+        )
+        # if len(kwargs.get("annotators", {})) > 0:
+        #     logger.warning(
+        #         "%s only tokenizes! Skipping annotators: %s" % (type(self).__name__, kwargs.get("annotators"))
+        #     )
+        self.annotators = set()
+
+    def tokenize(self, text):
+        data = []
+        matches = [m for m in self._regexp.finditer(text)]
+        for i in range(len(matches)):
+            # Get text
+            token = matches[i].group()
+
+            # Get whitespace
+            span = matches[i].span()
+            start_ws = span[0]
+            if i + 1 < len(matches):
+                end_ws = matches[i + 1].span()[0]
+            else:
+                end_ws = span[1]
+
+            # Format data
+            data.append(
+                (
+                    token,
+                    text[start_ws:end_ws],
+                    span,
+                )
+            )
+        return Tokens(data, self.annotators)
+
+def _normalize(text):
+    return unicodedata.normalize("NFD", text)
+
+
+def normalize_answer(s):
+    def remove_articles(text):
+        return re.sub(r"\b(a|an|the)\b", " ", text)
+
+    def white_space_fix(text):
+        return " ".join(text.split())
+
+    def remove_punc(text):
+        exclude = set(string.punctuation)
+        return "".join(ch for ch in text if ch not in exclude)
+
+    def lower(text):
+        return text.lower()
+
+    return white_space_fix(remove_articles(remove_punc(lower(s))))
+
+
+def has_answer(answers, doc):
+    tokenizer = SimpleTokenizer()
+
+    doc = tokenizer.tokenize(_normalize(doc)).words(uncased=True)
+    for answer in answers:
+        answer = tokenizer.tokenize(_normalize(answer)).words(uncased=True)
+        for i in range(0, len(doc) - len(answer) + 1):
+            if answer == doc[i:i + len(answer)]:
+                return True
+
+
+class NQTriviaQAUtils:
+    def __init__(self, dataset):
+        assert dataset in ["NQ", "TriviaQA"]
+        self.root = root_path
+        self.dataset = dataset
+        if dataset == 'NQ':
+            self.train_file = os.path.join(self.root, 'data/NQ/biencoder-nq-train.json')
+            self.sampled_data_file = os.path.join(self.root, 'data/NQ/sampled_data.json')
+        else:
+            self.train_file = os.path.join(self.root, 'data/TriviaQA/biencoder-trivia-train.json')
+            self.sampled_data_file = os.path.join(self.root, 'data/TriviaQA/sampled_data.json')
+
+    def load_qs_list(self):
+        data_list = json.load(open(self.sampled_data_file, 'r'))
+        qs_list = [dict(qs_id=idx, question=item['question']) for idx, item in enumerate(data_list)]
+        return qs_list
+
+    def load_oracle_list(self):
+        """
+        each oracle paragraph contains the info to answer the question, so just pick one para that has answer as oracle
+        :return:
+        """
+        data_list = json.load(open(self.sampled_data_file, 'r'))
+        oracle_list = [dict(qs_id=idx, oracle_doc=item['oracle_doc'], answers=item['answers']) for idx, item in enumerate(data_list)]
+        return oracle_list
+
+    # def remove_no_oracle(self):
+    #     qs_list = json.load(open(self.qs_file, 'r'))
+    #     _qs_list = []
+    #     for idx, qs in enumerate(qs_list):
+    #         oracle_doc = None
+    #         for doc in qs['ctxs']:
+    #             if doc['has_answer']:
+    #                 oracle_doc = doc['id']
+    #                 break
+    #         if oracle_doc is not None: _qs_list.append(qs)
+    #
+    #     with open(self.filtered_qs_file, 'w+') as f:
+    #         json.dump(_qs_list, f, indent=2)
+
+    def sample_data(self):
+        """
+        sample 2000 queries from train set
+        :return:
+        """
+        has_positive_idx_list = []
+        count = 0
+        with open(self.train_file, 'rb') as f:
+            for record in ijson.items(f, 'item'):
+                if record['positive_ctxs'] != []:
+                    has_positive_idx_list.append(count)
+                count += 1
+        random_idx_list = random.sample(has_positive_idx_list, 2000)
+
+        count = 0
+        data_list = []
+        with open(self.train_file, 'rb') as f:
+            for record in ijson.items(f, 'item'):
+                if count in random_idx_list:
+                    assert record['positive_ctxs'] != []
+                    if self.dataset == 'TriviaQA':
+                        proc_record = dict(question=record['question'], answers=record['answers'], oracle_doc=record['positive_ctxs'][0]['psg_id'])
+                    elif self.dataset == 'NQ':
+                        proc_record = dict(question=record['question'], answers=record['answers'], oracle_doc=record['positive_ctxs'][0]['passage_id'])
+                    data_list.append(proc_record)
+                count += 1
+        assert len(data_list) == 2000
+
+        with open(self.sampled_data_file, 'w+') as f:
+            json.dump(data_list, f, indent=2)
+
+    @staticmethod
+    def retrieval_eval(docs_list, answers_list, top_k):
+        """
+        follow DPR: if answer is in retrieval docs, then retrieval right, and randomly set one text as oracle
+        :param docs_list: a list of docs, each one is a list of retrieved docs of a sample
+        :return: hits_list: a list of list, each list corresponds to the retrieved docs of a sample
+                hits_rate: a dict records the recall of top_k retrieval
+        """
+        hits_list = list()
+        for docs, answers in zip(docs_list, answers_list):
+            # docs = wiki_loader.get_docs(doc_keys)
+            hits = [has_answer(answers, doc) for doc in docs]
+            hits_list.append(hits)
+
+        hits_rate = dict()
+        for k in top_k:
+            hits_rate[k] = 0
+            for hits in hits_list:
+                if True in hits[:k]:
+                    hits_rate[k] += 1
+            hits_rate[k] = hits_rate[k] / len(hits_list)
+        return hits_list, hits_rate
+
+    @staticmethod
+    def pred_eval(preds, answers_list):
+        """
+        follow DPR and In-context RALM, if pred matches to any of the answers, then exact match
+        :param preds:
+        :return:
+        """
+        exact_match = 0
+        for pred, answers in zip(preds, answers_list):
+            is_correct = False
+            for answer in answers:
+                if normalize_answer(pred) == normalize_answer(answer):
+                    is_correct = True
+            if is_correct: exact_match += 1
+        exact_match_rate = exact_match / len(preds)
+
+        return exact_match_rate
+
+
+if __name__ == '__main__':
+    nq_loader = NQTriviaQAUtils('TriviaQA')
+    nq_loader.sample_data()
+    # data_list = []
+    # with open(nq_loader.train_file, 'r') as f:
+    #     for record in ijson.items(f, 'item'):
+    #         data_list.append(proc_record)
+    #         break
+    # with open(nq_loader.sampled_data_file, 'w+') as f:
+    #     json.dump(data_list, f, indent=2)
