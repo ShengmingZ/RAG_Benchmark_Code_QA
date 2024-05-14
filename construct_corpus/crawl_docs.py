@@ -73,16 +73,15 @@ def crawl_callable_attributes(module, library_name):
             full_name = module_name + '.' + attr_name
             try:
                 attr_obj = getattr(module, attr_name)
-                crawl_callable_attributes(attr_obj, library_name)
                 if callable(attr_obj):
                     if full_name not in func_list:
                         func_list.append(full_name)
                         doc = get_doc(attr_obj, full_name)
                         if doc: api_doc_dict[full_name] = doc
-            except:
-                # print(full_name)
-                continue
-
+            except: ...
+            try:
+                crawl_callable_attributes(attr_obj, library_name)
+            except: ...
     else:   # if the module is a package
         # use pkgutil to traverse all the files and actively import them to deal with lazy import
         for module_info in pkgutil.iter_modules(path=module.__path__):
