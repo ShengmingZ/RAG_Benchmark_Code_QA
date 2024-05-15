@@ -22,11 +22,11 @@ random.seed(0)
 class PythonDocsLoader:
     def __init__(self):
         self.root = root_path
-        self.api_doc_builtin = os.path.join(root_path, 'python_docs/api_doc_builtin.json')
-        self.api_sign_builtin = os.path.join(root_path, 'python_docs/api_sign_builtin.txt')
+        self.api_doc_builtin = os.path.join(root_path, 'data/python_docs/api_doc_builtin.json')
+        self.api_sign_builtin = os.path.join(root_path, 'data/python_docs/api_sign_builtin.txt')
         self.api_doc_third_party = self.api_doc_builtin.replace('builtin', 'third_party')
         self.api_sign_third_party = self.api_sign_builtin.replace('builtin', 'third_party')
-        self.proc_corpus_file = os.path.join(self.root, 'python_docs/proc_python_docs.json')
+        self.proc_corpus_file = os.path.join(self.root, 'data/python_docs/proc_python_docs.json')
 
     def load_api_signs(self):
         python_doc_id_third, python_doc_id_builtin = [], []
