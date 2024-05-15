@@ -1,17 +1,14 @@
 import json
 import re
-# import platform
-# import sys
-# system = platform.system()
-# if system == 'Darwin':
-#     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
-# elif system == 'Linux':
-#     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
-# sys.path.insert(0, root_path)
-
-
-
-
+import platform
+import sys
+system = platform.system()
+if system == 'Darwin':
+    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+elif system == 'Linux':
+    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+sys.path.insert(0, root_path)
+from dataset_utils.corpus_utils import PythonDocsLoader
 
 
 

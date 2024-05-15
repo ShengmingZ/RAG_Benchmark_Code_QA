@@ -3,6 +3,7 @@ import re
 import json
 import ast
 import random
+import string
 from io import StringIO
 import sys, platform
 system = platform.system()
@@ -16,7 +17,7 @@ from data.DS1000.ds1000 import DS1000Dataset
 
 random.seed(0)
 
-common_func_list = ['copy', 'format', 'nan']
+common_func_list = ['copy', 'format', 'lower', 'len']
 # common_func_list = ['sum', 'replace', 'lower', 'search', 'sort', 'pow', 'append', 'sub', 'sqrt', 'split', 'add', 'keys', 'items', 'join', 'extend', 'copy', 'remove', 'index', 'pop']
 
 
@@ -33,7 +34,11 @@ def extract_func_name(code_string):
     # if code_string.startswith(' \n'): code_string = code_string[1:].replace('\n    ', '\n')
     # if code_string.startswith('# def '): code_string = code_string.split('\n', 1)[1].replace('    ', '')
 
-    tree = ast.parse(code_string)
+    try:
+        tree = ast.parse(code_string)
+    except:
+        print('invalid code string')
+        return None
 
     # add parent
     for node in ast.walk(tree):
@@ -65,115 +70,105 @@ def extract_func_name(code_string):
     return _names
 
 
-def remove_unbalanced_and_special_characters(text):
-    """
-    remove outer function (e.g. func1(func2())), and split special characters (e.g. x+x.mean())
-    :param text:
-    :return:
-    """
-    # detect and remove the content before unbalanced parenthesis
+# def remove_unbalanced_and_special_characters(text):
+#     """
+#     remove outer function (e.g. func1(func2())), and split special characters (e.g. x+x.mean())
+#     :param text:
+#     :return:
+#     """
+#     # detect and remove the content before unbalanced parenthesis
+#     stack = []
+#     unbalanced_indexes = []
+#     for i, char in enumerate(text):
+#         if char == '(' or char == '[':
+#             stack.append((char, i))
+#         elif char == ')' or char == ']':
+#             if not stack:
+#                 unbalanced_indexes.append(i)
+#             else:
+#                 opening, _ = stack.pop()
+#                 if (opening == '[' and char != ']') or (opening == '(' and char != ')'):
+#                     unbalanced_indexes.append(i)
+#     for _, index in stack:
+#         unbalanced_indexes.append(index)
+#     if unbalanced_indexes:
+#         text = text[max(unbalanced_indexes) + 1:]
+#
+#     # detect special chars and remove the content before them
+#     special_char = ['+', '-', '*', '/', '<', '>', ';', '?', '%', '^', '=']
+#     stack = []
+#     special_indexes = []
+#     for idx, char in enumerate(text):
+#         if char == '(' or char == '[':
+#             stack.append((char, idx))
+#         elif char in special_char and len(stack) == 0:    # not in parentheses
+#             special_indexes.append(idx)
+#         elif char == ')' or char == ']':
+#             stack.pop()
+#     if special_indexes:
+#         text = text[max(special_indexes) + 1:]
+#
+#     return text
+
+
+def check_balanced_parentheses(s):
     stack = []
-    unbalanced_indexes = []
-    for i, char in enumerate(text):
-        if char == '(' or char == '[':
-            stack.append((char, i))
-        elif char == ')' or char == ']':
+    opening = {'(': ')', '[': ']', '{': '}'}
+    closing = {')', ']', '}'}
+    for char in s:
+        if char in opening:
+            stack.append(char)
+        elif char in closing:
             if not stack:
-                unbalanced_indexes.append(i)
-            else:
-                opening, _ = stack.pop()
-                if (opening == '[' and char != ']') or (opening == '(' and char != ')'):
-                    unbalanced_indexes.append(i)
-    for _, index in stack:
-        unbalanced_indexes.append(index)
-    if unbalanced_indexes:
-        text = text[max(unbalanced_indexes) + 1:]
-
-    # detect special chars and remove the content before them
-    special_char = ['+', '-', '*', '/', '<', '>', ';', '?', '%', '^', '=']
-    stack = []
-    special_indexes = []
-    for idx, char in enumerate(text):
-        if char == '(' or char == '[':
-            stack.append((char, idx))
-        elif char in special_char and len(stack) == 0:    # not in parentheses
-            special_indexes.append(idx)
-        elif char == ')' or char == ']':
-            stack.pop()
-    if special_indexes:
-        text = text[max(special_indexes) + 1:]
-
-    return text
+                # There's a closing bracket or parenthesis with no matching opening one
+                return False
+            last_open = stack.pop()
+            if opening[last_open] != char:
+                # The closing character does not match the last opening character
+                return False
+    # If the stack is not empty, there are unmatched opening parentheses or brackets
+    return len(stack) == 0
 
 
-def augment_with_prefix(gold_output, gold_func_list):
+def augment_with_prefix(output_code, func_name_list):
     """
     covert func to the format of help(), e.g. reset_index -> df.reset_index
-    :param gold_output:
-    :param gold_func_list:
+    :param code_string:
+    :param func_name_list:
     :return:
     """
     # covert func name to format of help()
-    func_list_full_name = list()
-    gold_output = ' ' + gold_output
-    for gold_func in gold_func_list:
-        if gold_func not in gold_output: continue  # filter out funcs not in gold output
-        # todo: ignore special char and space inside (), [] and {}
-        pattern_func = rf"\s{gold_func}"    # for single function
-        close_parentheses_pattern = r"\([^()]*\)|\[[^\[\]]*\]|\S"
-        pattern_attr = rf"\s(?:{close_parentheses_pattern})+\.{gold_func}"  # for attribution, ignore \s in close parenthesis
-        try:
-            potential_full_names = re.findall(pattern_func, gold_output) + re.findall(pattern_attr, gold_output)
-            for full_name in potential_full_names:
-                full_name = remove_unbalanced_and_special_characters(full_name.replace(' ', '').replace('\n', ''))
-                func_list_full_name.append(full_name)
-        except:
-            pass
-    func_list_full_name = list(set(func_list_full_name))
-    return func_list_full_name
+    # for func in func_name_list:
+    #     if func not in code_string: continue  # filter out funcs not in gold output
+    #     pattern_func = rf"\s{func}"    # for single function
+    #     close_parentheses_pattern = r"\([^()]*\)|\[[^\[\]]*\]|\S"
+    #     pattern_attr = rf"\s(?:{close_parentheses_pattern})+\.{gold_func}"  # for attribution, ignore \s in close parenthesis
+    #     try:
+    #         potential_full_names = re.findall(pattern_func, code_string) + re.findall(pattern_attr, code_string)
+    #         for full_name in potential_full_names:
+    #             full_name = remove_unbalanced_and_special_characters(full_name.replace(' ', '').replace('\n', ''))
+    #             func_full_name_list.append(full_name)
+    #     except:
+    #         pass
 
+    output_code = ' ' + output_code
+    # greedy match as more potential substrings as possible
+    special_chars = list(set(string.printable) - set(string.digits) - set(string.ascii_letters))
+    potential_func_full_name_list = list()
+    for func_name in func_name_list:
+        if func_name not in output_code: continue
+        pattern = rf'[^a-zA-Z0-9].*{func_name}'
+        for idx, char in enumerate(output_code):
+            if char in special_chars:
+                sub_output_code = output_code[idx:]
+                for full_name in re.findall(pattern, sub_output_code):
+                    # do some filters to reduce the size of potential substrings
+                    full_name = full_name[1:].lstrip()
+                    if check_balanced_parentheses(full_name):
+                        potential_func_full_name_list.append(full_name)
 
-def augment_program_pandas_numpy_eval(data):
-    gold_output = data['canonical_solution'][0]
-    prompt = data['prompt']
-    entry_point = data['entry_point']
-
-    # extract func names
-    gold_func_list = extract_func_name(prompt + gold_output)
-
-    # covert to the format of help()
-    # todo: this method is not sound
-    func_list_full_name = augment_with_prefix(gold_output, gold_func_list)
-
-    program = prompt + gold_output
-    lines = program.split('\n')
-    last_comment_idx = max((i for i, line in enumerate(lines) if "#" in line), default=-1)
-    return_idx = max((i for i, line in enumerate(lines) if "return " in line and "#" not in line), default=-1)
-    # gene help command
-    indent = get_indent(lines[last_comment_idx])
-    help_strings = list()
-    for full_name in func_list_full_name:
-        help_strings.append('\n' + indent + f'try: help({full_name})\n' + indent + 'except: pass\n')
-    # combine help and program
-    programs = list()
-    for help_string in help_strings:
-        if return_idx == -1:
-            programs.append(program + help_string)
-        else:
-            prompt_before_return = "\n".join(lines[:return_idx])
-            prompt_after_return = "\n".join(lines[return_idx:])
-            programs.append(prompt_before_return + help_string + prompt_after_return)
-    # process and add test code
-    split_string = data['test'].split('assert')
-    if len(split_string) > 1:
-        test_code = split_string[0] + 'assert' + split_string[1] + '\n'
-        test_code += 'check()' if entry_point == 'none' else f'check({entry_point})'
-    else:
-        test_code = data['test']
-    for idx, program in enumerate(programs):
-        programs[idx] = program + '\n' + test_code
-
-    return programs, func_list_full_name
+    func_full_name_list = list(set(potential_func_full_name_list))
+    return func_full_name_list
 
 
 def get_indent(line):
@@ -212,6 +207,49 @@ def postprocess(lib, generated_code: str):
     return generated_code
 
 
+def augment_program_pandas_numpy_eval(data):
+    gold_output = data['canonical_solution'][0]
+    prompt = data['prompt']
+    entry_point = data['entry_point']
+
+    # extract func names
+    gold_func_list = extract_func_name(prompt + gold_output)
+
+    # covert to the format of help()
+    func_list_full_name = augment_with_prefix(gold_output, gold_func_list)
+
+    program = prompt + gold_output
+    lines = program.split('\n')
+    last_comment_idx = max((i for i, line in enumerate(lines) if "#" in line), default=-1)
+    return_idx = max((i for i, line in enumerate(lines) if "return " in line and "#" not in line), default=-1)
+    # gene help command
+    indent = get_indent(lines[last_comment_idx])
+    help_strings = list()
+    for full_name in func_list_full_name:
+        help_strings.append('\n' + indent + f'try: help({full_name})\n' + indent + 'except: pass\n')
+    # combine help and program
+    programs = list()
+    for help_string in help_strings:
+        if return_idx == -1:
+            programs.append(program + help_string)
+        else:
+            prompt_before_return = "\n".join(lines[:return_idx])
+            prompt_after_return = "\n".join(lines[return_idx:])
+            programs.append(prompt_before_return + help_string + prompt_after_return)
+    # process and add test code
+    split_string = data['test'].split('assert')
+    if len(split_string) > 1:
+        test_code = split_string[0] + 'assert' + split_string[1] + '\n'
+        test_code += 'check()' if entry_point == 'none' else f'check({entry_point})'
+    else:
+        test_code = data['test']
+    for idx, program in enumerate(programs):
+        programs[idx] = program + '\n' + test_code
+
+    return programs, func_list_full_name
+
+
+
 
 def augment_program_ds1000(data):
     # ds1000 = DS1000Dataset(source_dir='../data/DS1000/ds1000_data', libs='all', mode='Completion')
@@ -238,31 +276,6 @@ def augment_program_ds1000(data):
         current_gold_output = current_gold_output + line + '\n'
         for idx, aug_gold_output in enumerate(aug_gold_outputs):
             aug_gold_outputs[idx] = aug_gold_outputs[idx] + line + '\n'
-
-
-    # augment the code snippet
-    # todo: analysis execution process of ds1000
-    # lines = code_snippet.split('\n')
-    # insert_idx = [i for i, line in enumerate(lines) if "[insert]" in line]
-    # assert len(insert_idx) == 1
-    # insert_indent = get_indent(lines[insert_idx[0]])
-    # # augment wth [insert_help]
-    # aug_prompt = ''
-    # for idx, line in enumerate(lines):
-    #     aug_prompt = aug_prompt + line + '\n'
-    #     if idx == insert_idx:
-    #         aug_prompt = aug_prompt + insert_indent + '[insert_help]' + '\n'
-
-
-    # # remove `with open`
-    # lines = code_snippet.split('\n')
-    # if lib == 'Matplotlib':
-    #     with_open_idx = [i for i, line in enumerate(lines) if "plt.savefig" in line]
-    # else:
-    #     with_open_idx = [i for i, line in enumerate(lines) if "with open" in line]
-    #     if data['qs_id'] in ['Sklearn_35', 'Sklearn_36', 'Sklearn_113']:
-    #         ...
-    # new_prompt = ''
 
     programs = list()
     for aug_gold_output in aug_gold_outputs:
@@ -297,33 +310,34 @@ def augment_program_conala(data):
 
 def match_oracle_doc(data, dataset):
     """
-    Given executable code, match API usage utilizing help()
-    :param gold_output:
-    :param prompt:
-    :param api_sign_collection:
+    match oracle docs for an instance
+    :param data:
+    :param dataset:
     :return:
     """
-    # for pandas_numpy_eval
-    if dataset == 'PandasNumpyEval':
-        programs, func_list_full_name = augment_program_pandas_numpy_eval(data)
-
+    # augment the data with help()
+    if dataset == 'pandas-numpy-eval':
+        programs, func_full_name_list = augment_program_pandas_numpy_eval(data)
     elif dataset == 'DS1000':
-        programs, func_list_full_name = augment_program_ds1000(data)
+        programs, func_full_name_list = augment_program_ds1000(data)
+    else:
+        programs, func_full_name_list = augment_program_conala(data)
 
-    elif dataset == 'CoNaLa':
-        programs, func_list_full_name = augment_program_conala(data)
-
-    # exec and get output
+    # exec the augmented code and get output docs
     oracle_docs = list()
+    _func_full_name_list = list()
     for idx, program in enumerate(programs):
-        if dataset == 'PandasNumpyEval':
+        if dataset == 'pandas-numpy-eval':
             printed_output = pandas_numpy_eval_exec(program)
         elif dataset == 'DS1000':
             lib, problem_id = data['qs_id'].split('_')
             problem_path = os.path.join(root_path, 'data/DS1000/ds1000_data', f'{lib}/Completion/q{problem_id}')
             printed_output = ds1000_exec(program, problem_path)
-        elif dataset == 'CoNaLa':
+        else:
             printed_output = pandas_numpy_eval_exec(program)
+        if printed_output:
+            oracle_docs.append(printed_output)
+            _func_full_name_list.append(func_full_name_list[idx])
         # try:
         #     if 'Help on' in printed_output:
         #         api_sign, content = printed_output.split('\n\n', 1)
@@ -342,8 +356,7 @@ def match_oracle_doc(data, dataset):
         #             print(method, api_sign)
         # except:
         #     ...
-        oracle_docs.append(printed_output)
-    return oracle_docs, func_list_full_name
+    return oracle_docs, _func_full_name_list
 
 
 
@@ -394,70 +407,12 @@ def pandas_numpy_eval_exec(program):
     return printed_output
 
 
-
-# def match_oracle_doc_old(gold_lib, gold_output, api_sign_collection):
-#     """
-#     match API usage of gold output
-#     :param gold_lib:
-#     :param gold_output:
-#     :param api_sign_collection: a collection of API signatures
-#     :return:
-#     """
-#     gold_func_list = extract_func_name(gold_output)
-#     # for func in common_func_list:
-#     #     if func in gold_func_list: gold_func_list.remove(func)
-#     gold_func_length = len(gold_func_list)
-#     if gold_func_length == 0: return [], 1
-#     gold_lib = gold_lib.lower()
-#     if gold_lib == 'pytorch': gold_lib = 'torch'
-#     for idx in range(len(gold_func_list)): gold_func_list[idx] = gold_func_list[idx].lower()
-#
-#     matched_api_list = []
-#     # match golden lib
-#     for api_sign in api_sign_collection[gold_lib]:
-#         if api_sign.startswith('tensorflow.compat.v1.'): continue
-#         func = api_sign.rsplit('.', 1)[-1].lower()
-#         if func in gold_func_list:
-#             matched_api_list.append(api_sign)
-#             gold_func_list.remove(func)
-#     # match other libs
-#     for lib in api_sign_collection:
-#         if lib == gold_lib: continue
-#         for api_sign in api_sign_collection[lib]:
-#             func = api_sign.rsplit('.', 1)[-1].lower()
-#             if func in gold_func_list:
-#                 matched_api_list.append(api_sign)
-#                 gold_func_list.remove(func)
-#     matched_rate = 1 - len(gold_func_list) / gold_func_length
-#
-#     # if matched_rate < 1.0:
-#     #     print(gold_lib)
-#     #     print([oracle['output']])
-#     #     print(gold_func_list)
-#
-#     return matched_api_list, matched_rate
-
-
-def match_docs(dataset_name):
-    # load API signatures
-    # api_signs_file = os.path.join(root_path, "data/conala/python_manual_firstpara.tok.id")
-    # with open(api_signs_file, 'r') as f:
-    #     api_signs = list()
-    #     for line in f:
-    #         api_signs.append(line.strip())
-    # lib_list = [api_sign.split('.')[0] for api_sign in api_signs]
-    # # lib_list = list(set(lib_list)): ['tensorflow', 'matplotlib', 'sklearn', 'matplotlib_configuration_api#matplotlib', 'django', 'numpy', 'pygame', 'matplotlib_configuration_api', 'torch', 'python', 'flask', 'django_rest_framework', 'skimage', 'pandas', 'werkzeug']
-    # func_list = [api_sign.split('.')[-1] for api_sign in api_signs]
-    # api_sign_collection = dict()
-    # for idx, (lib, api_sign) in enumerate(zip(lib_list, api_signs)):
-    #     if lib not in api_sign_collection.keys(): api_sign_collection[lib.lower()] = []
-    #     api_sign_collection[lib.lower()].append(api_sign)
-
+def main(dataset_name):
     # match oracle list
-    assert dataset_name in ['DS1000', 'PandasNumpyEval', 'CoNaLa']
+    assert dataset_name in ['DS1000', 'pandas-numpy-eval', 'conala']
 
-    # get dataset
-    if dataset_name == 'PandasNumpyEval':
+    # load dataset
+    if dataset_name == 'pandas-numpy-eval':
         pandas_eval_file = os.path.join(root_path, 'data/pandas-numpy-eval/data/PandasEval.jsonl.gz')
         numpy_eval_file = pandas_eval_file.replace('PandasEval', 'NumpyEval')
         import gzip
@@ -479,7 +434,7 @@ def match_docs(dataset_name):
         #     for idx, data in enumerate(ds1000[lib]):
         #         data['qs_id'] = lib + '_' + str(idx)
         #         dataset.append(data)
-    elif dataset_name == 'CoNaLa':
+    elif dataset_name == 'conala':
         data_file = os.path.join(root_path, 'data/conala/unittest_docprompting_conala.json')
         dataset = list(json.load(open(data_file, 'r')).values())
     else:
@@ -502,48 +457,103 @@ def match_docs(dataset_name):
         oracle_list.append(dict(qs_id=qs_id, oracle_docs=oracle_docs, output=output, full_name_list=full_name_list))
 
     if dataset_name == 'DS1000':
-        save_file = os.path.join(root_path, 'data/DS1000/oracle_docs_matched_new.json')
-    elif dataset_name == 'PandasNumpyEval':
-        save_file = os.path.join(root_path, 'data/pandas-numpy-eval/data/oracle_docs_matched_new.json')
-    elif dataset_name == 'CoNaLa':
-        save_file = os.path.join(root_path, 'data/conala/oracle_docs_matched_new.json')
+        save_file = os.path.join(root_path, 'data/DS1000/oracle_docs_matched.json')
+    elif dataset_name == 'pandas-numpy-eval':
+        save_file = os.path.join(root_path, 'data/pandas-numpy-eval/data/oracle_docs_matched.json')
+    elif dataset_name == 'conala':
+        save_file = os.path.join(root_path, 'data/conala/oracle_docs_matched.json')
     with open(save_file, 'w+') as f:
         json.dump(oracle_list, f, indent=2)
 
 
-def match_api_sign_with_doc(dataset_name):
-    if dataset_name == 'DS1000':
-        save_file = os.path.join(root_path, 'data/DS1000/oracle_docs_matched_new.json')
-    elif dataset_name == 'PandasNumpyEval':
-        save_file = os.path.join(root_path, 'data/pandas-numpy-eval/data/oracle_docs_matched_new.json')
-    elif dataset_name == 'CoNaLa':
-        save_file = os.path.join(root_path, 'data/conala/oracle_docs_matched_new.json')
-    oracle_list = json.load(open(save_file, 'r'))
-
-    python_doc_id_third, python_doc_id_builtins = [], []
-    with open('../data/python_docs/api_sign_third_party.txt', 'r') as f:
-        for line in f:
-            python_doc_id_third.append(line.strip())
-    with open('../data/python_docs/api_sign_builtin.txt', 'r') as f:
-        for line in f:
-            python_doc_id_builtins.append(line.strip())
-    python_doc_id_list = python_doc_id_third + python_doc_id_builtins
-
-    count = 0
-    for oracle in oracle_list:
-        for oracle_doc in oracle['oracle_docs']:
-            if oracle_doc not in python_doc_id_list:
-                print(oracle['qs_id'], oracle_doc)
-                if not oracle_doc.startswith('builtins'): count += 1
-
-    print(count)
+# def match_api_sign_with_doc(dataset_name):
+#     if dataset_name == 'DS1000':
+#         save_file = os.path.join(root_path, 'data/DS1000/oracle_docs_matched_new.json')
+#     elif dataset_name == 'PandasNumpyEval':
+#         save_file = os.path.join(root_path, 'data/pandas-numpy-eval/data/oracle_docs_matched_new.json')
+#     elif dataset_name == 'CoNaLa':
+#         save_file = os.path.join(root_path, 'data/conala/oracle_docs_matched_new.json')
+#     oracle_list = json.load(open(save_file, 'r'))
+#
+#     python_doc_id_third, python_doc_id_builtins = [], []
+#     with open('../data/python_docs/api_sign_third_party.txt', 'r') as f:
+#         for line in f:
+#             python_doc_id_third.append(line.strip())
+#     with open('../data/python_docs/api_sign_builtin.txt', 'r') as f:
+#         for line in f:
+#             python_doc_id_builtins.append(line.strip())
+#     python_doc_id_list = python_doc_id_third + python_doc_id_builtins
+#
+#     count = 0
+#     for oracle in oracle_list:
+#         for oracle_doc in oracle['oracle_docs']:
+#             if oracle_doc not in python_doc_id_list:
+#                 print(oracle['qs_id'], oracle_doc)
+#                 if not oracle_doc.startswith('builtins'): count += 1
+#
+#     print(count)
 
 
 if __name__ == '__main__':
+    data_file = os.path.join(root_path, 'data/DS1000/sampled_data.json')
+    dataset = json.load(open(data_file, 'r'))
+    data = dataset[30]
 
-    match_docs('CoNaLa')
-    match_docs('DS1000')
-    match_docs('PandasNumpyEval')
+    gold_output = data['reference_code']
+    code_snippet = data['code_context']
+
+    # extract func names
+    gold_func_list = extract_func_name(code_snippet.replace("[insert]", gold_output))
+    print(gold_output)
+    _gold_func_list = list()
+    for func in gold_func_list:
+        if func in gold_output:
+            _gold_func_list.append(func)
+    gold_func_list = _gold_func_list
+    print(gold_func_list)
+
+
+    output_code = ' ' + gold_output
+    func_name_list = gold_func_list
+    special_chars = list(set(string.printable) - set(string.digits) - set(string.ascii_letters))
+    potential_func_full_name_list = list()
+    for idx, char in enumerate(output_code):
+        if char in special_chars:
+            sub_output_code = output_code[idx:]
+            for func_name in func_name_list:
+                pattern = rf'[^a-zA-Z0-9].*{func_name}'
+                # pattern = rf'\s.*{func_name}'
+
+                def check_balanced_parentheses(s):
+                    stack = []
+                    opening = {'(': ')', '[': ']', '{': '}'}
+                    closing = {')', ']', '}'}
+                    for char in s:
+                        if char in opening:
+                            stack.append(char)
+                        elif char in closing:
+                            if not stack:
+                                # There's a closing bracket or parenthesis with no matching opening one
+                                return False
+                            last_open = stack.pop()
+                            if opening[last_open] != char:
+                                # The closing character does not match the last opening character
+                                return False
+                    # If the stack is not empty, there are unmatched opening parentheses or brackets
+                    return len(stack) == 0
+
+                # print(re.findall(pattern, sub_output_code))
+                for full_name in re.findall(pattern, sub_output_code):
+                    full_name = full_name[1:].lstrip()
+                    if check_balanced_parentheses(full_name):
+                        potential_func_full_name_list.append(full_name)
+    print(list(set(potential_func_full_name_list)))
+
+
+
+    # main('conala')
+    # main('DS1000')
+    # main('pandas-numpy-eval')
 
     # import os
     # os.environ["HF_ALLOW_CODE_EVAL"] = "1"
