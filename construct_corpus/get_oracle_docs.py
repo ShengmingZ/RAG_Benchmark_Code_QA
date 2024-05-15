@@ -495,65 +495,64 @@ def main(dataset_name):
 
 
 if __name__ == '__main__':
-    data_file = os.path.join(root_path, 'data/DS1000/sampled_data.json')
-    dataset = json.load(open(data_file, 'r'))
-    data = dataset[30]
+    # data_file = os.path.join(root_path, 'data/DS1000/sampled_data.json')
+    # dataset = json.load(open(data_file, 'r'))
+    # data = dataset[30]
+    #
+    # gold_output = data['reference_code']
+    # code_snippet = data['code_context']
+    #
+    # # extract func names
+    # gold_func_list = extract_func_name(code_snippet.replace("[insert]", gold_output))
+    # print(gold_output)
+    # _gold_func_list = list()
+    # for func in gold_func_list:
+    #     if func in gold_output:
+    #         _gold_func_list.append(func)
+    # gold_func_list = _gold_func_list
+    # print(gold_func_list)
+    #
+    #
+    # output_code = ' ' + gold_output
+    # func_name_list = gold_func_list
+    # special_chars = list(set(string.printable) - set(string.digits) - set(string.ascii_letters))
+    # potential_func_full_name_list = list()
+    # for idx, char in enumerate(output_code):
+    #     if char in special_chars:
+    #         sub_output_code = output_code[idx:]
+    #         for func_name in func_name_list:
+    #             pattern = rf'[^a-zA-Z0-9].*{func_name}'
+    #             # pattern = rf'\s.*{func_name}'
+    #
+    #             def check_balanced_parentheses(s):
+    #                 stack = []
+    #                 opening = {'(': ')', '[': ']', '{': '}'}
+    #                 closing = {')', ']', '}'}
+    #                 for char in s:
+    #                     if char in opening:
+    #                         stack.append(char)
+    #                     elif char in closing:
+    #                         if not stack:
+    #                             # There's a closing bracket or parenthesis with no matching opening one
+    #                             return False
+    #                         last_open = stack.pop()
+    #                         if opening[last_open] != char:
+    #                             # The closing character does not match the last opening character
+    #                             return False
+    #                 # If the stack is not empty, there are unmatched opening parentheses or brackets
+    #                 return len(stack) == 0
+    #
+    #             # print(re.findall(pattern, sub_output_code))
+    #             for full_name in re.findall(pattern, sub_output_code):
+    #                 full_name = full_name[1:].lstrip()
+    #                 if check_balanced_parentheses(full_name):
+    #                     potential_func_full_name_list.append(full_name)
+    # print(list(set(potential_func_full_name_list)))
 
-    gold_output = data['reference_code']
-    code_snippet = data['code_context']
 
-    # extract func names
-    gold_func_list = extract_func_name(code_snippet.replace("[insert]", gold_output))
-    print(gold_output)
-    _gold_func_list = list()
-    for func in gold_func_list:
-        if func in gold_output:
-            _gold_func_list.append(func)
-    gold_func_list = _gold_func_list
-    print(gold_func_list)
-
-
-    output_code = ' ' + gold_output
-    func_name_list = gold_func_list
-    special_chars = list(set(string.printable) - set(string.digits) - set(string.ascii_letters))
-    potential_func_full_name_list = list()
-    for idx, char in enumerate(output_code):
-        if char in special_chars:
-            sub_output_code = output_code[idx:]
-            for func_name in func_name_list:
-                pattern = rf'[^a-zA-Z0-9].*{func_name}'
-                # pattern = rf'\s.*{func_name}'
-
-                def check_balanced_parentheses(s):
-                    stack = []
-                    opening = {'(': ')', '[': ']', '{': '}'}
-                    closing = {')', ']', '}'}
-                    for char in s:
-                        if char in opening:
-                            stack.append(char)
-                        elif char in closing:
-                            if not stack:
-                                # There's a closing bracket or parenthesis with no matching opening one
-                                return False
-                            last_open = stack.pop()
-                            if opening[last_open] != char:
-                                # The closing character does not match the last opening character
-                                return False
-                    # If the stack is not empty, there are unmatched opening parentheses or brackets
-                    return len(stack) == 0
-
-                # print(re.findall(pattern, sub_output_code))
-                for full_name in re.findall(pattern, sub_output_code):
-                    full_name = full_name[1:].lstrip()
-                    if check_balanced_parentheses(full_name):
-                        potential_func_full_name_list.append(full_name)
-    print(list(set(potential_func_full_name_list)))
-
-
-
-    # main('conala')
-    # main('DS1000')
-    # main('pandas-numpy-eval')
+    main('conala')
+    main('DS1000')
+    main('pandas-numpy-eval')
 
     # import os
     # os.environ["HF_ALLOW_CODE_EVAL"] = "1"
