@@ -1,6 +1,7 @@
 import json
 import gzip
 import csv
+import re
 import unicodedata
 import os
 import bz2
@@ -21,28 +22,73 @@ random.seed(0)
 class PythonDocsLoader:
     def __init__(self):
         self.root = root_path
-        self.api_docs_builtins = os.path.join(root_path, 'python_docs/api_doc_builtin.json')
-        self.api_sign_builtins = os.path.join(root_path, 'python_docs/api_sign_builtin.txt')
-        self.api_docs_third_party = self.api_docs_builtins.replace('builtin', 'third_party')
-        self.api_sign_third_party = self.api_sign_builtins.replace('builtin', 'third_party')
+        self.api_doc_builtin = os.path.join(root_path, 'python_docs/api_doc_builtin.json')
+        self.api_sign_builtin = os.path.join(root_path, 'python_docs/api_sign_builtin.txt')
+        self.api_doc_third_party = self.api_doc_builtin.replace('builtin', 'third_party')
+        self.api_sign_third_party = self.api_sign_builtin.replace('builtin', 'third_party')
+        self.proc_corpus_file = os.path.join(self.root, 'python_docs/proc_python_docs.json')
 
-    def load_python_docs(self):
-        # api_doc_third_party_file = '../data/python_docs/api_doc_third_party_new.json'
-        # api_doc_builtin_file = '../data/python_docs/api_doc_builtin_new.json'
-        # python_docs_third = json.load(open(api_doc_third_party_file, 'r'))
-        # python_docs_builtins = json.load(open(api_doc_builtin_file, 'r'))
-        # python_docs_third.update(python_docs_builtins)
-        #
-        # _python_docs_third = dict()
-        # for key, value in python_docs_third.items():
-        #     _python_docs_third[key] = value
-        ...
+    def load_api_signs(self):
+        python_doc_id_third, python_doc_id_builtin = [], []
+        with open(self.api_sign_third_party, 'r') as f:
+            for line in f:
+                python_doc_id_third.append(line.strip())
+        with open(self.api_sign_builtin, 'r') as f:
+            for line in f:
+                python_doc_id_builtin.append(line.strip())
+        python_doc_id_list = python_doc_id_third + python_doc_id_builtin
 
-    def load_doc_id(self):
-        ...
+        # _python_doc_id_list = []
+        # for doc_id in python_doc_id_list:
+        #     if doc_id.startswith('pandas._testing'):
+        #         continue
+        #     _python_doc_id_list.append(doc_id)
+
+        return python_doc_id_list
+
+    def load_api_docs(self):
+        python_docs_third = json.load(open(self.api_doc_third_party, 'r'))
+        python_docs_builtin = json.load(open(self.api_doc_builtin, 'r'))
+        python_docs_third.update(python_docs_builtin)
+
+        _python_docs_third = dict()
+        for key, value in python_docs_third.items():
+            _python_docs_third[key] = value
+
+        return _python_docs_third
 
     def get_docs(self):
         ...
+
+    def process_docs(self):
+        python_docs = dict()
+        python_docs_third = json.load(open(self.api_doc_third_party, 'r'))
+        python_docs_builtin = json.load(open(self.api_doc_builtin, 'r'))
+        python_docs.update(python_docs_third)
+        python_docs.update(python_docs_builtin)
+
+        proc_python_docs = list()
+        for api_sign, doc in python_docs.items():
+            lines = doc.split('\n')
+            prefix = lines[0]
+            function_head = lines[2].replace('self, ', '')
+            function_head = function_head[:re.search(r'\(.*\)', function_head).end()]
+            main_content = function_head + '\n' + '\n'.join(lines[3:])
+            is_match = False
+            for item in proc_python_docs:
+                if item['doc'] == main_content:
+                    item['api_sign'].append(api_sign)
+                    is_match = True
+            if is_match is False:
+                proc_python_docs.append(dict(api_sign=[api_sign], doc=main_content))
+        print(len(proc_python_docs))
+        with open(self.proc_corpus_file, 'w+') as f:
+            json.dump(proc_python_docs, f, indent=2)
+
+
+if __name__ == '__main__':
+    python_docs_loader = PythonDocsLoader()
+    python_docs_loader.process_docs()
 
 
 class WikiCorpusLoader:
