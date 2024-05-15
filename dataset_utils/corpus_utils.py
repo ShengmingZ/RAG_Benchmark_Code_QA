@@ -75,7 +75,7 @@ class PythonDocsLoader:
             try:
                 function_head = function_head[:re.search(r'\(.*\)', function_head).end()]
             except:
-                print(doc)
+                ...
             main_content = function_head + '\n' + '\n'.join(lines[3:])
             is_match = False
             for item in proc_python_docs:
