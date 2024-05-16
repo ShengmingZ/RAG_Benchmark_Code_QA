@@ -21,7 +21,8 @@ def process_oracle_docs(oracle_list_file, dataset):
             lines = doc.split('\n')
             prefix = lines[0]
             function_head = re.sub(r'self[^,]*?:[^,]+?, ', '', lines[2])
-            function_head = function_head.replace('self, ', '').replace('self', '').replace('...', '')
+            function_head = (function_head.replace('self, ', '').replace('self', '').replace('...', '')
+                             .replace(', /', '').replace('/, ', ''))
             try:
                 function_head = function_head[:re.search(r'\(.*\)', function_head).end()]
             except:
@@ -59,7 +60,7 @@ def main(dataset):
     # check if every doc is matched
     for i, oracle in enumerate(oracle_list):
         for j, oracle_id in enumerate(oracle['oracle_ids']):
-            if oracle_id is None: print(f'doc match failed for doc {[oracle["oracle_docs"][j][:1000]]}')
+            if oracle_id is None: print(f'doc match failed for doc {[oracle["oracle_docs"][j][:10000]]}')
 
     # write back
     _oracle_list = list()
