@@ -108,12 +108,12 @@ def crawl_python_doc(library_list):
 
 
 if __name__ == '__main__':
-    library_list = third_party_lib_list
-    api_sign_file = '../data/python_docs/api_sign_third_party.txt'
-    api_doc_file = '../data/python_docs/api_doc_third_party.json'
-    # library_list = py_builtin_lib_list
-    # api_sign_file = '../data/python_docs/api_sign_builtin.txt'
-    # api_doc_file = '../data/python_docs/api_doc_builtin.json'
+    # library_list = third_party_lib_list
+    # api_sign_file = '../data/python_docs/api_sign_third_party.txt'
+    # api_doc_file = '../data/python_docs/api_doc_third_party.json'
+    library_list = py_builtin_lib_list
+    api_sign_file = '../data/python_docs/api_sign_builtin.txt'
+    api_doc_file = '../data/python_docs/api_doc_builtin.json'
 
     func_list = list()  # store each function's full name
     module_list = list()    # store each module

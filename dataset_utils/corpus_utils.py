@@ -29,36 +29,26 @@ class PythonDocsLoader:
         self.proc_corpus_file = os.path.join(self.root, 'data/python_docs/proc_python_docs.json')
 
     def load_api_signs(self):
-        python_doc_id_third, python_doc_id_builtin = [], []
-        with open(self.api_sign_third_party, 'r') as f:
-            for line in f:
-                python_doc_id_third.append(line.strip())
-        with open(self.api_sign_builtin, 'r') as f:
-            for line in f:
-                python_doc_id_builtin.append(line.strip())
-        python_doc_id_list = python_doc_id_third + python_doc_id_builtin
-
-        # _python_doc_id_list = []
-        # for doc_id in python_doc_id_list:
-        #     if doc_id.startswith('pandas._testing'):
-        #         continue
-        #     _python_doc_id_list.append(doc_id)
-
+        python_docs = json.load(open(self.proc_corpus_file, 'r'))
+        python_doc_id_list = []
+        for item in python_docs:
+            python_doc_id_list.append(item['api_sign'])
         return python_doc_id_list
 
     def load_api_docs(self):
-        python_docs_third = json.load(open(self.api_doc_third_party, 'r'))
-        python_docs_builtin = json.load(open(self.api_doc_builtin, 'r'))
-        python_docs_third.update(python_docs_builtin)
+        python_docs = json.load(open(self.proc_corpus_file, 'r'))
+        return python_docs
 
-        _python_docs_third = dict()
-        for key, value in python_docs_third.items():
-            _python_docs_third[key] = value
+    def get_docs(self, api_signs):
+        python_docs = json.load(open(self.proc_corpus_file, 'r'))
+        docs = ['']*len(api_signs)
+        for item in python_docs:
+            for idx, api_sign in enumerate(api_signs):
+                if api_sign in item['api_sign']:
+                    docs[idx] = item['doc']
+        assert '' not in docs
+        return docs
 
-        return _python_docs_third
-
-    def get_docs(self):
-        ...
 
     def process_docs(self):
         python_docs = dict()
