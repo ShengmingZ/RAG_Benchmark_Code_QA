@@ -49,6 +49,7 @@ def main(dataset):
     for i, oracle in enumerate(oracle_list):
         oracle_list[i]['oracle_ids'] = [None]*len(oracle_list[i]['oracle_docs'])
     for item in python_docs:
+        if item['doc'] == "<lambda> lambda x\n\n": continue
         for i, oracle in enumerate(oracle_list):
             for j, oracle_doc in enumerate(oracle['oracle_docs']):
                 if item['doc'] == oracle_doc:
@@ -60,9 +61,13 @@ def main(dataset):
             if oracle_id is None: print(f'doc match failed for doc {oracle["oracle_docs"][j]}')
 
     # write back
+    _oracle_list = list()
+    for i, oracle in enumerate(oracle_list):
+        oracle_docs = [item for item in oracle_list[i]['oracle_ids'] if item is not None]
+        if oracle_docs != []: _oracle_list.append(dict(qs_id=oracle['qs_id'], oracle_docs=oracle_docs, output=oracle['output'], full_name_list=oracle['full_name_list']))
     proc_oracle_list_file = oracle_list_file.replace('.json', '_processed.json')
     with open(proc_oracle_list_file, 'w+') as f:
-        json.dump(oracle_list, f, indent=2)
+        json.dump(_oracle_list, f, indent=2)
 
 
 if __name__ == '__main__':

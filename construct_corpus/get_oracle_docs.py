@@ -157,7 +157,7 @@ def augment_with_prefix(output_code, func_name_list):
     potential_func_full_name_list = list()
     for func_name in func_name_list:
         if func_name not in output_code: continue
-        pattern = rf'[^a-zA-Z0-9].*{func_name}'
+        pattern = rf'[^a-zA-Z0-9\.].*{func_name}'
         for idx, char in enumerate(output_code):
             if char in special_chars:
                 sub_output_code = output_code[idx:]
