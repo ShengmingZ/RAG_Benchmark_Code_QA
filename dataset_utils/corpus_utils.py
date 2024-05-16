@@ -61,7 +61,8 @@ class PythonDocsLoader:
         for api_sign, doc in python_docs.items():
             lines = doc.split('\n')
             prefix = lines[0]
-            function_head = lines[2].replace('self, ', '').replace('self', '').replace('...', '')
+            function_head = re.sub(r'self[^,]*?:[^,]+?, ', '', lines[2])
+            function_head = function_head.replace('self, ', '').replace('self', '').replace('...', '')
             try:
                 function_head = function_head[:re.search(r'\(.*\)', function_head).end()]
             except:
