@@ -96,8 +96,10 @@ def crawl_callable_attributes(module, library_name):
                 full_name = module_name + '.' + file_name
                 submodule = importlib.import_module(full_name)
             except:
-                print(full_name)
-                continue
+                try:
+                    submodule = getattr(module, file_name)
+                except:
+                    continue
             crawl_callable_attributes(submodule, library_name)
 
 
