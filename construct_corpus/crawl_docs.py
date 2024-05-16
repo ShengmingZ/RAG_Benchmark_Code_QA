@@ -69,7 +69,7 @@ def crawl_callable_attributes(module, library_name):
     if not hasattr(module, '__path__'): # if the module is not a package
         for item in inspect.getmembers(module):
             attr_name = item[0]
-            if attr_name.startswith('_'): continue
+            if attr_name.startswith('__'): continue
             full_name = module_name + '.' + attr_name
             try:
                 attr_obj = getattr(module, attr_name)
