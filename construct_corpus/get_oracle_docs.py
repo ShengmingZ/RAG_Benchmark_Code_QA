@@ -562,8 +562,8 @@ if __name__ == '__main__':
 
 
     main('conala')
-    main('DS1000')
-    main('pandas-numpy-eval')
+    # main('DS1000')
+    # main('pandas-numpy-eval')
 
     # import os
     # os.environ["HF_ALLOW_CODE_EVAL"] = "1"
