@@ -20,7 +20,7 @@ def process_oracle_docs(oracle_list_file):
         for doc in oracle['oracle_docs']:
             lines = doc.split('\n')
             prefix = lines[0]
-            function_head = lines[2].replace('self, ', '')
+            function_head = lines[2].replace('self, ', '').replace('self', '').replace('...', '')
             try:
                 function_head = function_head[:re.search(r'\(.*\)', function_head).end()]
             except:
@@ -45,11 +45,11 @@ def main(dataset):
     python_docs = PythonDocsLoader().load_api_docs()
 
     # match oracle list with documentations
-    for idx, oracle in enumerate(oracle_list):
-        oracle[idx]['oracle_ids'] = [None]*len(oracle[idx]['oracle_docs'])
+    for i, oracle in enumerate(oracle_list):
+        oracle_list[i]['oracle_ids'] = [None]*len(oracle_list[i]['oracle_docs'])
     for item in python_docs:
         for i, oracle in enumerate(oracle_list):
-            for j, oracle_doc in oracle['oracle_docs']:
+            for j, oracle_doc in enumerate(oracle['oracle_docs']):
                 if item['doc'] == oracle_doc:
                     oracle_list[i]['oracle_ids'][j] = item['api_sign'][0]
 
@@ -70,8 +70,8 @@ if __name__ == '__main__':
     # conala_oracle_file = 'data/conala/oracle_docs_matched_new.json'
 
     main('pandas-numpy-eval')
-    main('DS1000')
-    main('conala')
+    # main('DS1000')
+    # main('conala')
 
     # process_python_docs()
 
