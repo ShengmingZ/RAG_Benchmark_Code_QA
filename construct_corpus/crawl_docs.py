@@ -66,41 +66,40 @@ def crawl_callable_attributes(module, library_name):
     if module in module_list: return    # filter already traversed module
     module_list.append(module)
 
-    if not hasattr(module, '__path__'): # if the module is not a package
-        for item in inspect.getmembers(module):
-            attr_name = item[0]
-            if attr_name.startswith('__'): continue
-            full_name = module_name + '.' + attr_name
-            try:
-                attr_obj = getattr(module, attr_name)
-                if callable(attr_obj):
-                    if full_name not in func_list:
-                        func_list.append(full_name)
-                        doc = get_doc(attr_obj, full_name)
-                        if doc: api_doc_dict[full_name] = doc
-            except: ...
-            try:
-                crawl_callable_attributes(attr_obj, library_name)
-            except: ...
-    else:   # if the module is a package
+    if hasattr(module, '__path__'):  # if the module is a package
         # use pkgutil to traverse all the files and actively import them to deal with lazy import
         for module_info in pkgutil.iter_modules(path=module.__path__):
             file_name = module_info.name
             # filter some default and internal modules
             # if file_name == '_xla_ops': continue
             # if file_name in ['setup', 'tests'] or file_name.startswith('_'): continue
-            # if file_name in ['setup', 'tests', '_testing', '_libs']: continue
             if file_name.startswith('_'): continue
             # actively import the module
             try:
                 full_name = module_name + '.' + file_name
                 submodule = importlib.import_module(full_name)
             except:
-                try:
-                    submodule = getattr(module, file_name)
-                except:
-                    continue
-            crawl_callable_attributes(submodule, library_name)
+                continue
+            try:
+                crawl_callable_attributes(submodule, library_name)
+            except: ...
+
+    for item in inspect.getmembers(module):
+        attr_name = item[0]
+        if attr_name.startswith('__'): continue
+        full_name = module_name + '.' + attr_name
+        try:
+            attr_obj = getattr(module, attr_name)
+            if callable(attr_obj):
+                if full_name not in func_list:
+                    func_list.append(full_name)
+                    doc = get_doc(attr_obj, full_name)
+                    if doc: api_doc_dict[full_name] = doc
+        except: ...
+        try:
+            crawl_callable_attributes(attr_obj, library_name)
+        except: ...
+
 
 
 def crawl_python_doc(library_list):
