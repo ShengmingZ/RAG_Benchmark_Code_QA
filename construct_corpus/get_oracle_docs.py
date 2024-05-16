@@ -37,7 +37,7 @@ def extract_func_name(code_string):
     try:
         tree = ast.parse(code_string)
     except:
-        print('invalid code string')
+        print(f'invalid code string {code_string}')
         return None
 
     # add parent
@@ -216,7 +216,7 @@ def augment_program_pandas_numpy_eval(data):
     gold_func_list = extract_func_name(prompt + gold_output)
 
     # covert to the format of help()
-    func_list_full_name = augment_with_prefix(gold_output, gold_func_list)
+    func_list_full_name = augment_with_prefix(output_code=gold_output, func_name_list=gold_func_list)
 
     program = prompt + gold_output
     lines = program.split('\n')
