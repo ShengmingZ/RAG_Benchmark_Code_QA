@@ -290,6 +290,17 @@ def augment_program_conala(data):
     gold_output = data['canonical_solution']
     code_snippet = data['prompt']
     program = f"{code_snippet}{gold_output}{data['suffix']}"
+
+    def split_by_second_assert(s):
+        delimiter = "assert"
+        first_index = s.find(delimiter)
+        if first_index == -1:
+            return s  # Delimiter not found at all, return the original string
+        second_index = s.find(delimiter, first_index + len(delimiter))
+        if second_index == -1:
+            return s  # Only one occurrence found, return the original string
+        return s[:second_index]
+    data['test'] = split_by_second_assert(data['test'])
     test_func = f"\n{data['test']}\ncheck({data['entry_point']})"
 
     # extract func names

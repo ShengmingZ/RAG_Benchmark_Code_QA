@@ -12,7 +12,7 @@ sys.path.insert(0, root_path)
 from dataset_utils.corpus_utils import PythonDocsLoader
 
 
-def process_oracle_docs(oracle_list_file):
+def process_oracle_docs(oracle_list_file, dataset):
     # process oracle list
     oracle_list = json.load(open(oracle_list_file, 'r'))
     for idx, oracle in enumerate(oracle_list):
@@ -27,6 +27,7 @@ def process_oracle_docs(oracle_list_file):
             except:
                 ...
             main_content = function_head + '\n' + '\n'.join(lines[3:])
+            # if dataset == 'conala': main_content = main_content.split('Help on', 1)[0]
             new_oracle_docs.append(main_content)
         oracle_list[idx]['oracle_docs'] = new_oracle_docs
 
@@ -42,7 +43,7 @@ def main(dataset):
         oracle_list_file = os.path.join(root_path, 'data/DS1000/oracle_docs_matched.json')
     else:
         oracle_list_file = os.path.join(root_path, 'data/conala/oracle_docs_matched.json')
-    oracle_list = process_oracle_docs(oracle_list_file)
+    oracle_list = process_oracle_docs(oracle_list_file, dataset)
     python_docs = PythonDocsLoader().load_api_docs()
 
     # match oracle list with documentations
@@ -58,7 +59,7 @@ def main(dataset):
     # check if every doc is matched
     for i, oracle in enumerate(oracle_list):
         for j, oracle_id in enumerate(oracle['oracle_ids']):
-            if oracle_id is None: print(f'doc match failed for doc {oracle["oracle_docs"][j]}')
+            if oracle_id is None: print(f'doc match failed for doc {[oracle["oracle_docs"][j][:1000]]}')
 
     # write back
     _oracle_list = list()
@@ -75,9 +76,9 @@ if __name__ == '__main__':
     # pandas_numpy_eval_oracle_file = 'data/pandas-numpy-eval/data/oracle_docs_matched_new.json'
     # conala_oracle_file = 'data/conala/oracle_docs_matched_new.json'
 
-    main('pandas-numpy-eval')
+    # main('pandas-numpy-eval')
     # main('DS1000')
-    # main('conala')
+    main('conala')
 
     # process_python_docs()
 
