@@ -38,7 +38,7 @@ def extract_func_name(code_string):
         tree = ast.parse(code_string)
     except:
         print(f'invalid code string {code_string}')
-        return None
+        return []
 
     # add parent
     for node in ast.walk(tree):
@@ -446,7 +446,7 @@ def main(dataset_name):
         if dataset_name == 'DS1000':
             qs_id = data['qs_id']
             output = data['reference_code']
-        elif dataset_name == 'PandasNumpyEval':
+        elif dataset_name == 'pandas-numpy-eval':
             qs_id = data['task_id']
             output = data['canonical_solution'][0]
             if idx == 19: data['canonical_solution'][0] = data['canonical_solution'][0].replace('    ', '', 1)
