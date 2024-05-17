@@ -21,9 +21,9 @@ random.seed(0)
 class PandasNumpyEvalLoader:
     def __init__(self):
         self.root = root_path
-        self.pandas_eval_file = os.path.join(self.root, 'data/pandas-numpy-eval/data/PandasEval.jsonl.gz')
+        self.pandas_eval_file = os.path.join(self.root, 'data/pandas_numpy_eval/data/PandasEval.jsonl.gz')
         self.numpy_eval_file = self.pandas_eval_file.replace('PandasEval', 'NumpyEval')
-        self.oracle_docs_matched_file = os.path.join(self.root, 'data/pandas-numpy-eval/data/oracle_docs_matched.json')
+        self.oracle_docs_matched_file = os.path.join(self.root, 'data/pandas_numpy_eval/data/oracle_docs_matched.json')
 
     def load_qs_list(self):
         """
