@@ -88,6 +88,8 @@ class PandasNumpyEvalLoader:
             for future in tqdm(as_completed(futures), total=len(futures)):
                 result = future.result()
                 results_list[result['task_id']].append(result['passed'])
+                if result['passed'] is False:
+                    print(result['task_id'])
             results_list = list(results_list.values())
 
         return self.pass_rate(results_list, k_list)
