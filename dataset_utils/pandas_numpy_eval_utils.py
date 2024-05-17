@@ -54,7 +54,7 @@ class PandasNumpyEvalLoader:
         {'qs_id': str, 'oracle_docs': a list of libs}
         """
         oracle_list = json.load(open(self.oracle_docs_matched_file, 'r'))
-        oracle_list = [dict(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'], outputs=oracle['output']) for oracle in oracle_list]
+        oracle_list = [dict(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'], output=oracle['output']) for oracle in oracle_list]
         return oracle_list
 
     # def test_helper(self, problem_code_pair):
@@ -80,6 +80,7 @@ class PandasNumpyEvalLoader:
             for pred in predictions:
                 for data in data_list:
                     if data['task_id'] == pred['qs_id']:
+                        assert type(pred['outputs']) is list and len(pred['outputs']) >= max(k_list)
                         for idx, output in enumerate(pred['outputs']):
                             args = (data, output, 3, idx)
                             future = executor.submit(check_correctness, *args)
@@ -114,6 +115,22 @@ if __name__ == '__main__':
     # sanity check pass@k
     pandas_numpy_eval_utils = PandasNumpyEvalLoader()
     oracle_list = pandas_numpy_eval_utils.load_oracle_list()
-    preds = [dict(qs_id=oracle['qs_id'], outputs=oracle['outputs']) for oracle in oracle_list]
+    preds = [dict(qs_id=oracle['qs_id'], outputs=[oracle['output']]) for oracle in oracle_list]
     pass_scores = pandas_numpy_eval_utils.eval_passk(preds, [1])
     print(pass_scores)
+
+    # data_list = list()
+    # with gzip.open(pandas_numpy_eval_utils.pandas_eval_file, 'rt') as f:
+    #     for line in f:
+    #         data_list.append(json.loads(line))
+    # with gzip.open(pandas_numpy_eval_utils.numpy_eval_file, 'rt') as f:
+    #     for line in f:
+    #         data_list.append(json.loads(line))
+    # count = 0
+    # for pred in preds:
+    #     for data in data_list:
+    #         if data['task_id'] == pred['qs_id']:
+    #             for idx, output in enumerate(pred['outputs']):
+    #                 count += 1
+    # print(len(preds))
+    # print(count)
