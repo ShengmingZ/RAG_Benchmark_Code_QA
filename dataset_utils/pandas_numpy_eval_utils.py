@@ -23,7 +23,7 @@ class PandasNumpyEvalLoader:
         self.root = root_path
         self.pandas_eval_file = os.path.join(self.root, 'data/pandas_numpy_eval/data/PandasEval.jsonl.gz')
         self.numpy_eval_file = self.pandas_eval_file.replace('PandasEval', 'NumpyEval')
-        self.oracle_docs_matched_file = os.path.join(self.root, 'data/pandas_numpy_eval/data/oracle_docs_matched.json')
+        self.oracle_docs_matched_file = os.path.join(self.root, 'data/pandas_numpy_eval/data/oracle_docs_matched_processed.json')
 
     def load_qs_list(self):
         """
@@ -52,7 +52,7 @@ class PandasNumpyEvalLoader:
         {'qs_id': str, 'oracle_docs': a list of libs}
         """
         oracle_list = json.load(open(self.oracle_docs_matched_file, 'r'))
-        oracle_list = [dict(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'], outputs=oracle['canonical_solution']) for oracle in oracle_list]
+        oracle_list = [dict(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'], outputs=oracle['output']) for oracle in oracle_list]
         return oracle_list
 
     def test_helper(self, problem_code_pair):
