@@ -74,7 +74,7 @@ class PandasNumpyEvalLoader:
         problem_code_pairs = list()
         for pred in predictions:
             for data in data_list:
-                if data['qs_id'] == pred['qs_id']:
+                if data['task_id'] == pred['qs_id']:
                     problem_code_pairs.append((data, pred['outputs']))
                     break
 
