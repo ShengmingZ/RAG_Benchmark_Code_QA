@@ -100,6 +100,7 @@ class PandasNumpyEvalLoader:
 
         pass_scores = dict()
         for k in k_list:
+            pass_scores[f'pass@{k}'] = 0
             for results in results_list:
                 passed_num = results.count(True)
                 total_num = len(results)
