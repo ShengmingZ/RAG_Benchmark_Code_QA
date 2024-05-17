@@ -55,13 +55,13 @@ class PandasNumpyEvalLoader:
         oracle_list = [dict(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'], outputs=oracle['output']) for oracle in oracle_list]
         return oracle_list
 
-    def test_helper(self, problem_code_pair):
-        data, outputs = problem_code_pair
-        results = []
-        for idx, output in enumerate(outputs):
-            result = check_correctness(problem=data, completion=output, timeout=60, completion_id=idx)
-            results.append(result['passed'])
-        return results
+    # def test_helper(self, problem_code_pair):
+    #     data, outputs = problem_code_pair
+    #     results = []
+    #     for idx, output in enumerate(outputs):
+    #         result = check_correctness(problem=data, completion=output, timeout=60, completion_id=idx)
+    #         results.append(result['passed'])
+    #     return results
 
     def eval_passk(self, predictions, k_list, num_procs=16):
         data_list = list()
@@ -72,16 +72,15 @@ class PandasNumpyEvalLoader:
             for line in f:
                 data_list.append(json.loads(line))
         problem_code_pairs = list()
+        results_list = []
         for pred in predictions:
             for data in data_list:
                 if data['task_id'] == pred['qs_id']:
-                    problem_code_pairs.append((data, pred['outputs']))
-                    break
-
-        results_list = list()
-        with Pool(num_procs) as pool:
-            for results in tqdm(pool.imap(self.test_helper, problem_code_pairs), total=len(problem_code_pairs)):
-                results_list.append(results)
+                    results = []
+                    for idx, output in enumerate(pred['outputs']):
+                        result = check_correctness(problem=data, completion=output, timeout=60, completion_id=idx)
+                        results.append(result['passed'])
+            results_list.append(results)
 
         return self.pass_rate(results_list, k_list)
 
