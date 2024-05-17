@@ -91,6 +91,7 @@ class PandasNumpyEvalLoader:
                 if result['passed'] is False:
                     print(result['task_id'])
             results_list = list(results_list.values())
+            print(results_list)
 
         return self.pass_rate(results_list, k_list)
 
