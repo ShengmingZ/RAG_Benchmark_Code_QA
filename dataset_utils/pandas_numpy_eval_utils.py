@@ -3,6 +3,8 @@ import gzip
 import random
 import sys
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from collections import defaultdict
 import numpy as np
 from multiprocessing import Pool
 import platform
@@ -71,16 +73,21 @@ class PandasNumpyEvalLoader:
         with gzip.open(self.numpy_eval_file, 'rt') as f:
             for line in f:
                 data_list.append(json.loads(line))
-        problem_code_pairs = list()
-        results_list = []
-        for pred in predictions:
-            for data in data_list:
-                if data['task_id'] == pred['qs_id']:
-                    results = []
-                    for idx, output in enumerate(pred['outputs']):
-                        result = check_correctness(problem=data, completion=output, timeout=60, completion_id=idx)
-                        results.append(result['passed'])
-            results_list.append(results)
+
+        with ThreadPoolExecutor(max_workers=num_procs) as executor:
+            results_list = defaultdict(list)
+            futures = list()
+            for pred in predictions:
+                for data in data_list:
+                    if data['task_id'] == pred['qs_id']:
+                        for idx, output in enumerate(pred['outputs']):
+                            args = (data, output, 3, idx)
+                            future = executor.submit(check_correctness, *args)
+                            futures.append(future)
+            for future in tqdm(as_completed(futures), total=len(futures)):
+                result = future.result()
+                results_list[result['task_id']].append(result['passed'])
+            results_list = list(results_list.values())
 
         return self.pass_rate(results_list, k_list)
 
