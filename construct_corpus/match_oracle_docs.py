@@ -19,7 +19,16 @@ def process_oracle_docs(oracle_list_file, dataset):
         new_oracle_docs = []
         for doc in oracle['oracle_docs']:
             lines = doc.split('\n')
+            # clear dup docs
             prefix = lines[0]
+            is_dup = False
+            for repeat_idx, line in enumerate(lines[1:]):
+                if line == prefix:
+                    is_dup = True
+                    break
+            if is_dup: repeat_idx += 1
+            else: repeat_idx += 2
+            # process function head
             function_head = re.sub(r'self[^,]*?:[^,]+?, ', '', lines[2])
             function_head = (function_head.replace('self, ', '').replace('self', '').replace('...', '')
                              .replace(', /', '').replace('/, ', ''))
@@ -27,8 +36,8 @@ def process_oracle_docs(oracle_list_file, dataset):
                 function_head = function_head[:re.search(r'\(.*\)', function_head).end()]
             except:
                 ...
-            main_content = function_head + '\n' + '\n'.join(lines[3:])
-            # if dataset == 'conala': main_content = main_content.split('Help on', 1)[0]
+            main_content = function_head + '\n' + '\n'.join(lines[3:repeat_idx])
+            if is_dup: main_content += '\n'
             new_oracle_docs.append(main_content)
         oracle_list[idx]['oracle_docs'] = new_oracle_docs
 
@@ -66,7 +75,7 @@ def main(dataset):
     _oracle_list = list()
     for i, oracle in enumerate(oracle_list):
         oracle_docs = [item for item in oracle_list[i]['oracle_ids'] if item is not None]
-        if oracle_docs != []: _oracle_list.append(dict(qs_id=oracle['qs_id'], oracle_docs=oracle_docs, output=oracle['output'], full_name_list=oracle['full_name_list']))
+        if oracle_docs != []: _oracle_list.append(dict(qs_id=oracle['qs_id'], oracle_docs=list(set(oracle_docs)), output=oracle['output'], full_name_list=oracle['full_name_list']))
     proc_oracle_list_file = oracle_list_file.replace('.json', '_processed.json')
     with open(proc_oracle_list_file, 'w+') as f:
         json.dump(_oracle_list, f, indent=2)

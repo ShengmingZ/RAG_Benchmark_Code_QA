@@ -391,44 +391,7 @@ class DS1000Loader:
 #         return oracle_list
 
 
-class PandasNumpyEvalLoader:
-    def __init__(self):
-        self.root = root_path
-        self.pandas_eval_file = os.path.join(self.root, 'data/pandas-numpy-eval/data/PandasEval.jsonl.gz')
-        self.numpy_eval_file = self.pandas_eval_file.replace('PandasEval', 'NumpyEval')
-        self.oracle_docs_matched_file = os.path.join(self.root, 'data/pandas-numpy-eval/data/oracle_docs_matched.json')
-        self.pandas_eval_data = list()
-        with gzip.open(self.pandas_eval_file, 'rt') as f:
-            for line in f:
-                self.pandas_eval_data.append(json.loads(line))
 
-        self.numpy_eval_data = list()
-        with gzip.open(self.numpy_eval_file, 'rt') as f:
-            for line in f:
-                self.numpy_eval_data.append(json.loads(line))
-
-    def load_qs_list(self, sampled=False):
-        """
-        all elements in qs list should be in the format of {'nl': nl, 'qs_id': qs_id}
-        """
-        qs_list = list()
-        for data in self.pandas_eval_data:
-            qs_list.append(dict(qs_id=data['task_id'], nl=data['prompt']))
-        for data in self.numpy_eval_data:
-            qs_list.append(dict(qs_id=data['task_id'], nl=data['prompt']))
-        return qs_list
-
-    def load_oracle_list(self, sampled=False):
-        """
-        {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
-        """
-        # oracle_list = []
-        # for data in self.pandas_eval_data:
-        #     oracle_list.append(dict(qs_id=data['task_id'], outputs=data['canonical_solution']))
-        # for data in self.numpy_eval_data:
-        #     oracle_list.append(dict(qs_id=data['task_id'], outputs=data['canonical_solution']))
-        # return oracle_list
-        return json.load(open(self.oracle_docs_matched_file, 'r'))
 
 
 

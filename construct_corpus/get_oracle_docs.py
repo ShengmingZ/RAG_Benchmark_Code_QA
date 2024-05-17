@@ -12,12 +12,12 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from dataset_utils.dataset_configs import DS1000Loader, PandasNumpyEvalLoader
+from dataset_utils.dataset_configs import DS1000Loader
 from data.DS1000.ds1000 import DS1000Dataset
 
 random.seed(0)
 
-common_func_list = ['copy', 'format', 'lower', 'len']
+common_func_list = ['copy', 'format', 'lower', 'len', 'int', 'str', 'open']
 # common_func_list = ['sum', 'replace', 'lower', 'search', 'sort', 'pow', 'append', 'sub', 'sqrt', 'split', 'add', 'keys', 'items', 'join', 'extend', 'copy', 'remove', 'index', 'pop']
 
 
