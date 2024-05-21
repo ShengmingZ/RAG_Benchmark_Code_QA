@@ -157,7 +157,7 @@ class ConalaLoader:
             suffix = unittest['suffix']
             entry_point = unittest["entry_point"]
             test_func = f"\n{unittest['test']}\ncheck({entry_point})"
-            runnable_func = [f"{unittest['prompt']}{x}{suffix}" for x in result['outputs']]
+            runnable_func = [f"{unittest['prompt']}{x}{suffix}" for x in result['output']]
             # runnable_func = [f"{unittest['prompt']}{unittest['canonical_solution']}{suffix}"] # oracle
 
             pass_k, _ = code_eval_metric.compute(
