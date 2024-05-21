@@ -6,16 +6,13 @@ import platform
 import sys
 import evaluate
 from tqdm import tqdm
-from retriever.dense_retriever import dense_retriever_config
 import random
-from datasets import load_metric
 system = platform.system()
 if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from data.DS1000.ds1000 import DS1000Dataset
 os.environ["HF_ALLOW_CODE_EVAL"] = "1"
 
 random.seed(0)
@@ -192,7 +189,7 @@ if __name__ == '__main__':
     #             oracle_list[idx]['qs_id'] = qs_id
     #             count += 1
     #     if count != 1: print(f'error for {oracle}')
-    # 
+    #
     # with open(loader.oracle_doc_file, 'w+') as f:
     #     json.dump(oracle_list, f, indent=2)
 
