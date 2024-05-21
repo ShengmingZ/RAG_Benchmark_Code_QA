@@ -193,5 +193,5 @@ if __name__ == '__main__':
     # with open(loader.oracle_doc_file, 'w+') as f:
     #     json.dump(oracle_list, f, indent=2)
 
-    preds = [dict(qs_id=oracle['qs_id'], output=oracle['output']) for oracle in oracle_list]
+    preds = [dict(qs_id=oracle['qs_id'], output=[oracle['output']]) for oracle in oracle_list]
     loader.eval_passk(preds, [1])
