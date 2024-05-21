@@ -119,21 +119,29 @@ if __name__ == '__main__':
     pandas_numpy_eval_utils = PandasNumpyEvalLoader()
     oracle_list = pandas_numpy_eval_utils.load_oracle_list()
     preds = [dict(qs_id=oracle['qs_id'], outputs=[oracle['output']]) for oracle in oracle_list]
+
+    data_list = list()
+    with gzip.open(pandas_numpy_eval_utils.pandas_eval_file, 'rt') as f:
+        for line in f:
+            data_list.append(json.loads(line))
+    with gzip.open(pandas_numpy_eval_utils.numpy_eval_file, 'rt') as f:
+        for line in f:
+            data_list.append(json.loads(line))
+    for data in data_list:
+        if data['task_id'] in ['PandasEval/79', 'PandasEval/90']:
+            problem = data
+            # check_program = (
+            #         problem['prompt'] + data['canonical_solution'][0] + "\n" +
+            #         problem["test"] + "\n" +
+            #         f"check()"
+            # )
+            # print(check_program)
+            print([problem["test"]])
+        if data['task_id'] == 'PandasEval/79':
+            data['test'] = "\n\nMETADATA = {\n    'author': 'msra-v-dazan',\n    'dataset': 'test',\n    'type': 'isna_any'\n}\n\n\ndef check(candidate):\n    assert candidate(pd.DataFrame({'a': [np.nan, 3, 2], 'b': [4, 4, 2]})).equals(pd.DataFrame({'a': [np.nan], 'b': [4]}, index=[0]))\n    assert candidate(pd.DataFrame({'a': [np.nan, 3, 2], 'b': [5, 4, 2]})).equals(pd.DataFrame({'a': [np.nan], 'b': [5]}, index=[0]))\n    assert candidate(pd.DataFrame({'a': [np.nan, 332, 2], 'b': [4, 4, 2]})).equals(pd.DataFrame({'a': [np.nan], 'b': [4]}, index=[0]))\n    assert candidate(pd.DataFrame({'a': [np.nan, 3, 2], 'b': [4, 4122, 2]})).equals(pd.DataFrame({'a': [np.nan], 'b': [4]}, index=[0]))\n    assert candidate(pd.DataFrame({'a': [np.nan, 3, 2], 'b': [4, 4, 2123]})).equals(pd.DataFrame({'a': [np.nan], 'b': [4]}, index=[0]))\n    assert candidate(pd.DataFrame({'a': [np.nan, 31, 22], 'b': [4, 4, 2]})).equals(pd.DataFrame({'a': [np.nan], 'b': [4]}, index=[0]))\n    assert candidate(pd.DataFrame({'a': [np.nan, 3, 2], 'b': [4, 34, 22]})).equals(pd.DataFrame({'a': [np.nan], 'b': [4]}, index=[0]))\n    assert candidate(pd.DataFrame({'a': [np.nan, 31, 12], 'b': [4, 4, 2]})).equals(pd.DataFrame({'a': [np.nan], 'b': [4]}, index=[0]))\n    assert candidate(pd.DataFrame({'a': [np.nan, 3, 2], 'b': [14, 14, 12]})).equals(pd.DataFrame({'a': [np.nan], 'b': [14]}, index=[0]))\n    assert candidate(pd.DataFrame({'a': [np.nan, 33, 32], 'b': [4, 4, 2]})).equals(pd.DataFrame({'a': [np.nan], 'b': [4]}, index=[0]))\n\n"
+        if data['task_id'] == 'PandasEval/90':
+            data['test'] = "\n\nMETADATA = {\n    'author': 'msra-v-dazan',\n    'dataset': 'test',\n    'type': 'append_odd_drop'\n}\n\n\ndef check(candidate):\n    assert candidate(pd.DataFrame({'column1': ['a', 'b', 'c', 'd', 'e', 'f'],'column2': [1, 0, 2, 3, 7, 10]})).equals( pd.DataFrame({'column1': ['c', 'd', 'e', 'f'],'column2': [2, 3, 7, 10]}, index=[2, 3, 4, 5]))\n    assert candidate(pd.DataFrame({'column1': ['m', 's', 'r', 'a', 'z', 'a'],'column2': [8, 7, 2, 5, 6, 1]})).equals(pd.DataFrame({'column1': ['m', 's', 'r', 'a', 'z', 'a'],'column2': [8, 7, 2, 5, 6, 1]}))\n    assert candidate(pd.DataFrame({'column1': ['a', 'b', 'c', 'd', 'e', 'f'],'column2': [2, 0, 2, 3, 7, 10]})).equals( pd.DataFrame({'column1': ['c', 'd', 'e', 'f'],'column2': [2, 3, 7, 10]}, index=[2, 3, 4, 5]))\n    assert candidate(pd.DataFrame({'column1': ['a', 'b', 'c', 'd', 'e', 'f'],'column2': [2, 0, 2, 3, 7, 11]})).equals( pd.DataFrame({'column1': ['c', 'd', 'e', 'f'],'column2': [2, 3, 7, 11]}, index=[2, 3, 4, 5]))\n    assert candidate(pd.DataFrame({'column1': ['a', 'b', 'c', 'd', 'e', 'f'],'column2': [2, 0, 2, 3, 8, 11]})).equals( pd.DataFrame({'column1': ['c', 'd', 'e', 'f'],'column2': [2, 3, 8, 11]}, index=[2, 3, 4, 5]))\n    assert candidate(pd.DataFrame({'column1': ['a', 'b', 'c', 'd', 'e', 'f'],'column2': [2, 0, 2, 4, 8, 11]})).equals( pd.DataFrame({'column1': ['c', 'd', 'e', 'f'],'column2': [2, 4, 8, 11]}, index=[2, 3, 4, 5]))\n    assert candidate(pd.DataFrame({'column1': ['a', 'b', 'c', 'd', 'e', 'f'],'column2': [2, 0, 3, 4, 8, 11]})).equals( pd.DataFrame({'column1': ['c', 'd', 'e', 'f'],'column2': [3, 4, 8, 11]}, index=[2, 3, 4, 5]))\n    assert candidate(pd.DataFrame({'column1': ['a', 'b', 'c', 'd', 'e', 'f'],'column2': [2, 0, 3, 4, 9, 11]})).equals( pd.DataFrame({'column1': ['c', 'd', 'e', 'f'],'column2': [3, 4, 9, 11]}, index=[2, 3, 4, 5]))\n    assert candidate(pd.DataFrame({'column1': ['a', 'b', 'c', 'd', 'e', 'f'],'column2': [2, 0, 3, 4, 9, 18]})).equals( pd.DataFrame({'column1': ['c', 'd', 'e', 'f'],'column2': [3, 4, 9, 18]}, index=[2, 3, 4, 5]))\n    assert candidate(pd.DataFrame({'column1': ['a', 'b', 'c', 'd', 'e', 'f'],'column2': [2, 0, 3, 4, 12, 18]})).equals( pd.DataFrame({'column1': ['c', 'd', 'e', 'f'],'column2': [3, 4, 12, 18]}, index=[2, 3, 4, 5]))\n\n\n"
+
     pass_scores = pandas_numpy_eval_utils.eval_passk(preds, [1])
     print(pass_scores)
 
-    # data_list = list()
-    # with gzip.open(pandas_numpy_eval_utils.pandas_eval_file, 'rt') as f:
-    #     for line in f:
-    #         data_list.append(json.loads(line))
-    # with gzip.open(pandas_numpy_eval_utils.numpy_eval_file, 'rt') as f:
-    #     for line in f:
-    #         data_list.append(json.loads(line))
-    # count = 0
-    # for pred in preds:
-    #     for data in data_list:
-    #         if data['task_id'] == pred['qs_id']:
-    #             for idx, output in enumerate(pred['outputs']):
-    #                 count += 1
-    # print(len(preds))
-    # print(count)
