@@ -32,21 +32,22 @@ class PandasNumpyEvalLoader:
         """
         all elements in qs list should be in the format of {'nl': nl, 'qs_id': qs_id}
         """
-        qs_list = list()
-        with gzip.open(self.pandas_eval_file, 'rt') as f:
-            for line in f:
-                data = json.loads(line)
-                qs_list.append(dict(qs_id=data['qs_id'], question=data['prompt']))
-        with gzip.open(self.numpy_eval_file, 'rt') as f:
-            for line in f:
-                data = json.loads(line)
-                qs_list.append(dict(qs_id=data['qs_id'], question=data['prompt']))
+        # qs_list = list()
+        # with gzip.open(self.pandas_eval_file, 'rt') as f:
+        #     for line in f:
+        #         data = json.loads(line)
+        #         qs_list.append(dict(qs_id=data['qs_id'], question=data['prompt']))
+        # with gzip.open(self.numpy_eval_file, 'rt') as f:
+        #     for line in f:
+        #         data = json.loads(line)
+        #         qs_list.append(dict(qs_id=data['qs_id'], question=data['prompt']))
+        data_list = json.load(open(self.data_file, 'r'))
         oracle_list = json.load(open(self.oracle_docs_matched_file, 'r'))
         _qs_list = list()
         for oracle in oracle_list:
-            for qs in qs_list:
-                if qs['qs_id'] == oracle['qs_id']:
-                    _qs_list.append(qs)
+            for data in data_list:
+                if data['task_id'] == oracle['qs_id']:
+                    _qs_list.append(dict(qs_id=data['qs_id'], question=data['prompt']))
                     break
         return _qs_list
 
