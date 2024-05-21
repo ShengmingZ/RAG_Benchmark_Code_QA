@@ -101,18 +101,18 @@ class DS1000Loader:
                             desc=f"Executing test for {lib} questions",
                     ):
                         lib_results.append(test_results)
-                        for result in result_list:
-                            [result_lib, result_problem_id] = result['nl']['qs_id'].split('_')
-                            if result_lib == lib and int(result_problem_id) == problem_id:
-                                result['test_results'] = test_results
+                        # for result in result_list:
+                        #     [result_lib, result_problem_id] = result['qs_id'].split('_')
+                        #     if result_lib == lib and int(result_problem_id) == problem_id:
+                        #         result['test_results'] = test_results
             else:
                 for problem_id, problem_code_pair in tqdm(enumerate(processed_gene_codes[lib])):
                     test_results = self.test_helper(problem_code_pair)
                     lib_results.append(test_results)
-                    for result in result_list:
-                        [result_lib, result_problem_id] = result['nl']['qs_id'].split('_')
-                        if result_lib == lib and int(result_problem_id) == problem_id:
-                            result['test_results'] = test_results
+                    # for result in result_list:
+                    #     [result_lib, result_problem_id] = result['nl']['qs_id'].split('_')
+                    #     if result_lib == lib and int(result_problem_id) == problem_id:
+                    #         result['test_results'] = test_results
 
             pass_scores = self.pass_rate(lib_results, k_list)
             total_pass_score[lib] = pass_scores
@@ -124,6 +124,8 @@ class DS1000Loader:
         for key in avg_pass_score.keys():
             avg_pass_score[key] = avg_pass_score[key] / len(total_pass_score.keys())
         print(f'avg pass score: {avg_pass_score}')
+
+        return avg_pass_score
 
     @staticmethod
     def pass_rate(results_list, k_list):
