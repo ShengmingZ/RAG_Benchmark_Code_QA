@@ -20,10 +20,8 @@ BEST_RETRIEVER = {
 }
 
 
-model_name_dict = {'codet5_conala': 'neulab/docprompting-codet5-python-doc-retriever',
+model_name_dict = {'codeT5': 'neulab/docprompting-codet5-python-doc-retriever',
                    'codet5_ots': 'Salesforce/codet5-base',
-                   'roberta_conala': '',
-                   'roberta_ots': 'roberta-large-mnli',
                    'miniLM': 'sentence-transformers/all-MiniLM-L6-v2',
                    'openai-embedding': 'text-embedding-3-small',
                    'contriever': 'facebook/contriever'}
@@ -33,7 +31,7 @@ def retriever_config(in_program_call=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, choices=['conala', 'DS1000', 'pandas_numpy_eval', 'hotpotQA', 'NQ', 'TriviaQA'])
     parser.add_argument('--top_k', type=int, default=200)
-    parser.add_argument('--retriever', type=str, choices=['BM25', 'openai-embedding', 'miniLM', 'contriever'])
+    parser.add_argument('--retriever', type=str, choices=['BM25', 'openai-embedding', 'miniLM', 'contriever', 'codeT5'])
     parser.add_argument('--batch_size', type=int, default=128)
     parser.add_argument('--sim_func', default='cls_distance.cosine', choices=('cls_distance.cosine', 'cls_distance.l2', 'bertscore'))
     parser.add_argument('--normalize_embed', action='store_true')

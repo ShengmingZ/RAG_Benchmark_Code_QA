@@ -10,25 +10,19 @@ import argparse
 import shlex
 import json
 from collections import OrderedDict
-
 import numpy as np
 import faiss
-from dataset_utils.dataset_configs import TldrLoader, ConalaLoader, WikiCorpusLoader, HotpotQALoader, NQLoader
-from retriever.retriaval_evaluate import conala_eval, tldr_eval
 from retriever.dense_encoder import DenseRetrievalEncoder
-from dataset_utils.hotpot_evaluate_v1 import eval_sp
+from retriever_utils import retriever_config
+from dataset_utils.conala_utils import ConalaLoader
+from dataset_utils.DS1000_utils import DS1000Loader
+from dataset_utils.hotpotQA_utils import HotpotQAUtils
+from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
+from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
+from dataset_utils.corpus_utils import PythonDocsLoader, WikiCorpusLoader
 
 
-model_name_dict = {'codet5_conala': 'neulab/docprompting-codet5-python-doc-retriever',
-                   'codet5_ots': 'Salesforce/codet5-base',
-                   'roberta_conala': '',
-                   'roberta_ots': 'roberta-large-mnli',
-                   'miniLM': 'sentence-transformers/all-MiniLM-L6-v2',
-                   'openai-embedding': 'text-embedding-3-small',
-                   'contriever': 'facebook/contriever'}
-
-
-def retrieve(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, top_k):
+def retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, top_k):
     """
     compute similarity using FAISS
     :param qs_embed: a numpy array consists of qs embedding
@@ -62,26 +56,26 @@ def retrieve(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, top_k):
     return ret_results
 
 
-def conala_retrieve(args):
-    conala_loader = ConalaLoader()
-    qs_list = conala_loader.load_qs_list(args.dataset_type)
-    qs_id_list = [qs['qs_id'] for qs in qs_list]
-    doc_list_firstpara = conala_loader.load_doc_list_firstpara()
-    doc_key_list = list(doc_list_firstpara.keys())
-
-    source_embed = np.load(args.conala_qs_embed_save_file + '.npy')
-    target_embed = np.load(args.conala_doc_firstpara_embed_save_file + '.npy')
-    # source_embed = np.load('docprompting_data/conala/.tmp/src_embedding.npy')
-    # target_embed = np.load('docprompting_data/conala/.tmp/tgt_embedding.npy')
-
-    ret_results = retrieve(source_embed, target_embed, qs_id_list, doc_key_list, args.save_file, args.top_k)
-
-    oracle_list = conala_loader.load_oracle_list(args.dataset_type)
-    gold, pred = list(), list()
-    for item in oracle_list:
-        gold.append(item['doc_keys'])
-        pred.append([tmp['doc_key'] for tmp in ret_results[item['qs_id']]])
-    conala_eval(gold=gold, pred=pred)
+# def conala_retrieve(args):
+#     conala_loader = ConalaLoader()
+#     qs_list = conala_loader.load_qs_list(args.dataset_type)
+#     qs_id_list = [qs['qs_id'] for qs in qs_list]
+#     doc_list_firstpara = conala_loader.load_doc_list_firstpara()
+#     doc_key_list = list(doc_list_firstpara.keys())
+#
+#     source_embed = np.load(args.conala_qs_embed_save_file + '.npy')
+#     target_embed = np.load(args.conala_doc_firstpara_embed_save_file + '.npy')
+#     # source_embed = np.load('docprompting_data/conala/.tmp/src_embedding.npy')
+#     # target_embed = np.load('docprompting_data/conala/.tmp/tgt_embedding.npy')
+#
+#     ret_results = retrieve(source_embed, target_embed, qs_id_list, doc_key_list, args.save_file, args.top_k)
+#
+#     oracle_list = conala_loader.load_oracle_list(args.dataset_type)
+#     gold, pred = list(), list()
+#     for item in oracle_list:
+#         gold.append(item['doc_keys'])
+#         pred.append([tmp['doc_key'] for tmp in ret_results[item['qs_id']]])
+#     conala_eval(gold=gold, pred=pred)
 
 
 # def tldr_whole_retrieve(args):
@@ -168,14 +162,21 @@ def conala_retrieve(args):
 
 
 def embed_corpus(args):
+    if os.path.exists(args.corpus_embed_file + '.npy'):
+        print(f'embedding file exists for {args.corpus_embed_file}')
+        return
     encoder = DenseRetrievalEncoder(args)
-    if args.corpus == 'wiki':
+    if args.corpus == 'wiki_nq' or args.corpus == 'wiki_hotpot':
         wiki_loader = WikiCorpusLoader()
-        wiki_data = wiki_loader.load_wiki_corpus()
-        wiki_data = [item['text'] for item in wiki_data]
-        encoder.encode(dataset=wiki_data, save_file=args.wikipedia_docs_embed_save_file)
+        wiki_data = wiki_loader.load_wiki_corpus(args.dataset)
+        dataset = [item['text'] for item in wiki_data]
     elif args.corpus == 'python_docs':
-        ...
+        loader = PythonDocsLoader()
+        python_docs = loader.load_api_docs()
+        dataset = [item['doc'] for item in python_docs]
+    encoder.encode(dataset=dataset, save_file=args.corpus_embed_file)
+    if args.normalize_embed is True:
+        normalize_embed(args.corpus_embed_file)
 
 
 def normalize_embed(embed_file):
@@ -190,52 +191,78 @@ def normalize_embed(embed_file):
         assert nor_vectors.shape == vectors.shape
         return nor_vectors
 
+    if os.path.exists(embed_file + '_normalized' + '.npy'):
+        print(f'embedding file exists for {embed_file+"_normalized"}')
+        return
     embed = np.load(embed_file + '.npy')
     nor_embed = normalize(embed)
     save_file = embed_file + '_normalized'
     np.save(save_file, nor_embed)
 
 
-def nlp_retrieve(args):
-    # encode
+def retrieve(args):
+    # load
     if args.dataset == 'hotpotQA':
-        hotpotqa_loader = HotpotQALoader()
-        qs_list = hotpotqa_loader.load_qs_list()
-        embed_save_file = args.hotpotqa_qs_embed_save_file
-    elif args.dataset == 'NQ':
-        nq_loader = NQLoader()
-        qs_list = nq_loader.load_qs_list()
-        embed_save_file = args.NQ_qs_embed_save_file
-    if not os.path.exists(embed_save_file):
-        encoder = DenseRetrievalEncoder(args)
-        encoder.encode(dataset=[qs['question'] for qs in qs_list], save_file=embed_save_file)
-    if args.normalize_embed is True:
-        normalize_embed(embed_save_file)
-        qs_embed = np.load(args.hotpotQA_qs_embed_save_file + '_normalized' + '.npy')
-        args.result_file = args.result_file.replace('.json', '_normalized.json')
-    else:
-        qs_embed = np.load(args.hotpotQA_embed_save_file + '.npy')
-
-    # load vectors
-    doc_embed = np.load(args.wikipedia_docs_embed_save_file + '.npy')
+        loader = HotpotQAUtils()
+        doc_id_list = WikiCorpusLoader().load_wiki_id(args.dataset)
+    elif args.dataset == 'NQ' or args.dataset == 'TriviaQA':
+        loader = NQTriviaQAUtils(args.dataset)
+        doc_id_list = WikiCorpusLoader().load_wiki_id(args.dataset)
+    elif args.dataset == 'conala':
+        loader = ConalaLoader()
+        doc_id_list = [item[0] for item in PythonDocsLoader().load_api_signs()]
+    elif args.dataset == 'DS1000':
+        loader = DS1000Loader()
+        doc_id_list = [item[0] for item in PythonDocsLoader().load_api_signs()]
+    elif args.dataset == 'pandas_numpy_eval':
+        loader = PandasNumpyEvalLoader()
+        doc_id_list = [item[0] for item in PythonDocsLoader().load_api_signs()]
+    qs_list = loader.load_qs_list()
     qs_id_list = [qs['qs_id'] for qs in qs_list]
-    wiki_loader = WikiCorpusLoader()
-    wiki_id_list = wiki_loader.load_wiki_id()
+
+    # get embed
+    if not os.path.exists(args.qs_embed_file):
+        encoder = DenseRetrievalEncoder(args)
+        encoder.encode(dataset=[qs['question'] for qs in qs_list], save_file=args.qs_embed_file)
+    if args.normalize_embed:
+        normalize_embed(args.qs_embed_file)
+        qs_embed = np.load(args.qs_embed_file + '_normalized' + '.npy')
+        args.ret_result = args.result_file.replace('.json', '_normalized.json')
+    else:
+        qs_embed = np.load(args.qs_embed_file + '.npy')
+    if args.normalize_embed:
+        doc_embed = np.load(args.corpus_embed_file + '_normalized' + '.npy')
+    else:
+        doc_embed = np.load(args.corpus_embed_file + '.npy')
 
     # retrieve
-    retrieve(qs_embed, doc_embed, qs_id_list, wiki_id_list, args.result_file, args.top_k)
+    ret_results = retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_id_list, args.ret_result, args.top_k)
 
-
-def hotpotqa_eval(args):
-    hotpotqa_loader = HotpotQALoader()
-    oracle_list = hotpotqa_loader.load_oracle_list()
-    ret_results = json.load(open(args.result_file, 'r'))
-    gold, pred = list(), list()
-    for item in oracle_list:
-        gold.append(item['oracle_docs'])
-        pred.append([tmp['doc_key'] for tmp in ret_results[item['qs_id']]])
-    metrics = eval_sp(preds=pred, golds=gold, top_k=[1,3,5,10,20,50,100])
-    print(metrics)
+    # eval
+    dataset = args.dataset
+    top_k = [1, 3, 5, 10, 20, 50, 100]
+    if dataset == 'hotpotQA':
+        oracle_list = loader.load_oracle_list()
+        golds, preds = list(), list()
+        for item in oracle_list:
+            golds.append(item['oracle_docs'])
+            preds.append([tmp['doc_key'] for tmp in ret_results[item['qs_id']]])
+        metrics = loader.eval_sp(preds, golds, top_k=top_k)
+    elif dataset == 'NQ' or dataset == 'TriviaQA':
+        oracle_list = loader.load_oracle_list()
+        ret_doc_keys_list, answers_list = [], []
+        for oracle in oracle_list:
+            answers_list.append(oracle['answers'])
+            ret_doc_keys_list.append([tmp['doc_key'] for tmp in ret_results[oracle['qs_id']]])
+        ret_docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list, dataset)
+        hits_rate = loader.retrieval_eval(docs_list=ret_docs_list, answers_list=answers_list, top_k=top_k)
+    elif dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
+        oracle_list = loader.load_oracle_list()
+        golds, preds = list(), list()
+        for oracle in oracle_list:
+            golds.append(oracle['oracle_docs'])
+            preds.append([tmp['doc_key'] for tmp in ret_results[oracle['qs_id']]])
+        recall_n = loader.calc_recall(src=golds, pred=preds, top_k=top_k)
 
 
 # def dense_retriever_config(in_program_call=None):
@@ -272,25 +299,11 @@ def hotpotqa_eval(args):
 
 
 if __name__ == '__main__':
-    # normalize or not
-    in_program_call = f"--dataset hotpotQA \
-                        --corpus wiki \
-                        --model_name contriever \
-                        --sim_func cls_distance.cosine"
-    ret_args = dense_retriever_config(in_program_call)
+    in_program_call = f"--dataset hotpotQA --retriever contriever"
+    ret_args = retriever_config(in_program_call)
 
-    # encode and normalize corpus
-    if not os.path.exists(ret_args.wikipedia_docs_embed_save_file + '.npy'):
-        embed_corpus(ret_args)
-    if ret_args.normalize_embed is True:
-        if not os.path.exists(ret_args.wikipedia_docs_embed_save_file + '_normalized' + '.npy'):
-            normalize_embed(ret_args.wikipedia_docs_embed_save_file)
-        ret_args.wikipedia_docs_embed_save_file += '_normalized'
-
-    # encode qs and retrieve
-    nlp_retrieve(ret_args)
-    if ret_args.dataset == 'hotpotQA':
-        hotpotqa_eval(ret_args)
+    embed_corpus(ret_args)
+    retrieve(ret_args)
 
 
     # if ret_args.dataset == 'tldr':
