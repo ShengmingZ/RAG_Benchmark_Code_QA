@@ -39,10 +39,14 @@ class ConalaLoader:
         """
         all elements in qs list should be in the format of {'nl': nl, 'qs_id': qs_id}
         """
+        oracle_list = json.load(open(self.oracle_doc_file, 'r'))
         dataset = json.load(open(self.unittest_file, 'r'))
         qs_list = []
-        for data in dataset.items():
-            qs_list.append(dict(qs_id=data['task_id'], question=data['intent']))
+        for oracle in oracle_list:
+            for key, data in dataset.items():
+                if oracle['qs_id'] == key:
+                    qs_list.append(dict(qs_id=key, question=data['intent']))
+                    break
         return qs_list
 
     def load_oracle_list(self):
@@ -51,7 +55,7 @@ class ConalaLoader:
         """
         dataset = json.load(open(self.oracle_doc_file, 'r'))
         oracle_list = []
-        for data in dataset.values():
+        for data in dataset:
             oracle_list.append(dict(qs_id=data['qs_id'], output=data['output'], oracle_docs=data['oracle_docs']))
         return oracle_list
 
@@ -181,6 +185,28 @@ class ConalaLoader:
         # for key in pass_keys: _pass_k[key] = _pass_k[key] / len(unittests)
         # print(_pass_k)
         # return _pass_k
+        return pass_k
+
+    @staticmethod
+    def calc_recall(src, pred, top_k):
+        recall_n = {x: 0 for x in top_k}
+        precision_n = {x: 0 for x in top_k}
+
+        for s, p in zip(src, pred):
+            # cmd_name = s['cmd_name']
+            oracle_man = s
+            pred_man = p
+
+            for tk in recall_n.keys():
+                cur_result_vids = pred_man[:tk]
+                cur_hit = sum([x in cur_result_vids for x in oracle_man])
+                # recall_n[tk] += cur_hit / (len(oracle_man) + 1e-10)
+                recall_n[tk] += cur_hit / (len(oracle_man)) if len(oracle_man) else 1
+                precision_n[tk] += cur_hit / tk
+        recall_n = {k: v / len(pred) for k, v in recall_n.items()}
+        precision_n = {k: v / len(pred) for k, v in precision_n.items()}
+        print(recall_n)
+        return recall_n
 
 
 if __name__ == '__main__':

@@ -146,6 +146,27 @@ class DS1000Loader:
             pass_scores[key] = pass_scores[key] / len(results_list)
         return pass_scores
 
+    @staticmethod
+    def calc_recall(src, pred, top_k):
+        recall_n = {x: 0 for x in top_k}
+        precision_n = {x: 0 for x in top_k}
+
+        for s, p in zip(src, pred):
+            # cmd_name = s['cmd_name']
+            oracle_man = s
+            pred_man = p
+
+            for tk in recall_n.keys():
+                cur_result_vids = pred_man[:tk]
+                cur_hit = sum([x in cur_result_vids for x in oracle_man])
+                # recall_n[tk] += cur_hit / (len(oracle_man) + 1e-10)
+                recall_n[tk] += cur_hit / (len(oracle_man)) if len(oracle_man) else 1
+                precision_n[tk] += cur_hit / tk
+        recall_n = {k: v / len(pred) for k, v in recall_n.items()}
+        precision_n = {k: v / len(pred) for k, v in precision_n.items()}
+        print(recall_n)
+        return recall_n
+
 
 if __name__ == '__main__':
     ds1000_loader = DS1000Loader()

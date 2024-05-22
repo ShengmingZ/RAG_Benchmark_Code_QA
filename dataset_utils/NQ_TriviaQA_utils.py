@@ -15,7 +15,6 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from corpus_utils import WikiCorpusLoader
 
 random.seed(0)
 
@@ -323,7 +322,8 @@ class NQTriviaQAUtils:
                 if True in hits[:k]:
                     hits_rate[k] += 1
             hits_rate[k] = hits_rate[k] / len(hits_list)
-        return hits_list, hits_rate
+        print(hits_rate)
+        return hits_rate
 
     @staticmethod
     def pred_eval(preds, answers_list):

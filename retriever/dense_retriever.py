@@ -238,36 +238,36 @@ def hotpotqa_eval(args):
     print(metrics)
 
 
-def dense_retriever_config(in_program_call=None):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, choices=['conala', 'hotpotQA', 'NQ', 'TriviaQA'])
-    parser.add_argument('--corpus', type=str, choices=['wiki', 'python_docs'])
-    # parser.add_argument('--dataset_type', type=str, default='test', choices=['train', 'test', 'dev'])
-    parser.add_argument('--model_name', type=str, choices=['miniLM', 'openai-embedding', 'contriever'])
-    parser.add_argument('--batch_size', type=int, default=128)
-    parser.add_argument('--top_k', type=int, default=200)
-    parser.add_argument('--sim_func', default='cls_distance.cosine', choices=('cls_distance.cosine', 'cls_distance.l2', 'bertscore'))
-    parser.add_argument('--normalize_embed', action='store_true')
-    parser.add_argument('--result_file', default=None)
-
-    args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
-    if args.result_file is None:
-        args.result_file = os.path.join(root_path, f'data/{args.dataset}/ret_results_{args.model_name}.json')
-    # record qs and corpus embeddings
-    args.conala_qs_embed_save_file = os.path.join(root_path, f'data/conala/embedding/qs_{args.model_name}')
-    args.conala_doc_firstpara_embed_save_file = os.path.join(root_path, f'data/conala/embedding/doc_firstpara_{args.model_name}')
-    # elif args.dataset == 'tldr':
-    #     args.tldr_qs_embed_save_file = os.path.join(root_path, f'docprompting_data/tldr/embedding/qs_{model_name_splitted}')
-    #     args.tldr_doc_whole_embed_save_file = os.path.join(root_path, 'docprompting_data/tldr/embedding/doc_whole_{model_name_splitted}')
-    #     args.tldr_doc_line_embed_save_file = os.path.join(root_path, f'docprompting_data/tldr/embedding/doc_line_{model_name_splitted}')
-    args.hotpotQA_qs_embed_save_file = os.path.join(root_path, f'data/hotpotQA/qs_embed_{args.model_name}')
-    args.NQ_qs_embed_save_file = os.path.join(root_path, f'data/NQ/qs_embed_{args.model_name}')
-    args.python_docs_embed_save_file = os.path.join(root_path, f'data/python_docs/embed_{args.model_name}')
-    args.wikipedia_docs_embed_save_file = f'/data/zhaoshengming/wikipedia/embed_{args.model_name}'
-    args.model_name = model_name_dict[args.model_name]
-
-    print(json.dumps(vars(args), indent=2))
-    return args
+# def dense_retriever_config(in_program_call=None):
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('--dataset', type=str, choices=['conala', 'hotpotQA', 'NQ', 'TriviaQA'])
+#     parser.add_argument('--corpus', type=str, choices=['wiki', 'python_docs'])
+#     # parser.add_argument('--dataset_type', type=str, default='test', choices=['train', 'test', 'dev'])
+#     parser.add_argument('--model_name', type=str, choices=['miniLM', 'openai-embedding', 'contriever'])
+#     parser.add_argument('--batch_size', type=int, default=128)
+#     parser.add_argument('--top_k', type=int, default=200)
+#     parser.add_argument('--sim_func', default='cls_distance.cosine', choices=('cls_distance.cosine', 'cls_distance.l2', 'bertscore'))
+#     parser.add_argument('--normalize_embed', action='store_true')
+#     parser.add_argument('--result_file', default=None)
+#
+#     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
+#     if args.result_file is None:
+#         args.result_file = os.path.join(root_path, f'data/{args.dataset}/ret_results_{args.model_name}.json')
+#     # record qs and corpus embeddings
+#     args.conala_qs_embed_save_file = os.path.join(root_path, f'data/conala/embedding/qs_{args.model_name}')
+#     args.conala_doc_firstpara_embed_save_file = os.path.join(root_path, f'data/conala/embedding/doc_firstpara_{args.model_name}')
+#     # elif args.dataset == 'tldr':
+#     #     args.tldr_qs_embed_save_file = os.path.join(root_path, f'docprompting_data/tldr/embedding/qs_{model_name_splitted}')
+#     #     args.tldr_doc_whole_embed_save_file = os.path.join(root_path, 'docprompting_data/tldr/embedding/doc_whole_{model_name_splitted}')
+#     #     args.tldr_doc_line_embed_save_file = os.path.join(root_path, f'docprompting_data/tldr/embedding/doc_line_{model_name_splitted}')
+#     args.hotpotQA_qs_embed_save_file = os.path.join(root_path, f'data/hotpotQA/qs_embed_{args.model_name}')
+#     args.NQ_qs_embed_save_file = os.path.join(root_path, f'data/NQ/qs_embed_{args.model_name}')
+#     args.python_docs_embed_save_file = os.path.join(root_path, f'data/python_docs/embed_{args.model_name}')
+#     args.wikipedia_docs_embed_save_file = f'/data/zhaoshengming/wikipedia/embed_{args.model_name}'
+#     args.model_name = model_name_dict[args.model_name]
+#
+#     print(json.dumps(vars(args), indent=2))
+#     return args
 
 
 
