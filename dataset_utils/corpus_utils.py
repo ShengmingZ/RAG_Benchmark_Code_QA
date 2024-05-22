@@ -92,7 +92,7 @@ class WikiCorpusLoader:
             self.wiki_corpus_file_hotpot = os.path.join(root_path, 'data/wikipedia/enwiki-20171001-pages-meta-current-withlinks-abstracts')
         elif system == 'Linux':
             self.wiki_corpus_file_NQ = '/data/zhaoshengming/wikipedia/psgs_w100.tsv'
-            self.wiki_corpus_file_hotpot = '/data/wikipedia/enwiki-20171001-pages-meta-current-withlinks-abstracts'
+            self.wiki_corpus_file_hotpot = '/data/zhaoshengming/wikipedia/enwiki-20171001-pages-meta-current-withlinks-abstracts'
 
     def _get_hotpot_corpus_file_paths(self):
         file_paths = []
