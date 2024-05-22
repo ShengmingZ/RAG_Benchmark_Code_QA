@@ -299,7 +299,7 @@ def retrieve(args):
 
 
 if __name__ == '__main__':
-    in_program_call = f"--dataset hotpotQA --retriever contriever"
+    in_program_call = f"--dataset hotpotQA --retriever miniLM"
     ret_args = retriever_config(in_program_call)
 
     embed_corpus(ret_args)
