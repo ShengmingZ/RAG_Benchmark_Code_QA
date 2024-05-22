@@ -6,10 +6,7 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-import argparse
-import shlex
 import json
-from collections import OrderedDict
 import numpy as np
 import faiss
 from retriever.dense_encoder import DenseRetrievalEncoder
@@ -299,7 +296,7 @@ def retrieve(args):
 
 
 if __name__ == '__main__':
-    in_program_call = f"--dataset hotpotQA --retriever miniLM"
+    in_program_call = f"--dataset NQ --retriever miniLM"
     ret_args = retriever_config(in_program_call)
 
     embed_corpus(ret_args)
