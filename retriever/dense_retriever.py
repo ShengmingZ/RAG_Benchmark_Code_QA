@@ -238,7 +238,7 @@ def retrieve(args):
         print(f'done retrieval for {args.ret_result}')
 
     else:
-        print(f'ret results exists for {args.ret_result + "_normalized"}')
+        print(f'ret results exists for {args.ret_result}')
 
 
 

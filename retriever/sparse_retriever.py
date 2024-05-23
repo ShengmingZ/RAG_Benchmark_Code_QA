@@ -287,32 +287,32 @@ def create_idx_for_corpus(args):
 
 
 def retrieve(args):
-    # load
-    dataset = args.dataset
-    es_idx = args.es_idx
-    es = Elasticsearch("http://localhost:9200")
-    print(es.info().body)
-    if dataset == 'hotpotQA':
-        loader = HotpotQAUtils()
-    elif dataset == 'NQ' or dataset == 'TriviaQA':
-        loader = NQTriviaQAUtils(dataset)
-    elif dataset == 'conala':
-        loader = ConalaLoader()
-    elif dataset == 'DS1000':
-        loader = DS1000Loader()
-    elif dataset == 'pandas_numpy_eval':
-        loader = PandasNumpyEvalLoader()
-    qs_list = loader.load_qs_list()
-
-    def bm25_retrieve(query, index):
-        res = es.search(index=index, body=query)['hits']['hits']
-        _res = list()
-        for item in res:
-            _res.append({'doc_key': item['_source']['doc_key'], 'score': item['_score']})
-        return _res
-
-    # retrieve
     if not os.path.exists(args.ret_result):
+        # load
+        dataset = args.dataset
+        es_idx = args.es_idx
+        es = Elasticsearch("http://localhost:9200")
+        print(es.info().body)
+        if dataset == 'hotpotQA':
+            loader = HotpotQAUtils()
+        elif dataset == 'NQ' or dataset == 'TriviaQA':
+            loader = NQTriviaQAUtils(dataset)
+        elif dataset == 'conala':
+            loader = ConalaLoader()
+        elif dataset == 'DS1000':
+            loader = DS1000Loader()
+        elif dataset == 'pandas_numpy_eval':
+            loader = PandasNumpyEvalLoader()
+        qs_list = loader.load_qs_list()
+
+        # retrieve
+        def bm25_retrieve(query, index):
+            res = es.search(index=index, body=query)['hits']['hits']
+            _res = list()
+            for item in res:
+                _res.append({'doc_key': item['_source']['doc_key'], 'score': item['_score']})
+            return _res
+
         ret_results = dict()
         for idx, qs in tqdm(enumerate(qs_list), total=len(qs_list)):
             query = {'query':
@@ -324,7 +324,7 @@ def retrieve(args):
         with open(args.ret_result, 'w+') as f:
             json.dump(ret_results, f, indent=2)
     else:
-        print(f'ret result exists for {args.ret_result + "_normalized"}')
+        print(f'ret result exists for {args.ret_result}')
 
 
 
@@ -333,6 +333,6 @@ def retrieve(args):
 if __name__ == '__main__':
     in_program_call = '--dataset NQ --retriever BM25'
     args = retriever_config(in_program_call)
-    create_idx_for_corpus(args)
+    # create_idx_for_corpus(args)
     retrieve(args)
     ret_eval(args)
