@@ -333,6 +333,6 @@ def retrieve(args):
 if __name__ == '__main__':
     in_program_call = '--dataset DS1000 --retriever BM25'
     args = retriever_config(in_program_call)
-    create_idx_for_corpus(args)
+    # create_idx_for_corpus(args)
     retrieve(args)
     ret_eval(args)
