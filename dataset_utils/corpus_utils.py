@@ -210,6 +210,7 @@ class WikiCorpusLoader:
         elif dataset in ['TriviaQA', 'NQ']:
             with Pool(num_procs) as pool:
                 for sample_idx, docs in tqdm(enumerate(pool.map(self._get_docs_NQ, doc_keys_list)), total=len(doc_keys_list)):
+                    print(f'{sample_idx} completed')
                     docs_list[sample_idx] = docs
 
         return docs_list
