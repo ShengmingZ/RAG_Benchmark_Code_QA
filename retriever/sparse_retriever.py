@@ -323,6 +323,8 @@ def retrieve(args):
 
         with open(args.ret_result, 'w+') as f:
             json.dump(ret_results, f, indent=2)
+    else:
+        print(f'ret result exists for {args.ret_result + "_normalized"}')
 
 
 

@@ -198,42 +198,47 @@ def normalize_embed(embed_file):
 
 
 def retrieve(args):
-    # load
-    if args.dataset == 'hotpotQA':
-        loader = HotpotQAUtils()
-        doc_id_list = WikiCorpusLoader().load_wiki_id(args.dataset)
-    elif args.dataset == 'NQ' or args.dataset == 'TriviaQA':
-        loader = NQTriviaQAUtils(args.dataset)
-        doc_id_list = WikiCorpusLoader().load_wiki_id(args.dataset)
-    elif args.dataset == 'conala':
-        loader = ConalaLoader()
-        doc_id_list = [item[0] for item in PythonDocsLoader().load_api_signs()]
-    elif args.dataset == 'DS1000':
-        loader = DS1000Loader()
-        doc_id_list = [item[0] for item in PythonDocsLoader().load_api_signs()]
-    elif args.dataset == 'pandas_numpy_eval':
-        loader = PandasNumpyEvalLoader()
-        doc_id_list = [item[0] for item in PythonDocsLoader().load_api_signs()]
-    qs_list = loader.load_qs_list()
-    qs_id_list = [qs['qs_id'] for qs in qs_list]
+    if not os.path.exists(args.ret_result):
+        # load
+        if args.dataset == 'hotpotQA':
+            loader = HotpotQAUtils()
+            doc_id_list = WikiCorpusLoader().load_wiki_id(args.dataset)
+        elif args.dataset == 'NQ' or args.dataset == 'TriviaQA':
+            loader = NQTriviaQAUtils(args.dataset)
+            doc_id_list = WikiCorpusLoader().load_wiki_id(args.dataset)
+        elif args.dataset == 'conala':
+            loader = ConalaLoader()
+            doc_id_list = [item[0] for item in PythonDocsLoader().load_api_signs()]
+        elif args.dataset == 'DS1000':
+            loader = DS1000Loader()
+            doc_id_list = [item[0] for item in PythonDocsLoader().load_api_signs()]
+        elif args.dataset == 'pandas_numpy_eval':
+            loader = PandasNumpyEvalLoader()
+            doc_id_list = [item[0] for item in PythonDocsLoader().load_api_signs()]
+        qs_list = loader.load_qs_list()
+        qs_id_list = [qs['qs_id'] for qs in qs_list]
 
-    # get embed
-    if not os.path.exists(args.qs_embed_file):
-        encoder = DenseRetrievalEncoder(args)
-        encoder.encode(dataset=[qs['question'] for qs in qs_list], save_file=args.qs_embed_file)
-    if args.normalize_embed:
-        normalize_embed(args.qs_embed_file)
-        qs_embed = np.load(args.qs_embed_file + '_normalized' + '.npy')
-        args.ret_result = args.result_file.replace('.json', '_normalized.json')
-    else:
-        qs_embed = np.load(args.qs_embed_file + '.npy')
-    if args.normalize_embed:
-        doc_embed = np.load(args.corpus_embed_file + '_normalized' + '.npy')
-    else:
-        doc_embed = np.load(args.corpus_embed_file + '.npy')
+        # get embed
+        if not os.path.exists(args.qs_embed_file):
+            encoder = DenseRetrievalEncoder(args)
+            encoder.encode(dataset=[qs['question'] for qs in qs_list], save_file=args.qs_embed_file)
+        if args.normalize_embed:
+            normalize_embed(args.qs_embed_file)
+            qs_embed = np.load(args.qs_embed_file + '_normalized' + '.npy')
+            args.ret_result = args.result_file.replace('.json', '_normalized.json')
+        else:
+            qs_embed = np.load(args.qs_embed_file + '.npy')
+        if args.normalize_embed:
+            doc_embed = np.load(args.corpus_embed_file + '_normalized' + '.npy')
+        else:
+            doc_embed = np.load(args.corpus_embed_file + '.npy')
 
-    # retrieve
-    ret_results = retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_id_list, args.ret_result, args.top_k)
+        # retrieve
+        ret_results = retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_id_list, args.ret_result, args.top_k)
+        print(f'done retrieval for {args.ret_result}')
+
+    else:
+        print(f'ret results exists for {args.ret_result + "_normalized"}')
 
 
 
