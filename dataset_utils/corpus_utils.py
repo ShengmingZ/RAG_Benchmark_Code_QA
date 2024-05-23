@@ -179,6 +179,7 @@ class WikiCorpusLoader:
                             temp_key = unicodedata.normalize('NFD', data['title'])
                             for sample_idx, doc_keys in enumerate(doc_keys_list):
                                 for idx, key in enumerate(doc_keys):
+                                    if docs_list[sample_idx][idx] is not None: continue
                                     if temp_key == key:
                                         docs_list[sample_idx][idx] = ''.join(data['text'])
         elif dataset in ['TriviaQA', 'NQ']:
@@ -189,6 +190,7 @@ class WikiCorpusLoader:
                 for row in reader:
                     for sample_idx, doc_keys in enumerate(doc_keys_list):
                         for idx, key in enumerate(doc_keys):
+                            if docs_list[sample_idx][idx] is not None: continue
                             if str(key) == str(row[0]):
                                 docs_list[sample_idx][idx] = row[1]
 

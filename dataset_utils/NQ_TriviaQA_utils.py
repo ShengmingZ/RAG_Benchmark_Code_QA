@@ -253,7 +253,7 @@ class NQTriviaQAUtils:
         :return:
         """
         data_list = json.load(open(self.sampled_data_file, 'r'))
-        oracle_list = [dict(qs_id=idx, oracle_doc=item['oracle_doc'], answers=item['answers']) for idx, item in enumerate(data_list)]
+        oracle_list = [dict(qs_id=str(idx), oracle_doc=item['oracle_doc'], answers=item['answers']) for idx, item in enumerate(data_list)]
         return oracle_list
 
     # def remove_no_oracle(self):
@@ -309,8 +309,9 @@ class NQTriviaQAUtils:
         :return: hits_list: a list of list, each list corresponds to the retrieved docs of a sample
                 hits_rate: a dict records the recall of top_k retrieval
         """
+        from tqdm import tqdm
         hits_list = list()
-        for docs, answers in zip(docs_list, answers_list):
+        for docs, answers in tqdm(zip(docs_list, answers_list), total=len(docs_list)):
             # docs = wiki_loader.get_docs(doc_keys)
             hits = [has_answer(answers, doc) for doc in docs]
             hits_list.append(hits)

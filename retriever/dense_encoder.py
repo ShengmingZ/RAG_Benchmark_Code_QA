@@ -138,7 +138,6 @@ class DenseRetrievalEncoder:
             self.model.to(self.device)
 
 
-    # todo: max token lens: 512, now truncate if input text too long
     def encode(self, dataset, save_file):
         import tiktoken
         if 'sentence-transformers' in self.model_name:

@@ -14,13 +14,14 @@ from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk, streaming_bulk
 import shlex
 import csv
-from retriever_utils import retriever_config
+from retriever_utils import retriever_config, ret_eval
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.DS1000_utils import DS1000Loader
 from dataset_utils.hotpotQA_utils import HotpotQAUtils
 from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from dataset_utils.corpus_utils import PythonDocsLoader, WikiCorpusLoader
+from tqdm import tqdm
 
 
 # class tldr_BM25:
@@ -286,11 +287,11 @@ def create_idx_for_corpus(args):
 
 
 def retrieve(args):
+    # load
     dataset = args.dataset
     es_idx = args.es_idx
     es = Elasticsearch("http://localhost:9200")
     print(es.info().body)
-
     if dataset == 'hotpotQA':
         loader = HotpotQAUtils()
     elif dataset == 'NQ' or dataset == 'TriviaQA':
@@ -310,48 +311,18 @@ def retrieve(args):
             _res.append({'doc_key': item['_source']['doc_key'], 'score': item['_score']})
         return _res
 
-    ret_results = dict()
-    for idx, qs in enumerate(qs_list):
-        query = {'query':
-                     {'match':
-                          {'doc': qs['question']}},
-                 'size': args.top_k}
-        ret_results[qs['qs_id']] = bm25_retrieve(query=query, index=es_idx)
+    # retrieve
+    if not os.path.exists(args.ret_result):
+        ret_results = dict()
+        for idx, qs in tqdm(enumerate(qs_list), total=len(qs_list)):
+            query = {'query':
+                         {'match':
+                              {'doc': qs['question']}},
+                     'size': args.top_k}
+            ret_results[qs['qs_id']] = bm25_retrieve(query=query, index=es_idx)
 
-    with open(args.ret_result, 'w+') as f:
-        json.dump(ret_results, f, indent=2)
-
-    # eval
-    top_k = [1,3,5,10,20,50,100]
-    if dataset == 'hotpotQA':
-        oracle_list = loader.load_oracle_list()
-        golds, preds = list(), list()
-        for item in oracle_list:
-            golds.append(item['oracle_docs'])
-            preds.append([tmp['doc_key'] for tmp in ret_results[item['qs_id']]])
-        metrics = loader.eval_sp(preds, golds, top_k=top_k)
-    elif dataset == 'NQ' or dataset == 'TriviaQA':
-        oracle_list = loader.load_oracle_list()
-        ret_doc_keys_list, answers_list = [], []
-        for oracle in oracle_list:
-            answers_list.append(oracle['answers'])
-            ret_doc_keys_list.append([tmp['doc_key'] for tmp in ret_results[oracle['qs_id']]])
-        ret_docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list, dataset)
-        hits_rate = loader.retrieval_eval(docs_list=ret_docs_list, answers_list=answers_list, top_k=top_k)
-    elif dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
-        oracle_list = loader.load_oracle_list()
-        golds, preds = list(), list()
-        for oracle in oracle_list:
-            golds.append(oracle['oracle_docs'])
-            preds.append([tmp['doc_key'] for tmp in ret_results[oracle['qs_id']]])
-        recall_n = loader.calc_recall(src=golds, pred=preds, top_k=top_k)
-    # elif dataset == 'DS1000':
-    #     oracle_list = loader.load_oracle_list()
-    #     golds, preds = list(), list()
-    #     for oracle in oracle_list:
-    #         golds.append(oracle[''])
-    # elif dataset == 'pandas_numpy_eval':
-    #     loader = PandasNumpyEvalLoader()
+        with open(args.ret_result, 'w+') as f:
+            json.dump(ret_results, f, indent=2)
 
 
 
@@ -362,3 +333,4 @@ if __name__ == '__main__':
     args = retriever_config(in_program_call)
     create_idx_for_corpus(args)
     retrieve(args)
+    ret_eval(args)

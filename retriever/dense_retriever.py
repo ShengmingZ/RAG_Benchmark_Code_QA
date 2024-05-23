@@ -10,7 +10,7 @@ import json
 import numpy as np
 import faiss
 from retriever.dense_encoder import DenseRetrievalEncoder
-from retriever_utils import retriever_config
+from retriever_utils import retriever_config, ret_eval
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.DS1000_utils import DS1000Loader
 from dataset_utils.hotpotQA_utils import HotpotQAUtils
@@ -235,64 +235,6 @@ def retrieve(args):
     # retrieve
     ret_results = retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_id_list, args.ret_result, args.top_k)
 
-    # eval
-    dataset = args.dataset
-    top_k = [1, 3, 5, 10, 20, 50, 100]
-    if dataset == 'hotpotQA':
-        oracle_list = loader.load_oracle_list()
-        golds, preds = list(), list()
-        for item in oracle_list:
-            golds.append(item['oracle_docs'])
-            preds.append([tmp['doc_key'] for tmp in ret_results[item['qs_id']]])
-        metrics = loader.eval_sp(preds, golds, top_k=top_k)
-    elif dataset == 'NQ' or dataset == 'TriviaQA':
-        oracle_list = loader.load_oracle_list()
-        ret_doc_keys_list, answers_list = [], []
-        for oracle in oracle_list:
-            answers_list.append(oracle['answers'])
-            ret_doc_keys_list.append([tmp['doc_key'] for tmp in ret_results[oracle['qs_id']]])
-        ret_docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list, dataset)
-        hits_rate = loader.retrieval_eval(docs_list=ret_docs_list, answers_list=answers_list, top_k=top_k)
-    elif dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
-        oracle_list = loader.load_oracle_list()
-        golds, preds = list(), list()
-        for oracle in oracle_list:
-            golds.append(oracle['oracle_docs'])
-            preds.append([tmp['doc_key'] for tmp in ret_results[oracle['qs_id']]])
-        recall_n = loader.calc_recall(src=golds, pred=preds, top_k=top_k)
-
-
-# def dense_retriever_config(in_program_call=None):
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument('--dataset', type=str, choices=['conala', 'hotpotQA', 'NQ', 'TriviaQA'])
-#     parser.add_argument('--corpus', type=str, choices=['wiki', 'python_docs'])
-#     # parser.add_argument('--dataset_type', type=str, default='test', choices=['train', 'test', 'dev'])
-#     parser.add_argument('--model_name', type=str, choices=['miniLM', 'openai-embedding', 'contriever'])
-#     parser.add_argument('--batch_size', type=int, default=128)
-#     parser.add_argument('--top_k', type=int, default=200)
-#     parser.add_argument('--sim_func', default='cls_distance.cosine', choices=('cls_distance.cosine', 'cls_distance.l2', 'bertscore'))
-#     parser.add_argument('--normalize_embed', action='store_true')
-#     parser.add_argument('--result_file', default=None)
-#
-#     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
-#     if args.result_file is None:
-#         args.result_file = os.path.join(root_path, f'data/{args.dataset}/ret_results_{args.model_name}.json')
-#     # record qs and corpus embeddings
-#     args.conala_qs_embed_save_file = os.path.join(root_path, f'data/conala/embedding/qs_{args.model_name}')
-#     args.conala_doc_firstpara_embed_save_file = os.path.join(root_path, f'data/conala/embedding/doc_firstpara_{args.model_name}')
-#     # elif args.dataset == 'tldr':
-#     #     args.tldr_qs_embed_save_file = os.path.join(root_path, f'docprompting_data/tldr/embedding/qs_{model_name_splitted}')
-#     #     args.tldr_doc_whole_embed_save_file = os.path.join(root_path, 'docprompting_data/tldr/embedding/doc_whole_{model_name_splitted}')
-#     #     args.tldr_doc_line_embed_save_file = os.path.join(root_path, f'docprompting_data/tldr/embedding/doc_line_{model_name_splitted}')
-#     args.hotpotQA_qs_embed_save_file = os.path.join(root_path, f'data/hotpotQA/qs_embed_{args.model_name}')
-#     args.NQ_qs_embed_save_file = os.path.join(root_path, f'data/NQ/qs_embed_{args.model_name}')
-#     args.python_docs_embed_save_file = os.path.join(root_path, f'data/python_docs/embed_{args.model_name}')
-#     args.wikipedia_docs_embed_save_file = f'/data/zhaoshengming/wikipedia/embed_{args.model_name}'
-#     args.model_name = model_name_dict[args.model_name]
-#
-#     print(json.dumps(vars(args), indent=2))
-#     return args
-
 
 
 if __name__ == '__main__':
@@ -301,33 +243,5 @@ if __name__ == '__main__':
 
     embed_corpus(ret_args)
     retrieve(ret_args)
+    ret_eval(ret_args)
 
-
-    # if ret_args.dataset == 'tldr':
-    #     tldr_loader = TldrLoader()
-    #     # encode qs
-    #     # qs_list = tldr_loader.load_qs_list(ret_args.dataset_type)
-    #     # qs_list = [item['nl'] for item in qs_list]
-    #     # encoder.encode(dataset=qs_list, save_file=ret_args.tldr_qs_embed_save_file)
-    #     # encode doc whole-level
-    #     # doc_list_whole = list(tldr_loader.load_doc_list_whole().values())
-    #     # encoder.encode(dataset=doc_list_whole, save_file=ret_args.tldr_doc_whole_embed_save_file)
-    #     # encode doc line-level
-    #     doc_list_line = list(tldr_loader.load_doc_list_line().values())
-    #     encoder.encode(dataset=doc_list_line, save_file=ret_args.tldr_doc_line_embed_save_file)
-    #
-    #     # tldr_whole_retrieve(ret_args)
-    #     # tldr_line_retrieve(ret_args)
-    #
-    #
-    # elif ret_args.dataset == 'conala':
-    #     conala_loader = ConalaLoader()
-    #     # encode qs
-    #     qs_list = conala_loader.load_qs_list(ret_args.dataset_type)
-    #     qs_list = [qs['nl'] for qs in qs_list]
-    #     encoder.encode(dataset=qs_list, save_file=ret_args.conala_qs_embed_save_file)
-    #     # encode doc firstpara
-    #     doc_list_firstpara = list(conala_loader.load_doc_list_firstpara().values())
-    #     encoder.encode(dataset=doc_list_firstpara, save_file=ret_args.conala_doc_firstpara_embed_save_file)
-    #
-    #     conala_retrieve(ret_args)
