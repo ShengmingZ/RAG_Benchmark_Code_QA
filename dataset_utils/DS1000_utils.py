@@ -162,8 +162,8 @@ class DS1000Loader:
                 # recall_n[tk] += cur_hit / (len(oracle_man) + 1e-10)
                 recall_n[tk] += cur_hit / (len(oracle_man)) if len(oracle_man) else 1
                 precision_n[tk] += cur_hit / tk
-        recall_n = {k: v / len(pred) for k, v in recall_n.items()}
-        precision_n = {k: v / len(pred) for k, v in precision_n.items()}
+        recall_n = {k: f"{v / len(pred):.3f}" for k, v in recall_n.items()}
+        precision_n = {k: f"{v / len(pred):.3f}" for k, v in precision_n.items()}
         print(recall_n)
         return recall_n
 
