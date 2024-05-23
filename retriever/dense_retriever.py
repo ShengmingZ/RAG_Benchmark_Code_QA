@@ -243,7 +243,8 @@ def retrieve(args):
 
 
 if __name__ == '__main__':
-    in_program_call = f"--dataset conala --retriever codeT5"
+    # in_program_call = f"--dataset conala --retriever miniLM"
+    in_program_call = None
     ret_args = retriever_config(in_program_call)
 
     embed_corpus(ret_args)
