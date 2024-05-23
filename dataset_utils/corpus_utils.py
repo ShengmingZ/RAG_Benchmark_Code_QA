@@ -200,7 +200,7 @@ class WikiCorpusLoader:
                         for idx, key in enumerate(doc_keys):
                             if docs_list[sample_idx][idx] is not None: continue
                             if key == temp_key:
-                                docs_list[sample_idx][idx] = row[1]
+                                docs_list[sample_idx][idx] = (row[0], row[1])
 
         for sample_idx, docs in enumerate(docs_list):
             for idx, doc in enumerate(docs):
