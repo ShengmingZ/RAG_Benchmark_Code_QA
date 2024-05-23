@@ -14,13 +14,22 @@ elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
 from prompt import conala_prompt, tldr_prompt, hotpotqa_prompt
-from dataset_utils.dataset_configs import HotpotQALoader, WikiCorpusLoader, PythonDocsLoader
-from retriever.sparse_retriever import sparse_retriever_config
-from retriever.dense_retriever import dense_retriever_config
-
+from retriever.dense_encoder import DenseRetrievalEncoder
+from retriever.retriever_utils import retriever_config
+from dataset_utils.conala_utils import ConalaLoader
+from dataset_utils.DS1000_utils import DS1000Loader
+from dataset_utils.hotpotQA_utils import HotpotQAUtils
+from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
+from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
+from dataset_utils.corpus_utils import PythonDocsLoader, WikiCorpusLoader
 
 random.seed(0)
 
+AVG_PROMPT_LENGTH_HOTPOT = ...
+AVG_PROMPT_LENGTH_NQ = ...
+AVG_PROMPT_LENGTH_CONALA = ...
+AVG_PROMPT_LENGTH_DS1000 = ...
+AVG_PROMPT_LENGTH_PANDASEVAL = ...
 
 def save_results_to_files(save_file, gene_results):
     if os.path.exists(save_file):
@@ -120,59 +129,54 @@ def generate_config(in_program_call=None):
     return args
 
 
-def control_ret_acc(ret_acc, oracle_list, dataset_type):
+def control_ret_acc(ret_acc, oracle_list, dataset):
     """
     generate retrieval doc key of each sample based on ret_acc,
     perturb the doc key until it reaches the new ret_acc value
     :param ret_acc:
     :param oracle_list: a list of list that store oracle doc key for each sample
-    :param dataset_type:
+    :param dataset:
     :return:
     """
-    ret_acc_per_sample = [1] * len(oracle_list)
-    cur_ret_acc = sum(ret_acc_per_sample) / len(ret_acc_per_sample)
-    assert dataset_type in ['nlp', 'se']
-    if dataset_type == 'nlp':
-        corpus_doc_keys = WikiCorpusLoader().load_wiki_id()
+    ret_accs = [1] * len(oracle_list)
+    cur_ret_acc = sum(ret_accs) / len(ret_accs)
+    if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+        corpus_doc_keys = WikiCorpusLoader().load_wiki_id(dataset)
+    else:
+        corpus_doc_keys = [item[0] for item in PythonDocsLoader().load_api_signs()]
     perturb_oracle_list = deepcopy(oracle_list)
+    perturb_placeholder = list()    # this placeholder is to store doc keys that are oracle
+    for i, oracle in enumerate(perturb_oracle_list):
+        for j in range(len(oracle)):
+            perturb_placeholder.append([i, j])
     while cur_ret_acc > ret_acc:
-        random_idx = random.randint(0, len(perturb_oracle_list) - 1)
-        oracle_doc_length = len(perturb_oracle_list[random_idx])
-        random_idx_inner = random.randint(0, oracle_doc_length-1)
-        if perturb_oracle_list[random_idx][random_idx_inner] == oracle_list[random_idx][random_idx_inner]:  # replace oracle doc with random key
-            perturb_oracle_list[random_idx][random_idx_inner] = corpus_doc_keys[random.randint(0, len(corpus_doc_keys) - 1)]
-            ret_acc_per_sample[random_idx] = (ret_acc_per_sample[random_idx] * oracle_doc_length - 1) / oracle_doc_length
-            cur_ret_acc = sum(ret_acc_per_sample) / len(ret_acc_per_sample)
+        perturb_idx = random.sample(perturb_placeholder, 1) # pick a oracle key and perturb
+        perturb_placeholder.remove(perturb_idx)
+        assert perturb_oracle_list[perturb_idx[0]][perturb_idx[1]] == oracle_list[perturb_idx[0]][perturb_idx[1]]
+        perturb_oracle_list[perturb_idx[0]][perturb_idx[1]] = corpus_doc_keys[random.randint(0, len(corpus_doc_keys) - 1)]
+        ret_accs[perturb_idx[0]] = (ret_accs[perturb_idx[0]] * len(oracle_list[perturb_idx[0]]) - 1) / len(oracle_list[perturb_idx[0]])
+        cur_ret_acc = sum(ret_accs) / len(ret_accs)
 
-    docs = []
-    if dataset_type == 'nlp':
-        # wiki_loader = WikiCorpusLoader()
-        # for doc_key in tqdm(perturb_oracle_list):
-        #     docs.append(wiki_loader.get_docs(doc_key))
-        docs = WikiCorpusLoader().get_docs(perturb_oracle_list)
-    elif dataset_type == 'se':
-        ...
+    if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+        docs = WikiCorpusLoader().get_docs(perturb_oracle_list, dataset)
+    else:
+        docs = PythonDocsLoader().get_docs(perturb_oracle_list)
 
     return perturb_oracle_list, docs
 
 
-def perturb_ret_doc_type(perturb_doc_type, ret_doc_key_list, oracle_doc_key_list, dataset_type, model_type):
+def perturb_ret_doc_type(perturb_doc_type, ret_doc_key_list, oracle_doc_key_list):
     """
     generate retrieval doc key of each sample based on ret_doc_type, return a list of the docs for each sample
     :param ret_doc_type:
     :return:
     """
     assert perturb_doc_type in ['oracle', 'retrieved', 'distracting', 'random', 'irrelevant_dummy', 'irrelevant_diff', 'none']
-    assert dataset_type in ['nlp', 'se']
 
     if perturb_doc_type in ['irrelevant_diff', 'irrelevant_dummy']:
-        if dataset_type == 'nlp':
-            doc_length = 100
-        elif dataset_type == 'se':
-            doc_length = 1000
         docs = []
         for oracle_doc_key in oracle_doc_key_list:
-            irrelevant_docs = get_irrelevant_doc(irrelevant_type=perturb_doc_type.split('_')[1], doc_length=doc_length, model_type=model_type, n=len(oracle_doc_key))
+            irrelevant_docs = get_irrelevant_doc(irrelevant_type=perturb_doc_type.split('_')[1], doc_length=doc_length, n=len(oracle_doc_key))
             docs.append(irrelevant_docs)
         return []*len(docs), docs
     else:
@@ -223,7 +227,7 @@ def process_retrieval_doc():
 
 
 def apply_prompt_method(questions, ret_docs, prompt_type, dataset):
-    assert dataset in ['hotpotQA', 'conala', 'DS1000', 'pandas-numpy-eval']
+    assert dataset in ['hotpotQA', 'conala', 'DS1000', 'pandas_numpy_eval']
     prompts = []
     if dataset == 'hotpotQA':
         if prompt_type == 'original':

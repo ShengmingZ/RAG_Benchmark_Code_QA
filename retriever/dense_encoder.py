@@ -144,7 +144,7 @@ class DenseRetrievalEncoder:
         if 'sentence-transformers' in self.model_name:
             all_embeddings = []
             for i in range(0, len(dataset), self.batch_size):
-                batch = dataset[i:i + self.batch_size]
+                batch = dataset[i:i + self.batch_size].to(self.device)
                 all_embeddings.append(self.model.encode(batch))
 
             all_embeddings = np.concatenate(all_embeddings, axis=0)

@@ -11,14 +11,12 @@ elif system == 'Linux':
 sys.path.insert(0, root_path)
 from generator.run_model import chatgpt
 from prompt import conala_prompt
-from dataset_utils.dataset_configs import HotpotQALoader, WikiCorpusLoader
-from retriever.sparse_retriever import sparse_retriever_config
-from retriever.dense_retriever import dense_retriever_config
 from generator.generate_utils import (approximate_token, generate_config, save_results_to_files,
                                       control_ret_acc, perturb_ret_doc_type,
                                       process_retrieval_doc, apply_prompt_method)
 from retriever.retriever_utils import get_ret_results
-from dataset_utils.hotpot_evaluate_v1 import eval_pred
+from dataset_utils.hotpotQA_utils import HotpotQAUtils
+from dataset_utils.corpus_utils import WikiCorpusLoader
 
 class GeneHotpotQA:
     def __init__(self, args):
@@ -45,7 +43,7 @@ class GeneHotpotQA:
         self.doc_max_length = args.doc_max_length
         self.prompt_type = args.prompt_type
 
-        self.hotpotqa_loader = HotpotQALoader()
+        self.hotpotqa_loader = HotpotQAUtils()
         self.qs_list = self.hotpotqa_loader.load_qs_list()
         self.oracle_list = self.hotpotqa_loader.load_oracle_list()
         self.wiki_loader = WikiCorpusLoader()
@@ -86,7 +84,7 @@ class GeneHotpotQA:
 
     def eval(self):
         pred_list = json.load(open(self.save_file, 'r'))
-        eval_pred(pred_list, self.oracle_list)
+        self.hotpotqa_loader.eval_pred(pred_list, self.oracle_list)
 
 
 
