@@ -9,6 +9,7 @@ import random
 import platform
 import sys
 from typing import List
+from tqdm import tqdm
 system = platform.system()
 if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
@@ -163,12 +164,13 @@ class WikiCorpusLoader:
         """
         assert dataset in ['hotpotQA', 'TriviaQA', 'NQ']
         docs_list = []
+        # normalize doc key
+        _doc_keys_list = list()
+        for doc_keys in doc_keys_list:
+            _doc_keys_list.append([unicodedata.normalize('NFD', key) for key in doc_keys])
+        doc_keys_list = _doc_keys_list
+
         if dataset == 'hotpotQA':
-            # normalize doc key
-            _doc_keys_list = list()
-            for doc_keys in doc_keys_list:
-                _doc_keys_list.append([unicodedata.normalize('NFD', key) for key in doc_keys])
-            doc_keys_list = _doc_keys_list
             file_paths = self._get_hotpot_corpus_file_paths()
             for file_path in file_paths:
                 with bz2.open(file_path, 'rt') as f:
@@ -187,11 +189,12 @@ class WikiCorpusLoader:
                 docs_list.append([None for _ in range(len(doc_keys))])
             with open(self.wiki_corpus_file_NQ, 'r', newline='') as tsvfile:
                 reader = csv.reader(tsvfile, delimiter='\t')
-                for row in reader:
+                for row in tqdm(reader, ):
+                    temp_key = unicodedata.normalize('NFD', row[0])
                     for sample_idx, doc_keys in enumerate(doc_keys_list):
                         for idx, key in enumerate(doc_keys):
                             if docs_list[sample_idx][idx] is not None: continue
-                            if str(key) == str(row[0]):
+                            if key == temp_key:
                                 docs_list[sample_idx][idx] = row[1]
 
         for sample_idx, docs in enumerate(docs_list):
