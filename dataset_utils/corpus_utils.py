@@ -8,6 +8,7 @@ import bz2
 import random
 import platform
 import sys
+from multiprocessing import Pool
 from typing import List
 from tqdm import tqdm
 system = platform.system()
@@ -156,56 +157,61 @@ class WikiCorpusLoader:
                     id_list.append(row[0])
         return id_list
 
-    def get_docs(self, doc_keys_list: List[List[str]], dataset):
+    def _get_docs_hotpot(self, doc_keys):
+        doc_keys_placeholder = [[idx, key] for idx, key in enumerate(doc_keys)]
+        docs = [None]*len(doc_keys)
+        file_paths = self._get_hotpot_corpus_file_paths()
+        for file_path in tqdm(file_paths, total=len(file_paths)):
+            with bz2.open(file_path, 'rt') as f:
+                contents = f.read().split('\n')
+                for content in contents:
+                    if content != '':
+                        data = json.loads(content)
+                        target_key = unicodedata.normalize('NFD', data['title'])
+                        for item in doc_keys_placeholder:
+                            if item[1] == target_key:
+                                docs[item[0]] = data['text']
+                                doc_keys_placeholder.remove(item)
+                                if len(doc_keys_placeholder) == 0: return docs
+                                break
+        raise Exception(f'not fully match for doc_keys: {doc_keys}')
+
+    def _get_docs_NQ(self, doc_keys):
+        doc_keys_placeholder = [[idx, key] for idx, key in enumerate(doc_keys)]
+        docs = [None]*len(doc_keys)
+        with open(self.wiki_corpus_file_NQ, 'r', newline='') as tsvfile:
+            reader = csv.reader(tsvfile, delimiter='\t')
+            for row in reader:
+                for item in doc_keys_placeholder:
+                    if str(item[1]) == str(row[0]):
+                        docs[item[0]] = row[1]
+                        doc_keys_placeholder.remove(item)
+                        if len(doc_keys_placeholder) == 0: return docs
+                        break
+        raise Exception(f'not fully match for doc_keys: {doc_keys}')
+
+    def get_docs(self, doc_keys_list: List[List[str]], dataset, num_procs=32):
         """
         given doc key, return corresponding doc, each element in doc_key_list is a list of doc keys of a sample
         :param doc_keys_list:
         :return:
         """
         assert dataset in ['hotpotQA', 'TriviaQA', 'NQ']
-        docs_list = []
-        # normalize doc key
-        _doc_keys_list = list()
-        for doc_keys in doc_keys_list:
-            _doc_keys_list.append([unicodedata.normalize('NFD', key) for key in doc_keys])
-        doc_keys_list = _doc_keys_list
-
+        docs_list = [None]*len(doc_keys_list)
         if dataset == 'hotpotQA':
-            file_paths = self._get_hotpot_corpus_file_paths()
-            for file_path in tqdm(file_paths, total=len(file_paths)):
-                with bz2.open(file_path, 'rt') as f:
-                    contents = f.read().split('\n')
-                    for content in contents:
-                        if content != '':
-                            data = json.loads(content)
-                            temp_key = unicodedata.normalize('NFD', data['title'])
-                            for sample_idx, doc_keys in enumerate(doc_keys_list):
-                                for idx, key in enumerate(doc_keys):
-                                    if docs_list[sample_idx][idx] is not None: continue
-                                    if temp_key == key:
-                                        docs_list[sample_idx][idx] = ''.join(data['text'])
-        elif dataset in ['TriviaQA', 'NQ']:
+            # normalize doc key
+            _doc_keys_list = list()
             for doc_keys in doc_keys_list:
-                docs_list.append([None for _ in range(len(doc_keys))])
-            count = 0
-            with open(self.wiki_corpus_file_NQ, 'r', newline='') as tsvfile:
-                reader = csv.reader(tsvfile, delimiter='\t')
-                for _ in reader:
-                    count += 1
-            with open(self.wiki_corpus_file_NQ, 'r', newline='') as tsvfile:
-                reader = csv.reader(tsvfile, delimiter='\t')
-                for row in tqdm(reader, total=count):
-                    temp_key = unicodedata.normalize('NFD', row[0])
-                    for sample_idx, doc_keys in enumerate(doc_keys_list):
-                        for idx, key in enumerate(doc_keys):
-                            if docs_list[sample_idx][idx] is not None: continue
-                            if key == temp_key:
-                                docs_list[sample_idx][idx] = (row[0], row[1])
+                _doc_keys_list.append([unicodedata.normalize('NFD', key) for key in doc_keys])
+            doc_keys_list = _doc_keys_list
+            with Pool(num_procs) as pool:
+                for sample_idx, docs in tqdm(enumerate(pool.imap(self._get_docs_hotpot, doc_keys_list)), total=len(doc_keys_list)):
+                    docs_list[sample_idx] = docs
+        elif dataset in ['TriviaQA', 'NQ']:
+            with Pool(num_procs) as pool:
+                for sample_idx, docs in tqdm(enumerate(pool.imap(self._get_docs_NQ, doc_keys_list)), total=len(doc_keys_list)):
+                    docs_list[sample_idx] = docs
 
-        for sample_idx, docs in enumerate(docs_list):
-            for idx, doc in enumerate(docs):
-                if doc is None:
-                    print(f'Error: doc of {doc_keys_list[sample_idx][idx]} is not found')
         return docs_list
 
     # def process_wiki_corpus(self):

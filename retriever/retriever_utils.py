@@ -81,7 +81,6 @@ def get_ret_results(dataset, retriever, normalize=False):
 
 
 def ret_eval(args):
-    print('begin eval: a test')
     dataset = args.dataset
     if dataset == 'hotpotQA':
         loader = HotpotQAUtils()
