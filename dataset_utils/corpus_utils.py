@@ -172,7 +172,7 @@ class WikiCorpusLoader:
 
         if dataset == 'hotpotQA':
             file_paths = self._get_hotpot_corpus_file_paths()
-            for file_path in file_paths:
+            for file_path in tqdm(file_paths, total=len(file_paths)):
                 with bz2.open(file_path, 'rt') as f:
                     contents = f.read().split('\n')
                     for content in contents:
@@ -187,9 +187,14 @@ class WikiCorpusLoader:
         elif dataset in ['TriviaQA', 'NQ']:
             for doc_keys in doc_keys_list:
                 docs_list.append([None for _ in range(len(doc_keys))])
+            count = 0
             with open(self.wiki_corpus_file_NQ, 'r', newline='') as tsvfile:
                 reader = csv.reader(tsvfile, delimiter='\t')
-                for row in tqdm(reader, ):
+                for _ in reader:
+                    count += 1
+            with open(self.wiki_corpus_file_NQ, 'r', newline='') as tsvfile:
+                reader = csv.reader(tsvfile, delimiter='\t')
+                for row in tqdm(reader, total=count):
                     temp_key = unicodedata.normalize('NFD', row[0])
                     for sample_idx, doc_keys in enumerate(doc_keys_list):
                         for idx, key in enumerate(doc_keys):

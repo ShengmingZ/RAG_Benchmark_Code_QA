@@ -81,6 +81,7 @@ def get_ret_results(dataset, retriever, normalize=False):
 
 
 def ret_eval(args):
+    print('begin eval: a test')
     dataset = args.dataset
     if dataset == 'hotpotQA':
         loader = HotpotQAUtils()
@@ -107,7 +108,7 @@ def ret_eval(args):
         ret_doc_keys_list, answers_list = [], []
         for oracle in oracle_list:
             answers_list.append(oracle['answers'])
-            ret_doc_keys_list.append([tmp['doc_key'] for tmp in ret_results[oracle['qs_id']]])
+            ret_doc_keys_list.append([tmp['doc_key'] for tmp in ret_results[oracle['qs_id']]][:top_k[-1]])
         ret_docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list, dataset)
         print('load docs done')
         hits_rate = loader.retrieval_eval(docs_list=ret_docs_list, answers_list=answers_list, top_k=top_k)
