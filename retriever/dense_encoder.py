@@ -143,7 +143,7 @@ class DenseRetrievalEncoder:
         if 'sentence-transformers' in self.model_name:
             all_embeddings = []
             for i in range(0, len(dataset), self.batch_size):
-                batch = dataset[i:i + self.batch_size].to(self.device)
+                batch = dataset[i:i + self.batch_size]
                 all_embeddings.append(self.model.encode(batch))
 
             all_embeddings = np.concatenate(all_embeddings, axis=0)
@@ -155,7 +155,7 @@ class DenseRetrievalEncoder:
 
         if 'text-embedding' in self.model_name:
             OPENAI_TOKENIZER = "cl100k_base"
-            OPENAI_MAX_TOKENS = 500
+            OPENAI_MAX_TOKENS = 1000
             encoding = tiktoken.get_encoding(OPENAI_TOKENIZER)
             all_embeddings = []
             for i in range(0, len(dataset), self.batch_size):
