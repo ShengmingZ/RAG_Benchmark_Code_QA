@@ -296,7 +296,7 @@ def retrieve(args):
 
 
 if __name__ == '__main__':
-    in_program_call = f"--dataset NQ --retriever miniLM"
+    in_program_call = f"--dataset conala --retriever codeT5"
     ret_args = retriever_config(in_program_call)
 
     embed_corpus(ret_args)
