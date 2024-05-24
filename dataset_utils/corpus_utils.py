@@ -92,9 +92,11 @@ class WikiCorpusLoader:
         if system == 'Darwin':
             self.wiki_corpus_file_NQ = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
             self.wiki_corpus_file_hotpot = os.path.join(root_path, 'data/wikipedia/enwiki-20171001-pages-meta-current-withlinks-abstracts')
+            self.index_offsets_file = os.path.join(root_path, 'data/wikipedia/index_offsets.txt')
         elif system == 'Linux':
             self.wiki_corpus_file_NQ = '/data/zhaoshengming/wikipedia/psgs_w100.tsv'
             self.wiki_corpus_file_hotpot = '/data/zhaoshengming/wikipedia/enwiki-20171001-pages-meta-current-withlinks-abstracts'
+            self.index_offsets_file = '/data/zhaoshengming/wikipedia/index_offsets.txt'
 
     def _get_hotpot_corpus_file_paths(self):
         file_paths = []
@@ -178,20 +180,19 @@ class WikiCorpusLoader:
 
     def _get_docs_NQ(self, doc_keys):
         # build index
-        index_offsets_file = os.path.join(root_path, 'data/wikipedia/index_offsets.txt')
-        if not os.path.exists(index_offsets_file):
+        if not os.path.exists(self.index_offsets_file):
             index_offsets = []
             current_offset = 0
             with open(self.wiki_corpus_file_NQ, 'r', encoding='iso-8859-1') as index_file:
                 for line in index_file:
                     index_offsets.append(current_offset)
                     current_offset = current_offset + len(line) + 1
-            with open(index_offsets_file, 'w+') as f:
+            with open(self.index_offsets_file, 'w+') as f:
                 for item in index_offsets:
                     f.write(f"{item}\n")
         else:
             index_offsets = []
-            with open(index_offsets_file, 'r') as f:
+            with open(self.index_offsets_file, 'r') as f:
                 for line in f:
                     index_offsets.append(int(line.strip()))
 
