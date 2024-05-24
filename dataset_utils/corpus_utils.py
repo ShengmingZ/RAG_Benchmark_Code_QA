@@ -177,18 +177,58 @@ class WikiCorpusLoader:
         raise Exception(f'not fully match for doc_keys: {doc_keys}')
 
     def _get_docs_NQ(self, doc_keys):
+        # build index
+        index_offsets_file = os.path.join(root_path, 'data/wikipedia/index_offsets.txt')
+        if not os.path.exists(index_offsets_file):
+            index_offsets = []
+            current_offset = 0
+            with open(self.wiki_corpus_file_NQ, 'r', encoding='iso-8859-1') as index_file:
+                for line in index_file:
+                    index_offsets.append(current_offset)
+                    current_offset = current_offset + len(line) + 1
+            with open(index_offsets_file, 'w+') as f:
+                for item in index_offsets:
+                    f.write(f"{item}\n")
+        else:
+            index_offsets = []
+            with open(index_offsets_file, 'r') as f:
+                for line in f:
+                    index_offsets.append(int(line.strip()))
+
+        # get docs by bytes offset
         doc_keys_placeholder = [[idx, key] for idx, key in enumerate(doc_keys)]
+        doc_keys_placeholder.sort(key=lambda x:x[1], reverse=False)
         docs = [None]*len(doc_keys)
-        with open(self.wiki_corpus_file_NQ, 'r', newline='') as tsvfile:
-            reader = csv.reader(tsvfile, delimiter='\t')
-            for row in reader:
-                for item in doc_keys_placeholder:
-                    if str(item[1]) == str(row[0]):
-                        docs[item[0]] = row[1]
-                        doc_keys_placeholder.remove(item)
-                        if len(doc_keys_placeholder) == 0: return docs
-                        break
-        raise Exception(f'not fully match for doc_keys: {doc_keys}')
+        with open(self.wiki_corpus_file_NQ, 'r', encoding='iso-8859-1') as f:
+            for item in doc_keys_placeholder:
+                f.seek(index_offsets[item[1]])
+                row = f.read(index_offsets[item[1]+1] - index_offsets[item[1]])
+                docs[item[0]] = row.split('\t')[1][1:-1]
+        return docs
+
+        # start_time = time.time()
+        # with open(self.wiki_corpus_file_NQ, 'r', newline='') as tsvfile:
+        #     reader = csv.reader(tsvfile, delimiter='\t')
+        #
+        #     current_place = 0
+        #     for item in doc_keys_placeholder:
+        #         skip = item[1] - current_place
+        #         for _ in range(skip):
+        #             next(reader)
+        #         for row in reader:
+        #             docs[item[0]] = row[1]
+        #             break
+        #         current_place = current_place + skip + 1
+        # print('traverse duration: ', time.time() - start_time)
+        # return docs
+
+        #     next(reader)
+        #     for row in reader:
+        #         if int(row[0]) == doc_keys_placeholder[0][1]:
+        #             docs[doc_keys_placeholder[0][0]] = row[1]
+        #             doc_keys_placeholder.pop(0)
+        #             if len(doc_keys_placeholder) == 0: return docs
+        # raise Exception(f'not fully match for doc_keys: {doc_keys_placeholder}')
 
     def get_docs(self, doc_keys_list: List[List[str]], dataset, num_procs=16):
         """
@@ -208,9 +248,13 @@ class WikiCorpusLoader:
                 for sample_idx, docs in tqdm(enumerate(pool.imap(self._get_docs_hotpot, doc_keys_list)), total=len(doc_keys_list)):
                     docs_list[sample_idx] = docs
         elif dataset in ['TriviaQA', 'NQ']:
+            _doc_keys_list = list()
+            for doc_keys in doc_keys_list:
+                _doc_keys_list.append([int(key) for key in doc_keys])
+            doc_keys_list = _doc_keys_list
             with Pool(num_procs) as pool:
                 for sample_idx, docs in tqdm(enumerate(pool.imap(self._get_docs_NQ, doc_keys_list)), total=len(doc_keys_list)):
-                    print(f'{sample_idx} completed')
+                    # print(f'{sample_idx} completed')
                     docs_list[sample_idx] = docs
 
         return docs_list

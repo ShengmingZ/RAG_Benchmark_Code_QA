@@ -136,7 +136,78 @@ if __name__ == '__main__':
         ret_doc_keys_list.append([tmp['doc_key'] for tmp in ret_results[oracle['qs_id']]][:top_k[-1]])
     print(ret_doc_keys_list[0])
 
-    import time
-    start_time = time.time()
-    ret_docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list[:50], 'NQ', 8)
-    print('duration: ', time.time() - start_time)
+    # import time
+    # start_time = time.time()
+    # ret_docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list[:1], 'NQ', 1)
+    # # print('duration: ', time.time() - start_time)
+    # print(ret_docs_list)
+
+
+    # test_doc_keys = [[0, 232], [1, 12], [2, 891]]
+    # test_doc_keys.sort(key=lambda x:x[1], reverse=False)
+    # import csv
+    # wiki_corpus_file_NQ = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
+    # with open(wiki_corpus_file_NQ, 'r', newline='') as tsvfile:
+    #     reader = csv.reader(tsvfile, delimiter='\t')
+    #     current_place = 0
+    #     for item in test_doc_keys:
+    #         skip = item[1] - current_place
+    #         for _ in range(skip):
+    #             next(reader)
+    #         for row in reader:
+    #             print(row)
+    #             break
+    #         current_place = current_place + skip + 1
+
+    """
+    test offset indexing
+    """
+    # import time
+    # wiki_corpus_file_NQ = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
+    #
+    # start_time = time.time()
+    # if os.path.exists('temp.txt'):
+    #     index_offsets = []
+    #     with open('temp.txt', 'r') as f:
+    #         for line in f:
+    #             index_offsets.append(int(line.strip()))
+    # else:
+    #     index_offsets = []
+    #     current_offset = 0
+    #     with open(wiki_corpus_file_NQ, 'r', encoding='iso-8859-1') as index_file:
+    #         for line in index_file:
+    #             index_offsets.append(current_offset)
+    #             current_offset = current_offset + len(line) + 1
+    #     with open('temp.txt', 'w+') as f:
+    #         for item in index_offsets:
+    #             f.write(f"{item}\n")
+    # print('build offsets duration: ', time.time() - start_time)
+    #
+    #
+    # doc_keys = ret_doc_keys_list[0]
+    # doc_keys_placeholder = [[idx, int(key)] for idx, key in enumerate(doc_keys)]
+    # doc_keys_placeholder.sort(key=lambda x: x[1], reverse=False)
+    # docs = [None] * len(doc_keys)
+    # with open(wiki_corpus_file_NQ, 'r', encoding='iso-8859-1') as f:
+    #     for item in doc_keys_placeholder:
+    #         f.seek(index_offsets[item[1]])
+    #         row = f.read(index_offsets[item[1]+1] - index_offsets[item[1]])
+    #         try:
+    #             docs[item[0]] = row.split('\t')[1][1:-1]
+    #         except:
+    #             print(row)
+    #             print(item)
+    # print('byte seek duration: ', time.time() - start_time)
+    # print(docs)
+
+
+    # import csv
+    # count = 0
+    # with open(wiki_corpus_file_NQ, 'r', newline='') as tsvfile:
+    #     reader = csv.reader(tsvfile, delimiter='\t')
+    #     for row in reader:
+    #         for idx in target_idx:
+    #             if row[0] == str(idx):
+    #                 print([row[1]])
+    #                 break
+
