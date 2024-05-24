@@ -190,7 +190,7 @@ class WikiCorpusLoader:
                         break
         raise Exception(f'not fully match for doc_keys: {doc_keys}')
 
-    def get_docs(self, doc_keys_list: List[List[str]], dataset, num_procs=32):
+    def get_docs(self, doc_keys_list: List[List[str]], dataset, num_procs=16):
         """
         given doc key, return corresponding doc, each element in doc_key_list is a list of doc keys of a sample
         :param doc_keys_list:
@@ -209,7 +209,7 @@ class WikiCorpusLoader:
                     docs_list[sample_idx] = docs
         elif dataset in ['TriviaQA', 'NQ']:
             with Pool(num_procs) as pool:
-                for sample_idx, docs in tqdm(enumerate(pool.map(self._get_docs_NQ, doc_keys_list)), total=len(doc_keys_list)):
+                for sample_idx, docs in tqdm(enumerate(pool.imap(self._get_docs_NQ, doc_keys_list)), total=len(doc_keys_list)):
                     print(f'{sample_idx} completed')
                     docs_list[sample_idx] = docs
 

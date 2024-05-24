@@ -119,3 +119,24 @@ def ret_eval(args):
             preds.append([tmp['doc_key'] for tmp in ret_results[oracle['qs_id']]])
         recall_n = loader.calc_recall(src=golds, pred=preds, top_k=top_k)
 
+
+
+if __name__ == '__main__':
+    # test get_docs
+    in_program_call = '--dataset NQ --retriever BM25'
+    args = retriever_config(in_program_call)
+    dataset = args.dataset
+    loader = NQTriviaQAUtils(dataset)
+    top_k = [1, 3, 5, 10, 20, 50, 100]
+    oracle_list = loader.load_oracle_list()
+    ret_results = json.load(open(args.ret_result, 'r'))
+    ret_doc_keys_list, answers_list = [], []
+    for oracle in oracle_list:
+        answers_list.append(oracle['answers'])
+        ret_doc_keys_list.append([tmp['doc_key'] for tmp in ret_results[oracle['qs_id']]][:top_k[-1]])
+    print(ret_doc_keys_list[0])
+
+    import time
+    start_time = time.time()
+    ret_docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list[:50], 'NQ', 8)
+    print('duration: ', time.time() - start_time)
