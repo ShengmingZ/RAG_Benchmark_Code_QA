@@ -142,7 +142,7 @@ class DenseRetrievalEncoder:
         import tiktoken
         if 'sentence-transformers' in self.model_name:
             all_embeddings = []
-            for i in range(0, len(dataset), self.batch_size):
+            for i in tqdm(range(0, len(dataset), self.batch_size)):
                 batch = dataset[i:i + self.batch_size]
                 all_embeddings.append(self.model.encode(batch))
 
@@ -182,8 +182,7 @@ class DenseRetrievalEncoder:
                     batch = dataset[i:i + self.batch_size]
                     inputs = self.tokenizer(batch, padding=True, truncation=True, return_tensors="pt").to(self.device)
                     embeds = self.model(**inputs)
-                    embeds.to(self.device)
-                    all_embeddings.append(embeds)
+                    all_embeddings.append(embeds.cpu())
 
                 all_embeddings = np.concatenate(all_embeddings, axis=0)
                 print(f"done embedding: {all_embeddings.shape}")
@@ -195,7 +194,7 @@ class DenseRetrievalEncoder:
 
         with torch.no_grad():
             all_embeddings = []
-            for i in range(0, len(dataset), self.batch_size):
+            for i in tqdm(range(0, len(dataset), self.batch_size)):
                 batch = dataset[i:i + self.batch_size]
 
                 # tokenize
