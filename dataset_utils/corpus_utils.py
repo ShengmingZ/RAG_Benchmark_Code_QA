@@ -205,7 +205,7 @@ class WikiCorpusLoader:
                 _doc_keys_list.append([unicodedata.normalize('NFD', key) for key in doc_keys])
             doc_keys_list = _doc_keys_list
             with Pool(num_procs) as pool:
-                for sample_idx, docs in tqdm(enumerate(pool.map(self._get_docs_hotpot, doc_keys_list)), total=len(doc_keys_list)):
+                for sample_idx, docs in tqdm(enumerate(pool.imap(self._get_docs_hotpot, doc_keys_list)), total=len(doc_keys_list)):
                     docs_list[sample_idx] = docs
         elif dataset in ['TriviaQA', 'NQ']:
             with Pool(num_procs) as pool:

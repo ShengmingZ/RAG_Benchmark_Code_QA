@@ -33,6 +33,8 @@ def retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, 
     # retrieve
     assert qs_embed.shape[0] == len(qs_id_list)
     assert doc_embed.shape[0] == len(doc_key_list)
+    if qs_embed.dtype != np.float32: qs_embed = qs_embed.astype(np.float32)
+    if doc_embed.dtype != np.float32: doc_embed = doc_embed.astype(np.float32)
     indexer = faiss.IndexFlatIP(doc_embed.shape[1])
     indexer.add(doc_embed)
     D, I = indexer.search(qs_embed, top_k)
