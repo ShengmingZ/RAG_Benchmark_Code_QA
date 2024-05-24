@@ -251,5 +251,5 @@ if __name__ == '__main__':
 
     embed_corpus(ret_args)
     retrieve(ret_args)
-    ret_eval(ret_args)
+    # ret_eval(ret_args)
 
