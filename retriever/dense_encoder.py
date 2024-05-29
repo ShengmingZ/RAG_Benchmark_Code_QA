@@ -175,7 +175,7 @@ class DenseRetrievalEncoder:
                     encoded_doc = encoding.encode(data)[:OPENAI_MAX_TOKENS]
                     data = encoding.decode(encoded_doc)
                     response = openai.Embedding.create(model=self.model_name, input=data)
-                    embeds = np.array([response['data'][0]['embeddings']])
+                    embeds = np.array([response['data'][0]['embedding']])
                 except:
                     print(f'embedding error in {i}th doc')
                     embeds = np.zeros((1,1536))

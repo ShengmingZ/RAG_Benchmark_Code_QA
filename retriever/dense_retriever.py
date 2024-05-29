@@ -253,3 +253,23 @@ if __name__ == '__main__':
     retrieve(ret_args)
     ret_eval(ret_args)
 
+    # test openai embed
+    # in_program_call = f"--dataset NQ --retriever openai-embedding"
+    # ret_args = retriever_config(in_program_call)
+    # # embed_corpus(ret_args)
+    # wiki_loader = WikiCorpusLoader()
+    # wiki_data = wiki_loader.load_wiki_corpus(ret_args.dataset)
+    # dataset = [item['text'] for item in wiki_data]
+    # print(dataset[1])
+    #
+    # import tiktoken
+    # import openai
+    # OPENAI_TOKENIZER = "cl100k_base"
+    # OPENAI_MAX_TOKENS = 1000
+    # encoding = tiktoken.get_encoding(OPENAI_TOKENIZER)
+    # data = dataset[1]
+    # encoded_doc = encoding.encode(data)[:OPENAI_MAX_TOKENS]
+    # data = encoding.decode(encoded_doc)
+    # print(data)
+    # response = openai.Embedding.create(model='text-embedding-3-small', input=data)
+    # embeds = np.array([response['data'][0]['embedding']])
