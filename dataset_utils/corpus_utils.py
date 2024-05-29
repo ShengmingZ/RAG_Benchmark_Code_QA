@@ -274,3 +274,10 @@ class WikiCorpusLoader:
     #                 key_count += 1
     #             processed_doc_key = key + '_' + str(key_count)
     #             writer.writerow([row[0], processed_doc_key, row[1]])
+
+
+if __name__ == '__main__':
+    loader = WikiCorpusLoader()
+    doc_keys = [["Thus Spoke Zarathustra"]]
+    docs = loader.get_docs(doc_keys, 'hotpotQA', num_procs=8)
+    print(docs)

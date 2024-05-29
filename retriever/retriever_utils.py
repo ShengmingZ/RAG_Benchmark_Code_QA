@@ -3,6 +3,7 @@ import argparse
 import shlex
 import platform
 import sys, os
+import unicodedata
 system = platform.system()
 if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
@@ -122,19 +123,34 @@ def ret_eval(args):
 
 
 if __name__ == '__main__':
-    # test get_docs
-    in_program_call = '--dataset NQ --retriever BM25'
+    in_program_call = '--dataset hotpotQA --retriever BM25'
     args = retriever_config(in_program_call)
     dataset = args.dataset
-    loader = NQTriviaQAUtils(dataset)
-    top_k = [1, 3, 5, 10, 20, 50, 100]
+    loader = HotpotQAUtils()
     oracle_list = loader.load_oracle_list()
     ret_results = json.load(open(args.ret_result, 'r'))
-    ret_doc_keys_list, answers_list = [], []
-    for oracle in oracle_list:
-        answers_list.append(oracle['answers'])
-        ret_doc_keys_list.append([tmp['doc_key'] for tmp in ret_results[oracle['qs_id']]][:top_k[-1]])
-    print(ret_doc_keys_list[0])
+    gold = oracle_list[1]['oracle_docs']
+    pred = [tmp['doc_key'] for tmp in ret_results[oracle_list[1]['qs_id']]]
+    # print(gold)
+    # print(pred)
+    # loader.eval_sp(golds=[gold], preds=[pred], top_k=[1,3,5,10,20,50,100])
+
+    docs = WikiCorpusLoader().get_docs([['Ugni myricoides']], dataset='hotpotQA', num_procs=4)
+    print(docs)
+
+    # test get_docs
+    # in_program_call = '--dataset NQ --retriever BM25'
+    # args = retriever_config(in_program_call)
+    # dataset = args.dataset
+    # loader = NQTriviaQAUtils(dataset)
+    # top_k = [1, 3, 5, 10, 20, 50, 100]
+    # oracle_list = loader.load_oracle_list()
+    # ret_results = json.load(open(args.ret_result, 'r'))
+    # ret_doc_keys_list, answers_list = [], []
+    # for oracle in oracle_list:
+    #     answers_list.append(oracle['answers'])
+    #     ret_doc_keys_list.append([tmp['doc_key'] for tmp in ret_results[oracle['qs_id']]][:top_k[-1]])
+    # print(ret_doc_keys_list[0])
 
     # import time
     # start_time = time.time()

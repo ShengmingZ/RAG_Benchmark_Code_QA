@@ -265,7 +265,7 @@ def create_idx_for_corpus(args):
     es = Elasticsearch("http://localhost:9200")
     print(es.info().body)
 
-    def steam_corpus_data(dataset):
+    def stream_corpus_data(dataset):
         if dataset in ['hotpotQA', 'NQ', 'TriviaQA']:
             loader = WikiCorpusLoader()
             for data in loader.load_wiki_corpus_iter(dataset):
@@ -280,7 +280,7 @@ def create_idx_for_corpus(args):
     # es.indices.delete(index=es_idx, ignore=[400, 404])
     if not es.indices.exists(index=es_idx):
         es.indices.create(index=es_idx)
-        stream = steam_corpus_data(dataset)
+        stream = stream_corpus_data(dataset)
         for ok, res in streaming_bulk(es, actions=stream):
             if not ok:
                 print(res)
@@ -334,6 +334,26 @@ if __name__ == '__main__':
     # in_program_call = '--dataset NQ --retriever BM25'
     in_program_call = None
     args = retriever_config(in_program_call)
-    # create_idx_for_corpus(args)
-    # retrieve(args)
+    create_idx_for_corpus(args)
+    retrieve(args)
     ret_eval(args)
+
+
+
+
+    # es = Elasticsearch("http://localhost:9200")
+    # print(es.info().body)
+    # def bm25_retrieve(query, index):
+    #     res = es.search(index=index, body=query)['hits']['hits']
+    #     _res = list()
+    #     for item in res:
+    #         _res.append({'doc_key': item['_source']['doc_key'], 'score': item['_score']})
+    #     return _res
+    #
+    #
+    # query = {'query':
+    #              {'match':
+    #                   {'doc': "Who set Nietzche's philosophical novel to music?"}},
+    #          'size': 200}
+    # print(es.search(index='wiki_hotpot', body=query)['hits']['hits'])
+

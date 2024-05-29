@@ -158,15 +158,28 @@ class DenseRetrievalEncoder:
             OPENAI_MAX_TOKENS = 1000
             encoding = tiktoken.get_encoding(OPENAI_TOKENIZER)
             all_embeddings = []
-            for i in range(0, len(dataset), self.batch_size):
-                batch = dataset[i:i + self.batch_size]
-                # truncate
-                for j in range(len(batch)):
-                    encoded_doc = encoding.encode(batch[j])[:OPENAI_MAX_TOKENS]
-                    batch[j] = encoding.decode(encoded_doc)
-                response = openai.Embedding.create(model=self.model_name, input=batch)
-                embeds = [data["embedding"] for data in response['data']]
-                all_embeddings.append(np.array(embeds))
+            # for i in range(0, len(dataset), self.batch_size):
+            #     batch = dataset[i:i + self.batch_size]
+            #     # truncate
+            #     for j in range(len(batch)):
+            #         encoded_doc = encoding.encode(batch[j])[:OPENAI_MAX_TOKENS]
+            #         batch[j] = encoding.decode(encoded_doc)
+            #     try:
+            #         response = openai.Embedding.create(model=self.model_name, input=batch)
+            #         embeds = [data["embedding"] for data in response['data']]
+            #     except:
+            #         print("embedding error")
+            #     all_embeddings.append(np.array(embeds))
+            for i, data in enumerate(dataset):
+                try:
+                    encoded_doc = encoding.encode(data)[:OPENAI_MAX_TOKENS]
+                    data = encoding.decode(encoded_doc)
+                    response = openai.Embedding.create(model=self.model_name, input=data)
+                    embeds = np.array([response['data'][0]['embeddings']])
+                except:
+                    print(f'embedding error in {i}th doc')
+                    embeds = np.zeros((1,1536))
+                all_embeddings.append(embeds)
 
             all_embeddings = np.concatenate(all_embeddings, axis=0)
             print(f"done embedding: {all_embeddings.shape}")
