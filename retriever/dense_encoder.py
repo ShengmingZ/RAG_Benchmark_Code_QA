@@ -170,7 +170,7 @@ class DenseRetrievalEncoder:
             #     except:
             #         print("embedding error")
             #     all_embeddings.append(np.array(embeds))
-            for i, data in enumerate(dataset):
+            for i, data in tqdm(enumerate(dataset)):
                 try:
                     encoded_doc = encoding.encode(data)[:OPENAI_MAX_TOKENS]
                     data = encoding.decode(encoded_doc)

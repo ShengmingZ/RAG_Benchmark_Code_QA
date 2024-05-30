@@ -1,57 +1,123 @@
-def llama_3shots_prompt():
+def llama_0shot_prompt(potential_docs, question):
+    sys_prompt = """You are a senior python programmer, given some potential api documents starts with `## Potential documents` and a program description starts with `## Description`, 
+you should first read the potential documents, and then write a python program according to the description in one line.
+The program should starts with <code> and ends with </code>
+"""
 
-    sys_prompt = """You are a senior python programmer, given some potential api documents and the program description, 
-write a python program according to the description in one line, the program should start with <begin code> and end with <end code>"""
+    user_prompt = f"""## Potential documents: 
+    {potential_docs}
+    ## Description: 
+    {question}
+    """
+
+    prompt_template = f"""<s>[INST] <<SYS>>
+    {sys_prompt} <</SYS>>\n
+    {user_prompt} [/INST]
+    """
+
+    return prompt_template
+
+def gpt_3shots_prompt(potential_docs, question):
+
+    sys_prompt = """You are a senior python programmer, given some potential api documents starts with `## Potential documents` and a program description starts with `## Description`,
+you should first read the potential documents, and then write a python program according to the description in one line, 
+the program should starts with <code> and ends with </code>"""
 
 
-    oracle_example1 = """## Potential document
-0: python datetime datetime strptime: classmethod datetime.strptime(date_string, format)   Return a datetime corresponding to date_string, parsed according to format. This is equivalent to: datetime(*(time.strptime(date_string, format)[0:6]))  ValueError is raised if the date_string and format can’t be parsed by time.strptime() or if it returns a value which isn’t a time tuple. For a complete list of formatting directives, see strftime() and strptime() Behavior.
-1: python time strftime: time.strftime(format[, t])   Convert a tuple or struct_time representing a time as returned by gmtime() or localtime() to a string as specified by the format argument. If t is not provided, the current time as returned by localtime() is used. format must be a string. ValueError is raised if any field in t is outside of the allowed range. 0 is a legal argument for any position in the time tuple; if it is normally illegal the value is forced to a correct one. The following directives can be embedded in the format string. They are shown without the optional field width and precision specification, and are replaced by the indicated characters in the strftime() result: 
-2: python time strptime: time.strptime(string[, format])   Parse a string representing a time according to a format. The return value is a struct_time as returned by gmtime() or localtime(). The format parameter uses the same directives as those used by strftime(); it defaults to "%a %b %d %H:%M:%S %Y" which matches the formatting returned by ctime(). If string cannot be parsed according to format, or if it has excess data after parsing, ValueError is raised. The default values used to fill in any missing data when more accurate values cannot be inferred are (1900, 1, 1, 0, 0, 0, 0, 1, -1). Both
-3: python datetime datetime strftime: datetime.strftime(format)   Return a string representing the date and time, controlled by an explicit format string. For a complete list of formatting directives, see strftime() and strptime() Behavior.
-4: python datetime date strftime: date.strftime(format)   Return a string representing the date, controlled by an explicit format string. Format codes referring to hours, minutes or seconds will see 0 values. For a complete list of formatting directives, see strftime() and strptime() Behavior.
-## Description: convert string '2011221' into a DateTime object using format '%Y%W%w'
-## Answer: datetime.strptime('2011221', '%Y%W%w')
+    shots = """## Potential documents
+0: outer(a, b, out=None)     Compute the outer product of two vectors.          Given two vectors, ``a = [a0, a1, ..., aM]`` and     ``b = [b0, b1, ..., bN]``,     the outer product [1]_ is::            [[a0*b0  a0*b1 ... a0*bN ]        [a1*b0    .        [ ...          .        [aM*b0            aM*bN ]]          Parameters     ----------     a : (M,) array_like         First input vector.  Input is flattened if         not already 1-dimensional.     b : (N,) array_like         Second input vector.  Input is flattened if         not already 1-dimensional.     out : (M, N) ndarray, optional         A location where the result is stored              .. versionadded:: 1.9.0          Returns     -------     out : (M, N) ndarray         ``out[i, j] = a[i] * b[j]``          See also     --------     inner     einsum : ``einsum('i,j->ij', a.ravel(), b.ravel())`` is the equivalent.     ufunc.outer : A generalization to dimensions other than 1D and other                   operations. ``np.multiply.outer(a.ravel(), b.ravel())``                   is the equivalent.     tensordot : ``np.tensordot(a.ravel(), b.ravel(), axes=((), ()))``                 is the equivalent.          References     ----------     .. [1] : G. H. Golub and C. F. Van Loan, *Matrix Computations*, 3rd              ed., Baltimore, MD, Johns Hopkins University Press, 1996,              pg. 8.          Examples     --------     Make a (*very* coarse) grid for computing a Mandelbrot set:          >>> rl = np.outer(np.ones((5,)), np.linspace(-2, 2, 5))     >>> rl     array([[-2., -1.,  0.,  1.,  2.],            [-2., -1.,  0.,  1.,  2.],            [-2., -1.,  0.,  1.,  2.],            [-2., -1.,  0.,  1.,  2.],            [-2., -1.,  0.,  1.,  2.]])     >>> im = np.outer(1j*np.linspace(2, -2, 5), np.ones((5,)))     >>> im     array([[0.+2.j, 0.+2.j, 0.+2.j, 0.+2.j, 0.+2.j],            [0.+1.j, 0.+1.j, 0.+1.j, 0.+1.j, 0.+1.j],            [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],            [0.-1.j, 0.-1.j, 0.-1.j, 0.-1.j, 0.-1.j],            [0.-2.j, 0.-2.j, 0.-2.j, 0.-2.j, 0.-2.j]])     >>> grid = rl + im     >>> grid     array([[-2.+2.j, -1.+2.j,  0.+2.j,  1.+2.j,  2.+2.j],            [-2.+1.j, -1.+1.j,  0.+1.j,  1.+1.j,  2.+1.j],            [-2.+0.j, -1.+0.j,  0.+0.j,  1.+0.j,  2.+0.j],            [-2.-1.j, -1.-1.j,  0.-1.j,  1.-1.j,  2.-1.j],            [-2.-2.j, -1.-2.j,  0.-2.j,  1.-2.j,  2.-2.j]])          An example using a "vector" of letters:          >>> x = np.array(['a', 'b', 'c'], dtype=object)     >>> np.outer(x, [1, 2, 3])     array([['a', 'aa', 'aaa'],            ['b', 'bb', 'bbb'],            ['c', 'cc', 'ccc']], dtype=object)  
+## Description: 
+multiplication of two 1-dimensional arrays  in numpy
+## Answer: 
+<code>np.outer(a, b)</code>
 
-#END
 
-Potential document 0: python str rsplit: str.rsplit(sep=None, maxsplit=-1)   Return a list of the words in the string, using sep as the delimiter string. If maxsplit is given, at most maxsplit splits are done, the rightmost ones. If sep is not specified or None, any whitespace string is a separator. Except for splitting from the right, rsplit() behaves like split() which is described in detail below.
-Potential document 1: python sorted: sorted(iterable, *, key=None, reverse=False)   Return a new sorted list from the items in iterable. Has two optional arguments which must be specified as keyword arguments. key specifies a function of one argument that is used to extract a comparison key from each element in iterable (for example, key=str.lower). The default value is None (compare the elements directly). reverse is a boolean value. If set to True, then the list elements are sorted as if each comparison were reversed. Use functools.cmp_to_key() to convert an old-style cmp function to a key function. The built-in sorted() function is guaranteed to be stable. A sort
-Potential document 2: python list sort: sort(*, key=None, reverse=False)   This method sorts the list in place, using only < comparisons between items. Exceptions are not suppressed - if any comparison operations fail, the entire sort operation will fail (and the list will likely be left in a partially modified state). sort() accepts two arguments that can only be passed by keyword (keyword-only arguments): key specifies a function of one argument that is used to extract a comparison key from each list element (for example, key=str.lower). The key corresponding to each item in the list is calculated once and then used for the entire sorting process. The default value of None means that list items are sorted directly without calculating a separate key value. The
-Potential document 3: python operator itemgetter: operator.itemgetter(item)   operator.itemgetter(*items)   Return a callable object that fetches item from its operand using the operand’s __getitem__() method. If multiple items are specified, returns a tuple of lookup values. For example:  After f = itemgetter(2), the call f(r) returns r[2]. After g = itemgetter(2, 5, 3), the call g(r) returns (r[2], r[5], r[3]).  Equivalent to: def itemgetter(*items):     if len(items) == 1:       
-Potential document 4: python str rfind: str.rfind(sub[, start[, end]])   Return the highest index in the string where substring sub is found, such that sub is contained within s[start:end]. Optional arguments start and end are interpreted as in slice notation. Return -1 on failure.
-# Sort a list of strings 'words' such that items starting with 's' come first.
-sorted(words, key=lambda x: 'a' + x if x.startswith('s') else 'b' + x)
+## Potential documents 
+0: fromtimestamp()     timestamp[, tz] -> tz's local time from POSIX timestamp.  
+1: strftime()     format -> strftime() style string.  
+## Description:
+convert epoch time represented as milliseconds `s` to string using format '%Y-%m-%d %H:%M:%S.%f'
+## Answer:
+<code>datetime.datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S.%f')</code>
 
-#END
 
-Potential document 0: pandas series dropna: pandas.Series.dropna   Series.dropna(axis=0, inplace=False, how=None)[source]   Return a new Series with missing values removed. See the User Guide for more on which values are considered missing, and how to work with missing data.  Parameters    axis:{0 or ‘index’}, default 0   There is only one axis to drop values from.   inplace:bool, default False   If True, do operation inplace and return None.   how:str, optional   Not in use. Kept for compatibility.    Returns   Series or None  Series with NA entries
-Potential document 1: pandas dataframe fillna: pandas.DataFrame.fillna   DataFrame.fillna(value=None, method=None, axis=None, inplace=False, limit=None, downcast=None)[source]   Fill NA/NaN values using the specified method.  Parameters    value:scalar, dict, Series, or DataFrame   Value to use to fill holes (e.g. 0), alternately a dict/Series/DataFrame of values specifying which value to use for each index (for a Series) or column (for a DataFrame). Values not in the dict/Series/DataFrame will not be filled. This value cannot be a list.   
-Potential document 2: pandas dataframe isnull: pandas.DataFrame.isnull   DataFrame.isnull()[source]   DataFrame.isnull is an alias for DataFrame.isna. Detect missing values. Return a boolean same-sized object indicating if the values are NA. NA values, such as None or numpy.NaN, gets mapped to True values. Everything else gets mapped to False values. Characters such as empty strings '' or numpy.inf are not considered NA values (unless you set pandas.options.mode.use_inf_as_na = True).  Returns   DataFrame  Mask of bool values for each element in DataFrame that indicates whether an element is an NA value.  
-Potential document 3: pandas index dropna: pandas.Index.dropna   Index.dropna(how='any')[source]   Return Index without NA/NaN values.  Parameters    how:{‘any’, ‘all’}, default ‘any’   If the Index is a MultiIndex, drop the value when any or all levels are NaN.    Returns   Index
-Potential document 4: pandas dataframe notnull: pandas.DataFrame.notnull   DataFrame.notnull()[source]   DataFrame.notnull is an alias for DataFrame.notna. Detect existing (non-missing) values. Return a boolean same-sized object indicating if the values are not NA. Non-missing values get mapped to True. Characters such as empty strings '' or numpy.inf are not considered NA values (unless you set pandas.options.mode.use_inf_as_na = True). NA values, such as None or numpy.NaN, get mapped to False values.  Returns   DataFrame  Mask of bool values for each element in DataFrame that indicates whether an element
-# replace all the nan values with 0 in a pandas dataframe `df`
-df.fillna(0)
+## Potential documents:
+0: loadtxt(fname, dtype=<class 'float'>, comments='#', delimiter=None, converters=None, skiprows=0, usecols=None, unpack=False, ndmin=0, encoding='bytes', max_rows=None, *, like=None)     Load data from a text file.          Each row in the text file must have the same number of values.          Parameters     ----------     fname : file, str, or pathlib.Path         File, filename, or generator to read.  If the filename extension is         ``.gz`` or ``.bz2``, the file is first decompressed. Note that         generators should return byte strings.     dtype : data-type, optional         Data-type of the resulting array; default: float.  If this is a         structured data-type, the resulting array will be 1-dimensional, and         each row will be interpreted as an element of the array.  In this         case, the number of columns used must match the number of fields in         the data-type.     comments : str or sequence of str, optional         The characters or list of characters used to indicate the start of a         comment. None implies no comments. For backwards compatibility, byte         strings will be decoded as 'latin1'. The default is '#'.     delimiter : str, optional         The string used to separate values. For backwards compatibility, byte         strings will be decoded as 'latin1'. The default is whitespace.     converters : dict, optional         A dictionary mapping column number to a function that will parse the         column string into the desired value.  E.g., if column 0 is a date         string: ``converters = {0: datestr2num}``.  Converters can also be         used to provide a default value for missing data (but see also         `genfromtxt`): ``converters = {3: lambda s: float(s.strip() or 0)}``.         Default: None.     skiprows : int, optional         Skip the first `skiprows` lines, including comments; default: 0.     usecols : int or sequence, optional         Which columns to read, with 0 being the first. For example,         ``usecols = (1,4,5)`` will extract the 2nd, 5th and 6th columns.         The default, None, results in all columns being read.              .. versionchanged:: 1.11.0             When a single column has to be read it is possible to use             an integer instead of a tuple. E.g ``usecols = 3`` reads the             fourth column the same way as ``usecols = (3,)`` would.     unpack : bool, optional         If True, the returned array is transposed, so that arguments may be         unpacked using ``x, y, z = loadtxt(...)``.  When used with a         structured data-type, arrays are returned for each field.         Default is False.     ndmin : int, optional         The returned array will have at least `ndmin` dimensions.         Otherwise mono-dimensional axes will be squeezed.         Legal values: 0 (default), 1 or 2.              .. versionadded:: 1.6.0     encoding : str, optional         Encoding used to decode the inputfile. Does not apply to input streams.         The special value 'bytes' enables backward compatibility workarounds         that ensures you receive byte arrays as results if possible and passes         'latin1' encoded strings to converters. Override this value to receive         unicode arrays and pass strings as input to converters.  If set to None         the system default is used. The default value is 'bytes'.              .. versionadded:: 1.14.0     max_rows : int, optional         Read `max_rows` lines of content after `skiprows` lines. The default         is to read all the lines.              .. versionadded:: 1.16.0     like : array_like         Reference object to allow the creation of arrays which are not         NumPy arrays. If an array-like passed in as ``like`` supports         the ``__array_function__`` protocol, the result will be defined         by it. In this case, it ensures the creation of an array object         compatible with that passed in via this argument.              .. versionadded:: 1.20.0          Returns     -------     out : ndarray         Data read from the text file.          See Also     --------     load, fromstring, fromregex     genfromtxt : Load data with missing values handled as specified.     scipy.io.loadmat : reads MATLAB data files          Notes     -----     This function aims to be a fast reader for simply formatted files.  The     `genfromtxt` function provides more sophisticated handling of, e.g.,     lines with missing values.          .. versionadded:: 1.10.0          The strings produced by the Python float.hex method can be used as     input for floats.          Examples     --------     >>> from io import StringIO   # StringIO behaves like a file object     >>> c = StringIO("0 1\n2 3")     >>> np.loadtxt(c)     array([[0., 1.],            [2., 3.]])          >>> d = StringIO("M 21 72\nF 35 58")     >>> np.loadtxt(d, dtype={'names': ('gender', 'age', 'weight'),     ...                      'formats': ('S1', 'i4', 'f4')})     array([(b'M', 21, 72.), (b'F', 35, 58.)],           dtype=[('gender', 'S1'), ('age', '<i4'), ('weight', '<f4')])          >>> c = StringIO("1,0,2\n3,0,4")     >>> x, y = np.loadtxt(c, delimiter=',', usecols=(0, 2), unpack=True)     >>> x     array([1., 3.])     >>> y     array([2., 4.])          This example shows how `converters` can be used to convert a field     with a trailing minus sign into a negative number.          >>> s = StringIO('10.01 31.25-\n19.22 64.31\n17.57- 63.94')     >>> def conv(fld):     ...     return -float(fld[:-1]) if fld.endswith(b'-') else float(fld)     ...     >>> np.loadtxt(s, converters={0: conv, 1: conv})     array([[ 10.01, -31.25],            [ 19.22,  64.31],            [-17.57,  63.94]])  
+## Description: 
+convert csv file 'test.csv' into two-dimensional matrix
+## Answer:
+<code>numpy.loadtxt(open('test.csv', 'rb'), delimiter=',', skiprows=1)</code>
+"""
 
-#END
-'''
+    user_prompt = f"""## Potential documents: 
+    {potential_docs}
+    ## Description: 
+    {question}
+    # Answer:
+    """
 
-conala_original_no_retrieval_prompt = '''# convert string '2011221' into a DateTime object using format '%Y%W%w'
-datetime.strptime('2011221', '%Y%W%w')
+    return sys_prompt + '\n\n' + shots + '\n\n' + user_prompt
 
-#END
 
-# Sort a list of strings 'words' such that items starting with 's' come first.
-sorted(words, key=lambda x: 'a' + x if x.startswith('s') else 'b' + x)
+def llama_0shot_no_ret_prompt(question):
+    sys_prompt = """You are a senior python programmer, given a program description starts with `## Description`, 
+    you should write a python program according to the description in one line.
+    The program should starts with <code> and ends with </code>
+    """
 
-#END
+    user_prompt = f"""## Description: 
+    {question}
+    """
 
-# replace all the nan values with 0 in a pandas dataframe `df`
-df.fillna(0)
+    prompt_template = f"""<s>[INST] <<SYS>>
+    {sys_prompt} <</SYS>>\n
+    {user_prompt} [/INST]
+    """
 
-#END
-'''
+    return prompt_template
 
-conala_0shot_prompt = '''Given the description, and some potential documents that might help, generate corresponding Python command. 
-Only generate the command, and remember that some of the documents might not be helpful when generating the command.'''
-# And pay attention that potential documents might not be helpful when generating the command
+
+def gpt_3shots_no_ret_prompt():
+    conala_original_no_retrieval_prompt = '''# convert string '2011221' into a DateTime object using format '%Y%W%w'
+    datetime.strptime('2011221', '%Y%W%w')
+    
+    #END
+    
+    # Sort a list of strings 'words' such that items starting with 's' come first.
+    sorted(words, key=lambda x: 'a' + x if x.startswith('s') else 'b' + x)
+    
+    #END
+    
+    # replace all the nan values with 0 in a pandas dataframe `df`
+    df.fillna(0)
+    
+    #END
+    '''
+
+    conala_0shot_prompt = '''Given the description, and some potential documents that might help, generate corresponding Python command. 
+    Only generate the command, and remember that some of the documents might not be helpful when generating the command.'''
+    # And pay attention that potential documents might not be helpful when generating the command
+
+
+if __name__ == '__main__':
+    # def get_examples(num=3):
+    #     import json, random
+    #     data_file = '../data/conala/cmd_train.oracle_man.full.json'
+    #     dataset = json.load(open(data_file, 'r'))
+    #     examples = random.sample(dataset, num)
+    #     for example in examples:
+    #         print(example['nl'], example['cmd'])
+    #
+    # get_examples(3)
+
+    from dataset_utils.corpus_utils import PythonDocsLoader
+    api_signs = ['numpy.outer', 'datetime.datetime.fromtimestamp', 'datetime.datetime.strftime', 'numpy.loadtxt']
+    docs = PythonDocsLoader().get_docs(api_signs)
+    docs = [doc.replace('\n', ' ') for doc in docs]
+    import tiktoken
+    MAX_TOKENS = 2000
+    encoding = tiktoken.get_encoding("cl100k_base")
+    for doc in docs:
+        encoded_doc = encoding.encode(doc)[:MAX_TOKENS]
+        doc = encoding.decode(encoded_doc)
+        print(doc)

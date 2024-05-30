@@ -58,6 +58,7 @@ class PythonDocsLoader:
         python_docs_builtin = json.load(open(self.api_doc_builtin, 'r'))
         python_docs.update(python_docs_third)
         python_docs.update(python_docs_builtin)
+        print(len(python_docs))
 
         proc_python_docs = list()
         for api_sign, doc in python_docs.items():
@@ -71,6 +72,7 @@ class PythonDocsLoader:
             except:
                 ...
             main_content = function_head + '\n' + '\n'.join(lines[3:])
+            # main_content = doc
             is_match = False
             for item in proc_python_docs:
                 if item['doc'] == main_content:
@@ -83,9 +85,9 @@ class PythonDocsLoader:
             json.dump(proc_python_docs, f, indent=2)
 
 
-if __name__ == '__main__':
-    python_docs_loader = PythonDocsLoader()
-    python_docs_loader.process_docs()
+# if __name__ == '__main__':
+#     python_docs_loader = PythonDocsLoader()
+#     python_docs_loader.process_docs()
 
 class WikiCorpusLoader:
     def __init__(self):
