@@ -156,7 +156,6 @@ class ConalaLoader:
         # runnable_funcs = []
         pass_k_list = list()
         for result in tqdm(results, total=len(results)):
-            if result['qs_id'] == '4490961-76': print('??? fuck')
             for qs_id in unittests.keys():
                 unittest = unittests[qs_id]
                 if result['qs_id'] == qs_id:
