@@ -35,8 +35,8 @@ AVG_PROMPT_LENGTH_DS1000 = ...
 AVG_PROMPT_LENGTH_PANDASEVAL = ...
 
 
-def save_results_to_files(save_file, gene_results):
-    if os.path.exists(save_file):
+def save_results_to_files(save_file, gene_results, overwrite=False):
+    if overwrite is False and os.path.exists(save_file):
         user_input = input(f'The file {save_file} already exists. Overwrite? (y/n): ').lower()
         if user_input == 'y':
             with open(save_file, 'w+') as f:
