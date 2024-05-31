@@ -72,7 +72,7 @@ class GeneConala:
         if self.model.startswith('llama'):
             outputs_list, logprobs_list = llama(prompts=prompts, model_name=self.model, max_new_tokens=self.max_tokens, n=self.n, stop='</code>')
         elif self.model.startswith('gpt'):
-            outputs_list, logprobs_list = chatgpt(prompts=prompts, model=self.model, max_tokens=self.max_tokens, n=self.n, stop='</code>')
+            outputs_list, logprobs_list = chatgpt(prompts=prompts, model=self.model, max_tokens=self.max_tokens, n=self.n)
         gene_results = list()
         for idx, (outputs, logprobs) in enumerate(zip(outputs_list, logprobs_list)):
             gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'],
