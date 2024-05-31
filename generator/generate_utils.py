@@ -118,7 +118,7 @@ def generate_config(in_program_call=None):
     parser.add_argument('--model', type=str, default='gpt-3.5-turbo-1106')
     parser.add_argument('--temperature', type=float, default=0.7)
     parser.add_argument('--n', type=int, default=1)
-    parser.add_argument('--max_tokens', type=int, default=1000)
+    parser.add_argument('--max_tokens', type=int, default=100)
 
     parser.add_argument('--retriever', type=str, default='best', choices=['best', 'BM25', 'contriever', 'miniLM', 'openai-embedding'])
 

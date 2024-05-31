@@ -82,6 +82,7 @@ class GeneConala:
                                      outputs=outputs,
                                      logprobs=logprobs
                                      ))
+        print(gene_results[0])
         save_results_to_files(self.save_file, gene_results)
         return gene_results
 
