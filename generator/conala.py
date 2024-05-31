@@ -116,9 +116,9 @@ if __name__ == '__main__':
     # gene_conala = GeneConala(args, retriever_args)
     # gene_conala.gene_response()
 
-    in_program_call = '--dataset conala --retriever BM25 --analysis_type retrieval_recall --ret_acc 1'
+    in_program_call = '--model llama3-8b --dataset conala --retriever BM25 --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
     generator = GeneConala(args)
-    generator.test_prompt()
-    # gene_results = generator.gene_response()
-    # print(gene_results)
+    # generator.test_prompt()
+    gene_results = generator.gene_response()
+    print(gene_results)
