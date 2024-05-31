@@ -166,7 +166,7 @@ class ConalaLoader:
             runnable_func = [f"{unittest['prompt']}{x}{suffix}" for x in result['outputs']]
             # test_funcs.append(test_func)
             # runnable_funcs.append(runnable_func)
-            runnable_func = [f"{unittest['prompt']}{unittest['canonical_solution']}{suffix}"] # oracle
+            # runnable_func = [f"{unittest['prompt']}{unittest['canonical_solution']}{suffix}"] # oracle
 
             pass_k, _ = code_eval_metric.compute(
                 predictions=[runnable_func],
