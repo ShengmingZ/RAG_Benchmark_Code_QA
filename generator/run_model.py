@@ -30,7 +30,7 @@ def chatgpt(prompts, model='gpt-3.5-turbo-1106', temperature=0.7, max_tokens=100
 
     return outputs_list, logprobs_list
 
-def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=200, temperature=0.6, n=1):
+def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=200, temperature=0.6, n=1, stop=None):
     """
     :param prompts:
     :param model_name:
@@ -75,6 +75,7 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=200, temperature
                 eos_token_id=2
             )
             text, logprob = process_naive_output(input_ids.shape[-1], outputs, tokenizer)
+            text = text.split(stop)[0]
             texts.append(text)
             logprobs.append(logprob)
         texts_list.append(texts)

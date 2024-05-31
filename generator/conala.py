@@ -70,7 +70,7 @@ class GeneConala:
                                    model_name=self.model)
 
         if self.model.startswith('llama'):
-            outputs_list, logprobs_list = llama(prompts=prompts, model_name=self.model, max_new_tokens=self.max_tokens, n=self.n)
+            outputs_list, logprobs_list = llama(prompts=prompts, model_name=self.model, max_new_tokens=self.max_tokens, n=self.n, stop='</code>')
         elif self.model.startswith('gpt'):
             outputs_list, logprobs_list = chatgpt(prompts=prompts, model=self.model, max_tokens=self.max_tokens, n=self.n, stop='</code>')
         gene_results = list()
