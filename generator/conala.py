@@ -49,6 +49,13 @@ class GeneConala:
         print('qs_num:', len(self.qs_list))
         print('save_to:', self.save_file)
 
+    def test_prompt(self):
+        oracle_docs = self.oracle_list[0]['oracle_docs']
+        generate_prompts(questions=[qs['question'] for qs in self.qs_list],
+                         ret_docs_list=[PythonDocsLoader().get_docs(oracle_docs)],
+                         prompt_type=self.prompt_type,
+                         dataset=self.dataset,
+                         model_name=self.model)
 
     def gene_response(self):
         if self.analysis_type == 'retrieval_recall':
@@ -113,5 +120,6 @@ if __name__ == '__main__':
     in_program_call = '--dataset conala --retriever BM25 --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
     generator = GeneConala(args)
-    gene_results = generator.gene_response()
-    print(gene_results)
+    generator.test_prompt()
+    # gene_results = generator.gene_response()
+    # print(gene_results)
