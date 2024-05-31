@@ -16,7 +16,7 @@ def conala_eval(args):
     _gene_results = list()
     for result in gene_results:
         # outputs = [output.replace('<code>', '') for output in result['outputs']]
-        outputs = result['oracle_output']
+        outputs = [result['oracle_output']]
         _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
     passk = ConalaLoader().eval_passk(_gene_results, top_k=[1])
     return passk
