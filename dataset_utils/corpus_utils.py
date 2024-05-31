@@ -48,7 +48,9 @@ class PythonDocsLoader:
             for idx, api_sign in enumerate(api_signs):
                 if api_sign in item['api_sign']:
                     docs[idx] = item['doc']
-        assert '' not in docs
+        for idx, doc in enumerate(docs):
+            if doc == '':
+                print(f'not find doc for api sign {api_signs[idx]}')
         return docs
 
 

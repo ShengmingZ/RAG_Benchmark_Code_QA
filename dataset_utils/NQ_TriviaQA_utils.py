@@ -301,6 +301,16 @@ class NQTriviaQAUtils:
         with open(self.sampled_data_file, 'w+') as f:
             json.dump(data_list, f, indent=2)
 
+    def if_has_answer(self, doc, qs_id):
+        oracle_list = self.load_oracle_list()
+        answers = None
+        for oracle in oracle_list:
+            if oracle['qs_id'] == qs_id:
+                answers = oracle['answers']
+        if answers is None:
+            raise Exception(f'wrong qs_id: {qs_id}')
+        return has_answer(answers, doc)
+
     @staticmethod
     def retrieval_eval(docs_list, answers_list, top_k):
         """

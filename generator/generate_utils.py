@@ -4,7 +4,11 @@ import argparse
 import platform
 import sys, os
 import random
+import torch
 from tqdm import tqdm
+from transformers import AutoTokenizer
+from functools import partial
+
 from prompt.hotpotqa_prompt import original_prompt
 from copy import deepcopy
 system = platform.system()
@@ -15,7 +19,7 @@ elif system == 'Linux':
 sys.path.insert(0, root_path)
 from prompt import conala_prompt, tldr_prompt, hotpotqa_prompt
 from retriever.dense_encoder import DenseRetrievalEncoder
-from retriever.retriever_utils import retriever_config
+from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.DS1000_utils import DS1000Loader
 from dataset_utils.hotpotQA_utils import HotpotQAUtils
@@ -30,6 +34,7 @@ AVG_PROMPT_LENGTH_NQ = ...
 AVG_PROMPT_LENGTH_CONALA = ...
 AVG_PROMPT_LENGTH_DS1000 = ...
 AVG_PROMPT_LENGTH_PANDASEVAL = ...
+
 
 def save_results_to_files(save_file, gene_results):
     if os.path.exists(save_file):
@@ -46,16 +51,35 @@ def save_results_to_files(save_file, gene_results):
             json.dump(gene_results, f, indent=2)
 
 
-def approximate_token(prompts, model='gpt-3.5-turbo'):
-    import tiktoken
-    max_tokens, avg_tokens = 0, 0
-    encoding = tiktoken.encoding_for_model(model)
-    for prompt in prompts:
-        tokens = len(encoding.encode(prompt))
-        avg_tokens += tokens
-        if tokens > max_tokens: max_tokens = tokens
-    avg_tokens = avg_tokens / len(prompts)
-    print(f"Average tokens: {avg_tokens:.3f}, Max tokens: {max_tokens}")
+def approximate_token(prompts, model):
+    if model.startswith('gpt'):
+        import tiktoken
+        max_tokens, avg_tokens = 0, 0
+        encoding = tiktoken.encoding_for_model(model)
+        for prompt in prompts:
+            tokens = len(encoding.encode(prompt))
+            avg_tokens += tokens
+            if tokens > max_tokens: max_tokens = tokens
+        avg_tokens = avg_tokens / len(prompts)
+        print(f"Average tokens: {avg_tokens:.3f}")
+        return avg_tokens
+    elif model.startswith('llama'):
+        if model == 'llama2-13b-chat':
+            model = 'meta-llama/Llama-2-13b-chat-hf'
+        elif model == 'codellama-13b-instruct':
+            model = 'codellama/CodeLlama-13b-Instruct-hf'
+        elif model == 'llama3-8b':
+            model = 'meta-llama/Meta-Llama-3-8B'
+        access_token = "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"
+        tokenizer = AutoTokenizer.from_pretrained(model, torch_dtype=torch.float16, token=access_token)
+        avg_tokens = 0
+        for prompt in prompts:
+            tokens = len(tokenizer(prompt, return_tensors='pt')['input_ids'][0])
+            avg_tokens += tokens
+        avg_tokens = avg_tokens / len(prompts)
+        print(f"Average tokens: {avg_tokens:.3f}")
+        return avg_tokens
+
 
 
 def truncate_doc(doc, model='gpt-3.5-turbo', max_length=1000):
@@ -96,73 +120,75 @@ def generate_config(in_program_call=None):
     parser.add_argument('--temperature', type=float, default=0.7)
     parser.add_argument('--n', type=int, default=1)
     parser.add_argument('--max_tokens', type=int, default=1000)
-    # analysis type
-    parser.add_argument('--analysis_type', type=str, choices=['retrieval_quality', 'prompt_generation'])
-    # retrieval quality analysis, default: retriever with best performance
-    parser.add_argument('--retriever', type=str, default='best', choices=['best', 'bm25', 'contriever', 'miniLM', 'openai-embedding'])
-    parser.add_argument('--ret_acc', type=float, default=1)
-    parser.add_argument('--ret_info_type', type=str, default='retrieved', choices=['oracle', 'retrieved', 'related', 'random', 'unrelated', 'none'])
-    # info processing analysis, default: top_k 5, truncate 4000
-    parser.add_argument('--top_k', type=int, default=5)     # k docs
+
+    parser.add_argument('--retriever', type=str, default='best', choices=['best', 'BM25', 'contriever', 'miniLM', 'openai-embedding'])
+
+    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type'])
+    # each of the following parameter corresponds to one analysis, when choose one, the default value of the other parameters are the default value of RAG
+    parser.add_argument('--ret_acc', type=float, default=1)     # top_k:len(oracle_docs), prompt_type:3shots, ret_doc_type:oracle/distracting
+    parser.add_argument('--ret_doc_type', type=str, default='retrieved', choices=['oracle', 'retrieved', 'distracting', 'random', 'irrelevant', 'none'])
+    parser.add_argument('--top_k', type=int, default=5)
     parser.add_argument('--doc_max_length', type=int, default=4000)
-    # prompt method analysis, default: original prompt 3-shots
-    parser.add_argument('--prompt_type', type=str, default='original', choices=['original', '0shot', 'instruct', 'CoT'])
+    parser.add_argument('--prompt_type', type=str, default='3shots', choices=['3shots', '0shot', 'instruct', 'CoT'])
 
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
 
     # construct save file
     if args.save_file is None:
-        args.save_file = (f'data/{args.dataset}/results/'
-                          f'model_{args.model}_temperature_{args.temperature}_n_{args.n}_'
-                          f'analysis_type_{args.analysis_type}_')
-        if args.analysis_type == 'retrieval_quality':
-            args.save_file += (f'retriever_{args.retriever}_'
-                               f'retrieval_acc_{args.ret_acc}_'
-                               f'ret_info_type_{args.ret_info_type}.json')
-        elif args.analysis_type == 'prompt_generation':
-            args.save_file += (f'top_k_{args.top_k}_'
-                               f'doc_max_length_{args.doc_max_length}_'
-                               f'prompt_type_{args.prompt_type}.json')
+        args.save_file = f'data/{args.dataset}/results/model_{args.model}_temperature_{args.temperature}_n_{args.n}_{args.analysis_type}_'
+        if args.analysis_type == 'retrieval_recall':
+            args.save_file += f'{args.ret_acc}.json'
+        elif args.analysis_type == 'retrieval_doc_type':
+            args.save_file += f'{args.ret_doc_type}.json'
         args.save_file = os.path.join(root_path, args.save_file)
 
     print(json.dumps(vars(args), indent=2))
     return args
 
 
-def control_ret_acc(ret_acc, oracle_list, dataset):
+def get_distracting_doc(qs_id, oracle_docs, ret_results, dataset):
+    ret_result = ret_results[qs_id]
+    for item in ret_result:
+        doc_key = item['doc_key']
+        if dataset == 'NQ' or dataset == 'TriviaQA':
+            doc = WikiCorpusLoader().get_docs(doc_keys_list=[[doc_key]], dataset=dataset, num_procs=1)[0][0]
+            if not NQTriviaQAUtils(dataset).if_has_answer(doc=doc, qs_id=qs_id):
+                return doc_key
+        else:
+            if doc_key not in oracle_docs:
+                return doc_key
+
+
+def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
     """
-    generate retrieval doc key of each sample based on ret_acc,
-    perturb the doc key until it reaches the new ret_acc value
+    generate retrieval doc key of each sample based on ret_acc, perturb the doc key until it reaches the new ret_acc value
     :param ret_acc:
     :param oracle_list: a list of list that store oracle doc key for each sample
     :param dataset:
     :return:
     """
-    ret_accs = [1] * len(oracle_list)
-    cur_ret_acc = sum(ret_accs) / len(ret_accs)
-    if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
-        corpus_doc_keys = WikiCorpusLoader().load_wiki_id(dataset)
-    else:
-        corpus_doc_keys = [item[0] for item in PythonDocsLoader().load_api_signs()]
-    perturb_oracle_list = deepcopy(oracle_list)
+    # perturb oracle_docs_list with high score related docs until it reaches the ret_acc
+    oracle_docs_list = deepcopy([oracle['oracle_docs'] for oracle in oracle_list])
+    ret_accs = [1] * len(oracle_docs_list)  # record acc of each sample
+    cur_ret_acc = sum(ret_accs) / len(ret_accs) # total acc
     perturb_placeholder = list()    # this placeholder is to store doc keys that are oracle
-    for i, oracle in enumerate(perturb_oracle_list):
+    for i, oracle in enumerate(oracle_docs_list):
         for j in range(len(oracle)):
             perturb_placeholder.append([i, j])
+
     while cur_ret_acc > ret_acc:
-        perturb_idx = random.sample(perturb_placeholder, 1) # pick a oracle key and perturb
+        perturb_idx = random.sample(perturb_placeholder, 1)[0] # pick an oracle key and perturb
         perturb_placeholder.remove(perturb_idx)
-        assert perturb_oracle_list[perturb_idx[0]][perturb_idx[1]] == oracle_list[perturb_idx[0]][perturb_idx[1]]
-        perturb_oracle_list[perturb_idx[0]][perturb_idx[1]] = corpus_doc_keys[random.randint(0, len(corpus_doc_keys) - 1)]
-        ret_accs[perturb_idx[0]] = (ret_accs[perturb_idx[0]] * len(oracle_list[perturb_idx[0]]) - 1) / len(oracle_list[perturb_idx[0]])
+        oracle_docs_list[perturb_idx[0]][perturb_idx[1]] = get_distracting_doc(oracle_list[perturb_idx[0]]['qs_id'], oracle_docs_list[perturb_idx[0]], ret_results, dataset)
+        ret_accs[perturb_idx[0]] = (ret_accs[perturb_idx[0]] * len(oracle_docs_list[perturb_idx[0]]) - 1) / len(oracle_docs_list[perturb_idx[0]])
         cur_ret_acc = sum(ret_accs) / len(ret_accs)
 
     if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
-        docs = WikiCorpusLoader().get_docs(perturb_oracle_list, dataset)
+        docs = WikiCorpusLoader().get_docs(oracle_docs_list, dataset)
     else:
-        docs = PythonDocsLoader().get_docs(perturb_oracle_list)
+        docs = [PythonDocsLoader().get_docs(oracle_docs) for oracle_docs in oracle_docs_list]
 
-    return perturb_oracle_list, docs
+    return oracle_docs_list, docs
 
 
 def perturb_ret_doc_type(perturb_doc_type, ret_doc_key_list, oracle_doc_key_list):
@@ -226,15 +252,24 @@ def process_retrieval_doc():
     ...
 
 
-def apply_prompt_method(questions, ret_docs, prompt_type, dataset):
-    assert dataset in ['hotpotQA', 'conala', 'DS1000', 'pandas_numpy_eval']
+def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name):
+    if dataset == 'NQ':
+        if prompt_type == '3shots':
+            generate_func = ...
+
+    elif dataset == 'conala':
+        if prompt_type == '3shots':
+            if model_name.startswith('llama'):
+                generate_func = partial(conala_prompt.llama_3shot_prompt, model=model_name)
+            elif model_name.startswith('gpt'):
+                generate_func = conala_prompt.gpt_3shots_prompt
+
     prompts = []
-    if dataset == 'hotpotQA':
-        if prompt_type == 'original':
-            for question, ret_doc in zip(questions, ret_docs):
-                assert len(ret_doc) == 2
-                prompt = hotpotqa_prompt.original_prompt.replace('<QUESTION>', question).replace('<POTENTIAL DOCUMENTS 1>', f'1: {ret_doc[0]}').replace('<POTENTIAL DOCUMENTS 2>', f'2: {ret_doc[1]}')
-                prompts.append(prompt)
+    for ret_docs, question in zip(ret_docs_list, questions):
+        prompts.append(generate_func(ret_docs, question))
+    print(prompts[0])
+    approximate_token(prompts, model_name)
+
     return prompts
 
 
@@ -243,16 +278,34 @@ def apply_prompt_method(questions, ret_docs, prompt_type, dataset):
 
 if __name__ == "__main__":
     # test for control_ret_acc
-    hotpotqa_loader = HotpotQALoader()
-    oracle_list = hotpotqa_loader.load_oracle_list()
-    oracle_list = [oracle['oracle_docs'] for oracle in oracle_list]
-    wiki_loader = WikiCorpusLoader()
-    wiki_id_list = wiki_loader.load_wiki_id()
-    perturb_oracle_list = control_ret_acc(0.8, oracle_list, wiki_id_list)
-    ret_acc = 0
-    for perturb_oracle, oracle in zip(perturb_oracle_list, oracle_list):
-        count = sum(1 for x, y in zip(perturb_oracle, oracle) if x == y)
-        ret_acc = ret_acc + count/len(perturb_oracle)
-    ret_acc = ret_acc/len(oracle_list)
-    print(ret_acc)
+    # hotpotqa_loader = HotpotQALoader()
+    # oracle_list = hotpotqa_loader.load_oracle_list()
+    # oracle_list = [oracle['oracle_docs'] for oracle in oracle_list]
+    # wiki_loader = WikiCorpusLoader()
+    # wiki_id_list = wiki_loader.load_wiki_id()
+    # perturb_oracle_list = control_ret_acc(0.8, oracle_list, wiki_id_list)
+    # ret_acc = 0
+    # for perturb_oracle, oracle in zip(perturb_oracle_list, oracle_list):
+    #     count = sum(1 for x, y in zip(perturb_oracle, oracle) if x == y)
+    #     ret_acc = ret_acc + count/len(perturb_oracle)
+    # ret_acc = ret_acc/len(oracle_list)
+    # print(ret_acc)
+
+    # test control ret_acc
+    loader = ConalaLoader()
+    oracle_list = loader.load_oracle_list()
+    ret_results = get_ret_results(dataset='conala', retriever='BM25')
+    # print([oracle['oracle_docs'] for oracle in oracle_list])
+    perturb_oracle_keys = control_ret_acc(ret_acc=0.8, oracle_list=oracle_list, ret_results=ret_results, dataset='conala')
+
+    golds = [oracle['oracle_docs'] for oracle in oracle_list]
+    preds = perturb_oracle_keys
+    print(golds)
+    print(preds)
+    recall_n = 0
+    for gold, pred in zip(golds, preds):
+        cur_hit = sum([x in pred for x in gold])
+        recall_n += cur_hit / len(gold)
+    recall_n /= len(preds)
+    print(recall_n)
 

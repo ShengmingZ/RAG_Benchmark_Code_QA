@@ -1,0 +1,110 @@
+import json
+import random
+from tqdm import tqdm
+import platform
+import sys
+system = platform.system()
+if system == 'Darwin':
+    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+elif system == 'Linux':
+    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+sys.path.insert(0, root_path)
+from generator.run_model import chatgpt, llama
+from prompt import conala_prompt
+from retriever.retriever_utils import retriever_config, get_ret_results
+from dataset_utils.conala_utils import ConalaLoader
+from dataset_utils.corpus_utils import PythonDocsLoader
+from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts
+
+
+class GeneConala:
+    def __init__(self, args, retriever_args):
+        # load parameters
+        self.dataset = 'conala'
+        self.save_file = args.save_file
+        self.model = args.model
+        self.temperature = args.temperature
+        self.n = args.n
+        self.max_tokens = args.max_tokens
+
+        self.retriever = args.retriever
+
+        self.analysis_type = args.analysis_type
+        self.ret_acc = args.ret_acc
+        self.ret_doc_type = args.ret_doc_type
+        self.top_k = args.top_k
+        self.max_doc_tokens = args.max_doc_tokens
+        self.prompt_type = args.prompt_type
+        # load docs
+        self.dataset_loader = ConalaLoader()
+        self.qs_list = self.dataset_loader.load_qs_list()
+        self.oracle_list = self.dataset_loader.load_oracle_list()
+        self.corpus_loader = PythonDocsLoader()
+        self.ret_results = get_ret_results(dataset=args.dataset, retriever=args.retriever)
+
+        # test
+        self.qs_list = self.qs_list[:1]
+        self.oracle_list = self.oracle_list[:1]
+
+        print('qs_num:', len(self.qs_list))
+        print('save_to:', self.save_file)
+
+
+    def gene_response(self):
+        if self.analysis_type == 'retrieval_recall':
+            ret_doc_keys_list, docs = control_ret_acc(ret_acc=args.ret_acc,
+                                                          oracle_list=self.oracle_list,
+                                                          ret_results=self.ret_results,
+                                                          dataset=self.dataset)
+
+        prompts = generate_prompts(questions=[qs['question'] for qs in self.qs_list],
+                                   ret_docs_list=docs,
+                                   prompt_type=self.prompt_type,
+                                   dataset=self.dataset,
+                                   model_name=self.model)
+
+        if self.model.startswith('llama'):
+            outputs_list, logprobs_list = llama(prompts=prompts, model_name=self.model, max_new_tokens=self.max_tokens, n=self.n, stop='</code>')
+        elif self.model.startswith('gpt'):
+            outputs_list, logprobs_list = chatgpt(prompts=prompts, model=self.model, max_tokens=self.max_tokens, n=self.n, stop='</code>')
+        gene_results = list()
+        for idx, (outputs, logprobs) in enumerate(zip(outputs_list, logprobs_list)):
+            gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'],
+                                     question=self.qs_list[idx]['question'],
+                                     oracle_output=self.oracle_list[idx]['output'],
+                                     ret_docs=ret_doc_keys_list,
+                                     outputs=outputs,
+                                     logprobs=logprobs
+                                     ))
+        save_results_to_files(self.save_file, gene_results)
+
+
+        # for idx, (qs, oracle) in tqdm(enumerate(zip(self.qs_list, self.oracle_list))):
+        #
+        #     ret_libs, ret_docs = self.get_ret_docs(qs['qs_id'], oracle)
+        #     prompt = self.prepare_prompt(qs['nl'], ret_docs)
+        #
+        #     # gene response
+        #     prompts.append(prompt)
+        #     output = chatgpt(prompt=prompt, model=self.model, temperature=self.temperature, max_tokens=self.max_tokens)[0].replace('\n', ' ').replace('#END', '')
+        #     output = (output.replace("{{", " {{").replace("\n", ' ').replace("\r", "").replace("<pad>", "").replace("<s>", "").replace("</s>", "").strip())
+        #     output = " ".join(output.split())
+        #     gene_results.append(dict(nl=qs, output=output, ret_libs=ret_libs, oracle_libs=oracle['doc_keys'], oracle_output=oracle['output']))
+        #     if idx == 0: print(prompt)
+        #
+        # approximate_token(prompts)
+        # save_results_to_files(save_file=self.save_file, gene_results=gene_results)
+
+
+if __name__ == '__main__':
+    in_program_call = '--dataset conala --top_k 10 --retriever codet5-FT --ret_doc_type retrieved --prompt_type original'
+    args = generate_config(in_program_call)
+    if args.retriever == 'codeT5-FT':
+        retriever_args = dense_retriever_config(f"--dataset conala --dataset_type test \
+                            --model_name neulab/docprompting-codet5-python-doc-retriever")
+    elif args.retriever == 'codeT5-OTS':
+        retriever_args = dense_retriever_config(f"--dataset conala --dataset_type test \
+                            --model_name Salesforce/codet5-base")
+
+    gene_conala = GeneConala(args, retriever_args)
+    gene_conala.gene_response()
