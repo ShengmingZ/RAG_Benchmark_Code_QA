@@ -151,10 +151,11 @@ class ConalaLoader:
     def eval_passk(self, results, top_k, num_proc=16):
         unittests = json.load(open(self.unittest_file, 'r'))
         code_eval_metric = evaluate.load("code_eval")
-        test_funcs = []
-        runnable_funcs = []
+        # test_funcs = []
+        # runnable_funcs = []
+        pass_k_list = list()
         for result in results:
-            for idx, qs_id in tqdm(enumerate(unittests.keys())):
+            for qs_id in unittests.keys():
                 unittest = unittests[qs_id]
                 if result['qs_id'] == qs_id:
                     break
@@ -163,28 +164,26 @@ class ConalaLoader:
             entry_point = unittest["entry_point"]
             test_func = f"\n{unittest['test']}\ncheck({entry_point})"
             runnable_func = [f"{unittest['prompt']}{x}{suffix}" for x in result['outputs']]
-            test_funcs.append(test_func)
-            runnable_funcs.append(runnable_func)
+            # test_funcs.append(test_func)
+            # runnable_funcs.append(runnable_func)
             # runnable_func = [f"{unittest['prompt']}{unittest['canonical_solution']}{suffix}"] # oracle
 
-        pass_k, _ = code_eval_metric.compute(
-            predictions=runnable_funcs,
-            references=test_funcs,
-            k=top_k,
-            num_workers=num_proc,
-        )
-        # print(idx, pass_k)
-        print(pass_k)
-        # pass_k_list.append(pass_k)
-        # _pass_k = {}
-        # pass_keys = list(pass_k_list[0].keys())
-        # for key in pass_keys: _pass_k[key] = 0
-        # for pass_k in pass_k_list:
-        #     for key in pass_keys: _pass_k[key] += pass_k[key]
-        # for key in pass_keys: _pass_k[key] = _pass_k[key] / len(unittests)
-        # print(_pass_k)
-        # return _pass_k
-        return pass_k
+            pass_k, _ = code_eval_metric.compute(
+                predictions=[runnable_func],
+                references=[test_func],
+                k=top_k,
+                num_workers=num_proc,
+            )
+            # print(pass_k)
+            pass_k_list.append(pass_k)
+        _pass_k = {}
+        pass_keys = list(pass_k_list[0].keys())
+        for key in pass_keys: _pass_k[key] = 0
+        for pass_k in pass_k_list:
+            for key in pass_keys: _pass_k[key] += pass_k[key]
+        for key in pass_keys: _pass_k[key] = _pass_k[key] / len(unittests)
+        print(_pass_k)
+        return _pass_k
 
     @staticmethod
     def calc_recall(src, pred, top_k):
