@@ -77,7 +77,7 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=200, temperature
             text, logprob = process_naive_output(input_ids.shape[-1], outputs, tokenizer)
             text = text.split(stop)[0]
             texts.append(text)
-            logprobs.append(logprob)
+            logprobs.append(np.array(logprob))
         texts_list.append(texts)
         logprobs_list.append(logprobs)
 
