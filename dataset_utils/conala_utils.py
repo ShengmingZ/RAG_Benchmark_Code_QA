@@ -151,7 +151,6 @@ class ConalaLoader:
     def eval_passk(self, results, top_k, num_proc=16):
         unittests = json.load(open(self.unittest_file, 'r'))
         code_eval_metric = evaluate.load("code_eval")
-        pass_k_list = []
         test_funcs = []
         runnable_funcs = []
         for result in results:
@@ -163,7 +162,7 @@ class ConalaLoader:
             suffix = unittest['suffix']
             entry_point = unittest["entry_point"]
             test_func = f"\n{unittest['test']}\ncheck({entry_point})"
-            runnable_func = [f"{unittest['prompt']}{x}{suffix}" for x in result['output']]
+            runnable_func = [f"{unittest['prompt']}{x}{suffix}" for x in result['outputs']]
             test_funcs.append(test_func)
             runnable_funcs.append(runnable_func)
             # runnable_func = [f"{unittest['prompt']}{unittest['canonical_solution']}{suffix}"] # oracle

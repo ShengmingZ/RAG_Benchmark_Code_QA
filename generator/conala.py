@@ -88,6 +88,16 @@ class GeneConala:
         save_results_to_files(self.save_file, gene_results, overwrite=True)
         return gene_results
 
+    def eval(self):
+        gene_results = json.load(open(self.save_file, 'r'))
+        _gene_results = list()
+        for result in gene_results:
+            # outputs = [output.replace('<code>', '') for output in result['outputs']]
+            outputs = result['oracle_output']
+            _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
+        passk = self.dataset_loader.eval_passk(_gene_results, top_k=[1])
+        return passk
+
 
         # for idx, (qs, oracle) in tqdm(enumerate(zip(self.qs_list, self.oracle_list))):
         #
@@ -124,4 +134,5 @@ if __name__ == '__main__':
     args = generate_config(in_program_call)
     generator = GeneConala(args)
     # generator.test_prompt()
-    gene_results = generator.gene_response()
+    # gene_results = generator.gene_response()
+    generator.eval()
