@@ -17,7 +17,7 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from prompt import conala_prompt, tldr_prompt, hotpotqa_prompt
+from prompt import conala_prompt
 from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.DS1000_utils import DS1000Loader
@@ -81,14 +81,34 @@ def approximate_token(prompts, model):
 
 
 
-def truncate_doc(doc, model='gpt-3.5-turbo', max_length=1000):
-    import tiktoken
-    encoding = tiktoken.encoding_for_model(model)
-    encoded_doc = encoding.encode(doc)
-    if len(encoded_doc) > max_length:
-        encoded_doc = encoded_doc[:max_length]
-        doc = encoding.decode(encoded_doc)
-    return doc
+def truncate_docs(docs, model, max_length):
+    if model.startswith('gpt'):
+        import tiktoken
+        encoding = tiktoken.encoding_for_model(model)
+        truncated_docs = []
+        for doc in docs:
+            encoded_doc = encoding.encode(doc)
+            if len(encoded_doc) > max_length:
+                encoded_doc = encoded_doc[:max_length]
+                doc = encoding.decode(encoded_doc)
+            truncated_docs.append(doc)
+    elif model.startswith('llama'):
+        if model == 'llama2-13b-chat':
+            model = 'meta-llama/Llama-2-13b-chat-hf'
+        elif model == 'codellama-13b-instruct':
+            model = 'codellama/CodeLlama-13b-Instruct-hf'
+        elif model == 'llama3-8b':
+            model = 'meta-llama/Meta-Llama-3-8B'
+        access_token = "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"
+        tokenizer = AutoTokenizer.from_pretrained(model, torch_dtype=torch.float16, token=access_token)
+        truncated_docs = []
+        for doc in docs:
+            tokens = tokenizer.encode(doc, max_length=max_length, truncation=True, add_special_tokens=False)
+            doc = tokenizer.decode(tokens[:max_length])
+            truncated_docs.append(doc)
+
+    return truncated_docs
+
 
 
 def get_irrelevant_doc(irrelevant_type, doc_length, model_type, n):
@@ -127,7 +147,7 @@ def generate_config(in_program_call=None):
     parser.add_argument('--ret_acc', type=float, default=1)     # top_k:len(oracle_docs), prompt_type:3shots, ret_doc_type:oracle/distracting
     parser.add_argument('--ret_doc_type', type=str, default='retrieved', choices=['oracle', 'retrieved', 'distracting', 'random', 'irrelevant', 'none'])
     parser.add_argument('--top_k', type=int, default=5)
-    parser.add_argument('--doc_max_length', type=int, default=4000)
+    parser.add_argument('--doc_max_length', type=int, default=1000)
     parser.add_argument('--prompt_type', type=str, default='3shots', choices=['3shots', '0shot', 'instruct', 'CoT'])
 
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
@@ -251,7 +271,12 @@ def process_retrieval_doc():
     ...
 
 
-def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name):
+def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name, doc_max_length):
+    _ret_docs_list = list()
+    for docs in ret_docs_list:
+        _ret_docs_list.append(truncate_docs(docs, model_name, doc_max_length))
+    ret_docs_list = _ret_docs_list
+
     if dataset == 'NQ':
         if prompt_type == '3shots':
             generate_func = ...
@@ -307,4 +332,11 @@ if __name__ == "__main__":
         recall_n += cur_hit / len(gold)
     recall_n /= len(preds)
     print(recall_n)
+
+    # doc = """
+    # concat(objs: 'Iterable[NDFrame] | Mapping[Hashable, NDFrame]', axis=0, join='outer', ignore_index: 'bool' = False, keys=None, levels=None, names=None, verify_integrity: 'bool' = False, sort: 'bool' = False, copy: 'bool' = True)     Concatenate pandas objects along a particular axis with optional set logic     along the other axes.          Can also add a layer of hierarchical indexing on the concatenation axis,     which may be useful if the labels are the same (or overlapping) on     the passed axis number.          Parameters     ----------     objs : a sequence or mapping of Series or DataFrame objects         If a mapping is passed, the sorted keys will be used as the `keys`         argument, unless it is passed, in which case the values will be         selected (see below). Any None objects will be dropped silently unless         they are all None in which case a ValueError will be raised.     axis : {0/'index', 1/'columns'}, default 0         The axis to concatenate along.     join : {'inner', 'outer'}, default 'outer'         How to handle indexes on other axis (or axes).     ignore_index : bool, default False         If True, do not use the index values along the concatenation axis. The         resulting axis will be labeled 0, ..., n - 1. This is useful if you are         concatenating objects where the concatenation axis does not have         meaningful indexing information. Note the index values on the other         axes are still respected in the join.     keys : sequence, default None         If multiple levels passed, should contain tuples. Construct         hierarchical index using the passed keys as the outermost level.     levels : list of sequences, default None         Specific levels (unique values) to use for constructing a         MultiIndex. Otherwise they will be inferred from the keys.     names : list, default None         Names for the levels in the resulting hierarchical index.     verify_integrity : bool, default False         Check whether the new concatenated axis contains duplicates. This can         be very expensive relative to the actual data concatenation.     sort : bool, default False         Sort non-concatenation axis if it is not already aligned when `join`         is 'outer'.         This has no effect when ``join='inner'``, which already preserves         the order of the non-concatenation axis.              .. versionchanged:: 1.0.0                 Changed to not sort by default.          copy : bool, default True         If False, do not copy data unnecessarily.          Returns     -------     object, type of objs         When concatenating all ``Series`` along the index (axis=0), a         ``Series`` is returned. When ``objs`` contains at least one         ``DataFrame``, a ``DataFrame`` is returned. When concatenating along         the columns (axis=1), a ``DataFrame`` is returned.          See Also     --------     Series.append : Concatenate Series.     DataFrame.append : Concatenate DataFrames.     DataFrame.join : Join DataFrames using indexes.     DataFrame.merge : Merge DataFrames by indexes or columns.          Notes     -----     The keys, levels, and names arguments are all optional.          A walkthrough of how this method fits in with other tools for combining     pandas objects can be found `here     <https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html>`__.          Examples     --------     Combine two ``Series``.          >>> s1 = pd.Series(['a', 'b'])     >>> s2 = pd.Series(['c', 'd'])     >>> pd.concat([s1, s2])     0    a     1    b     0    c     1    d     dtype: object          Clear the existing index and reset it in the result     by setting the ``ignore_index`` option to ``True``.          >>> pd.concat([s1, s2], ignore_index=True)     0    a     1    b     2    c     3    d     dtype: object          Add a hierarchical index at the outermost level of     the data with the ``keys`` option.          >>> pd.concat([s1, s2], keys=['s1', 's2'])     s1  0    a         1    b     s2  0    c         1    d     dtype: object          Label the index keys you create with the ``names`` option.          >>> pd.concat([s1, s2], keys=['s1', 's2'],     ...           names=['Series name', 'Row ID'])     Series name  Row ID     s1           0         a                  1         b     s2           0         c                  1         d     dtype: object          Combine two ``DataFrame`` objects with identical columns.          >>> df1 = pd.DataFrame([['a', 1], ['b', 2]],     ...                    columns=['letter', 'number'])     >>> df1       letter  number     0      a       1     1      b       2     >>> df2 = pd.DataFrame([['c', 3], ['d', 4]],     ...                    columns=['letter', 'number'])     >>> df2       letter  number     0      c       3     1      d       4     >>> pd.concat([df1, df2])       letter  number     0      a       1     1      b       2     0      c       3     1      d       4          Combine ``DataFrame`` objects with overlapping columns     and return everything. Columns outside the intersection will     be filled with ``NaN`` values.          >>> df3 = pd.DataFrame([['c', 3, 'cat'], ['d', 4, 'dog']],     ...                    columns=['letter', 'number', 'animal'])     >>> df3       letter  number animal     0      c       3    cat     1      d       4    dog     >>> pd.concat([df1, df3], sort=False)       letter  number animal     0      a       1    NaN     1      b       2    NaN     0      c       3    cat     1      d       4    dog          Combine ``DataFrame`` objects with overlapping columns     and return only those that are shared by passing ``inner`` to     the ``join`` keyword argument.          >>> pd.concat([df1, df3], join="inner")       letter  number     0      a       1     1      b       2     0      c       3     1      d       4          Combine ``DataFrame`` objects horizontally along the x axis by     passing in ``axis=1``.          >>> df4 = pd.DataFrame([['bird', 'polly'], ['monkey', 'george']],     ...                    columns=['animal', 'name'])     >>> pd.concat([df1, df4], axis=1)       letter  number  animal    name     0      a       1    bird   polly     1      b       2  monkey  george          Prevent the result from including duplicate index values with the     ``verify_integrity`` option.          >>> df5 = pd.DataFrame([1], index=['a'])     >>> df5        0     a  1     >>> df6 = pd.DataFrame([2], index=['a'])     >>> df6        0     a  2     >>> pd.concat([df5, df6], verify_integrity=True)     Traceback (most recent call last):         ...     ValueError: Indexes have overlapping values: ['a']
+    # """
+    # print(doc)
+    # doc = truncate_docs([doc], model='llama3-8b')[0]
+    # print(doc)
 

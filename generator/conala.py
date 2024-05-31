@@ -14,7 +14,7 @@ from prompt import conala_prompt
 from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.corpus_utils import PythonDocsLoader
-from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config
+from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs
 
 
 class GeneConala:
@@ -34,6 +34,7 @@ class GeneConala:
         self.ret_doc_type = args.ret_doc_type
         self.top_k = args.top_k
         self.prompt_type = args.prompt_type
+        self.doc_max_length = args.doc_max_length
         # load docs
         self.dataset_loader = ConalaLoader()
         self.qs_list = self.dataset_loader.load_qs_list()
@@ -50,24 +51,27 @@ class GeneConala:
 
     def test_prompt(self):
         oracle_docs = self.oracle_list[0]['oracle_docs']
+        docs = PythonDocsLoader().get_docs(oracle_docs)
         generate_prompts(questions=[qs['question'] for qs in self.qs_list],
-                         ret_docs_list=[PythonDocsLoader().get_docs(oracle_docs)],
+                         ret_docs_list=[docs],
                          prompt_type=self.prompt_type,
                          dataset=self.dataset,
-                         model_name=self.model)
+                         model_name=self.model,
+                         doc_max_length=self.doc_max_length)
 
     def gene_response(self):
         if self.analysis_type == 'retrieval_recall':
-            ret_doc_keys_list, docs = control_ret_acc(ret_acc=args.ret_acc,
-                                                      oracle_list=self.oracle_list,
-                                                      ret_results=self.ret_results,
-                                                      dataset=self.dataset)
+            ret_doc_keys_list, docs_list = control_ret_acc(ret_acc=args.ret_acc,
+                                                          oracle_list=self.oracle_list,
+                                                          ret_results=self.ret_results,
+                                                          dataset=self.dataset)
 
         prompts = generate_prompts(questions=[qs['question'] for qs in self.qs_list],
-                                   ret_docs_list=docs,
+                                   ret_docs_list=docs_list,
                                    prompt_type=self.prompt_type,
                                    dataset=self.dataset,
-                                   model_name=self.model)
+                                   model_name=self.model,
+                                   doc_max_length=self.doc_max_length)
 
         if self.model.startswith('llama'):
             outputs_list, logprobs_list = llama(prompts=prompts, model_name=self.model, max_new_tokens=self.max_tokens, n=self.n, stop='</code>')
@@ -122,4 +126,3 @@ if __name__ == '__main__':
     generator = GeneConala(args)
     # generator.test_prompt()
     gene_results = generator.gene_response()
-    # print(gene_results)
