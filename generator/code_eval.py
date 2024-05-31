@@ -6,6 +6,7 @@ if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+sys.path.insert(0, root_path)
 from dataset_utils.conala_utils import ConalaLoader
 from generator.generate_utils import generate_config
 
