@@ -151,6 +151,7 @@ class ConalaLoader:
     def eval_passk(self, results, top_k, num_proc=16):
         unittests = json.load(open(self.unittest_file, 'r'))
         code_eval_metric = evaluate.load("code_eval")
+        wrong_ids = []
         # test_funcs = []
         # runnable_funcs = []
         pass_k_list = list()
@@ -166,7 +167,7 @@ class ConalaLoader:
             runnable_func = [f"{unittest['prompt']}{x}{suffix}" for x in result['outputs']]
             # test_funcs.append(test_func)
             # runnable_funcs.append(runnable_func)
-            # runnable_func = [f"{unittest['prompt']}{unittest['canonical_solution']}{suffix}"] # oracle
+            runnable_func = [f"{unittest['prompt']}{unittest['canonical_solution']}{suffix}"] # oracle
 
             pass_k, _ = code_eval_metric.compute(
                 predictions=[runnable_func],
@@ -175,6 +176,7 @@ class ConalaLoader:
                 num_workers=num_proc,
             )
             # print(pass_k)
+            if pass_k['pass@1'] != 1: wrong_ids.append(qs_id)
             pass_k_list.append(pass_k)
         _pass_k = {}
         pass_keys = list(pass_k_list[0].keys())
@@ -183,6 +185,7 @@ class ConalaLoader:
             for key in pass_keys: _pass_k[key] += pass_k[key]
         for key in pass_keys: _pass_k[key] = _pass_k[key] / len(unittests)
         print(_pass_k)
+        print(wrong_ids)
         return _pass_k
 
     @staticmethod
