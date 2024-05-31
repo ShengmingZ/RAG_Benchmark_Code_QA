@@ -81,7 +81,7 @@ class GeneConala:
             gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'],
                                      question=self.qs_list[idx]['question'],
                                      oracle_output=self.oracle_list[idx]['output'],
-                                     ret_docs=ret_doc_keys_list,
+                                     ret_docs=ret_doc_keys_list[idx],
                                      outputs=outputs,
                                      logprobs=logprobs
                                      ))
