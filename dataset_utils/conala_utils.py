@@ -183,7 +183,7 @@ class ConalaLoader:
         for key in pass_keys: _pass_k[key] = 0
         for pass_k in pass_k_list:
             for key in pass_keys: _pass_k[key] += pass_k[key]
-        for key in pass_keys: _pass_k[key] = _pass_k[key] / len(unittests)
+        for key in pass_keys: _pass_k[key] = _pass_k[key] / len(results)
         print(_pass_k)
         print(wrong_ids)
         return _pass_k
