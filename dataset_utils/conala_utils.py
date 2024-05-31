@@ -154,7 +154,7 @@ class ConalaLoader:
         # test_funcs = []
         # runnable_funcs = []
         pass_k_list = list()
-        for result in results:
+        for result in tqdm(results, total=len(results)):
             for qs_id in unittests.keys():
                 unittest = unittests[qs_id]
                 if result['qs_id'] == qs_id:
