@@ -154,7 +154,7 @@ def generate_config(in_program_call=None):
 
     # construct save file
     if args.save_file is None:
-        args.save_file = f'data/{args.dataset}/results/model_{args.model}_temperature_{args.temperature}_n_{args.n}_{args.analysis_type}_'
+        args.save_file = f'data/{args.dataset}/results/model_{args.model}_n_{args.n}_{args.analysis_type}_'
         if args.analysis_type == 'retrieval_recall':
             args.save_file += f'{args.ret_acc}.json'
         elif args.analysis_type == 'retrieval_doc_type':

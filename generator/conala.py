@@ -23,7 +23,6 @@ class GeneConala:
         self.dataset = 'conala'
         self.save_file = args.save_file
         self.model = args.model
-        self.temperature = args.temperature
         self.n = args.n
         self.max_tokens = args.max_tokens
 
