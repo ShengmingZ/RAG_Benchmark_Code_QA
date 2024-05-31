@@ -14,11 +14,11 @@ from prompt import conala_prompt
 from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.corpus_utils import PythonDocsLoader
-from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts
+from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config
 
 
 class GeneConala:
-    def __init__(self, args, retriever_args):
+    def __init__(self, args):
         # load parameters
         self.dataset = 'conala'
         self.save_file = args.save_file
@@ -77,6 +77,7 @@ class GeneConala:
                                      logprobs=logprobs
                                      ))
         save_results_to_files(self.save_file, gene_results)
+        return gene_results
 
 
         # for idx, (qs, oracle) in tqdm(enumerate(zip(self.qs_list, self.oracle_list))):
@@ -97,14 +98,20 @@ class GeneConala:
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset conala --top_k 10 --retriever codet5-FT --ret_doc_type retrieved --prompt_type original'
-    args = generate_config(in_program_call)
-    if args.retriever == 'codeT5-FT':
-        retriever_args = dense_retriever_config(f"--dataset conala --dataset_type test \
-                            --model_name neulab/docprompting-codet5-python-doc-retriever")
-    elif args.retriever == 'codeT5-OTS':
-        retriever_args = dense_retriever_config(f"--dataset conala --dataset_type test \
-                            --model_name Salesforce/codet5-base")
+    # in_program_call = '--dataset conala --top_k 10 --retriever codet5-FT --ret_doc_type retrieved --prompt_type original'
+    # args = generate_config(in_program_call)
+    # if args.retriever == 'codeT5-FT':
+    #     retriever_args = dense_retriever_config(f"--dataset conala --dataset_type test \
+    #                         --model_name neulab/docprompting-codet5-python-doc-retriever")
+    # elif args.retriever == 'codeT5-OTS':
+    #     retriever_args = dense_retriever_config(f"--dataset conala --dataset_type test \
+    #                         --model_name Salesforce/codet5-base")
+    #
+    # gene_conala = GeneConala(args, retriever_args)
+    # gene_conala.gene_response()
 
-    gene_conala = GeneConala(args, retriever_args)
-    gene_conala.gene_response()
+    in_program_call = '--dataset conala --retriever BM25 --analysis_type retrieval_recall --ret_acc 1'
+    args = generate_config(in_program_call)
+    generator = GeneConala(args)
+    gene_results = generator.gene_response()
+    print(gene_results)
