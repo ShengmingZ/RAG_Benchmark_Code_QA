@@ -33,7 +33,6 @@ class GeneConala:
         self.ret_acc = args.ret_acc
         self.ret_doc_type = args.ret_doc_type
         self.top_k = args.top_k
-        self.max_doc_tokens = args.max_doc_tokens
         self.prompt_type = args.prompt_type
         # load docs
         self.dataset_loader = ConalaLoader()

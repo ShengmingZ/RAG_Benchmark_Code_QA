@@ -18,7 +18,6 @@ elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
 from prompt import conala_prompt, tldr_prompt, hotpotqa_prompt
-from retriever.dense_encoder import DenseRetrievalEncoder
 from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.DS1000_utils import DS1000Loader
