@@ -132,10 +132,10 @@ def get_irrelevant_doc(irrelevant_type, doc_length, model_type, n):
 
 def generate_config(in_program_call=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, choices=['tldr', 'conala', 'DS1000', 'pandas-numpy-eval', 'hotpotQA'])
+    parser.add_argument('--dataset', type=str, choices=['tldr', 'conala', 'DS1000', 'pandas-numpy-eval', 'hotpotQA', 'NQ', 'TriviaQA'])
     parser.add_argument('--save_file', type=str, default=None)
     # model parameters
-    parser.add_argument('--model', type=str, default='gpt-3.5-turbo-1106')
+    parser.add_argument('--model', type=str, default='gpt-3.5-turbo-1106', choices=['llama3-8b', 'llama2-13b', 'gpt-3.5-turbo-1106', 'gpt-4o'])
     parser.add_argument('--temperature', type=float, default=0.7)
     parser.add_argument('--n', type=int, default=1)
     parser.add_argument('--max_tokens', type=int, default=100)

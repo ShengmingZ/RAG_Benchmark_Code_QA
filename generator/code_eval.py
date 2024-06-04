@@ -26,4 +26,5 @@ if __name__ == '__main__':
     # in_program_call = '--model llama3-8b --dataset conala --retriever BM25 --analysis_type retrieval_recall --ret_acc 1'
     in_program_call = None
     args = generate_config(in_program_call)
-    conala_eval(args)
+    passk = conala_eval(args)
+    save_file = args.save_file.replace('.json', 'eval.json')
