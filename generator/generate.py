@@ -131,5 +131,5 @@ if __name__ == '__main__':
     # in_program_call = None
     args = generate_config(in_program_call)
     generator = GeneConala(args)
-    generator.test_prompt()
-    # gene_results = generator.gene_response()
+    # generator.test_prompt()
+    gene_results = generator.gene_response()
