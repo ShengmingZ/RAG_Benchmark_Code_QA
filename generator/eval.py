@@ -23,7 +23,7 @@ if args.analysis_type == "retrieval_recall":
         cmd = f'python --model {args.model} --dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --ret_acc {ret_acc}'
         proc = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (output, error) = proc.communicate()
-        passk = output.decode().split('\n')[-2]
+        passk = output.decode()
         result_list.append(passk)
     for ret_acc, result in zip(ret_acc_list, result_list):
         print('ret_acc: ', ret_acc, result)
