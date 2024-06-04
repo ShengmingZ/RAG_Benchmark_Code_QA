@@ -10,7 +10,7 @@ elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
 from generator.run_model import chatgpt
-from prompt import ds1000_prompt
+from prompt import DS1000_prompt
 from dataset_utils.dataset_configs import DS1000Loader
 from retriever.sparse_retriever import sparse_retriever_config
 from retriever.dense_retriever import dense_retriever_config

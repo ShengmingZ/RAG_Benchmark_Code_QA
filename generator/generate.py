@@ -20,7 +20,7 @@ from generator.generate_utils import control_ret_acc, save_results_to_files, gen
 class GeneConala:
     def __init__(self, args):
         # load parameters
-        self.dataset = 'conala'
+        self.dataset = args.dataset
         self.save_file = args.save_file
         self.model = args.model
         self.n = args.n
@@ -41,9 +41,9 @@ class GeneConala:
         self.corpus_loader = PythonDocsLoader()
         self.ret_results = get_ret_results(dataset=args.dataset, retriever=args.retriever)
 
-        # # test
-        # self.qs_list = self.qs_list[:1]
-        # self.oracle_list = self.oracle_list[:1]
+        # test
+        self.qs_list = self.qs_list[:1]
+        self.oracle_list = self.oracle_list[:1]
 
         print('qs_num:', len(self.qs_list))
         print('save_to:', self.save_file)
@@ -61,9 +61,9 @@ class GeneConala:
     def gene_response(self):
         if self.analysis_type == 'retrieval_recall':
             ret_doc_keys_list, docs_list = control_ret_acc(ret_acc=args.ret_acc,
-                                                          oracle_list=self.oracle_list,
-                                                          ret_results=self.ret_results,
-                                                          dataset=self.dataset)
+                                                           oracle_list=self.oracle_list,
+                                                           ret_results=self.ret_results,
+                                                           dataset=self.dataset)
 
         prompts = generate_prompts(questions=[qs['question'] for qs in self.qs_list],
                                    ret_docs_list=docs_list,
@@ -119,9 +119,9 @@ if __name__ == '__main__':
     # gene_conala = GeneConala(args, retriever_args)
     # gene_conala.gene_response()
 
-    # in_program_call = '--model llama3-8b --dataset conala --retriever BM25 --analysis_type retrieval_recall --ret_acc 1'
-    in_program_call = None
+    in_program_call = '--model codellama-13b-instruct --dataset DS1000 --retriever BM25 --analysis_type retrieval_recall --ret_acc 1'
+    # in_program_call = None
     args = generate_config(in_program_call)
     generator = GeneConala(args)
-    # generator.test_prompt()
+    generator.test_prompt()
     gene_results = generator.gene_response()

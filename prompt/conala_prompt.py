@@ -150,6 +150,7 @@ def gpt_3shots_no_ret_prompt():
 
 
 if __name__ == '__main__':
+    # get examples
     # def get_examples(num=3):
     #     import json, random
     #     data_file = '../data/conala/cmd_train.oracle_man.full.json'
@@ -160,18 +161,7 @@ if __name__ == '__main__':
     #
     # get_examples(3)
 
-    from dataset_utils.corpus_utils import PythonDocsLoader
+    # get docs
+    from prompt_utils import get_truncated_docs
     api_signs = ['numpy.outer', 'datetime.datetime.fromtimestamp', 'datetime.datetime.strftime', 'numpy.loadtxt']
-    docs = PythonDocsLoader().get_docs(api_signs)
-    docs = [doc.replace('\n', ' ') for doc in docs]
-
-    max_length=1000
-    import tiktoken
-    encoding = tiktoken.encoding_for_model('gpt-3.5-turbo')
-    truncated_docs = []
-    for doc in docs:
-        encoded_doc = encoding.encode(doc)
-        if len(encoded_doc) > max_length:
-            encoded_doc = encoded_doc[:max_length]
-            doc = encoding.decode(encoded_doc)
-        print(doc)
+    get_truncated_docs(api_signs)

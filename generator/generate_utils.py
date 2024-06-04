@@ -17,7 +17,7 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from prompt import conala_prompt
+from prompt import conala_prompt, DS1000_prompt
 from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.DS1000_utils import DS1000Loader
@@ -287,6 +287,10 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
                 generate_func = partial(conala_prompt.llama_3shot_prompt, model=model_name)
             elif model_name.startswith('gpt'):
                 generate_func = conala_prompt.gpt_3shots_prompt
+    elif dataset == 'DS1000':
+        if prompt_type == '3shots':
+            if model_name.startswith('llama'):
+                generate_func = partial(DS1000_prompt.llama_3shot_prompt, model=model_name)
 
     prompts = []
     for ret_docs, question in zip(ret_docs_list, questions):
@@ -316,11 +320,11 @@ if __name__ == "__main__":
     # print(ret_acc)
 
     # test control ret_acc
-    loader = ConalaLoader()
+    loader = DS1000Loader()
     oracle_list = loader.load_oracle_list()
-    ret_results = get_ret_results(dataset='conala', retriever='BM25')
+    ret_results = get_ret_results(dataset='DS1000', retriever='BM25')
     # print([oracle['oracle_docs'] for oracle in oracle_list])
-    perturb_oracle_keys = control_ret_acc(ret_acc=0.8, oracle_list=oracle_list, ret_results=ret_results, dataset='conala')
+    perturb_oracle_keys, _ = control_ret_acc(ret_acc=0.8, oracle_list=oracle_list, ret_results=ret_results, dataset='DS1000')
 
     golds = [oracle['oracle_docs'] for oracle in oracle_list]
     preds = perturb_oracle_keys
