@@ -3,9 +3,6 @@ import random
 from tqdm import tqdm
 import platform
 import sys
-
-from dataset_utils.DS1000_utils import DS1000Loader
-
 system = platform.system()
 if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
