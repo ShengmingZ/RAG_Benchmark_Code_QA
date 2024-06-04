@@ -3,6 +3,9 @@ import random
 from tqdm import tqdm
 import platform
 import sys
+
+from dataset_utils.DS1000_utils import DS1000Loader
+
 system = platform.system()
 if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
@@ -15,6 +18,7 @@ from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.corpus_utils import PythonDocsLoader
 from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs
+from dataset_utils.DS1000_utils import DS1000Loader
 
 
 class GeneConala:
@@ -35,10 +39,14 @@ class GeneConala:
         self.prompt_type = args.prompt_type
         self.doc_max_length = args.doc_max_length
         # load docs
-        self.dataset_loader = ConalaLoader()
+        if self.dataset == 'conala':
+            self.dataset_loader = ConalaLoader()
+        elif self.dataset == 'DS1000':
+            self.dataset_loader = DS1000Loader()
         self.qs_list = self.dataset_loader.load_qs_list()
         self.oracle_list = self.dataset_loader.load_oracle_list()
-        self.corpus_loader = PythonDocsLoader()
+        if self.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
+            self.corpus_loader = PythonDocsLoader()
         self.ret_results = get_ret_results(dataset=args.dataset, retriever=args.retriever)
 
         # test
@@ -124,4 +132,4 @@ if __name__ == '__main__':
     args = generate_config(in_program_call)
     generator = GeneConala(args)
     generator.test_prompt()
-    gene_results = generator.gene_response()
+    # gene_results = generator.gene_response()

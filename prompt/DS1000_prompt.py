@@ -9,6 +9,7 @@ def llama_3shot_prompt(ret_docs, question, model):
     sys_prompt = """You are a senior python programmer, given some potential api documents starts with `## Potential documents`, a program description starts with `## Problem`, and the unfinished code solution starts with `## Unfinished Code Solution`, 
 you should first read the potential documents, and then use the knowledge in documents to complete the code solution according to the problem.
 you should only output the completed code solution
+\n
 """
 
     example1 = """## Potential documents:

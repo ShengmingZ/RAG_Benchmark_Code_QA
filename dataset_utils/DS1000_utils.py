@@ -170,6 +170,20 @@ class DS1000Loader:
 
 if __name__ == '__main__':
     ds1000_loader = DS1000Loader()
-    oracle_list = ds1000_loader.load_oracle_list()
-    preds = [dict(qs_id=oracle['qs_id'], outputs=[oracle['output']]) for oracle in oracle_list]
-    ds1000_loader.eval_passk(result_list=preds, k_list=[1])
+    # oracle_list = ds1000_loader.load_oracle_list()
+    # preds = [dict(qs_id=oracle['qs_id'], outputs=[oracle['output']]) for oracle in oracle_list]
+    # ds1000_loader.eval_passk(result_list=preds, k_list=[1])
+
+    # change mode from completion to insertion
+    sample_file = ds1000_loader.sampled_data_file
+    sample_datas = json.load(open(sample_file, 'r'))
+    ds1000 = DS1000Dataset(source_dir=root_path + '/data/DS1000/ds1000_data', mode='Insertion', libs='all')
+    for idx, data in enumerate(sample_datas):
+        qs_id = data['qs_id']
+        [lib, problem_id] = qs_id.split('_')
+        sample_datas[idx]['reference_code'] = ds1000[lib][int(problem_id)]['reference_code']
+        sample_datas[idx]['code_context'] = ds1000[lib][int(problem_id)]['code_context']
+        sample_datas[idx]['prompt'] = ds1000[lib][int(problem_id)]['prompt']
+
+    with open(sample_file, 'w+') as f:
+        json.dump(sample_datas, f, indent=2)

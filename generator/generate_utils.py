@@ -92,7 +92,7 @@ def truncate_docs(docs, model, max_length):
                 encoded_doc = encoded_doc[:max_length]
                 doc = encoding.decode(encoded_doc)
             truncated_docs.append(doc)
-    elif model.startswith('llama'):
+    elif model.startswith('llama') or model.startswith('codellama'):
         if model == 'llama2-13b-chat':
             model = 'meta-llama/Llama-2-13b-chat-hf'
         elif model == 'codellama-13b-instruct':
@@ -135,7 +135,7 @@ def generate_config(in_program_call=None):
     parser.add_argument('--dataset', type=str, choices=['tldr', 'conala', 'DS1000', 'pandas-numpy-eval', 'hotpotQA', 'NQ', 'TriviaQA'])
     parser.add_argument('--save_file', type=str, default=None)
     # model parameters
-    parser.add_argument('--model', type=str, default='gpt-3.5-turbo-1106', choices=['llama3-8b', 'llama2-13b', 'gpt-3.5-turbo-1106', 'gpt-4o'])
+    parser.add_argument('--model', type=str, default='gpt-3.5-turbo-1106', choices=['llama3-8b', 'llama2-13b-chat', 'codellama-13b-instruct', 'gpt-3.5-turbo-1106', 'gpt-4o'])
     parser.add_argument('--temperature', type=float, default=0.7)
     parser.add_argument('--n', type=int, default=1)
     parser.add_argument('--max_tokens', type=int, default=100)
@@ -283,13 +283,13 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
 
     elif dataset == 'conala':
         if prompt_type == '3shots':
-            if model_name.startswith('llama'):
+            if model_name.startswith('llama') or model_name.startswith('codellama'):
                 generate_func = partial(conala_prompt.llama_3shot_prompt, model=model_name)
             elif model_name.startswith('gpt'):
                 generate_func = conala_prompt.gpt_3shots_prompt
     elif dataset == 'DS1000':
         if prompt_type == '3shots':
-            if model_name.startswith('llama'):
+            if model_name.startswith('llama') or model_name.startswith('codellama'):
                 generate_func = partial(DS1000_prompt.llama_3shot_prompt, model=model_name)
 
     prompts = []
