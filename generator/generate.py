@@ -131,4 +131,5 @@ if __name__ == '__main__':
     generator.test_prompt()
     gene_results = generator.gene_response()
     print(gene_results[0]['oracle_output'])
+    print('??')
     print(gene_results[0]['outputs'][0])
