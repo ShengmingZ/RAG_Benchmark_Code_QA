@@ -1,16 +1,34 @@
-def llama_3shot_prompt(ret_docs, question, model):
-    assert model in ['llama2-13b-chat', 'codellama-13b-instruct', 'llama3-8b']
+LLAMA_SYSTEM_PROMPT_TYPE1 = """You are a senior python programmer, given some potential api documents starts with `## Potential documents`, a program description starts with `## Problem`, and the unfinished code solution starts with `## Unfinished Code Solution`, 
+you should first read the potential documents, and then use the knowledge in documents to complete the code solution according to the problem.
+you should only output the completed code solution starts with <code> and ends with </code>
+"""
+
+LLAMA_SYSTEM_PROMPT_TYPE2 = """You are a senior python programmer, given some potential api documents starts with `## Potential documents`, and a unfinished code snippet starts with `## Unfinished Code Snippet`, 
+you should first read the potential documents, and then use the knowledge in documents to complete the code snippet according to the comments in the code.
+you should only output the completed part in the code snippet starts with <code> and ends with </code>
+"""
+
+def process_docs_question(ret_docs, question):
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
-    prompt, answer = question.split('\nA:')
-    prompt = prompt.replace('Problem:', '').replace('\n', ' ')
+    if '\nA:' in question:
+        prompt, answer = question.split('\nA:')
+        prompt = prompt.replace('Problem:', '').replace('\n', ' ')
+    else:
+        prompt = question
+        answer = None
+    return potential_docs, prompt, answer
 
-    sys_prompt = """You are a senior python programmer, given some potential api documents starts with `## Potential documents`, a program description starts with `## Problem`, and the unfinished code solution starts with `## Unfinished Code Solution`, 
-you should first read the potential documents, and then use the knowledge in documents to complete the code solution according to the problem.
-you should only output the completed code solution
-\n
-"""
+
+def llama_3shots_prompt(ret_docs, question, model):
+    if '\nA:' in question:
+        return llama_3shots_prompt_type1(ret_docs, question, model)
+    else:
+        return llama_3shots_prompt_type2(ret_docs, question, model)
+
+
+def llama_3shots_prompt_type1(ret_docs, question, model):
 
     example1 = """## Potential documents:
 0: isclose(a, b, rtol=1e-05, atol=1e-08, equal_nan=False)     Returns a boolean array where two arrays are element-wise equal within a     tolerance.          The tolerance values are positive, typically very small numbers.  The     relative difference (`rtol` * abs(`b`)) and the absolute difference     `atol` are added together to compare against the absolute difference     between `a` and `b`.          .. warning:: The default `atol` is not appropriate for comparing numbers                  that are much smaller than one (see Notes).          Parameters     ----------     a, b : array_like         Input arrays to compare.     rtol : float         The relative tolerance parameter (see Notes).     atol : float         The absolute tolerance parameter (see Notes).     equal_nan : bool         Whether to compare NaN's as equal.  If True, NaN's in `a` will be         considered equal to NaN's in `b` in the output array.          Returns     -------     y : array_like         Returns a boolean array of where `a` and `b` are equal within the         given tolerance. If both `a` and `b` are scalars, returns a single         boolean value.          See Also     --------     allclose     math.isclose          Notes     -----     .. versionadded:: 1.7.0          For finite values, isclose uses the following equation to test whether     two floating point values are equivalent.           absolute(`a` - `b`) <= (`atol` + `rtol` * absolute(`b`))          Unlike the built-in `math.isclose`, the above equation is not symmetric     in `a` and `b` -- it assumes `b` is the reference value -- so that     `isclose(a, b)` might be different from `isclose(b, a)`. Furthermore,     the default value of atol is not zero, and is used to determine what     small values should be considered close to zero. The default value is     appropriate for expected values of order unity: if the expected values     are significantly smaller than one, it can result in false positives.     `atol` should be carefully selected for the use case at hand. A zero value     for `atol` will result in `False` if either `a` or `b` is zero.          `isclose` is not defined for non-numeric data types.          Examples     --------     >>> np.isclose([1e10,1e-7], [1.00001e10,1e-8])     array([ True, False])     >>> np.isclose([1e10,1e-8], [1.00001e10,1e-9])     array([ True, True])     >>> np.isclose([1e10,1e-8], [1.0001e10,1e-9])     array([False,  True])     >>> np.isclose([1.0, np.nan], [1.0, np.nan])     array([ True, False])     >>> np.isclose([1.0, np.nan], [1.0, np.nan], equal_nan=True)     array([ True, True])     >>> np.isclose([1e-8, 1e-7], [0.0, 0.0])     array([ True, False])     >>> np.isclose([1e-100, 1e-7], [0.0, 0.0], atol=0.0)     array([False, False])     >>> np.isclose([1e-10, 1e-10], [1e-20, 0.0])     array([ True,  True])     >>> np.isclose([1e-10, 1e-10], [1e-20, 0.999999e-10], atol=0.0)     array([False,  True])  
@@ -115,6 +133,7 @@ result = g(df.copy())
 </code>
 """
 
+    potential_docs, prompt, answer = process_docs_question(ret_docs, question)
     user_prompt = f"""
 ## Potential documents:
 {potential_docs}
@@ -126,9 +145,7 @@ result = g(df.copy())
 {answer}
 """
 
-
-
-
+    sys_prompt = LLAMA_SYSTEM_PROMPT_TYPE1
     if model.startswith('llama2') or model.startswith('codellama'):
         prompt_template = f"""<s>[INST] <<SYS>> {sys_prompt} <</SYS>>\n {example1} [/INST] {answer1}</s>\n
 <s>[INST] {example2} [/INST] {answer2}</s>\n
@@ -150,6 +167,169 @@ result = g(df.copy())
     return prompt_template
 
 
+def llama_3shots_prompt_type2(ret_docs, question, model):
+    example1 = """## Potential documents:
+0: yticks(ticks=None, labels=None, **kwargs)     Get or set the current tick locations and labels of the y-axis.          Pass no arguments to return the current values without modifying them.          Parameters     ----------     ticks : array-like, optional         The list of ytick locations.  Passing an empty list removes all yticks.     labels : array-like, optional         The labels to place at the given *ticks* locations.  This argument can         only be passed if *ticks* is passed as well.     **kwargs         `.Text` properties can be used to control the appearance of the labels.          Returns     -------     locs         The list of ytick locations.     labels         The list of ylabel `.Text` objects.          Notes     -----     Calling this function with no arguments (e.g. ``yticks()``) is the pyplot     equivalent of calling `~.Axes.get_yticks` and `~.Axes.get_yticklabels` on     the current axes.     Calling this function with arguments is the pyplot equivalent of calling     `~.Axes.set_yticks` and `~.Axes.set_yticklabels` on the current axes.          Examples     --------     >>> locs, labels = yticks()  # Get the current locations and labels.     >>> yticks(np.arange(0, 1, step=0.2))  # Set label locations.     >>> yticks(np.arange(3), ['Tom', 'Dick', 'Sue'])  # Set text labels.     >>> yticks([0, 1, 2], ['January', 'February', 'March'],     ...        rotation=45)  # Set text labels and properties.     >>> yticks([])  # Disable yticks.  
+
+
+
+## Unfinished Code Snippet:
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+x = np.arange(2010, 2020)
+y = np.arange(10)
+plt.plot(x, y)
+
+# Set the transparency of xtick labels to be 0.5
+# SOLUTION START
+"""
+    answer1 = """
+<code>
+plt.yticks(alpha=0.5)
+</code>
+"""
+    example2 = """## Potential documents:
+0: plot(*args, scalex=True, scaley=True, data=None, **kwargs)     Plot y versus x as lines and/or markers.          Call signatures::              plot([x], y, [fmt], *, data=None, **kwargs)         plot([x], y, [fmt], [x2], y2, [fmt2], ..., **kwargs)          The coordinates of the points or line nodes are given by *x*, *y*.          The optional parameter *fmt* is a convenient way for defining basic     formatting like color, marker and linestyle. It's a shortcut string     notation described in the *Notes* section below.          >>> plot(x, y)        # plot x and y using default line style and color     >>> plot(x, y, 'bo')  # plot x and y using blue circle markers     >>> plot(y)           # plot y using x as index array 0..N-1     >>> plot(y, 'r+')     # ditto, but with red plusses          You can use `.Line2D` properties as keyword arguments for more     control on the appearance. Line properties and *fmt* can be mixed.     The following two calls yield identical results:          >>> plot(x, y, 'go--', linewidth=2, markersize=12)     >>> plot(x, y, color='green', marker='o', linestyle='dashed',     ...      linewidth=2, markersize=12)          When conflicting with *fmt*, keyword arguments take precedence.               **Plotting labelled data**          There's a convenient way for plotting objects with labelled data (i.e.     data that can be accessed by index ``obj['y']``). Instead of giving     the data in *x* and *y*, you can provide the object in the *data*     parameter and just give the labels for *x* and *y*::          >>> plot('xlabel', 'ylabel', data=obj)          All indexable objects are supported. This could e.g. be a `dict`, a     `pandas.DataFrame` or a structured numpy array.               **Plotting multiple sets of data**          There are various ways to plot multiple sets of data.          - The most straight forward way is just to call `plot` multiple times.       Example:            >>> plot(x1, y1, 'bo')       >>> plot(x2, y2, 'go')          - If *x* and/or *y* are 2D arrays a separate data set will be drawn       for every column. If both *x* and *y* are 2D, they must have the       same shape. If only one of them is 2D with shape (N, m) the other       must have length N and will be used for every data set m.            Example:            >>> x = [1, 2, 3]       >>> y = np.array([[1, 2], [3, 4], [5, 6]])       >>> plot(x, y)            is equivalent to:            >>> for col in range(y.shape[1]):       ...     plot(x, y[:, col])          - The third way is to specify multiple sets of *[x]*, *y*, *[fmt]*       groups::            >>> plot(x1, y1, 'g^', x2, y2, 'g-')            In this case, any additional keyword argument applies to all       datasets. Also this syntax cannot be combined with the *data*       parameter.          By default, each line is assigned a different style specified by a     'style cycle'. The *fmt* and line property parameters are only     necessary if you want explicit deviations from these defaults.     Alternatively, you can also change the style cycle using     :rc:`axes.prop_cycle`.               Parameters     ----------     x, y : array-like or scalar         The horizontal / vertical coordinates of the data points.         *x* values are optional and default to ``range(len(y))``.              Commonly, these parameters are 1D arrays.              They can also be scalars, or two-dimensional (in that case, the         columns represent separate data sets).              These arguments cannot be passed as keywords.          fmt : str, optional         A format string, e.g. 'ro' for red circles. See the *Notes*         section for a full description of the format strings.              Format strings are just an abbreviation for quickly setting         basic line properties. All of these and more can also be         controlled by keyword arguments.              This argument cannot be passed as keyword.          data : indexable object, optional         An object with labelled data. If given, provide the label names to         plot in *x* and *y*.              .. note::             Technically there's a slight ambiguity in calls where the             second label is a valid *fmt*. ``plot('n', 'o', data=obj)``             could be ``plt(x, y)`` or ``plt(y, fmt)``. In such cases,             the former interpretation is chosen, but a warning is issued.             You may suppress the warning by adding an empty format string             ``plot('n', 'o', '', data=obj)``.          Returns     -------     list of `.Line2D`         A list of lines representing the plotted data.          Other Parameters     ----------------     scalex, scaley : bool, default: True         These parameters determine if the view limits are adapted to the         data limits. The values are passed on to `autoscale_view`.          **kwargs : `.Line2D` properties, optional         *kwargs* are used to specify properties like a line label (for         auto legends), linewidth, antialiasing, marker face color.         Example::              >>> plot([1, 2, 3], [1, 2, 3], 'go-', label='line 1', linewidth=2)         >>> plot([1, 2, 3], [1, 4, 9], 'rs', label='line 2')              If you specify multiple lines with one plot call, the kwargs apply         to all those lines. In case the label object is iterable, each         element is used as labels for each set of data.              Here is a list of available `.Line2D` properties:              Properties:         agg_filter: a filter function, which takes a (m, n, 3) float array and a dpi value, and returns a (m, n, 3) array         alpha: scalar or None         animated: bool         antialiased or aa: bool         clip_box: `.Bbox`         clip_on: bool         clip_path: Patch or (Path, Transform) or None         color or c: color         dash_capstyle: `.CapStyle` or {'butt', 'projecting', 'round'}         dash_joinstyle: `.JoinStyle` or {'miter', 'round', 'bevel'}         dashes: sequence of floats (on/off ink in points) or (None, None)         data: (2, N) array or two 1D arrays         drawstyle or ds: {'default', 'steps', 'steps-pre', 'steps-mid', 'steps-post'}, default: 'default'         figure: `.Figure`         fillstyle: {'full', 'left', 'right', 'bottom', 'top', 'none'}         gid: str         in_layout: bool         label: object         linestyle or ls: {'-', '--', '-.', ':', '', (offset, on-off-seq), ...}         linewidth or lw: float         marker: marker style string, `~.path.Path` or `~.markers.MarkerStyle`         markeredgecolor or mec: color         markeredgewidth or mew: float         markerfacecolor or mfc: color         markerfacecoloralt or mfcalt: color         markersize or ms: float         markevery: None or int or (int, int) or slice or list[int] or float or (float, float) or list[bool]         path_effects: `.AbstractPathEffect`         picker: float or callable[[Artist, Event], tuple[bool, dict]]         pickradius: float         rasterized: bool         sketch_params: (scale: float, length: float, randomness: float)         snap: bool or None         solid_capstyle: `.CapStyle` or {'butt', 'projecting', 'round'}         solid_joinstyle: `.JoinStyle` or {'miter', 'round', 'bevel'}         transform: unknown         url: str         visible: bool         xdata: 1D array         ydata: 1D array         zorder: float          See Also     --------     scatter : XY scatter plot with markers of varying size and/or color (         sometimes also called bubble chart).          Notes     -----     **Format Strings**          A format string consists of a part for color, marker and line::              fmt = '[marker][line][color]'          Each of them is optional. If not provided, the value from the style     cycle is used. Exception: If ``line`` is given, but no ``marker``,     the data will be a line without markers.          Other combinations such as ``[color][marker][line]`` are also     supported, but note that their parsing may be ambiguous.          **Markers**          =============   ===============================     character       description     =============   ===============================     ``'.'``         point marker     ``','``         pixel marker     ``'o'``         circle marker     ``'v'``         triangle_down marker     ``'^'``         triangle_up marker     ``'<'``         triangle_left marker     ``'>'``         triangle_right marker     ``'1'``         tri_down marker     ``'2'``         tri_up marker     ``'3'``         tri_left marker     ``'4'``         tri_right marker     ``'8'``         octagon marker     ``'s'``         square marker     ``'p'``         pentagon marker     ``'P'``         plus (filled) marker     ``'*'``         star marker     ``'h'``         hexagon1 marker     ``'H'``         hexagon2 marker     ``'+'``         plus marker     ``'x'``         x marker     ``'X'``         x (filled) marker     ``'D'``         diamond marker     ``'d'``         thin_diamond marker     ``'|'``         vline marker     ``'_'``         hline marker     =============   ===============================          **Line Styles**          =============    ===============================     character        description     =============    ===============================     ``'-'``          solid line style     ``'--'``         dashed line style     ``'-.'``         dash-dot line style     ``':'``          dotted line style     =============    ===============================          Example format strings::              'b'    # blue markers with default shape         'or'   # red circles         '-g'   # green solid line         '--'   # dashed line with default color         '^k:'  # black triangle_up markers connected by a dotted line          **Colors**          The supported color abbreviations are the single letter codes          =============    ===============================     character        color     =============    ===============================     ``'b'``          blue     ``'g'``          green     ``'r'``          red     ``'c'``          cyan     ``'m'``          magenta     ``'y'``          yellow     ``'k'``          black     ``'w'``          white     =============    ===============================          and the ``'CN'`` colors that index into the default property cycle.          If the color is the only part of the format string, you can     additionally use any  `matplotlib.colors` spec, e.g. full names     (``'green'``) or hex strings (``'#008000'``).  
+1: tick_params(axis='both', **kwargs)     Change the appearance of ticks, tick labels, and gridlines.          Tick properties that are not explicitly set using the keyword     arguments remain unchanged unless *reset* is True.          Parameters     ----------     axis : {'x', 'y', 'both'}, default: 'both'         The axis to which the parameters are applied.     which : {'major', 'minor', 'both'}, default: 'major'         The group of ticks to which the parameters are applied.     reset : bool, default: False         Whether to reset the ticks to defaults before updating them.          Other Parameters     ----------------     direction : {'in', 'out', 'inout'}         Puts ticks inside the axes, outside the axes, or both.     length : float         Tick length in points.     width : float         Tick width in points.     color : color         Tick color.     pad : float         Distance in points between tick and label.     labelsize : float or str         Tick label font size in points or as a string (e.g., 'large').     labelcolor : color         Tick label color.     colors : color         Tick color and label color.     zorder : float         Tick and label zorder.     bottom, top, left, right : bool         Whether to draw the respective ticks.     labelbottom, labeltop, labelleft, labelright : bool         Whether to draw the respective tick labels.     labelrotation : float         Tick label rotation     grid_color : color         Gridline color.     grid_alpha : float         Transparency of gridlines: 0 (transparent) to 1 (opaque).     grid_linewidth : float         Width of gridlines in points.     grid_linestyle : str         Any valid `.Line2D` line style spec.          Examples     --------     ::              ax.tick_params(direction='out', length=6, width=2, colors='r',                        grid_color='r', grid_alpha=0.5)          This will make all major ticks be red, pointing out of the box,     and with dimensions 6 points by 2 points.  Tick labels will     also be red.  Gridlines will be red and translucent.  
+
+
+
+## Unfinished Code Snippet:
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+x = np.arange(10)
+y = np.arange(10)
+
+# Plot y over x in a line chart. Show x axis tick labels but hide the x axis ticks
+# SOLUTION START
+"""
+    answer2 = """
+<code>
+plt.plot(x, y)
+plt.tick_params(bottom=False, labelbottom=True)
+</code>
+"""
+    example3 = """## Potential documents:
+0: catplot(*, x=None, y=None, hue=None, data=None, row=None, col=None, col_wrap=None, estimator=<function mean at 0x7f365754e3b0>, ci=95, n_boot=1000, units=None, seed=None, order=None, hue_order=None, row_order=None, col_order=None, kind='strip', height=5, aspect=1, orient=None, color=None, palette=None, legend=True, legend_out=True, sharex=True, sharey=True, margin_titles=False, facet_kws=None, **kwargs)     Figure-level interface for drawing categorical plots onto a FacetGrid.          This function provides access to several axes-level functions that     show the relationship between a numerical and one or more categorical     variables using one of several visual representations. The ``kind``     parameter selects the underlying axes-level function to use:          Categorical scatterplots:          - :func:`stripplot` (with ``kind="strip"``; the default)     - :func:`swarmplot` (with ``kind="swarm"``)          Categorical distribution plots:          - :func:`boxplot` (with ``kind="box"``)     - :func:`violinplot` (with ``kind="violin"``)     - :func:`boxenplot` (with ``kind="boxen"``)          Categorical estimate plots:          - :func:`pointplot` (with ``kind="point"``)     - :func:`barplot` (with ``kind="bar"``)     - :func:`countplot` (with ``kind="count"``)          Extra keyword arguments are passed to the underlying function, so you     should refer to the documentation for each to see kind-specific options.          Note that unlike when using the axes-level functions directly, data must be     passed in a long-form DataFrame with variables specified by passing strings     to ``x``, ``y``, ``hue``, etc.          As in the case with the underlying plot functions, if variables have a     ``categorical`` data type, the levels of the categorical variables, and     their order will be inferred from the objects. Otherwise you may have to     use alter the dataframe sorting or use the function parameters (``orient``,     ``order``, ``hue_order``, etc.) to set up the plot correctly.          This function always treats one of the variables as categorical and     draws data at ordinal positions (0, 1, ... n) on the relevant axis, even     when the data has a numeric or date type.          See the :ref:`tutorial <categorical_tutorial>` for more information.              After plotting, the :class:`FacetGrid` with the plot is returned and can     be used directly to tweak supporting plot details or add other layers.          Parameters     ----------     x, y, hue : names of variables in ``data``         Inputs for plotting long-form data. See examples for interpretation.             data : DataFrame         Long-form (tidy) dataset for plotting. Each column should correspond         to a variable, and each row should correspond to an observation.         row, col : names of variables in ``data``, optional         Categorical variables that will determine the faceting of the grid.     col_wrap : int         "Wrap" the column variable at this width, so that the column facets         span multiple rows. Incompatible with a ``row`` facet.         estimator : callable that maps vector -> scalar, optional         Statistical function to estimate within each categorical bin.     ci : float or "sd" or None, optional         Size of confidence intervals to draw around estimated values.  If         "sd", skip bootstrapping and draw the standard deviation of the         observations. If ``None``, no bootstrapping will be performed, and         error bars will not be drawn.     n_boot : int, optional         Number of bootstrap iterations to use when computing confidence         intervals.     units : name of variable in ``data`` or vector data, optional         Identifier of sampling units, which will be used to perform a         multilevel bootstrap and account for repeated measures design.     seed : int, numpy.random.Generator, or numpy.random.RandomState, optional         Seed or random number generator for reproducible bootstrapping.         order, hue_order : lists of strings, optional         Order to plot the categorical levels in, otherwise the levels are         inferred from the data objects.             row_order, col_order : lists of strings, optional         Order to organize the rows and/or columns of the grid in, otherwise the         orders are inferred from the data objects.     kind : str, optional         The kind of plot to draw, corresponds to the name of a categorical         axes-level plotting function. Options are: "strip", "swarm", "box", "violin",         "boxen", "point", "bar", or "count".     height : scalar         Height (in inches) of each facet. See also: ``aspect``.         aspect : scalar         Aspect ratio of each facet, so that ``aspect * height`` gives the width         of each facet in inches.         orient : "v" | "h", optional         Orientation of the plot (vertical or horizontal). This is usually         inferred based on the type of the input variables, but it can be used         to resolve ambiguity when both `x` and `y` are numeric or when         plotting wide-form data.         color : matplotlib color, optional         Color for all of the elements, or seed for a gradient palette.         palette : palette name, list, or dict         Colors to use for the different levels of the ``hue`` variable. Should         be something that can be interpreted by :func:`color_palette`, or a         dictionary mapping hue levels to matplotlib colors.         legend : bool, optional         If ``True`` and there is a ``hue`` variable, draw a legend on the plot.     legend_out : bool         If ``True``, the figure size will be extended, and the legend will be         drawn outside the plot on the center right.         share{x,y} : bool, 'col', or 'row' optional         If true, the facets will share y axes across columns and/or x axes         across rows.         margin_titles : bool         If ``True``, the titles for the row variable are drawn to the right of         the last column. This option is experimental and may not work in all         cases.         facet_kws : dict, optional         Dictionary of other keyword arguments to pass to :class:`FacetGrid`.     kwargs : key, value pairings         Other keyword arguments are passed through to the underlying plotting         function.          Returns     -------     g : :class:`FacetGrid`         Returns the :class:`FacetGrid` object with the plot on it for further         tweaking.          Examples     --------          Draw a single facet to use the :class:`FacetGrid` legend placement:          .. plot::         :context: close-figs              >>> import seaborn as sns         >>> sns.set_theme(style="ticks")         >>> exercise = sns.load_dataset("exercise")         >>> g = sns.catplot(x="time", y="pulse", hue="kind", data=exercise)          Use a different plot kind to visualize the same data:          .. plot::         :context: close-figs              >>> g = sns.catplot(x="time", y="pulse", hue="kind",         ...                data=exercise, kind="violin")          Facet along the columns to show a third categorical variable:          .. plot::         :context: close-figs              >>> g = sns.catplot(x="time", y="pulse", hue="kind",         ...                 col="diet", data=exercise)          Use a different height and aspect ratio for the facets:          .. plot::         :context: close-figs              >>> g = sns.catplot(x="time", y="pulse", hue="kind",         ...                 col="diet", data=exercise,         ...                 height=5, aspect=.8)          Make many column facets and wrap them into the rows of the grid:          .. plot::         :context: close-figs              >>> titanic = sns.load_dataset("titanic")         >>> g = sns.catplot(x="alive", col="deck", col_wrap=4,         ...                 data=titanic[titanic.deck.notnull()],         ...                 kind="count", height=2.5, aspect=.8)          Plot horizontally and pass other keyword arguments to the plot function:          .. plot::         :context: close-figs              >>> g = sns.catplot(x="age", y="embark_town",         ...                 hue="sex", row="class",         ...                 data=titanic[titanic.embark_town.notnull()],         ...                 orient="h", height=2, aspect=3, palette="Set3",         ...                 kind="violin", dodge=True, cut=0, bw=.2)          Use methods on the returned :class:`FacetGrid` to tweak the presentation:          .. plot::         :context: close-figs              >>> g = sns.catplot(x="who", y="survived", col="class",         ...                 data=titanic, saturation=.5,         ...                 kind="bar", ci=None, aspect=.6)         >>> (g.set_axis_labels("", "Survival Rate")         ...   .set_xticklabels(["Men", "Women", "Children"])         ...   .set_titles("{col_name} {col_var}")         ...   .set(ylim=(0, 1))         ...   .despine(left=True))  #doctest: +ELLIPSIS         <seaborn.axisgrid.FacetGrid object at 0x...>  
+1: flatten()     a.flatten(order='C')          Return a copy of the array collapsed into one dimension.          Parameters     ----------     order : {'C', 'F', 'A', 'K'}, optional         'C' means to flatten in row-major (C-style) order.         'F' means to flatten in column-major (Fortran-         style) order. 'A' means to flatten in column-major         order if `a` is Fortran *contiguous* in memory,         row-major order otherwise. 'K' means to flatten         `a` in the order the elements occur in memory.         The default is 'C'.          Returns     -------     y : ndarray         A copy of the input array, flattened to one dimension.          See Also     --------     ravel : Return a flattened array.     flat : A 1-D flat iterator over the array.          Examples     --------     >>> a = np.array([[1,2], [3,4]])     >>> a.flatten()     array([1, 2, 3, 4])     >>> a.flatten('F')     array([1, 3, 2, 4])  
+2: set_ylabel(ylabel, fontdict=None, labelpad=None, *, loc=None, **kwargs)     Set the label for the y-axis.          Parameters     ----------     ylabel : str         The label text.          labelpad : float, default: :rc:`axes.labelpad`         Spacing in points from the Axes bounding box including ticks         and tick labels.  If None, the previous value is left as is.          loc : {'bottom', 'center', 'top'}, default: :rc:`yaxis.labellocation`         The label position. This is a high-level alternative for passing         parameters *y* and *horizontalalignment*.          Other Parameters     ----------------     **kwargs : `.Text` properties         `.Text` properties control the appearance of the label.          See Also     --------     text : Documents the properties supported by `.Text`.  
+
+
+
+## Unfinished Code Snippet:
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+df = sns.load_dataset("exercise")
+
+# Make catplots of scatter plots by using "time" as x, "pulse" as y, "kind" as hue, and "diet" as col
+# Do not show any ylabel on either subplot
+# SOLUTION START
+"""
+    answer3 = """
+<code>
+g = sns.catplot(x="time", y="pulse", hue="kind", col="diet", data=df)
+axs = g.axes.flatten()
+axs[0].set_ylabel("")
+</code>
+"""
+    potential_docs, prompt, answer = process_docs_question(ret_docs, question)
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+\n
+## Unfinished Code Snippet:
+{prompt}
+"""
+
+    sys_prompt = LLAMA_SYSTEM_PROMPT_TYPE2
+    if model.startswith('llama2') or model.startswith('codellama'):
+        prompt_template = f"""<s>[INST] <<SYS>> {sys_prompt} <</SYS>>\n {example1} [/INST] {answer1}</s>\n
+<s>[INST] {example2} [/INST] {answer2}</s>\n
+<s>[INST] {example3} [/INST] {answer3}</s>\n
+<s>[INST] {user_prompt} [/INST]
+"""
+    elif model.startswith('llama3'):
+        prompt_template = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{sys_prompt}<|eot_id|>\n
+<|start_header_id|>user<|end_header_id|>{example1}<|eot_id|>\n
+<|start_header_id|>assistant<|end_header_id>{answer1}<|eot_id|>\n
+<|start_header_id|>user<|end_header_id|>{example2}<|eot_id|>\n
+<|start_header_id|>assistant<|end_header_id>{answer2}<|eot_id|>\n
+<|start_header_id|>user<|end_header_id|>{example3}<|eot_id|>\n
+<|start_header_id|>assistant<|end_header_id>{answer3}<|eot_id|>\n
+<|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n
+<|start_header_id|>assistant<|end_header_id>
+"""
+
+    return prompt_template
+
+
+def llama_0shot_prompt(ret_docs, question, model):
+    if '\nA:' in question:
+        return llama_0shot_prompt_type1(ret_docs, question, model)
+    else:
+        return llama_0shot_prompt_type2(ret_docs, question, model)
+
+
+def llama_0shot_prompt_type1(ret_docs, question, model):
+    potential_docs, prompt, answer = process_docs_question(ret_docs, question)
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+\n
+## Problem: 
+{prompt}
+\n
+## Unfinished Code Solution:
+{answer}
+"""
+
+    sys_prompt = LLAMA_SYSTEM_PROMPT_TYPE1
+    if model.startswith('llama2') or model.startswith('codellama'):
+        prompt_template = f"""<s>[INST] <<SYS>>
+{sys_prompt} <</SYS>>\n
+{user_prompt} [/INST]
+"""
+    elif model.startswith('llama3'):
+        prompt_template = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{sys_prompt}<|eot_id|>\n
+<|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n
+<|start_header_id|>assistant<|end_header_id>
+"""
+
+    return prompt_template
+
+
+def llama_0shot_prompt_type2(ret_docs, question, model):
+    potential_docs, prompt, _ = process_docs_question(ret_docs, question)
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+\n
+## Unfinished Code Snippet:
+{prompt}
+"""
+
+    sys_prompt = LLAMA_SYSTEM_PROMPT_TYPE2
+    if model.startswith('llama2') or model.startswith('codellama'):
+        prompt_template = f"""<s>[INST] <<SYS>>
+{sys_prompt} <</SYS>>\n
+{user_prompt} [/INST]
+"""
+    elif model.startswith('llama3'):
+        prompt_template = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{sys_prompt}<|eot_id|>\n
+<|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n
+<|start_header_id|>assistant<|end_header_id>
+"""
+
+    return prompt_template
+
+
 if __name__ == '__main__':
     """
     get examples
@@ -167,6 +347,7 @@ if __name__ == '__main__':
     from generator.generate_utils import truncate_docs
     from dataset_utils.corpus_utils import PythonDocsLoader
     from data.DS1000.ds1000 import DS1000Dataset, DS1000Problem
+    ds1000 = DS1000Dataset(source_dir=root_path + '/data/DS1000/ds1000_data', mode='Insertion', libs='all')
 
     # def classify_prompt(data_list):
     #     type_1_list, type_2_list = [], []
@@ -191,29 +372,86 @@ if __name__ == '__main__':
     # print(sampled_rest_id_type1)
     # print(sampled_rest_id_type2)
 
-    """
-    ensemble  examples as shots
-    """
+
     sampled_rest_id_type1 = ['Numpy_200', 'Tensorflow_25', 'Pandas_53', 'Numpy_41', 'Scipy_98', 'Scipy_66', 'Tensorflow_8', 'Numpy_96', 'Scipy_56', 'Numpy_166']
     sampled_rest_id_type2 = ['Matplotlib_93', 'Matplotlib_142', 'Matplotlib_145', 'Matplotlib_33', 'Matplotlib_80', 'Matplotlib_20', 'Matplotlib_44', 'Matplotlib_120', 'Matplotlib_14', 'Matplotlib_99']
-    ds1000 = DS1000Dataset(source_dir=root_path + '/data/DS1000/ds1000_data', mode='Insertion', libs='all')
-    shots = 4
-    for sampled_id in sampled_rest_id_type1[:shots]:
-        [lib, problem_id] = sampled_id.split('_')
-        data = ds1000[lib][int(problem_id)]
-        # print('qs_id', sampled_id)
-        # print('reference code', data['reference_code'])
-        # prompt, code = data['prompt'].split('A:')
-        # print('prompt', prompt.replace('\n', ' '))
-        # print('code', code)
 
-    # api_signs = ['numpy.isclose', 'builtins.sum', 'tensorflow.gather_nd', 'pandas.core.frame.DataFrame.join', 'pandas.core.frame.DataFrame.apply', 'pandas.core.frame.DataFrame.add_prefix']
-    # from prompt_utils import get_truncated_docs
-    # get_truncated_docs(api_signs)
 
     """
-    test prompt
+    show shots
     """
-    ret_docs = ['asdadwasdawdsdawd', 'bcxvnmtgjr']
-    question = ds1000['Pandas'][1]['prompt']
-    print(llama_3shot_prompt(ret_docs, question, 'codellama-13b-instruct'))
+    def get_sampled_prompt(shots=3):
+        for sampled_id in sampled_rest_id_type1[:shots]:
+            [lib, problem_id] = sampled_id.split('_')
+            data = ds1000[lib][int(problem_id)]
+            print('qs_id', sampled_id)
+            print('reference_code', data['reference_code'])
+            prompt, code = data['prompt'].split('A:')
+            print('prompt:\n', prompt.replace('\n', ' '))
+            print('code:\n', code)
+        for sampled_id in sampled_rest_id_type2[:shots]:
+            [lib, problem_id] = sampled_id.split('_')
+            data = ds1000[lib][int(problem_id)]
+            print('qs_id', sampled_id)
+            print('reference_code', data['reference_code'])
+            print('code:\n', data['prompt'])
+
+    # get_sampled_prompt(shots=3)
+
+
+    """
+    ensemble shots
+    """
+    def ensemble_shots(qs_ids, api_signs):
+        python_loader = PythonDocsLoader()
+        examples, answers = [], []
+        for qs_id, api_sign in zip(qs_ids, api_signs):
+            [lib, problem_id] = qs_id.split('_')
+            data = ds1000[lib][int(problem_id)]
+            docs = python_loader.get_docs(api_sign)
+            potential_docs, prompt, answer = process_docs_question(docs, data['prompt'])
+            if answer is not None:
+                example = f"""## Potential documents:
+{potential_docs}
+\n
+## Problem: 
+{prompt}
+\n
+## Unfinished Code Solution:
+{answer}
+\n
+"""
+            else:
+                example = f"""## Potential documents:
+{potential_docs}
+\n
+## Unfinished Code Snippet:
+{prompt}
+\n
+"""
+            answer = f"""
+{data['reference_code']}
+"""
+            examples.append(example)
+            answers.append(answer)
+        return examples, answers
+
+
+    # type1
+    # qs_ids = ['Numpy_200', 'Tensorflow_25', 'Pandas_53']
+    # api_signs = [['numpy.isclose', 'builtins.sum'], ['tensorflow.gather_nd'], ['pandas.core.frame.DataFrame.join', 'pandas.core.frame.DataFrame.apply', 'pandas.core.frame.DataFrame.add_prefix']]
+    # examples, answers = ensemble_shots(qs_ids, api_signs)
+    # for example, answer in zip(examples, answers):
+    #     print(example)
+    #     print(answer)
+
+    # type2
+    # qs_ids = ['Matplotlib_93', 'Matplotlib_142', 'Matplotlib_145']
+    # api_signs = [['matplotlib.pyplot.yticks'], ['matplotlib.pyplot.plot', 'matplotlib.pyplot.tick_params'], ['seaborn.categorical.catplot', 'numpy.ndarray.flatten', 'matplotlib.axes._axes.Axes.set_ylabel']]
+    # examples, answers = ensemble_shots(qs_ids, api_signs)
+    # for example, answer in zip(examples, answers):
+    #     print(example)
+    #     print(answer)
+
+
+    print(llama_3shots_prompt(ret_docs=['asda', 'asdawr'], question=ds1000['Matplotlib'][0]['prompt'], model='codellama-13b-instruct'))

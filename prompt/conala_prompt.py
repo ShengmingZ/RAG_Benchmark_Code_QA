@@ -109,6 +109,10 @@ convert csv file 'test.csv' into two-dimensional matrix
     return sys_prompt + '\n\n' + shots + '\n\n' + user_prompt
 
 
+def llama_0shot_prompt(ret_docs, question, model):
+    assert model in ['llama2-13b-chat']
+
+
 def llama_0shot_no_ret_prompt(question):
     sys_prompt = """You are a senior python programmer, given a program description starts with `## Description`, 
     you should write a python program according to the description in one line.
@@ -116,13 +120,13 @@ def llama_0shot_no_ret_prompt(question):
     """
 
     user_prompt = f"""## Description: 
-    {question}
-    """
+{question}
+"""
 
     prompt_template = f"""<s>[INST] <<SYS>>
-    {sys_prompt} <</SYS>>\n
-    {user_prompt} [/INST]
-    """
+{sys_prompt} <</SYS>>\n
+{user_prompt} [/INST]
+"""
 
     return prompt_template
 
