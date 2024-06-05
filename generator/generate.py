@@ -130,3 +130,4 @@ if __name__ == '__main__':
     generator = GeneConala(args)
     generator.test_prompt()
     gene_results = generator.gene_response()
+    print(gene_results)
