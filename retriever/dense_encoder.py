@@ -1,6 +1,8 @@
 import argparse
 import shlex
 import json, os
+import time
+
 import openai
 import numpy as np
 import torch
