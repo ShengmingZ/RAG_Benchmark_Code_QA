@@ -47,8 +47,8 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, n=1, stop=N
         model_name = 'meta-llama/Meta-Llama-3-8B'
     access_token = "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"
     tokenizer = AutoTokenizer.from_pretrained(model_name, token=access_token)
-    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16, token=access_token)
-    model = model.to("cuda")
+    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16, token=access_token, device_map='auto')
+    # model = model.to("cuda")
 
     def process_naive_output(input_len, outputs, tokenizer):
         gen_sequences = outputs.sequences[:, input_len:].cpu()
