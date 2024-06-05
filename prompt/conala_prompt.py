@@ -1,13 +1,15 @@
+SYS_PROMPT = """You are a senior python programmer, given some potential api documents starts with `## Potential documents` and a program description starts with `## Description`, 
+you should first read the potential documents, and then write a python program according to the description in one line.
+The program should starts with <code> and ends with </code>
+"""
+
 def llama_3shot_prompt(ret_docs, question, model):
     assert model in ['llama2-13b-chat', 'codellama-13b-instruct', 'llama3-8b']
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
 
-    sys_prompt = """You are a senior python programmer, given some potential api documents starts with `## Potential documents` and a program description starts with `## Description`, 
-you should first read the potential documents, and then write a python program according to the description in one line.
-The program should starts with <code> and ends with </code>
-"""
+    sys_prompt = SYS_PROMPT
 
     example1 = """## Potential documents:
 0: outer(a, b, out=None)     Compute the outer product of two vectors.          Given two vectors, ``a = [a0, a1, ..., aM]`` and     ``b = [b0, b1, ..., bN]``,     the outer product [1]_ is::            [[a0*b0  a0*b1 ... a0*bN ]        [a1*b0    .        [ ...          .        [aM*b0            aM*bN ]]          Parameters     ----------     a : (M,) array_like         First input vector.  Input is flattened if         not already 1-dimensional.     b : (N,) array_like         Second input vector.  Input is flattened if         not already 1-dimensional.     out : (M, N) ndarray, optional         A location where the result is stored              .. versionadded:: 1.9.0          Returns     -------     out : (M, N) ndarray         ``out[i, j] = a[i] * b[j]``          See also     --------     inner     einsum : ``einsum('i,j->ij', a.ravel(), b.ravel())`` is the equivalent.     ufunc.outer : A generalization to dimensions other than 1D and other                   operations. ``np.multiply.outer(a.ravel(), b.ravel())``                   is the equivalent.     tensordot : ``np.tensordot(a.ravel(), b.ravel(), axes=((), ()))``                 is the equivalent.          References     ----------     .. [1] : G. H. Golub and C. F. Van Loan, *Matrix Computations*, 3rd              ed., Baltimore, MD, Johns Hopkins University Press, 1996,              pg. 8.          Examples     --------     Make a (*very* coarse) grid for computing a Mandelbrot set:          >>> rl = np.outer(np.ones((5,)), np.linspace(-2, 2, 5))     >>> rl     array([[-2., -1.,  0.,  1.,  2.],            [-2., -1.,  0.,  1.,  2.],            [-2., -1.,  0.,  1.,  2.],            [-2., -1.,  0.,  1.,  2.],            [-2., -1.,  0.,  1.,  2.]])     >>> im = np.outer(1j*np.linspace(2, -2, 5), np.ones((5,)))     >>> im     array([[0.+2.j, 0.+2.j, 0.+2.j, 0.+2.j, 0.+2.j],            [0.+1.j, 0.+1.j, 0.+1.j, 0.+1.j, 0.+1.j],            [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],            [0.-1.j, 0.-1.j, 0.-1.j, 0.-1.j, 0.-1.j],            [0.-2.j, 0.-2.j, 0.-2.j, 0.-2.j, 0.-2.j]])     >>> grid = rl + im     >>> grid     array([[-2.+2.j, -1.+2.j,  0.+2.j,  1.+2.j,  2.+2.j],            [-2.+1.j, -1.+1.j,  0.+1.j,  1.+1.j,  2.+1.j],            [-2.+0.j, -1.+0.j,  0.+0.j,  1.+0.j,  2.+0.j],            [-2.-1.j, -1.-1.j,  0.-1.j,  1.-1.j,  2.-1.j],            [-2.-2.j, -1.-2.j,  0.-2.j,  1.-2.j,  2.-2.j]])          An example using a "vector" of letters:          >>> x = np.array(['a', 'b', 'c'], dtype=object)     >>> np.outer(x, [1, 2, 3])     array([['a', 'aa', 'aaa'],            ['b', 'bb', 'bbb'],            ['c', 'cc', 'ccc']], dtype=object)  
@@ -110,14 +112,31 @@ convert csv file 'test.csv' into two-dimensional matrix
 
 
 def llama_0shot_prompt(ret_docs, question, model):
-    assert model in ['llama2-13b-chat']
+    sys_prompt = SYS_PROMPT
+
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+    user_prompt = f"""## Potential documents: 
+{potential_docs}
+## Description: 
+{question}
+# Answer:
+"""
+
+    if model.startswith('llama2') or model.startswith('codellama'):
+        prompt_template = f"""<s>[INST] <<SYS>> {sys_prompt} <</SYS>>\n{user_prompt} [/INST]"""
+    elif model.startswith('llama3'):
+        prompt_template = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{sys_prompt}<|eot_id|>\n
+<|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n
+<|start_header_id|>assistant<|end_header_id>
+"""
+
+    return prompt_template
 
 
 def llama_0shot_no_ret_prompt(question):
-    sys_prompt = """You are a senior python programmer, given a program description starts with `## Description`, 
-    you should write a python program according to the description in one line.
-    The program should starts with <code> and ends with </code>
-    """
+    sys_prompt = SYS_PROMPT
 
     user_prompt = f"""## Description: 
 {question}
