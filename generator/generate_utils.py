@@ -148,7 +148,7 @@ def generate_config(in_program_call=None):
     parser.add_argument('--ret_doc_type', type=str, default='retrieved', choices=['oracle', 'retrieved', 'distracting', 'random', 'irrelevant', 'none'])
     parser.add_argument('--top_k', type=int, default=5)
     parser.add_argument('--doc_max_length', type=int, default=1000)
-    parser.add_argument('--prompt_type', type=str, default='3shots', choices=['3shots', '0shot', 'instruct', 'CoT'])
+    parser.add_argument('--prompt_type', type=str, default='0shot', choices=['3shots', '0shot', 'instruct', 'CoT'])
 
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
 

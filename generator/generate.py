@@ -18,7 +18,7 @@ from generator.generate_utils import control_ret_acc, save_results_to_files, gen
 from dataset_utils.DS1000_utils import DS1000Loader
 
 
-class GeneConala:
+class Generator:
     def __init__(self, args):
         # load parameters
         self.dataset = args.dataset
@@ -124,12 +124,12 @@ if __name__ == '__main__':
     # gene_conala = GeneConala(args, retriever_args)
     # gene_conala.gene_response()
 
-    in_program_call = '--model codellama-13b-instruct --dataset DS1000 --retriever openai --analysis_type retrieval_recall --ret_acc 1'
+    in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     # in_program_call = None
     args = generate_config(in_program_call)
-    generator = GeneConala(args)
-    # generator.test_prompt()
-    gene_results = generator.gene_response()
-    print(gene_results[0]['oracle_output'])
-    print('??')
-    print(gene_results[0]['outputs'][0])
+    generator = Generator(args)
+    generator.test_prompt()
+    # gene_results = generator.gene_response()
+    # print(gene_results[0]['oracle_output'])
+    # print('??')
+    # print(gene_results[0]['outputs'][0])

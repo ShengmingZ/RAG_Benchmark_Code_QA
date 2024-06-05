@@ -146,6 +146,7 @@ class WikiCorpusLoader:
                 reader = csv.reader(tsvfile, delimiter='\t')
                 for row in reader:
                     data_list.append(dict(id=row[0], text=row[1]))
+        print('done load WikiCorpus')
         return data_list
 
     def load_wiki_id(self, dataset):

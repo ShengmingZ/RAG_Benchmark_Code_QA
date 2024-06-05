@@ -172,7 +172,7 @@ class DenseRetrievalEncoder:
             #     except:
             #         print("embedding error")
             #     all_embeddings.append(np.array(embeds))
-            for i, in tqdm(range(0, len(dataset), self.batch_size), total=int(len(dataset) / self.batch_size)):
+            for i in tqdm(range(0, len(dataset), self.batch_size), total=int(len(dataset) / self.batch_size)):
                 batch = dataset[i:i + self.batch_size]
                 try:
                     response = openai.Embedding.create(model=self.model_name, input=batch)
