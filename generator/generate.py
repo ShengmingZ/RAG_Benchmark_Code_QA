@@ -128,8 +128,8 @@ if __name__ == '__main__':
     # in_program_call = None
     args = generate_config(in_program_call)
     generator = GeneConala(args)
-    generator.test_prompt()
-    # gene_results = generator.gene_response()
-    # print(gene_results[0]['oracle_output'])
-    # print('??')
-    # print(gene_results[0]['outputs'][0])
+    # generator.test_prompt()
+    gene_results = generator.gene_response()
+    print(gene_results[0]['oracle_output'])
+    print('??')
+    print(gene_results[0]['outputs'][0])
