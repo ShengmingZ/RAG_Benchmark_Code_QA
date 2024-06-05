@@ -170,15 +170,14 @@ class DenseRetrievalEncoder:
             #     except:
             #         print("embedding error")
             #     all_embeddings.append(np.array(embeds))
-            for i, data in tqdm(enumerate(dataset)):
+            for i, in tqdm(range(0, len(dataset), self.batch_size), total=int(len(dataset) / self.batch_size)):
+                batch = dataset[i:i + self.batch_size]
                 try:
-                    encoded_doc = encoding.encode(data)[:OPENAI_MAX_TOKENS]
-                    data = encoding.decode(encoded_doc)
-                    response = openai.Embedding.create(model=self.model_name, input=data)
-                    embeds = np.array([response['data'][0]['embedding']])
-                except:
-                    print(f'embedding error in {i}th doc')
-                    embeds = np.zeros((1,1536))
+                    response = openai.Embedding.create(model=self.model_name, input=batch)
+                    embeds = [data["embedding"] for data in response['data']]
+                except Exception as e:
+                    print(e)
+                    embeds = np.zeros(batch.shape)
                 all_embeddings.append(embeds)
 
             all_embeddings = np.concatenate(all_embeddings, axis=0)
