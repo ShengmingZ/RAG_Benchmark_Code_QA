@@ -131,8 +131,7 @@ result = g(df.copy())
 
     if model.startswith('llama2') or model.startswith('codellama'):
         prompt_template = f"""<s>[INST] <<SYS>> {sys_prompt} <</SYS>>\n {example1} [/INST] {answer1}</s>\n
-<s>[INST] {example2} [/INST] {answer2}</s>\n
-<s>[INST] {example3} [/INST] {answer3}</s>\n
+
 <s>[INST] {user_prompt} [/INST]
     """
     elif model.startswith('llama3'):
