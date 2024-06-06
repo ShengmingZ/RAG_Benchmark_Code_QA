@@ -14,7 +14,8 @@ from generator.run_model import chatgpt, llama
 from prompt import conala_prompt
 from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
-from dataset_utils.corpus_utils import PythonDocsLoader
+from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
+from dataset_utils.corpus_utils import PythonDocsLoader, WikiCorpusLoader
 from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs
 from dataset_utils.DS1000_utils import DS1000Loader
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
@@ -44,10 +45,14 @@ class Generator:
             self.dataset_loader = DS1000Loader()
         elif self.dataset == 'pandas_numpy_eval':
             self.dataset_loader = PandasNumpyEvalLoader()
+        else:
+            self.dataset_loader = NQTriviaQAUtils(dataset=self.dataset)
         self.qs_list = self.dataset_loader.load_qs_list()
         self.oracle_list = self.dataset_loader.load_oracle_list()
         if self.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
             self.corpus_loader = PythonDocsLoader()
+        else:
+            self.corpus_loader = WikiCorpusLoader()
         self.ret_results = get_ret_results(dataset=args.dataset, retriever=args.retriever)
 
         # test
@@ -58,9 +63,9 @@ class Generator:
         print('save_to:', self.save_file)
 
     def test_prompt(self):
-        oracle_docs = self.oracle_list[0]['oracle_docs']
+        oracle_docs = [self.oracle_list[0]['oracle_doc']]
         questions = [self.qs_list[0]['question']]
-        docs = [PythonDocsLoader().get_docs(oracle_docs)]
+        docs = WikiCorpusLoader().get_docs([oracle_docs], dataset=self.dataset)
 
         generate_prompts(questions=questions,
                          ret_docs_list=docs,
@@ -134,11 +139,11 @@ if __name__ == '__main__':
     # gene_conala.gene_response()
 
     in_program_call = None
-    in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    in_program_call = '--model llama2-13b-chat --dataset NQ --retriever BM25 --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
     generator = Generator(args)
-    # generator.test_prompt()
-    gene_results = generator.gene_response()
+    generator.test_prompt()
+    # gene_results = generator.gene_response()
     # print(gene_results[0]['oracle_output'])
     # print('??')
     # print(gene_results[0]['outputs'][0])
