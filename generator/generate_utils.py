@@ -132,7 +132,7 @@ def get_irrelevant_doc(irrelevant_type, doc_length, model_type, n):
 
 def generate_config(in_program_call=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, choices=['tldr', 'conala', 'DS1000', 'pandas-numpy-eval', 'hotpotQA', 'NQ', 'TriviaQA'])
+    parser.add_argument('--dataset', type=str, choices=['tldr', 'conala', 'DS1000', 'pandas_numpy_eval', 'hotpotQA', 'NQ', 'TriviaQA'])
     parser.add_argument('--save_file', type=str, default=None)
     # model parameters
     parser.add_argument('--model', type=str, default='gpt-3.5-turbo-1106', choices=['llama3-8b', 'llama2-13b-chat', 'codellama-13b-instruct', 'gpt-3.5-turbo-1106', 'gpt-4o'])
