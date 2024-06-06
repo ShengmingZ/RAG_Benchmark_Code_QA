@@ -34,8 +34,8 @@ def process_gene_results(args, outputs):
     return preds
 
 
-def conala_eval(args):
-    gene_results = json.load(open(args.save_file, 'r'))
+def code_eval(args):
+    # gene_results = json.load(open(args.save_file, 'r'))
 
     if args.dataset == 'conala':
         _gene_results = list()
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     # in_program_call = None
     args = generate_config(in_program_call)
 
-    passk = conala_eval(args)
+    passk = code_eval(args)
 
     # gene_results = json.load(open(args.save_file, 'r'))
     # for result in gene_results:
