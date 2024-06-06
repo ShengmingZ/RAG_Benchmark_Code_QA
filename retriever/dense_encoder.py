@@ -3,6 +3,7 @@ import shlex
 import json, os
 import time
 
+import backoff
 import openai
 import numpy as np
 import torch
@@ -172,14 +173,20 @@ class DenseRetrievalEncoder:
             #     except:
             #         print("embedding error")
             #     all_embeddings.append(np.array(embeds))
+
+            @backoff.on_exception(backoff.expo, openai.error.OpenAIError)
+            def openai_encode(model_name, texts):
+                return openai.Embedding.create(model=model_name, input=texts)
+
+
             for i in tqdm(range(0, len(dataset), self.batch_size), total=int(len(dataset) / self.batch_size)):
                 batch = dataset[i:i + self.batch_size]
                 try:
-                    response = openai.Embedding.create(model=self.model_name, input=batch)
+                    response = openai_encode(model_name=self.model_name, texts=batch)
                     embeds = [data["embedding"] for data in response['data']]
                 except Exception as e:
                     print(e)
-                    embeds = np.zeros(batch.shape)
+                    embeds = np.zeros(embeds.shape)
                 all_embeddings.append(embeds)
 
             all_embeddings = np.concatenate(all_embeddings, axis=0)

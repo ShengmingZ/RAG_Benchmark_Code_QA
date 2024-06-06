@@ -1,11 +1,11 @@
 LLAMA_SYSTEM_PROMPT_TYPE1 = """You are a senior python programmer, given some potential api documents starts with `## Potential documents`, a program description starts with `## Problem`, and the unfinished code solution starts with `## Unfinished Code Solution`, 
 you should first read the potential documents, and then use the knowledge in documents to complete the code solution according to the problem.
-you should only output the completed code solution starts with <code> and ends with </code>
+you should only output the completed code solution, and the output code should start with <code> and end with </code>
 """
 
 LLAMA_SYSTEM_PROMPT_TYPE2 = """You are a senior python programmer, given some potential api documents starts with `## Potential documents`, and a unfinished code snippet starts with `## Unfinished Code Snippet`, 
 you should first read the potential documents, and then use the knowledge in documents to complete the code snippet according to the comments in the code.
-you should only output the completed part in the code snippet starts with <code> and ends with </code>
+you should only output the completed part in the code snippet, and the output code should starts with <code> and ends with </code>
 """
 
 def process_docs_question(ret_docs, question):
@@ -292,10 +292,7 @@ def llama_0shot_prompt_type1(ret_docs, question, model):
 
     sys_prompt = LLAMA_SYSTEM_PROMPT_TYPE1
     if model.startswith('llama2') or model.startswith('codellama'):
-        prompt_template = f"""<s>[INST] <<SYS>>
-{sys_prompt} <</SYS>>\n
-{user_prompt} [/INST]
-"""
+        prompt_template = f"""<s>[INST] <<SYS>> {sys_prompt} <</SYS>>\n{user_prompt} [/INST]"""
     elif model.startswith('llama3'):
         prompt_template = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{sys_prompt}<|eot_id|>\n
 <|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n
@@ -317,10 +314,7 @@ def llama_0shot_prompt_type2(ret_docs, question, model):
 
     sys_prompt = LLAMA_SYSTEM_PROMPT_TYPE2
     if model.startswith('llama2') or model.startswith('codellama'):
-        prompt_template = f"""<s>[INST] <<SYS>>
-{sys_prompt} <</SYS>>\n
-{user_prompt} [/INST]
-"""
+        prompt_template = f"""<s>[INST] <<SYS>> {sys_prompt} <</SYS>>\n{user_prompt} [/INST]"""
     elif model.startswith('llama3'):
         prompt_template = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{sys_prompt}<|eot_id|>\n
 <|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n

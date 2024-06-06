@@ -145,7 +145,7 @@ def generate_config(in_program_call=None):
     parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type'])
     # each of the following parameter corresponds to one analysis, when choose one, the default value of the other parameters are the default value of RAG
     parser.add_argument('--ret_acc', type=float, default=1)     # top_k:len(oracle_docs), prompt_type:3shots, ret_doc_type:oracle/distracting
-    parser.add_argument('--ret_doc_type', type=str, default='retrieved', choices=['oracle', 'retrieved', 'distracting', 'random', 'irrelevant', 'none'])
+    parser.add_argument('--ret_doc_type', type=str, default='retrieved', choices=['oracle', 'retrieved', 'distracting', 'random', 'irrelevant_dummy', 'irrelevant_diff', 'none'])
     parser.add_argument('--top_k', type=int, default=5)
     parser.add_argument('--doc_max_length', type=int, default=1000)
     parser.add_argument('--prompt_type', type=str, default='0shot', choices=['3shots', '0shot', 'instruct', 'CoT'])
@@ -210,7 +210,7 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
     return oracle_docs_list, docs
 
 
-def perturb_ret_doc_type(perturb_doc_type, ret_doc_key_list, oracle_doc_key_list):
+def perturb_ret_doc_type(perturb_doc_type, ret_results, oracle_list, dataset):
     """
     generate retrieval doc key of each sample based on ret_doc_type, return a list of the docs for each sample
     :param ret_doc_type:
@@ -254,13 +254,13 @@ def perturb_ret_doc_type(perturb_doc_type, ret_doc_key_list, oracle_doc_key_list
             doc_key_list = []*len(oracle_doc_key_list)
 
         docs = []
-        if dataset_type == 'nlp':
-            # wiki_loader = WikiCorpusLoader()
-            # for doc_key in doc_key_list:
-            #     docs.append(wiki_loader.get_docs(doc_key))
-            docs = WikiCorpusLoader().get_docs(doc_key_list)
-        elif dataset_type == 'se':
-            ...
+        # if  == 'nlp':
+        #     # wiki_loader = WikiCorpusLoader()
+        #     # for doc_key in doc_key_list:
+        #     #     docs.append(wiki_loader.get_docs(doc_key))
+        #     docs = WikiCorpusLoader().get_docs(doc_key_list)
+        # elif dataset_type == 'se':
+        #     ...
 
         return doc_key_list, docs
 

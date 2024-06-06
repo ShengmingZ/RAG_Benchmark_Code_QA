@@ -1,6 +1,7 @@
 import platform
 import sys
 import json
+import re
 system = platform.system()
 if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
@@ -11,11 +12,23 @@ from dataset_utils.conala_utils import ConalaLoader
 from generator.generate_utils import generate_config
 
 
+def process_gene_results(args, outputs):
+    if args.dataset == 'conala' and args.model == 'codellama-13b-instruct':
+        preds = []
+        for output in outputs:
+            pred = output.replace(' <code>', '')
+            lines = pred.split(' ```\n')
+            if len(lines) > 1: pred = lines[1].split('\n```')[0]
+            preds.append(pred)
+
+    return preds
+
+
 def conala_eval(args):
     gene_results = json.load(open(args.save_file, 'r'))
     _gene_results = list()
     for result in gene_results:
-        outputs = [output.replace('<code>', '') for output in result['outputs']]
+        outputs = process_gene_results(args, result['outputs'])
         # outputs = [result['oracle_output']]
         _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
     passk = ConalaLoader().eval_passk(_gene_results, top_k=[1])
@@ -23,8 +36,10 @@ def conala_eval(args):
 
 
 if __name__ == '__main__':
-    # in_program_call = '--model llama3-8b --dataset conala --retriever BM25 --analysis_type retrieval_recall --ret_acc 1'
-    in_program_call = None
+    in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    # in_program_call = None
     args = generate_config(in_program_call)
+
     passk = conala_eval(args)
-    save_file = args.save_file.replace('.json', 'eval.json')
+
+    # process_gene_results(args)
