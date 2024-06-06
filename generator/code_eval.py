@@ -36,7 +36,7 @@ def conala_eval(args):
 
 
 if __name__ == '__main__':
-    in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 0.8'
     # in_program_call = None
     args = generate_config(in_program_call)
 
