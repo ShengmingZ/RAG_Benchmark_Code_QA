@@ -1,5 +1,9 @@
 import platform
 import sys, os
+
+import backoff
+import openai
+
 system = platform.system()
 if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
@@ -18,6 +22,7 @@ from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from dataset_utils.corpus_utils import PythonDocsLoader, WikiCorpusLoader
 
+openai.api_key = os.environ['OPENAI_API_KEY']
 
 def retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, top_k):
     """
@@ -161,21 +166,54 @@ def retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, 
 
 
 def embed_corpus(args):
-    if os.path.exists(args.corpus_embed_file + '.npy'):
-        print(f'embedding file exists for {args.corpus_embed_file}')
-        return
-    encoder = DenseRetrievalEncoder(args)
-    if args.corpus == 'wiki_nq' or args.corpus == 'wiki_hotpot':
+    # separately consider openai embedding
+    if args.corpus == 'wiki_nq' and args.retriever == 'openai-embedding':
         wiki_loader = WikiCorpusLoader()
-        wiki_data = wiki_loader.load_wiki_corpus(args.dataset)
-        dataset = [item['text'] for item in wiki_data]
-    elif args.corpus == 'python_docs':
-        loader = PythonDocsLoader()
-        python_docs = loader.load_api_docs()
-        dataset = [item['doc'] for item in python_docs]
-    encoder.encode(dataset=dataset, save_file=args.corpus_embed_file)
-    if args.normalize_embed is True:
-        normalize_embed(args.corpus_embed_file)
+        if os.path.exists(args.corpus_embed_file + '.npy'):
+            all_embeddings = np.load(args.corpus_embed_file + '.npy')
+        else:
+            all_embeddings = None
+        resume = all_embeddings.shape[0] if all_embeddings is not None else 0
+
+        @backoff.on_exception(backoff.expo, openai.error.OpenAIError)
+        def openai_encode(model_name, texts):
+            return openai.Embedding.create(model=model_name, input=texts)
+
+        batch_count = 0
+        data_count = 0
+        batch = []
+        for data in wiki_loader.load_wiki_corpus_iter('NQ'):
+            if data_count < resume:
+                data_count += 1
+                continue
+            else:
+                if batch_count == 1024:
+                    response = openai_encode(model_name='text-embedding-3-small', texts=batch)
+                    embeds = np.array([data["embedding"] for data in response['data']])
+                    all_embeddings = np.concatenate((all_embeddings, embeds), axis=0) if all_embeddings is not None else embeds
+                    np.save(args.corpus_embed_file+'.npy', all_embeddings)
+                    print(f'done embedding {all_embeddings.shape[0]}')
+                    batch = []
+                    batch_count = 0
+                batch_count += 1
+                batch.append(data['text'])
+
+    else:
+        if os.path.exists(args.corpus_embed_file + '.npy'):
+            print(f'embedding file exists for {args.corpus_embed_file}')
+            return
+        encoder = DenseRetrievalEncoder(args)
+        if args.corpus == 'wiki_nq' or args.corpus == 'wiki_hotpot':
+            wiki_loader = WikiCorpusLoader()
+            wiki_data = wiki_loader.load_wiki_corpus(args.dataset)
+            dataset = [item['text'] for item in wiki_data]
+        elif args.corpus == 'python_docs':
+            loader = PythonDocsLoader()
+            python_docs = loader.load_api_docs()
+            dataset = [item['doc'] for item in python_docs]
+        encoder.encode(dataset=dataset, save_file=args.corpus_embed_file)
+        if args.normalize_embed is True:
+            normalize_embed(args.corpus_embed_file)
 
 
 def normalize_embed(embed_file):
