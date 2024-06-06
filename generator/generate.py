@@ -47,17 +47,19 @@ class Generator:
         self.ret_results = get_ret_results(dataset=args.dataset, retriever=args.retriever)
 
         # test
-        self.qs_list = self.qs_list[:1]
-        self.oracle_list = self.oracle_list[:1]
+        # self.qs_list = self.qs_list[:1]
+        # self.oracle_list = self.oracle_list[:1]
 
         print('qs_num:', len(self.qs_list))
         print('save_to:', self.save_file)
 
     def test_prompt(self):
         oracle_docs = self.oracle_list[0]['oracle_docs']
-        docs = PythonDocsLoader().get_docs(oracle_docs)
-        generate_prompts(questions=[qs['question'] for qs in self.qs_list],
-                         ret_docs_list=[docs],
+        questions = [self.qs_list[0]['question']]
+        docs = [PythonDocsLoader().get_docs(oracle_docs)]
+
+        generate_prompts(questions=questions,
+                         ret_docs_list=docs,
                          prompt_type=self.prompt_type,
                          dataset=self.dataset,
                          model_name=self.model,
@@ -128,8 +130,10 @@ if __name__ == '__main__':
     # in_program_call = None
     args = generate_config(in_program_call)
     generator = Generator(args)
-    generator.test_prompt()
-    # gene_results = generator.gene_response()
+    # generator.test_prompt()
+    gene_results = generator.gene_response()
     # print(gene_results[0]['oracle_output'])
     # print('??')
     # print(gene_results[0]['outputs'][0])
+
+
