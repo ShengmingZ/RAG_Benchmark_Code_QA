@@ -139,11 +139,11 @@ if __name__ == '__main__':
     # gene_conala.gene_response()
 
     in_program_call = None
-    in_program_call = '--model llama2-13b-chat --dataset NQ --retriever BM25 --analysis_type retrieval_recall --ret_acc 1'
+    # in_program_call = '--model llama2-13b-chat --dataset NQ --retriever BM25 --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
     generator = Generator(args)
-    generator.test_prompt()
-    # gene_results = generator.gene_response()
+    # generator.test_prompt()
+    gene_results = generator.gene_response()
     # print(gene_results[0]['oracle_output'])
     # print('??')
     # print(gene_results[0]['outputs'][0])
