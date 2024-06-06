@@ -2,9 +2,6 @@ import platform
 import sys
 import json
 import re
-
-from dataset_utils.DS1000_utils import DS1000Loader
-
 system = platform.system()
 if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
@@ -13,6 +10,7 @@ elif system == 'Linux':
 sys.path.insert(0, root_path)
 from dataset_utils.conala_utils import ConalaLoader
 from generator.generate_utils import generate_config
+from dataset_utils.DS1000_utils import DS1000Loader
 
 
 def process_gene_results(args, outputs):
