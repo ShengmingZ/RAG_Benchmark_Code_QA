@@ -11,6 +11,7 @@ sys.path.insert(0, root_path)
 from dataset_utils.conala_utils import ConalaLoader
 from generator.generate_utils import generate_config
 from dataset_utils.DS1000_utils import DS1000Loader
+from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 
 
 def process_gene_results(args, outputs):
@@ -40,7 +41,7 @@ def conala_eval(args):
         _gene_results = list()
         for result in gene_results:
             outputs = process_gene_results(args, result['outputs'])
-            outputs = [result['oracle_output']]
+            # outputs = [result['oracle_output']]
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
         passk = ConalaLoader().eval_passk(_gene_results, top_k=[1])
 
@@ -50,11 +51,19 @@ def conala_eval(args):
             gene_results[i]['outputs'] = [gene_results[i]['output']]
         passk = DS1000Loader().eval_passk(gene_results, k_list=[1])
 
+    elif args.dataset == 'pandas_numpy_eval':
+        _gene_results = []
+        oracle_list = PandasNumpyEvalLoader().load_oracle_list()
+        for oracle in oracle_list:
+            _gene_results.append(dict(qs_id=oracle['qs_id'], outputs=[oracle['output']]))
+        passk = ConalaLoader().eval_passk(_gene_results, top_k=[1])
+
+
     return passk
 
 
 if __name__ == '__main__':
-    in_program_call = '--model codellama-13b-instruct --dataset DS1000 --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     # in_program_call = None
     args = generate_config(in_program_call)
 

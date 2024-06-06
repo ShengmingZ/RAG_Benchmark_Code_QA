@@ -3,6 +3,9 @@ import random
 from tqdm import tqdm
 import platform
 import sys
+
+from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
+
 system = platform.system()
 if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
@@ -40,6 +43,8 @@ class Generator:
             self.dataset_loader = ConalaLoader()
         elif self.dataset == 'DS1000':
             self.dataset_loader = DS1000Loader()
+        elif self.dataset == 'pandas_numpy_eval':
+            self.dataset_loader = PandasNumpyEvalLoader()
         self.qs_list = self.dataset_loader.load_qs_list()
         self.oracle_list = self.dataset_loader.load_oracle_list()
         if self.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
@@ -47,8 +52,8 @@ class Generator:
         self.ret_results = get_ret_results(dataset=args.dataset, retriever=args.retriever)
 
         # test
-        # self.qs_list = self.qs_list[:1]
-        # self.oracle_list = self.oracle_list[:1]
+        self.qs_list = self.qs_list[:1]
+        self.oracle_list = self.oracle_list[:1]
 
         print('qs_num:', len(self.qs_list))
         print('save_to:', self.save_file)
