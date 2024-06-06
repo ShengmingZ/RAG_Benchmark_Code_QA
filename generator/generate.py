@@ -56,8 +56,8 @@ class Generator:
         self.ret_results = get_ret_results(dataset=args.dataset, retriever=args.retriever)
 
         # test
-        self.qs_list = self.qs_list[:1]
-        self.oracle_list = self.oracle_list[:1]
+        # self.qs_list = self.qs_list[:1]
+        # self.oracle_list = self.oracle_list[:1]
 
         print('qs_num:', len(self.qs_list))
         print('save_to:', self.save_file)
