@@ -187,7 +187,7 @@ def embed_corpus(args):
                 data_count += 1
                 continue
             else:
-                if batch_count == 8096:
+                if batch_count == 1024:
                     response = openai_encode(model_name='text-embedding-3-small', texts=batch)
                     embeds = np.array([data["embedding"] for data in response['data']])
                     all_embeddings = np.concatenate((all_embeddings, embeds), axis=0) if all_embeddings is not None else embeds
