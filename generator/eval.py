@@ -24,7 +24,6 @@ if args.analysis_type == "retrieval_recall":
         proc = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (output, error) = proc.communicate()
         passk = output.decode().split('\n')[-2]
-        print(passk)
         result_list.append(passk)
     for ret_acc, result in zip(ret_acc_list, result_list):
         print('ret_acc: ', ret_acc, result)
