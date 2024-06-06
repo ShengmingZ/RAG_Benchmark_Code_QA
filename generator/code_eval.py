@@ -56,7 +56,7 @@ def code_eval(args):
         oracle_list = PandasNumpyEvalLoader().load_oracle_list()
         for oracle in oracle_list:
             _gene_results.append(dict(qs_id=oracle['qs_id'], outputs=[oracle['output']]))
-        passk = ConalaLoader().eval_passk(_gene_results, top_k=[1])
+        passk = PandasNumpyEvalLoader().eval_passk(_gene_results, k_list=[1])
 
 
     return passk
