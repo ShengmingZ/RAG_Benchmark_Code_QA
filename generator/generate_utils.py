@@ -17,7 +17,7 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from prompt import conala_prompt, DS1000_prompt
+from prompt import conala_prompt, DS1000_prompt, pandas_numpy_eval_prompt
 from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.DS1000_utils import DS1000Loader
@@ -291,6 +291,10 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
         if prompt_type == '0shot':
             if model_name.startswith('llama') or model_name.startswith('codellama'):
                 generate_func = partial(DS1000_prompt.llama_0shot_prompt, model=model_name)
+    elif dataset == 'pandas_numpy_eval':
+        if prompt_type == '0shot':
+            if model_name.startswith('llama') or model_name.startswith('codellama'):
+                generate_func = partial(pandas_numpy_eval_prompt.llama_0shot_prompt, model=model_name)
 
     prompts = []
     for ret_docs, question in zip(ret_docs_list, questions):

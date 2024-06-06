@@ -51,4 +51,4 @@ if __name__ == '__main__':
     print(question)
     print(output)
     docs = PythonDocsLoader().get_docs(oracle_list[0]['oracle_docs'])
-    print(llama_0shot_prompt(docs, question, 'llama3-8b'))
+    print(llama_0shot_prompt(docs, question, 'codellama-13b-instruct'))

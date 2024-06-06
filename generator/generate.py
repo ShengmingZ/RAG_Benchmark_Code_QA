@@ -72,7 +72,7 @@ class Generator:
     def gene_response(self):
         # if not os.path.exists(args.save_file):
         #     print(f'generation results exists for {args.save_file}')
-        #     return 
+        #     return
         if self.analysis_type == 'retrieval_recall':
             ret_doc_keys_list, docs_list = control_ret_acc(ret_acc=args.ret_acc,
                                                            oracle_list=self.oracle_list,
@@ -133,8 +133,8 @@ if __name__ == '__main__':
     # gene_conala = GeneConala(args, retriever_args)
     # gene_conala.gene_response()
 
-    # in_program_call = '--model codellama-13b-instruct --dataset DS1000 --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     in_program_call = None
+    in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
     generator = Generator(args)
     # generator.test_prompt()
