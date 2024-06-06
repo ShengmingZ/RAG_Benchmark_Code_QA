@@ -286,7 +286,7 @@ def llama_0shot_prompt_type1(ret_docs, question, model):
 ## Problem: 
 {prompt}
 \n
-## Unfinished Code Solution:
+## Unfinished Code Snippet:
 {answer}
 """
 

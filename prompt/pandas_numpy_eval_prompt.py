@@ -6,17 +6,16 @@ you should only output the completed part in the code snippet, and the output co
 
 
 def llama_0shot_prompt(ret_docs, question, model):
-#     potential_docs, prompt, answer = process_docs_question(ret_docs, question)
-#     user_prompt = f"""
-# ## Potential documents:
-# {potential_docs}
-# \n
-# ## Problem:
-# {prompt}
-# \n
-# ## Unfinished Code Solution:
-# {answer}
-# """
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+\n
+## Unfinished Code Snippet:
+{question}
+"""
 
     sys_prompt = LLAMA_SYSTEM_PROMPT
     if model.startswith('llama2') or model.startswith('codellama'):
@@ -47,5 +46,9 @@ if __name__ == '__main__':
     loader = PandasNumpyEvalLoader()
     qs_list = loader.load_qs_list()
     oracle_list = loader.load_oracle_list()
-    print(qs_list[0]['question'])
-    print(oracle_list[0]['output'])
+    question = qs_list[0]['question']
+    output = oracle_list[0]['output']
+    print(question)
+    print(output)
+    docs = PythonDocsLoader().get_docs(oracle_list[0]['oracle_docs'])
+    print(llama_0shot_prompt(docs, question, 'llama3-8b'))

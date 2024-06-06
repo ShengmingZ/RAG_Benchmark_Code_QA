@@ -95,7 +95,6 @@ class PandasNumpyEvalLoader:
             #     if False in results:
             #         print(id)
             results_list = list(results_list.values())
-            print('??')
 
         return self.pass_rate(results_list, k_list)
 

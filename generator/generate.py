@@ -1,11 +1,9 @@
 import json
+import os
 import random
 from tqdm import tqdm
 import platform
 import sys
-
-from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
-
 system = platform.system()
 if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
@@ -19,6 +17,7 @@ from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.corpus_utils import PythonDocsLoader
 from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs
 from dataset_utils.DS1000_utils import DS1000Loader
+from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 
 
 class Generator:
@@ -71,6 +70,9 @@ class Generator:
                          doc_max_length=self.doc_max_length)
 
     def gene_response(self):
+        # if not os.path.exists(args.save_file):
+        #     print(f'generation results exists for {args.save_file}')
+        #     return 
         if self.analysis_type == 'retrieval_recall':
             ret_doc_keys_list, docs_list = control_ret_acc(ret_acc=args.ret_acc,
                                                            oracle_list=self.oracle_list,
