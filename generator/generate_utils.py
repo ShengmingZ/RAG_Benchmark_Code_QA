@@ -199,6 +199,7 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
         oracle_docs_list = deepcopy([oracle['oracle_docs'] for oracle in oracle_list])
     else:
         oracle_docs_list = deepcopy([[oracle['oracle_doc']] for oracle in oracle_list])
+
     ret_accs = [1] * len(oracle_docs_list)  # record acc of each sample
     cur_ret_acc = sum(ret_accs) / len(ret_accs) # total acc
     perturb_placeholder = list()    # this placeholder is to store doc keys that are oracle
@@ -212,6 +213,16 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
         oracle_docs_list[perturb_idx[0]][perturb_idx[1]] = get_distracting_doc(oracle_list[perturb_idx[0]]['qs_id'], oracle_docs_list[perturb_idx[0]], ret_results, dataset)
         ret_accs[perturb_idx[0]] = (ret_accs[perturb_idx[0]] * len(oracle_docs_list[perturb_idx[0]]) - 1) / len(oracle_docs_list[perturb_idx[0]])
         cur_ret_acc = sum(ret_accs) / len(ret_accs)
+
+    # else:
+    #     # NQ and TriviaQA on
+    #     oracle_doc_list = deepcopy([oracle['oracle_doc'] for oracle in oracle_list])
+    #     perturb_placeholder = [i for i in range(len(oracle_doc_list))]
+    #     cur_ret_acc = len(perturb_placeholder) / len(oracle_doc_list)
+    #     while cur_ret_acc > ret_acc:
+    #         perturb_idx = random.sample(perturb_placeholder, 1)[0]  # pick an oracle key and perturb
+    #         perturb_placeholder.remove(perturb_idx)
+    #         oracle_docs_list[]
 
     if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
         docs = WikiCorpusLoader().get_docs(oracle_docs_list, dataset)
@@ -339,7 +350,7 @@ if __name__ == "__main__":
     oracle_list = loader.load_oracle_list()
     ret_results = get_ret_results(dataset='NQ', retriever='BM25')
     # print([oracle['oracle_docs'] for oracle in oracle_list])
-    perturb_oracle_keys, _ = control_ret_acc(ret_acc=0.9, oracle_list=oracle_list[:100], ret_results=ret_results, dataset='NQ')
+    perturb_oracle_keys, _ = control_ret_acc(ret_acc=1, oracle_list=oracle_list[:100], ret_results=ret_results, dataset='NQ')
 
     # golds = [oracle['oracle_docs'] for oracle in oracle_list]
     # preds = perturb_oracle_keys
