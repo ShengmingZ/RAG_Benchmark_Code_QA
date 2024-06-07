@@ -1,6 +1,8 @@
 import json
 import os
 import random
+import time
+
 from tqdm import tqdm
 import platform
 import sys
@@ -16,7 +18,7 @@ from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
 from dataset_utils.corpus_utils import PythonDocsLoader, WikiCorpusLoader
-from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs
+from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs, approximate_token
 from dataset_utils.DS1000_utils import DS1000Loader
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 
@@ -91,21 +93,23 @@ class Generator:
                                    model_name=self.model,
                                    doc_max_length=self.doc_max_length)
 
-        if self.model.startswith('llama') or self.model.startswith('codellama'):
-            outputs_list, logprobs_list = llama(prompts=prompts, model_name=self.model, max_new_tokens=self.max_tokens, n=self.n, stop='</code>')
-        elif self.model.startswith('gpt'):
-            outputs_list, logprobs_list = chatgpt(prompts=prompts, model=self.model, max_tokens=self.max_tokens, n=self.n, stop='</code>')
-        gene_results = list()
-        for idx, (outputs, logprobs) in enumerate(zip(outputs_list, logprobs_list)):
-            gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'],
-                                     question=self.qs_list[idx]['question'],
-                                     oracle_output=self.oracle_list[idx]['output'],
-                                     ret_docs=ret_doc_keys_list[idx],
-                                     outputs=outputs,
-                                     logprobs=logprobs
-                                     ))
-        save_results_to_files(self.save_file, gene_results, overwrite=True)
-        return gene_results
+        return prompts
+
+        # if self.model.startswith('llama') or self.model.startswith('codellama'):
+        #     outputs_list, logprobs_list = llama(prompts=prompts, model_name=self.model, max_new_tokens=self.max_tokens, n=self.n, stop='</code>')
+        # elif self.model.startswith('gpt'):
+        #     outputs_list, logprobs_list = chatgpt(prompts=prompts, model=self.model, max_tokens=self.max_tokens, n=self.n, stop='</code>')
+        # gene_results = list()
+        # for idx, (outputs, logprobs) in enumerate(zip(outputs_list, logprobs_list)):
+        #     gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'],
+        #                              question=self.qs_list[idx]['question'],
+        #                              oracle_output=self.oracle_list[idx]['output'],
+        #                              ret_docs=ret_doc_keys_list[idx],
+        #                              outputs=outputs,
+        #                              logprobs=logprobs
+        #                              ))
+        # save_results_to_files(self.save_file, gene_results, overwrite=True)
+        # return gene_results
 
 
         # for idx, (qs, oracle) in tqdm(enumerate(zip(self.qs_list, self.oracle_list))):
@@ -139,13 +143,16 @@ if __name__ == '__main__':
     # gene_conala.gene_response()
 
     in_program_call = None
-    # in_program_call = '--model codellama-13b-instruct --dataset conala --retriever BM25 --analysis_type retrieval_recall --ret_acc 0.8'
+    in_program_call = '--model codellama-13b-instruct --dataset DS1000 --retriever BM25 --analysis_type retrieval_recall --ret_acc 0.8'
     args = generate_config(in_program_call)
     generator = Generator(args)
     # generator.test_prompt()
-    gene_results = generator.gene_response()
+    prompts = generator.gene_response()
+    for idx, prompt in enumerate(prompts):
+        if idx == 22:
+            print(prompt)
+            approximate_token([prompt], model='codellama-13b-instruct')
     # print(gene_results[0]['oracle_output'])
     # print('??')
     # print(gene_results[0]['outputs'][0])
-
 

@@ -309,6 +309,8 @@ class NQTriviaQAUtils:
                 answers = oracle['answers']
         if answers is None:
             raise Exception(f'wrong qs_id: {qs_id}')
+        # doc = _normalize(doc)
+        # answers = [_normalize(answer) for answer in answers]
         return has_answer(answers, doc)
 
     @staticmethod

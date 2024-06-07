@@ -62,7 +62,7 @@ def approximate_token(prompts, model):
         avg_tokens = avg_tokens / len(prompts)
         print(f"Average tokens: {avg_tokens:.3f}")
         return avg_tokens
-    elif model.startswith('llama'):
+    elif model.startswith('llama') or model.startswith('codellama'):
         if model == 'llama2-13b-chat':
             model = 'meta-llama/Llama-2-13b-chat-hf'
         elif model == 'codellama-13b-instruct':
@@ -348,9 +348,10 @@ if __name__ == "__main__":
     # test control ret_acc
     loader = NQTriviaQAUtils('NQ')
     oracle_list = loader.load_oracle_list()
+    qs_list = loader.load_qs_list()
     ret_results = get_ret_results(dataset='NQ', retriever='BM25')
     # print([oracle['oracle_docs'] for oracle in oracle_list])
-    perturb_oracle_keys, _ = control_ret_acc(ret_acc=1, oracle_list=oracle_list[:100], ret_results=ret_results, dataset='NQ')
+    perturb_oracle_keys, docs = control_ret_acc(ret_acc=1, oracle_list=oracle_list[:100], ret_results=ret_results, dataset='NQ')
 
     # golds = [oracle['oracle_docs'] for oracle in oracle_list]
     # preds = perturb_oracle_keys
@@ -363,10 +364,12 @@ if __name__ == "__main__":
     # recall_n /= len(preds)
     # print(recall_n)
     wrong_count = 0
+    # docs = WikiCorpusLoader().get_docs(doc_keys_list=perturb_oracle_keys, dataset='NQ', num_procs=1)
     for i, doc_keys in enumerate(perturb_oracle_keys):
-        doc = WikiCorpusLoader().get_docs(doc_keys_list=[doc_keys], dataset='NQ', num_procs=1)[0][0]
+        doc = docs[i][0]
         if not NQTriviaQAUtils('NQ').if_has_answer(doc=doc, qs_id=oracle_list[i]['qs_id']):
             wrong_count += 1
+            print(f'wrong oracle for doc {qs_list[i]}')
     acc = 1 - (wrong_count / len(perturb_oracle_keys))
     print(acc)
 

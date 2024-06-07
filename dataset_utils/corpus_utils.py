@@ -188,7 +188,7 @@ class WikiCorpusLoader:
         if not os.path.exists(self.index_offsets_file):
             index_offsets = []
             current_offset = 0
-            with open(self.wiki_corpus_file_NQ, 'r', encoding='iso-8859-1') as index_file:
+            with open(self.wiki_corpus_file_NQ, 'rb') as index_file:
                 for line in index_file:
                     index_offsets.append(current_offset)
                     current_offset = current_offset + len(line) + 1
@@ -205,10 +205,11 @@ class WikiCorpusLoader:
         doc_keys_placeholder = [[idx, key] for idx, key in enumerate(doc_keys)]
         doc_keys_placeholder.sort(key=lambda x:x[1], reverse=False)
         docs = [None]*len(doc_keys)
-        with open(self.wiki_corpus_file_NQ, 'r', encoding='iso-8859-1') as f:
+        with open(self.wiki_corpus_file_NQ, 'rb') as f:
             for item in doc_keys_placeholder:
                 f.seek(index_offsets[item[1]])
                 row = f.read(index_offsets[item[1]+1] - index_offsets[item[1]])
+                row = row.decode('utf-8')
                 docs[item[0]] = row.split('\t')[1][1:-1]
         return docs
 
@@ -252,6 +253,7 @@ class WikiCorpusLoader:
             doc_keys_list = _doc_keys_list
             with Pool(num_procs) as pool:
                 for sample_idx, docs in tqdm(enumerate(pool.imap(self._get_docs_hotpot, doc_keys_list)), total=len(doc_keys_list)):
+                    docs = [unicodedata.normalize('NFD', doc) for doc in docs]
                     docs_list[sample_idx] = docs
         elif dataset in ['TriviaQA', 'NQ']:
             _doc_keys_list = list()
@@ -261,6 +263,7 @@ class WikiCorpusLoader:
             with Pool(num_procs) as pool:
                 for sample_idx, docs in tqdm(enumerate(pool.imap(self._get_docs_NQ, doc_keys_list)), total=len(doc_keys_list)):
                     # print(f'{sample_idx} completed')
+                    docs = [unicodedata.normalize('NFD', doc) for doc in docs]
                     docs_list[sample_idx] = docs
 
         return docs_list

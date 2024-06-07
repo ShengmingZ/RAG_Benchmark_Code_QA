@@ -3,6 +3,10 @@ import sys, os
 
 import backoff
 import openai
+import json
+import numpy as np
+import faiss
+from npy_append_array import NpyAppendArray
 
 system = platform.system()
 if system == 'Darwin':
@@ -10,9 +14,7 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-import json
-import numpy as np
-import faiss
+
 from retriever.dense_encoder import DenseRetrievalEncoder
 from retriever_utils import retriever_config, ret_eval
 from dataset_utils.conala_utils import ConalaLoader
@@ -190,8 +192,10 @@ def embed_corpus(args):
                 if batch_count == 1024:
                     response = openai_encode(model_name='text-embedding-3-small', texts=batch)
                     embeds = np.array([data["embedding"] for data in response['data']])
-                    all_embeddings = np.concatenate((all_embeddings, embeds), axis=0) if all_embeddings is not None else embeds
-                    np.save(args.corpus_embed_file+'.npy', all_embeddings)
+                    # all_embeddings = np.concatenate((all_embeddings, embeds), axis=0) if all_embeddings is not None else embeds
+                    # np.save(args.corpus_embed_file+'.npy', all_embeddings)
+                    with NpyAppendArray(args.corpus_embed_file + '.npy') as npaa:
+                        npaa.append(embeds)
                     print(f'done embedding {all_embeddings.shape[0]}')
                     batch = []
                     batch_count = 0

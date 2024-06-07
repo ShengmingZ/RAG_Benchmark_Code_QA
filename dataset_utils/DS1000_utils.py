@@ -30,9 +30,13 @@ class DS1000Loader:
         all elements in qs list should be in the format of {'nl': nl, 'qs_id': qs_id}
         """
         sampled_data = json.load(open(self.sampled_data_file, 'r'))
+        oracle_list = json.load(open(self.oracle_doc_file, 'r'))
         qs_list = []
-        for data in sampled_data:
-            qs_list.append(dict(question=data['prompt'], qs_id=data['qs_id']))
+        for oracle in oracle_list:
+            for data in sampled_data:
+                if oracle['qs_id'] == data['qs_id']:
+                    qs_list.append(dict(question=data['prompt'], qs_id=data['qs_id']))
+                    break
         return qs_list
 
     def load_oracle_list(self):
