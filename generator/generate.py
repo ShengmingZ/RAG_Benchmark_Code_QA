@@ -75,9 +75,9 @@ class Generator:
                          doc_max_length=self.doc_max_length)
 
     def gene_response(self):
-        # if not os.path.exists(args.save_file):
-        #     print(f'generation results exists for {args.save_file}')
-        #     return
+        if not os.path.exists(args.save_file):
+            print(f'generation results exists for {args.save_file}')
+            return
         if self.analysis_type == 'retrieval_recall':
             ret_doc_keys_list, docs_list = control_ret_acc(ret_acc=args.ret_acc,
                                                            oracle_list=self.oracle_list,
