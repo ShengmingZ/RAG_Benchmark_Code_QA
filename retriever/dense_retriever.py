@@ -184,6 +184,7 @@ def embed_corpus(args):
         batch_count = 0
         data_count = 0
         batch = []
+        all_embeddings_count = all_embeddings.shape[0]
         for data in wiki_loader.load_wiki_corpus_iter('NQ'):
             if data_count < resume:
                 data_count += 1
@@ -196,7 +197,8 @@ def embed_corpus(args):
                     # np.save(args.corpus_embed_file+'.npy', all_embeddings)
                     with NpyAppendArray(args.corpus_embed_file + '.npy') as npaa:
                         npaa.append(embeds)
-                    print(f'done embedding {all_embeddings.shape[0]}')
+                    all_embeddings_count += 1024
+                    print(f'done embedding {all_embeddings_count}')
                     batch = []
                     batch_count = 0
                 batch_count += 1
