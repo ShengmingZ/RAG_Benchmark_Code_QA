@@ -46,9 +46,11 @@ def code_eval(args):
         passk = ConalaLoader().eval_passk(_gene_results, top_k=[1])
 
     elif args.dataset == 'DS1000':
-        gene_results = json.load(open(DS1000Loader().oracle_doc_file, 'r'))
-        for i in range(len(gene_results)):
-            gene_results[i]['outputs'] = [gene_results[i]['output']]
+        # gene_results = json.load(open(DS1000Loader().oracle_doc_file, 'r'))
+        _gene_results = list()
+        for result in gene_results:
+            # gene_results[i]['outputs'] = [gene_results[i]['output']]
+            _gene_results.append(dict(qs_id=result['qs_id'], outputs=result['outputs']))
         passk = DS1000Loader().eval_passk(gene_results, k_list=[1])
 
     elif args.dataset == 'pandas_numpy_eval':
@@ -64,7 +66,7 @@ def code_eval(args):
 
 if __name__ == '__main__':
     in_program_call = None
-    # in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
 
     passk = code_eval(args)
