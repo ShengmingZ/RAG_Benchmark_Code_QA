@@ -35,7 +35,8 @@ def process_gene_results(args, outputs):
 
 
 def code_eval(args):
-    gene_results = json.load(open(args.save_file, 'r'))
+    # gene_results = json.load(open(args.save_file, 'r'))
+    gene_results = []
 
     if args.dataset == 'conala':
         _gene_results = list()
