@@ -197,7 +197,7 @@ def embed_corpus(args):
                     # np.save(args.corpus_embed_file+'.npy', all_embeddings)
                     with NpyAppendArray(args.corpus_embed_file + '.npy') as npaa:
                         npaa.append(embeds)
-                    all_embeddings_count += 1024
+                    all_embeddings_count += 1
                     print(f'done embedding {all_embeddings_count}')
                     batch = []
                     batch_count = 0
