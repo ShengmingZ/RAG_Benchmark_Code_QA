@@ -331,11 +331,11 @@ def retrieve(args):
 
 
 if __name__ == '__main__':
-    # in_program_call = '--dataset NQ --retriever BM25'
-    in_program_call = None
+    in_program_call = '--dataset DS1000 --retriever contriever'
+    # in_program_call = None
     args = retriever_config(in_program_call)
-    create_idx_for_corpus(args)
-    retrieve(args)
+    # create_idx_for_corpus(args)
+    # retrieve(args)
     ret_eval(args)
 
 

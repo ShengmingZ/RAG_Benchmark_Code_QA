@@ -60,7 +60,7 @@ def approximate_token(prompts, model):
             avg_tokens += tokens
             if tokens > max_tokens: max_tokens = tokens
         avg_tokens = avg_tokens / len(prompts)
-        print(f"Average tokens: {avg_tokens:.3f}")
+        print(f"Average tokens: {avg_tokens:.3f}, Max tokens: {max_tokens}")
         return avg_tokens
     elif model.startswith('llama') or model.startswith('codellama'):
         if model == 'llama2-13b-chat':
@@ -72,11 +72,13 @@ def approximate_token(prompts, model):
         access_token = "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"
         tokenizer = AutoTokenizer.from_pretrained(model, torch_dtype=torch.float16, token=access_token)
         avg_tokens = 0
+        max_tokens = 0
         for prompt in prompts:
             tokens = len(tokenizer(prompt, return_tensors='pt')['input_ids'][0])
+            if tokens > max_tokens: max_tokens = tokens
             avg_tokens += tokens
         avg_tokens = avg_tokens / len(prompts)
-        print(f"Average tokens: {avg_tokens:.3f}")
+        print(f"Average tokens: {avg_tokens:.3f}, Max tokens: {max_tokens}")
         return avg_tokens
 
 
