@@ -156,45 +156,41 @@ class DenseRetrievalEncoder:
             np.save(save_file, all_embeddings)
             return
 
-        # if 'text-embedding' in self.model_name:
-        #     OPENAI_TOKENIZER = "cl100k_base"
-        #     OPENAI_MAX_TOKENS = 1000
-        #     encoding = tiktoken.get_encoding(OPENAI_TOKENIZER)
-        #     all_embeddings = []
-        #     # for i in range(0, len(dataset), self.batch_size):
-        #     #     batch = dataset[i:i + self.batch_size]
-        #     #     # truncate
-        #     #     for j in range(len(batch)):
-        #     #         encoded_doc = encoding.encode(batch[j])[:OPENAI_MAX_TOKENS]
-        #     #         batch[j] = encoding.decode(encoded_doc)
-        #     #     try:
-        #     #         response = openai.Embedding.create(model=self.model_name, input=batch)
-        #     #         embeds = [data["embedding"] for data in response['data']]
-        #     #     except:
-        #     #         print("embedding error")
-        #     #     all_embeddings.append(np.array(embeds))
-        #
-        #     @backoff.on_exception(backoff.expo, openai.error.OpenAIError)
-        #     def openai_encode(model_name, texts):
-        #         return openai.Embedding.create(model=model_name, input=texts)
-        #
-        #
-        #     for i in tqdm(range(0, len(dataset), self.batch_size), total=int(len(dataset) / self.batch_size)):
-        #         batch = dataset[i:i + self.batch_size]
-        #         try:
-        #             response = openai_encode(model_name=self.model_name, texts=batch)
-        #             embeds = [data["embedding"] for data in response['data']]
-        #         except Exception as e:
-        #             print(e)
-        #             embeds = np.zeros(embeds.shape)
-        #         all_embeddings.append(embeds)
-        #
-        #     all_embeddings = np.concatenate(all_embeddings, axis=0)
-        #     print(f"done embedding: {all_embeddings.shape}")
-        #     if not os.path.exists(os.path.dirname(save_file)):
-        #         os.makedirs(os.path.dirname(save_file))
-        #     np.save(save_file, all_embeddings)
-        #     return
+        if 'text-embedding' in self.model_name:
+            OPENAI_TOKENIZER = "cl100k_base"
+            OPENAI_MAX_TOKENS = 1000
+            encoding = tiktoken.get_encoding(OPENAI_TOKENIZER)
+            all_embeddings = []
+            # for i in range(0, len(dataset), self.batch_size):
+            #     batch = dataset[i:i + self.batch_size]
+            #     # truncate
+            #     for j in range(len(batch)):
+            #         encoded_doc = encoding.encode(batch[j])[:OPENAI_MAX_TOKENS]
+            #         batch[j] = encoding.decode(encoded_doc)
+            #     try:
+            #         response = openai.Embedding.create(model=self.model_name, input=batch)
+            #         embeds = [data["embedding"] for data in response['data']]
+            #     except:
+            #         print("embedding error")
+            #     all_embeddings.append(np.array(embeds))
+
+            @backoff.on_exception(backoff.expo, openai.error.OpenAIError)
+            def openai_encode(model_name, texts):
+                return openai.Embedding.create(model=model_name, input=texts)
+
+
+            for i in tqdm(range(0, len(dataset), self.batch_size), total=int(len(dataset) / self.batch_size)):
+                batch = dataset[i:i + self.batch_size]
+                response = openai_encode(model_name=self.model_name, texts=batch)
+                embeds = [data["embedding"] for data in response['data']]
+                all_embeddings.append(embeds)
+
+            all_embeddings = np.concatenate(all_embeddings, axis=0)
+            print(f"done embedding: {all_embeddings.shape}")
+            if not os.path.exists(os.path.dirname(save_file)):
+                os.makedirs(os.path.dirname(save_file))
+            np.save(save_file, all_embeddings)
+            return
 
         if 'contriever' in self.model_name:
             with torch.no_grad():

@@ -294,8 +294,8 @@ if __name__ == '__main__':
     ret_args = retriever_config(in_program_call)
 
     embed_corpus(ret_args)
-    # retrieve(ret_args)
-    # ret_eval(ret_args)
+    retrieve(ret_args)
+    ret_eval(ret_args)
 
     # test openai embed
     # in_program_call = f"--dataset NQ --retriever openai-embedding"
