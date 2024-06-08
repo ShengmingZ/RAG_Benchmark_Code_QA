@@ -65,9 +65,14 @@ class Generator:
         print('save_to:', self.save_file)
 
     def test_prompt(self):
-        oracle_docs = [self.oracle_list[0]['oracle_doc']]
-        questions = [self.qs_list[0]['question']]
-        docs = WikiCorpusLoader().get_docs([oracle_docs], dataset=self.dataset)
+        if self.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
+            oracle_docs = self.oracle_list[0]['oracle_docs']
+            questions = [self.qs_list[0]['question']]
+            docs = [PythonDocsLoader().get_docs(oracle_docs)]
+        else:
+            oracle_docs = [self.oracle_list[0]['oracle_doc']]
+            questions = [self.qs_list[0]['question']]
+            docs = WikiCorpusLoader().get_docs([oracle_docs])
 
         generate_prompts(questions=questions,
                          ret_docs_list=docs,
@@ -141,11 +146,11 @@ if __name__ == '__main__':
     # gene_conala.gene_response()
 
     in_program_call = None
-    in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    # in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
     generator = Generator(args)
-    generator.test_prompt()
-    # gene_results = generator.gene_response()
+    # generator.test_prompt()
+    gene_results = generator.gene_response()
     # print(gene_results[0]['oracle_output'])
     # print('??')
     # print(gene_results[0]['outputs'][0])

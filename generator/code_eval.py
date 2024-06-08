@@ -15,8 +15,8 @@ from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 
 
 def process_gene_results(args, outputs):
+    preds = []
     if args.dataset == 'conala' and args.model == 'codellama-13b-instruct':
-        preds = []
         for output in outputs:
             if output.startswith(' '): output = output[1:]
             pred = output.replace('<code>', '')
@@ -30,13 +30,23 @@ def process_gene_results(args, outputs):
             # lines = pred.split('`')
             # if len(lines) > 1: pred = lines[1].split('`')[0]
             preds.append(pred)
+    elif args.dataset == 'DS1000' and args.model == 'codellama-13b-instruct':
+        for output in outputs:
+            if output.startswith(' '): output = output[1:]
+            pred = output.replace('<code>', '')
+            if '`' in pred:
+                lines = pred.split('\n')
+                try:
+                    _pred = lines[1]
+                    pred = _pred
+                except: ...
+            preds.append(pred)
 
     return preds
 
 
 def code_eval(args):
-    # gene_results = json.load(open(args.save_file, 'r'))
-    gene_results = []
+    gene_results = json.load(open(args.save_file, 'r'))
 
     if args.dataset == 'conala':
         _gene_results = list()
@@ -67,13 +77,15 @@ def code_eval(args):
 
 if __name__ == '__main__':
     in_program_call = None
-    in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    in_program_call = '--model codellama-13b-instruct --dataset DS1000 --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
 
-    passk = code_eval(args)
+    # passk = code_eval(args)
 
-    # gene_results = json.load(open(args.save_file, 'r'))
-    # for result in gene_results:
-    #     # print(result['outputs'])
-    #     outputs = process_gene_results(args, result['outputs'])
-    #     print(outputs)
+    gene_results = json.load(open(args.save_file, 'r'))
+    dataset = json.load(open('../data/DS1000/oracle_docs_matched_processed.json', 'r'))
+    for idx, result in enumerate(gene_results[:1]):
+        print(result['outputs'][0])
+        outputs = process_gene_results(args, result['outputs'])
+        print(outputs[0])
+        print(dataset[idx]['output'])
