@@ -181,6 +181,12 @@ def embed_corpus(args):
         def openai_encode(model_name, texts):
             return openai.Embedding.create(model=model_name, input=texts)
 
+        def embed_and_append(model_name, batch):
+            response = openai_encode(model_name=model_name, texts=batch)
+            embeds = np.array([data["embedding"] for data in response['data']])
+            with NpyAppendArray(args.corpus_embed_file + '.npy') as npaa:
+                npaa.append(embeds)
+
         batch_count = 0
         data_count = 0
         batch = []
@@ -190,19 +196,15 @@ def embed_corpus(args):
                 data_count += 1
                 continue
             else:
-                if batch_count == 1:
-                    response = openai_encode(model_name='text-embedding-3-small', texts=batch)
-                    embeds = np.array([data["embedding"] for data in response['data']])
-                    # all_embeddings = np.concatenate((all_embeddings, embeds), axis=0) if all_embeddings is not None else embeds
-                    # np.save(args.corpus_embed_file+'.npy', all_embeddings)
-                    with NpyAppendArray(args.corpus_embed_file + '.npy') as npaa:
-                        npaa.append(embeds)
+                if batch_count == 1024:
+                    embed_and_append(model_name='text-embedding-3-small', batch=batch)
                     all_embeddings_count += 1
                     print(f'done embedding {all_embeddings_count}')
                     batch = []
                     batch_count = 0
                 batch_count += 1
                 batch.append(data['text'])
+        embed_and_append(model_name='text-embedding-3-small', batch=batch)  # last batch is not embed in the loop
 
     else:
         if os.path.exists(args.corpus_embed_file + '.npy'):
@@ -293,7 +295,7 @@ if __name__ == '__main__':
     in_program_call = None
     ret_args = retriever_config(in_program_call)
 
-    # embed_corpus(ret_args)
+    embed_corpus(ret_args)
     retrieve(ret_args)
     ret_eval(ret_args)
 
