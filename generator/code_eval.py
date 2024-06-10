@@ -17,7 +17,7 @@ from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 
 def process_gene_results(args, outputs, code_prompt=None):
     preds = []
-    if (args.dataset == 'conala' or args.dataset == 'pandas_numpy_eval') and args.model == 'codellama-13b-instruct':
+    if args.dataset == 'conala' and args.model == 'codellama-13b-instruct':
         for output in outputs:
             if output.startswith(' '): output = output[1:]
             pred = output.replace('<code>', '')
@@ -27,9 +27,6 @@ def process_gene_results(args, outputs, code_prompt=None):
                     _pred = lines[1]
                     pred = _pred
                 except: ...
-            # if len(lines) > 1: pred = lines[1].split('\n```')[0]
-            # lines = pred.split('`')
-            # if len(lines) > 1: pred = lines[1].split('`')[0]
             preds.append(pred)
     elif args.dataset == 'DS1000' and args.model == 'codellama-13b-instruct':
         loader = DS1000Loader()
@@ -48,8 +45,6 @@ def process_gene_results(args, outputs, code_prompt=None):
             # then remove dup
             prompt_lines = code_prompt.split('\n')
             pred_lines = pred.split('\n')
-            print(prompt_lines)
-            print(pred_lines)
             _pred_lines = []
             for pred_line in pred_lines:
                 if pred_line not in prompt_lines:
@@ -57,8 +52,28 @@ def process_gene_results(args, outputs, code_prompt=None):
             pred = '\n'.join(_pred_lines)
             preds.append(pred)
 
-    # elif args.dataset == 'pandas_numpy_eval' and args.model == 'codellama-13b-instruct':
-
+    elif args.dataset == 'pandas_numpy_eval' and args.model == 'codellama-13b-instruct':
+        for output in outputs:
+            # first extract code
+            if output.startswith(' '): output = output[1:]
+            pred = output
+            pred = pred.replace('</s>', '')
+            try:
+                pred = pred.split('<code>')[1]
+            except: ...
+            try:
+                pred = pred.split('```')[1].split('```')[0]
+            except: ...
+            try:
+                pred = pred.split('# Example usage')[0]
+            except: ...
+            try:
+                pred = pred.split('[out]')[0]
+            except: ...
+            pred = pred.replace('`', '')
+            # remove dup
+            prompt_lines = code_prompt.split('\n')
+            preds.append(pred)
 
     return preds
 
@@ -127,10 +142,37 @@ if __name__ == '__main__':
     """
     test process outputs for pandas_numpy_eval
     """
+    dataset = json.load(open('../data/pandas_numpy_eval/data/pandas_numpy_eval.json', 'r'))
     gene_results = json.load(open(args.save_file, 'r'))
     for idx, result in enumerate(gene_results):
-        print(f'<processed code {idx}>]\n')
-        print([result['outputs'][0]])
-        outputs = process_gene_results(args, result['outputs'])
-        print([outputs[0]])
-        # print([qs_list[idx]['question'].split('\nA:')[1]])
+        # print(f'<processed code {idx}>]\n')
+        # print([result['outputs'][0]])
+        for data in dataset:
+            if data['task_id'] == result['qs_id']:
+                code_prompt = data['prompt']
+        outputs = process_gene_results(args, result['outputs'], code_prompt)
+        # print([outputs[0]])
+        # print([code_prompt])
+        prompt_lines = code_prompt.split('\n')
+        prompt_lines = [line for line in prompt_lines if line]
+        prompt_lines = [line for line in prompt_lines if not line.startswith('#') and not line.startswith('    #')]
+        code_prompt = '\n'.join(prompt_lines)
+        output_lines = outputs[0].split('\n')
+        output_lines = [line for line in output_lines if line]
+        output_lines = [line for line in output_lines if not line.startswith('#') and not line.startswith('    #')]
+        output = '\n'.join(output_lines)
+        if not output.startswith(code_prompt):
+            print(f'\n{result["qs_id"]}')
+            print(code_prompt)
+            print(output)
+            print(result['outputs'])
+        # if prompt_lines[-1].startswith('#'):
+        #     continue
+        # elif prompt_lines[-1].startswith('    #'):
+        #     continue
+        # elif prompt_lines[-1].startswith('    '):
+        #     continue
+        # elif prompt_lines[-1].endswith('return ') or prompt_lines[-1].endswith('= ') or prompt_lines[-1].endswith('='):
+        #     continue
+        # else:
+        #     print([code_prompt])

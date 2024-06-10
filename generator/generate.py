@@ -72,7 +72,7 @@ class Generator:
         else:
             oracle_docs = [self.oracle_list[0]['oracle_doc']]
             questions = [self.qs_list[0]['question']]
-            docs = WikiCorpusLoader().get_docs([oracle_docs])
+            docs = WikiCorpusLoader().get_docs([oracle_docs], 'NQ')
 
         generate_prompts(questions=questions,
                          ret_docs_list=docs,
