@@ -267,7 +267,7 @@ def retrieve(args):
         qs_id_list = [qs['qs_id'] for qs in qs_list]
 
         # get embed
-        if not os.path.exists(args.qs_embed_file):
+        if not os.path.exists(args.qs_embed_file+'.npy'):
             encoder = DenseRetrievalEncoder(args)
             encoder.encode(dataset=[qs['question'] for qs in qs_list], save_file=args.qs_embed_file)
         if args.normalize_embed:
@@ -282,6 +282,8 @@ def retrieve(args):
             doc_embed = np.load(args.corpus_embed_file + '.npy')
 
         # retrieve
+        print(qs_embed.shape)
+        print(len(doc_id_list))
         ret_results = retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_id_list, args.ret_result, args.top_k)
         print(f'done retrieval for {args.ret_result}')
 
@@ -295,7 +297,7 @@ if __name__ == '__main__':
     in_program_call = None
     ret_args = retriever_config(in_program_call)
 
-    embed_corpus(ret_args)
+    # embed_corpus(ret_args)
     retrieve(ret_args)
     ret_eval(ret_args)
 
