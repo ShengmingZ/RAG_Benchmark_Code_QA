@@ -282,7 +282,7 @@ def retrieve(args):
             doc_embed = np.load(args.corpus_embed_file + '.npy')
 
         # retrieve
-        print(qs_embed.shape)
+        print(doc_embed.shape)
         print(len(doc_id_list))
         ret_results = retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_id_list, args.ret_result, args.top_k)
         print(f'done retrieval for {args.ret_result}')

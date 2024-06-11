@@ -160,7 +160,6 @@ class WikiCorpusLoader:
         elif dataset in ['TriviaQA', 'NQ']:
             with open(self.wiki_corpus_file_NQ, 'r', newline='') as tsvfile:
                 reader = csv.reader(tsvfile, delimiter='\t')
-                next(reader)
                 for row in reader:
                     id_list.append(row[0])
         return id_list
