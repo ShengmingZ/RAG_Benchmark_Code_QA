@@ -80,7 +80,6 @@ def process_gene_results(args, outputs, code_prompt=None):
             output_lines = [line for line in output_lines if line]
             output_lines = [line for line in output_lines if not line.startswith('#') and not line.startswith('    #')]
             output = '\n'.join(output_lines)
-            print(code_prompt)
             if output.startswith(code_prompt):
                 pred = output.replace(code_prompt, '')
             elif prompt_lines[-1].startswith('def'):
@@ -124,10 +123,12 @@ def code_eval(args):
         passk = DS1000Loader().eval_passk(_gene_results, k_list=[1])
 
     elif args.dataset == 'pandas_numpy_eval':
+        qs_list = PandasNumpyEvalLoader().load_qs_list()
         _gene_results = []
-        oracle_list = PandasNumpyEvalLoader().load_oracle_list()
-        for oracle in oracle_list:
-            _gene_results.append(dict(qs_id=oracle['qs_id'], outputs=[oracle['output']]))
+        for idx, result in enumerate(gene_results):
+            assert qs_list[idx]['qs_id'] == result['qs_id']
+            outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'])
+            _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
         passk = PandasNumpyEvalLoader().eval_passk(_gene_results, k_list=[1])
 
 
@@ -136,7 +137,7 @@ def code_eval(args):
 
 if __name__ == '__main__':
     in_program_call = None
-    in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    # in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
 
     passk = code_eval(args)
