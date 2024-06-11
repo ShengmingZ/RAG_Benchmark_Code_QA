@@ -57,7 +57,7 @@ def process_gene_results(args, outputs, code_prompt=None):
             # first extract code
             if output.startswith(' '): output = output[1:]
             pred = output
-            pred = pred.replace('</s>', '')
+            pred = pred.replace('</s>', '').replace('```python', '```')
             try:
                 pred = pred.split('<code>')[1]
             except: ...
@@ -73,6 +73,30 @@ def process_gene_results(args, outputs, code_prompt=None):
             pred = pred.replace('`', '')
             # remove dup
             prompt_lines = code_prompt.split('\n')
+            prompt_lines = [line for line in prompt_lines if line]
+            prompt_lines = [line for line in prompt_lines if not line.startswith('#') and not line.startswith('    #')]
+            code_prompt = '\n'.join(prompt_lines)
+            output_lines = pred.split('\n')
+            output_lines = [line for line in output_lines if line]
+            output_lines = [line for line in output_lines if not line.startswith('#') and not line.startswith('    #')]
+            output = '\n'.join(output_lines)
+            print(code_prompt)
+            if output.startswith(code_prompt):
+                pred = output.replace(code_prompt, '')
+            elif prompt_lines[-1].startswith('def'):
+                if output_lines[0].startswith('def'):   # duplicate def, remove
+                    output_lines = output_lines[1:]
+                elif not output_lines[0].startswith('    '):    # add indent
+                    output_lines = ['    ' + line for line in output_lines]
+                # if 'return' not in output:
+                #     output_lines[-1] = output_lines[-1].replace('    ', '    return ')
+                pred = '\n'.join(output_lines)
+            elif output_lines[0].startswith(prompt_lines[-1]):  # only last line dup
+                output_lines[0] = output_lines[0].replace(prompt_lines[-1], '')
+                pred = '\n'.join(output_lines)
+            elif prompt_lines[-1] != '    ' and output_lines[0].startswith('return'):
+                output_lines[0] = '    ' + output_lines[0]
+                pred = '\n'.join(output_lines)
             preds.append(pred)
 
     return preds
@@ -115,7 +139,7 @@ if __name__ == '__main__':
     in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
 
-    # passk = code_eval(args)
+    passk = code_eval(args)
 
     """
     test process outputs for DS1000
@@ -142,37 +166,38 @@ if __name__ == '__main__':
     """
     test process outputs for pandas_numpy_eval
     """
-    dataset = json.load(open('../data/pandas_numpy_eval/data/pandas_numpy_eval.json', 'r'))
-    gene_results = json.load(open(args.save_file, 'r'))
-    for idx, result in enumerate(gene_results):
-        # print(f'<processed code {idx}>]\n')
-        # print([result['outputs'][0]])
-        for data in dataset:
-            if data['task_id'] == result['qs_id']:
-                code_prompt = data['prompt']
-        outputs = process_gene_results(args, result['outputs'], code_prompt)
-        # print([outputs[0]])
-        # print([code_prompt])
-        prompt_lines = code_prompt.split('\n')
-        prompt_lines = [line for line in prompt_lines if line]
-        prompt_lines = [line for line in prompt_lines if not line.startswith('#') and not line.startswith('    #')]
-        code_prompt = '\n'.join(prompt_lines)
-        output_lines = outputs[0].split('\n')
-        output_lines = [line for line in output_lines if line]
-        output_lines = [line for line in output_lines if not line.startswith('#') and not line.startswith('    #')]
-        output = '\n'.join(output_lines)
-        if not output.startswith(code_prompt):
-            print(f'\n{result["qs_id"]}')
-            print(code_prompt)
-            print(output)
-            print(result['outputs'])
-        # if prompt_lines[-1].startswith('#'):
-        #     continue
-        # elif prompt_lines[-1].startswith('    #'):
-        #     continue
-        # elif prompt_lines[-1].startswith('    '):
-        #     continue
-        # elif prompt_lines[-1].endswith('return ') or prompt_lines[-1].endswith('= ') or prompt_lines[-1].endswith('='):
-        #     continue
-        # else:
-        #     print([code_prompt])
+    # dataset = json.load(open('../data/pandas_numpy_eval/data/pandas_numpy_eval.json', 'r'))
+    # gene_results = json.load(open(args.save_file, 'r'))
+    # for idx, result in enumerate(gene_results):
+    #     print(f'<processed code {idx}>]\n')
+    #     print([result['outputs'][0]])
+    #     for data in dataset:
+    #         if data['task_id'] == result['qs_id']:
+    #             code_prompt = data['prompt']
+    #     outputs = process_gene_results(args, result['outputs'], code_prompt)
+    #     print([outputs[0]])
+    #     # print([code_prompt])
+    #     # prompt_lines = code_prompt.split('\n')
+    #     # prompt_lines = [line for line in prompt_lines if line]
+    #     # prompt_lines = [line for line in prompt_lines if not line.startswith('#') and not line.startswith('    #')]
+    #     # code_prompt = '\n'.join(prompt_lines)
+    #     # output_lines = outputs[0].split('\n')
+    #     # output_lines = [line for line in output_lines if line]
+    #     # output_lines = [line for line in output_lines if not line.startswith('#') and not line.startswith('    #')]
+    #     # output = '\n'.join(output_lines)
+    #     # if not output.startswith(code_prompt):
+    #     #     print(f'\n{result["qs_id"]}')
+    #     #     print(code_prompt)
+    #     #     print('<output>')
+    #     #     print(output)
+    #     #     print(result['outputs'])
+    #     # if prompt_lines[-1].startswith('#'):
+    #     #     continue
+    #     # elif prompt_lines[-1].startswith('    #'):
+    #     #     continue
+    #     # elif prompt_lines[-1].startswith('    '):
+    #     #     continue
+    #     # elif prompt_lines[-1].endswith('return ') or prompt_lines[-1].endswith('= ') or prompt_lines[-1].endswith('='):
+    #     #     continue
+    #     # else:
+    #     #     print([code_prompt])
