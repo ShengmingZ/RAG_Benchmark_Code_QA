@@ -43,8 +43,10 @@ def retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, 
     if qs_embed.dtype != np.float32: qs_embed = qs_embed.astype(np.float32)
     if doc_embed.dtype != np.float32: doc_embed = doc_embed.astype(np.float32)
     indexer = faiss.IndexFlatIP(doc_embed.shape[1])
-    indexer.add(doc_embed)
-    D, I = indexer.search(qs_embed, top_k)
+    res = faiss.StandardGpuResources()
+    gpu_indexer = faiss.index_cpu_to_gpu(res, 0, indexer)
+    gpu_indexer.add(doc_embed)
+    D, I = gpu_indexer.search(qs_embed, top_k)
 
     # process and save results
     ret_results = dict()
@@ -282,8 +284,6 @@ def retrieve(args):
             doc_embed = np.load(args.corpus_embed_file + '.npy')
 
         # retrieve
-        print(doc_embed.shape)
-        print(len(doc_id_list))
         ret_results = retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_id_list, args.ret_result, args.top_k)
         print(f'done retrieval for {args.ret_result}')
 
