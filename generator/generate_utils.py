@@ -128,7 +128,6 @@ def get_docs_tokens(docs, model):
             model = 'meta-llama/Meta-Llama-3-8B'
         access_token = "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"
         tokenizer = AutoTokenizer.from_pretrained(model, torch_dtype=torch.float16, token=access_token)
-        truncated_docs = []
         for doc in docs:
             tokens = tokenizer.encode(doc, truncation=True, add_special_tokens=False)
             docs_tokens.append(len(tokens))
@@ -139,6 +138,14 @@ def get_docs_tokens(docs, model):
 
 
 def get_irrelevant_docs(irrelevant_type, oracle_doc_keys, model, dataset):
+    """
+    get irrelevant docs of 2 types, keep doc length == oracle doc length
+    :param irrelevant_type:
+    :param oracle_doc_keys:
+    :param model:
+    :param dataset:
+    :return:
+    """
     assert irrelevant_type in ['dummy', 'diff']
     # get doc lengths
     if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
@@ -163,11 +170,9 @@ def get_irrelevant_docs(irrelevant_type, oracle_doc_keys, model, dataset):
             while perturbed_doc_length < doc_length:
                 random_doc = loader.get_random_docs(1)[0]
                 random_doc_length = get_docs_tokens(docs=[random_doc], model=model)[0]
-                if random_doc_length + perturbed_doc_length > doc_length:
-                    perturbed_doc += truncate_docs(docs=random_doc, model=model, max_length=doc_length)
-                else:
-                    perturbed_doc_length += random_doc_length
-                    perturbed_doc += random_doc
+                perturbed_doc += random_doc
+                perturbed_doc_length += random_doc_length
+            perturbed_doc = truncate_docs(docs=random_doc, model=model, max_length=doc_length)
             perturbed_docs.append(perturbed_doc)
 
     return perturbed_docs
@@ -285,7 +290,7 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
     return oracle_docs_list, docs
 
 
-def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, dataset):
+def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, model, dataset):
     """
     generate retrieval doc key of each sample based on ret_doc_type, return a list of the docs for each sample
     :param ret_doc_type:
@@ -294,12 +299,9 @@ def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, dataset):
     assert perturb_doc_type in ['oracle', 'retrieved', 'distracting', 'random', 'irrelevant_dummy', 'irrelevant_diff', 'none']
 
     if perturb_doc_type in ['irrelevant_diff', 'irrelevant_dummy']:
-        # docs = []
-        # for oracle_doc_key in oracle_doc_key_list:
-        #     irrelevant_docs = get_irrelevant_doc(irrelevant_type=perturb_doc_type.split('_')[1], doc_length=doc_length, n=len(oracle_doc_key))
-        #     docs.append(irrelevant_docs)
-        # return []*len(docs), docs
-        ...
+        docs, doc_keys_list = [], []
+        for oracle in oracle_list:
+            docs.append(get_irrelevant_docs(irrelevant_type=perturb_doc_type.split('_')[1], oracle_doc_keys=oracle['oracle_docs'], model=model, dataset=dataset))
     else:
         if perturb_doc_type == 'oracle':
             doc_keys_list = [oracle['oracle_docs'] for oracle in oracle_list]
@@ -323,13 +325,12 @@ def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, dataset):
         elif perturb_doc_type == 'none':
             doc_keys_list = []
 
-        docs = []
         if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
             docs = WikiCorpusLoader().get_docs(doc_keys_list, dataset)
         else:
             docs = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in doc_keys_list]
 
-        return doc_keys_list, docs
+    return doc_keys_list, docs
 
 
 
