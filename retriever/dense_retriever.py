@@ -38,15 +38,22 @@ def retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, 
     :return:
     """
     # retrieve
-    assert qs_embed.shape[0] == len(qs_id_list)
-    assert doc_embed.shape[0] == len(doc_key_list)
-    if qs_embed.dtype != np.float32: qs_embed = qs_embed.astype(np.float32)
-    if doc_embed.dtype != np.float32: doc_embed = doc_embed.astype(np.float32)
-    indexer = faiss.IndexFlatIP(doc_embed.shape[1])
-    res = faiss.StandardGpuResources()
-    gpu_indexer = faiss.index_cpu_to_gpu(res, 0, indexer)
-    gpu_indexer.add(doc_embed)
-    D, I = gpu_indexer.search(qs_embed, top_k)
+    if doc_embed is None:
+        if qs_embed.dtype != np.float32: qs_embed = qs_embed.astype(np.float32)
+        if doc_embed.dtype != np.float32: doc_embed = doc_embed.astype(np.float32)
+        indexer = faiss.IndexFlatIP(doc_embed.shape[1])
+        res = faiss.StandardGpuResources()
+        gpu_indexer = faiss.index_cpu_to_gpu(res, 0, indexer)
+        gpu_indexer.add(doc_embed)
+        D, I = gpu_indexer.search(qs_embed, top_k)
+    else:
+        assert qs_embed.shape[0] == len(qs_id_list)
+        assert doc_embed.shape[0] == len(doc_key_list)
+        if qs_embed.dtype != np.float32: qs_embed = qs_embed.astype(np.float32)
+        if doc_embed.dtype != np.float32: doc_embed = doc_embed.astype(np.float32)
+        indexer = faiss.IndexFlatIP(doc_embed.shape[1])
+        indexer.add(doc_embed)
+        D, I = indexer.search(qs_embed, top_k)
 
     # process and save results
     ret_results = dict()
@@ -278,10 +285,13 @@ def retrieve(args):
             args.ret_result = args.result_file.replace('.json', '_normalized.json')
         else:
             qs_embed = np.load(args.qs_embed_file + '.npy')
-        if args.normalize_embed:
-            doc_embed = np.load(args.corpus_embed_file + '_normalized' + '.npy')
+        if args.corpus == 'wiki_nq' and args.retriever == 'openai-embedding':
+            doc_embed = None
         else:
-            doc_embed = np.load(args.corpus_embed_file + '.npy')
+            if args.normalize_embed:
+                doc_embed = np.load(args.corpus_embed_file + '_normalized' + '.npy')
+            else:
+                doc_embed = np.load(args.corpus_embed_file + '.npy')
 
         # retrieve
         ret_results = retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_id_list, args.ret_result, args.top_k)

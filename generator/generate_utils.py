@@ -113,23 +113,13 @@ def truncate_docs(docs, model, max_length):
 
 
 
-def get_irrelevant_doc(irrelevant_type, doc_length, model_type, n):
+def get_irrelevant_doc(irrelevant_type, doc_length, model_name, n):
     assert irrelevant_type in ['dummy', 'diff']
-    assert model_type in ['gpt', 'llama']
-    import tiktoken
-    encoding = tiktoken.encoding_for_model(model)
-    if dataset == 'tldr':
-        encoded_doc = encoding.encode(tldr_prompt.tldr_original_3shots_prompt)
-    elif dataset == 'conala':
-        encoded_doc = encoding.encode(conala_prompt.conala_original_3shots_prompt)
-    doc_length = int((prompt_length - len(encoded_doc))/10)
-    dummy_docs = tldr_prompt.dummy_docs.split('\n')[:10]
-    docs = list()
-    for dummy_doc in dummy_docs:
-        encoded_doc = encoding.encode(dummy_doc)[:doc_length]
-        doc = encoding.decode(encoded_doc)
-        docs.append(doc)
-    return docs
+    if irrelevant_type == 'dummy':
+        ...
+    else:
+        ...
+    return doc
 
 
 def generate_config(in_program_call=None):
@@ -167,25 +157,29 @@ def generate_config(in_program_call=None):
     return args
 
 
-def get_distracting_doc(qs_id, oracle_docs, ret_results, dataset):
+def get_distracting_docs(qs_id, oracle_docs, ret_doc_keys, dataset, k, dups=None):
     """
     get high similarity but not oracle docs for a sample
-    :param qs_id:
-    :param oracle_docs:
-    :param ret_results:
+    :param qs_id: qs_id of the sample
+    :param oracle_docs: oracle docs of the sample
+    :param ret_doc_keys: ret doc keys of the sample
     :param dataset:
+    :param k: number of distracting docs
+    :param dups: doc keys that also need to avoid
     :return:
     """
-    ret_result = ret_results[qs_id]
-    for item in ret_result:
-        doc_key = item['doc_key']
+    distracting_docs = []
+    for doc_key in ret_doc_keys:
+        if len(distracting_docs) == k: break
+        if dups is not None and doc_key in dups: continue
         if dataset == 'NQ' or dataset == 'TriviaQA':
             doc = WikiCorpusLoader().get_docs(doc_keys_list=[[doc_key]], dataset=dataset, num_procs=1)[0][0]
             if not NQTriviaQAUtils(dataset).if_has_answer(doc=doc, qs_id=qs_id):
-                return doc_key
+                distracting_docs.append(doc_key)
         else:
             if doc_key not in oracle_docs:
-                return doc_key
+                distracting_docs.append(doc_key)
+    return distracting_docs
 
 
 def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
@@ -212,7 +206,13 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
     while cur_ret_acc > ret_acc:
         perturb_idx = random.sample(perturb_placeholder, 1)[0] # pick an oracle key and perturb
         perturb_placeholder.remove(perturb_idx)
-        oracle_docs_list[perturb_idx[0]][perturb_idx[1]] = get_distracting_doc(oracle_list[perturb_idx[0]]['qs_id'], oracle_docs_list[perturb_idx[0]], ret_results, dataset)
+        qs_id = oracle_list[perturb_idx[0]]['qs_id']
+        oracle_docs_list[perturb_idx[0]][perturb_idx[1]] = get_distracting_docs(qs_id=qs_id,
+                                                                                oracle_docs=oracle_list[perturb_idx[0]]['oracle_docs'],
+                                                                                ret_doc_keys=[item['doc_key'] for item in ret_results[qs_id]],
+                                                                                dataset=dataset,
+                                                                                k=1,
+                                                                                dups=oracle_docs_list[perturb_idx[0]])
         ret_accs[perturb_idx[0]] = (ret_accs[perturb_idx[0]] * len(oracle_docs_list[perturb_idx[0]]) - 1) / len(oracle_docs_list[perturb_idx[0]])
         cur_ret_acc = sum(ret_accs) / len(ret_accs)
 
@@ -234,7 +234,7 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
     return oracle_docs_list, docs
 
 
-def perturb_ret_doc_type(perturb_doc_type, ret_results, oracle_list, dataset):
+def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, dataset):
     """
     generate retrieval doc key of each sample based on ret_doc_type, return a list of the docs for each sample
     :param ret_doc_type:
@@ -243,50 +243,41 @@ def perturb_ret_doc_type(perturb_doc_type, ret_results, oracle_list, dataset):
     assert perturb_doc_type in ['oracle', 'retrieved', 'distracting', 'random', 'irrelevant_dummy', 'irrelevant_diff', 'none']
 
     if perturb_doc_type in ['irrelevant_diff', 'irrelevant_dummy']:
-        docs = []
-        for oracle_doc_key in oracle_doc_key_list:
-            irrelevant_docs = get_irrelevant_doc(irrelevant_type=perturb_doc_type.split('_')[1], doc_length=doc_length, n=len(oracle_doc_key))
-            docs.append(irrelevant_docs)
-        return []*len(docs), docs
+        # docs = []
+        # for oracle_doc_key in oracle_doc_key_list:
+        #     irrelevant_docs = get_irrelevant_doc(irrelevant_type=perturb_doc_type.split('_')[1], doc_length=doc_length, n=len(oracle_doc_key))
+        #     docs.append(irrelevant_docs)
+        # return []*len(docs), docs
+        ...
     else:
         if perturb_doc_type == 'oracle':
-            doc_key_list = oracle_doc_key_list
+            doc_keys_list = [oracle['oracle_docs'] for oracle in oracle_list]
         elif perturb_doc_type == 'retrieved':
-            doc_key_list = []
-            for ret_doc_key, oracle_doc_key in zip(ret_doc_key_list, oracle_doc_key_list):
-                doc_key_list.append(ret_doc_key[:len(oracle_doc_key)])
+            doc_keys_list = []
+            for oracle in oracle_list:
+                ret_doc_keys = [item['doc_key'] for item in ret_results[oracle['qs_id']]]
+                doc_keys_list.append(ret_doc_keys[:len(oracle['oracle_docs'])])
         elif perturb_doc_type == 'distracting':
-            doc_key_list = []
-            for ret_doc_key, oracle_doc_key in zip(ret_doc_key_list, oracle_doc_key_list):
-                sample_doc_key = []
-                for key in ret_doc_key:
-                    if key not in oracle_doc_key:
-                        sample_doc_key.append(key)
-                    if len(sample_doc_key) == len(oracle_doc_key):
-                        break
-                doc_key_list.append(sample_doc_key)
+            doc_keys_list = []
+            for oracle in oracle_list:
+                ret_doc_keys = [item['doc_key'] for item in ret_results[oracle['qs_id']]]
+                doc_keys_list.append(get_distracting_doc())
         elif perturb_doc_type == 'random':
-            doc_key_list = []
-            if dataset_type == 'nlp':
-                wiki_loader = WikiCorpusLoader()
-                corpus_id_list = wiki_loader.load_wiki_id()
-            elif dataset_type == 'se':
-                ...
-            for oracle_doc_key in oracle_doc_key_list:
-                doc_key_list.append(random.sample(corpus_id_list, k=len(oracle_doc_key)))
+            doc_keys_list = []
+            if dataset in ['NQ', 'TriviaQA']: corpus_id_list = WikiCorpusLoader().load_wiki_id('NQ')
+            else: corpus_id_list = PythonDocsLoader().load_api_signs()
+            for oracle in oracle_list:
+                doc_keys_list.append(random.sample(corpus_id_list, k=len(oracle['oracle_docs'])))
         elif perturb_doc_type == 'none':
-            doc_key_list = []*len(oracle_doc_key_list)
+            doc_keys_list = []
 
         docs = []
-        # if  == 'nlp':
-        #     # wiki_loader = WikiCorpusLoader()
-        #     # for doc_key in doc_key_list:
-        #     #     docs.append(wiki_loader.get_docs(doc_key))
-        #     docs = WikiCorpusLoader().get_docs(doc_key_list)
-        # elif dataset_type == 'se':
-        #     ...
+        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+            docs = WikiCorpusLoader().get_docs(doc_keys_list, dataset)
+        else:
+            docs = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in doc_keys_list]
 
-        return doc_key_list, docs
+        return doc_keys_list, docs
 
 
 
@@ -333,6 +324,9 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
 
 
 if __name__ == "__main__":
+    """test control ret type"""
+
+
     # test for control_ret_acc
     # hotpotqa_loader = HotpotQALoader()
     # oracle_list = hotpotqa_loader.load_oracle_list()
@@ -347,33 +341,35 @@ if __name__ == "__main__":
     # ret_acc = ret_acc/len(oracle_list)
     # print(ret_acc)
 
-    # test control ret_acc
-    loader = NQTriviaQAUtils('NQ')
-    oracle_list = loader.load_oracle_list()
-    qs_list = loader.load_qs_list()
-    ret_results = get_ret_results(dataset='NQ', retriever='BM25')
-    # print([oracle['oracle_docs'] for oracle in oracle_list])
-    perturb_oracle_keys, docs = control_ret_acc(ret_acc=1, oracle_list=oracle_list[:100], ret_results=ret_results, dataset='NQ')
-
-    # golds = [oracle['oracle_docs'] for oracle in oracle_list]
-    # preds = perturb_oracle_keys
-    # print(golds)
-    # print(preds)
-    # recall_n = 0
-    # for gold, pred in zip(golds, preds):
-    #     cur_hit = sum([x in pred for x in gold])
-    #     recall_n += cur_hit / len(gold)
-    # recall_n /= len(preds)
-    # print(recall_n)
-    wrong_count = 0
-    # docs = WikiCorpusLoader().get_docs(doc_keys_list=perturb_oracle_keys, dataset='NQ', num_procs=1)
-    for i, doc_keys in enumerate(perturb_oracle_keys):
-        doc = docs[i][0]
-        if not NQTriviaQAUtils('NQ').if_has_answer(doc=doc, qs_id=oracle_list[i]['qs_id']):
-            wrong_count += 1
-            print(f'wrong oracle for doc {qs_list[i]}')
-    acc = 1 - (wrong_count / len(perturb_oracle_keys))
-    print(acc)
+    """
+    test control ret_acc
+    """
+    # loader = NQTriviaQAUtils('NQ')
+    # oracle_list = loader.load_oracle_list()
+    # qs_list = loader.load_qs_list()
+    # ret_results = get_ret_results(dataset='NQ', retriever='BM25')
+    # # print([oracle['oracle_docs'] for oracle in oracle_list])
+    # perturb_oracle_keys, docs = control_ret_acc(ret_acc=1, oracle_list=oracle_list[:100], ret_results=ret_results, dataset='NQ')
+    #
+    # # golds = [oracle['oracle_docs'] for oracle in oracle_list]
+    # # preds = perturb_oracle_keys
+    # # print(golds)
+    # # print(preds)
+    # # recall_n = 0
+    # # for gold, pred in zip(golds, preds):
+    # #     cur_hit = sum([x in pred for x in gold])
+    # #     recall_n += cur_hit / len(gold)
+    # # recall_n /= len(preds)
+    # # print(recall_n)
+    # wrong_count = 0
+    # # docs = WikiCorpusLoader().get_docs(doc_keys_list=perturb_oracle_keys, dataset='NQ', num_procs=1)
+    # for i, doc_keys in enumerate(perturb_oracle_keys):
+    #     doc = docs[i][0]
+    #     if not NQTriviaQAUtils('NQ').if_has_answer(doc=doc, qs_id=oracle_list[i]['qs_id']):
+    #         wrong_count += 1
+    #         print(f'wrong oracle for doc {qs_list[i]}')
+    # acc = 1 - (wrong_count / len(perturb_oracle_keys))
+    # print(acc)
 
     # doc = """
     # concat(objs: 'Iterable[NDFrame] | Mapping[Hashable, NDFrame]', axis=0, join='outer', ignore_index: 'bool' = False, keys=None, levels=None, names=None, verify_integrity: 'bool' = False, sort: 'bool' = False, copy: 'bool' = True)     Concatenate pandas objects along a particular axis with optional set logic     along the other axes.          Can also add a layer of hierarchical indexing on the concatenation axis,     which may be useful if the labels are the same (or overlapping) on     the passed axis number.          Parameters     ----------     objs : a sequence or mapping of Series or DataFrame objects         If a mapping is passed, the sorted keys will be used as the `keys`         argument, unless it is passed, in which case the values will be         selected (see below). Any None objects will be dropped silently unless         they are all None in which case a ValueError will be raised.     axis : {0/'index', 1/'columns'}, default 0         The axis to concatenate along.     join : {'inner', 'outer'}, default 'outer'         How to handle indexes on other axis (or axes).     ignore_index : bool, default False         If True, do not use the index values along the concatenation axis. The         resulting axis will be labeled 0, ..., n - 1. This is useful if you are         concatenating objects where the concatenation axis does not have         meaningful indexing information. Note the index values on the other         axes are still respected in the join.     keys : sequence, default None         If multiple levels passed, should contain tuples. Construct         hierarchical index using the passed keys as the outermost level.     levels : list of sequences, default None         Specific levels (unique values) to use for constructing a         MultiIndex. Otherwise they will be inferred from the keys.     names : list, default None         Names for the levels in the resulting hierarchical index.     verify_integrity : bool, default False         Check whether the new concatenated axis contains duplicates. This can         be very expensive relative to the actual data concatenation.     sort : bool, default False         Sort non-concatenation axis if it is not already aligned when `join`         is 'outer'.         This has no effect when ``join='inner'``, which already preserves         the order of the non-concatenation axis.              .. versionchanged:: 1.0.0                 Changed to not sort by default.          copy : bool, default True         If False, do not copy data unnecessarily.          Returns     -------     object, type of objs         When concatenating all ``Series`` along the index (axis=0), a         ``Series`` is returned. When ``objs`` contains at least one         ``DataFrame``, a ``DataFrame`` is returned. When concatenating along         the columns (axis=1), a ``DataFrame`` is returned.          See Also     --------     Series.append : Concatenate Series.     DataFrame.append : Concatenate DataFrames.     DataFrame.join : Join DataFrames using indexes.     DataFrame.merge : Merge DataFrames by indexes or columns.          Notes     -----     The keys, levels, and names arguments are all optional.          A walkthrough of how this method fits in with other tools for combining     pandas objects can be found `here     <https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html>`__.          Examples     --------     Combine two ``Series``.          >>> s1 = pd.Series(['a', 'b'])     >>> s2 = pd.Series(['c', 'd'])     >>> pd.concat([s1, s2])     0    a     1    b     0    c     1    d     dtype: object          Clear the existing index and reset it in the result     by setting the ``ignore_index`` option to ``True``.          >>> pd.concat([s1, s2], ignore_index=True)     0    a     1    b     2    c     3    d     dtype: object          Add a hierarchical index at the outermost level of     the data with the ``keys`` option.          >>> pd.concat([s1, s2], keys=['s1', 's2'])     s1  0    a         1    b     s2  0    c         1    d     dtype: object          Label the index keys you create with the ``names`` option.          >>> pd.concat([s1, s2], keys=['s1', 's2'],     ...           names=['Series name', 'Row ID'])     Series name  Row ID     s1           0         a                  1         b     s2           0         c                  1         d     dtype: object          Combine two ``DataFrame`` objects with identical columns.          >>> df1 = pd.DataFrame([['a', 1], ['b', 2]],     ...                    columns=['letter', 'number'])     >>> df1       letter  number     0      a       1     1      b       2     >>> df2 = pd.DataFrame([['c', 3], ['d', 4]],     ...                    columns=['letter', 'number'])     >>> df2       letter  number     0      c       3     1      d       4     >>> pd.concat([df1, df2])       letter  number     0      a       1     1      b       2     0      c       3     1      d       4          Combine ``DataFrame`` objects with overlapping columns     and return everything. Columns outside the intersection will     be filled with ``NaN`` values.          >>> df3 = pd.DataFrame([['c', 3, 'cat'], ['d', 4, 'dog']],     ...                    columns=['letter', 'number', 'animal'])     >>> df3       letter  number animal     0      c       3    cat     1      d       4    dog     >>> pd.concat([df1, df3], sort=False)       letter  number animal     0      a       1    NaN     1      b       2    NaN     0      c       3    cat     1      d       4    dog          Combine ``DataFrame`` objects with overlapping columns     and return only those that are shared by passing ``inner`` to     the ``join`` keyword argument.          >>> pd.concat([df1, df3], join="inner")       letter  number     0      a       1     1      b       2     0      c       3     1      d       4          Combine ``DataFrame`` objects horizontally along the x axis by     passing in ``axis=1``.          >>> df4 = pd.DataFrame([['bird', 'polly'], ['monkey', 'george']],     ...                    columns=['animal', 'name'])     >>> pd.concat([df1, df4], axis=1)       letter  number  animal    name     0      a       1    bird   polly     1      b       2  monkey  george          Prevent the result from including duplicate index values with the     ``verify_integrity`` option.          >>> df5 = pd.DataFrame([1], index=['a'])     >>> df5        0     a  1     >>> df6 = pd.DataFrame([2], index=['a'])     >>> df6        0     a  2     >>> pd.concat([df5, df6], verify_integrity=True)     Traceback (most recent call last):         ...     ValueError: Indexes have overlapping values: ['a']
