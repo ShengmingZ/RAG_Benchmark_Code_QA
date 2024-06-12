@@ -103,6 +103,12 @@ def process_gene_results(args, outputs, code_prompt=None):
 
 def code_eval(args):
     gene_results = json.load(open(args.save_file, 'r'))
+    if args.n == 10:
+        k_list = [1,3,5,10]
+    elif args.n == 1:
+        k_list = [1]
+    else:
+        raise ValueError('args.n must be 1 or 10')
 
     if args.dataset == 'conala':
         _gene_results = list()
@@ -110,7 +116,7 @@ def code_eval(args):
             outputs = process_gene_results(args, result['outputs'])
             # outputs = [result['oracle_output']]
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
-        passk = ConalaLoader().eval_passk(_gene_results, top_k=[1])
+        passk = ConalaLoader().eval_passk(_gene_results, top_k=k_list)
 
     elif args.dataset == 'DS1000':
         # gene_results = json.load(open(DS1000Loader().oracle_doc_file, 'r'))
@@ -120,7 +126,7 @@ def code_eval(args):
             assert qs_list[idx]['qs_id'] == result['qs_id']
             outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
-        passk = DS1000Loader().eval_passk(_gene_results, k_list=[1])
+        passk = DS1000Loader().eval_passk(_gene_results, k_list=k_list)
 
     elif args.dataset == 'pandas_numpy_eval':
         qs_list = PandasNumpyEvalLoader().load_qs_list()
@@ -129,7 +135,7 @@ def code_eval(args):
             assert qs_list[idx]['qs_id'] == result['qs_id']
             outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'])
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
-        passk = PandasNumpyEvalLoader().eval_passk(_gene_results, k_list=[1])
+        passk = PandasNumpyEvalLoader().eval_passk(_gene_results, k_list=k_list)
 
 
     return passk
