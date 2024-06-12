@@ -50,13 +50,13 @@ def retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, 
                     yield dataset[start:end]
 
         indexer = faiss.IndexFlatIP(qs_embed.shape[1])
-        res = faiss.StandardGpuResources()
-        gpu_indexer = faiss.index_cpu_to_gpu(res, 0, indexer)
+        # res = faiss.StandardGpuResources()
+        # gpu_indexer = faiss.index_cpu_to_gpu(res, 0, indexer)
         for batch in yield_batches_from_hdf5(doc_embed_file):
             if batch.dtype != np.float32: batch = batch.astype(np.float32)
-            gpu_indexer.add(batch)
+            indexer.add(batch)
         if qs_embed.dtype != np.float32: qs_embed = qs_embed.astype(np.float32)
-        D, I = gpu_indexer.search(qs_embed, top_k)
+        D, I = indexer.search(qs_embed, top_k)
     else:
         assert qs_embed.shape[0] == len(qs_id_list)
         assert doc_embed.shape[0] == len(doc_key_list)
