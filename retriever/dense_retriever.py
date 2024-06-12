@@ -49,7 +49,7 @@ def retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, 
                     end = min(start + batch_size, total_size)
                     yield dataset[start:end]
 
-        indexer = faiss.IndexFlatIP(doc_embed.shape[1])
+        indexer = faiss.IndexFlatIP(qs_embed.shape[1])
         res = faiss.StandardGpuResources()
         gpu_indexer = faiss.index_cpu_to_gpu(res, 0, indexer)
         for batch in yield_batches_from_hdf5(doc_embed_file):
