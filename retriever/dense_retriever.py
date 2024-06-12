@@ -1,6 +1,6 @@
 import platform
 import sys, os
-
+import h5py
 import backoff
 import openai
 import json
@@ -38,13 +38,24 @@ def retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, 
     :return:
     """
     # retrieve
-    if doc_embed is None:
-        if qs_embed.dtype != np.float32: qs_embed = qs_embed.astype(np.float32)
-        if doc_embed.dtype != np.float32: doc_embed = doc_embed.astype(np.float32)
+    if doc_embed is None:   # for WIKI openai embedding, OOM if load all to the memory
+        doc_embed_file = '/data/zhaoshengming/wikipedia/embed_openai-embedding_NQ.h5'
+
+        def yield_batches_from_hdf5(file_path, dataset_name='wiki_embedding', batch_size=1024):
+            with h5py.File(file_path, 'r') as f:
+                dataset = f[dataset_name]
+                total_size = dataset.shape[0]
+                for start in range(0, total_size, batch_size):
+                    end = min(start + batch_size, total_size)
+                    yield dataset[start:end]
+
         indexer = faiss.IndexFlatIP(doc_embed.shape[1])
         res = faiss.StandardGpuResources()
         gpu_indexer = faiss.index_cpu_to_gpu(res, 0, indexer)
-        gpu_indexer.add(doc_embed)
+        for batch in yield_batches_from_hdf5(doc_embed_file):
+            if batch.dtype != np.float32: batch = batch.astype(np.float32)
+            gpu_indexer.add(batch)
+        if qs_embed.dtype != np.float32: qs_embed = qs_embed.astype(np.float32)
         D, I = gpu_indexer.search(qs_embed, top_k)
     else:
         assert qs_embed.shape[0] == len(qs_id_list)
@@ -285,7 +296,7 @@ def retrieve(args):
             args.ret_result = args.result_file.replace('.json', '_normalized.json')
         else:
             qs_embed = np.load(args.qs_embed_file + '.npy')
-        if args.corpus == 'wiki_nq' and args.retriever == 'openai-embedding':
+        if args.corpus == 'wiki_nq' and args.retriever == 'openai-embedding':   # only for WIKI openai-embedding, deal with OOM
             doc_embed = None
         else:
             if args.normalize_embed:

@@ -82,7 +82,6 @@ def approximate_token(prompts, model):
         return avg_tokens
 
 
-
 def truncate_docs(docs, model, max_length):
     if model.startswith('gpt'):
         import tiktoken
@@ -112,14 +111,66 @@ def truncate_docs(docs, model, max_length):
     return truncated_docs
 
 
-
-def get_irrelevant_doc(irrelevant_type, doc_length, model_name, n):
-    assert irrelevant_type in ['dummy', 'diff']
-    if irrelevant_type == 'dummy':
-        ...
+def get_docs_tokens(docs, model):
+    docs_tokens = []
+    if model.startswith('gpt'):
+        import tiktoken
+        encoding = tiktoken.encoding_for_model(model)
+        for doc in docs:
+            encoded_doc = encoding.encode(doc)
+            docs_tokens.append(len(encoded_doc))
+    elif model.startswith('llama') or model.startswith('codellama'):
+        if model == 'llama2-13b-chat':
+            model = 'meta-llama/Llama-2-13b-chat-hf'
+        elif model == 'codellama-13b-instruct':
+            model = 'codellama/CodeLlama-13b-Instruct-hf'
+        elif model == 'llama3-8b':
+            model = 'meta-llama/Meta-Llama-3-8B'
+        access_token = "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"
+        tokenizer = AutoTokenizer.from_pretrained(model, torch_dtype=torch.float16, token=access_token)
+        truncated_docs = []
+        for doc in docs:
+            tokens = tokenizer.encode(doc, truncation=True, add_special_tokens=False)
+            docs_tokens.append(len(tokens))
     else:
-        ...
-    return doc
+        raise ValueError(f'Unknown model: {model} in get_docs_tokens')
+
+    return docs_tokens
+
+
+def get_irrelevant_docs(irrelevant_type, oracle_doc_keys, model, dataset):
+    assert irrelevant_type in ['dummy', 'diff']
+    # get doc lengths
+    if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
+        loader = PythonDocsLoader()
+        docs = loader.get_docs(oracle_doc_keys)
+    else:
+        loader = WikiCorpusLoader()
+        docs = loader.get_docs([oracle_doc_keys], dataset)[0]
+    doc_lengths = get_docs_tokens(docs, model)
+    if irrelevant_type == 'dummy':
+        dummy_string = 'The wiggly fluff went plop while the jibber-jabber bumbled and tumbled. Fizzle-flop danced around the wibbly-wobbly doodle, and snicker-snack bounced happily. Doodle-doo twirled and swirled in the zigzag zoom, and snuggle-bug snuggled close. Wobble-wobble wandered through the dilly-dally, giggling and jiggling all the while. Squiggle-squabble and waddle-waddle wobbled along, playing in the silly-sally world of random wozzle. The snickety-snack skipped and hopped, while the flibber-jabber giggled and squiggled. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Bloop bloop bloop, gloopy gloopy gloopy. Wobble wobble wobble, zigzag zigzag zigzag. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quibble quibble quibble, jibber jabber jibber. Nulla facilisi. Snick snick snick, jibble jibble jibble.'
+        dummy_length = get_docs_tokens(docs=[dummy_string], model=model)[0]
+        perturbed_docs = []
+        for doc_length in doc_lengths:
+            dummy_string = dummy_string * (int(dummy_length/doc_length)+1)
+            perturbed_docs.append(truncate_docs(docs=[dummy_string], model=model, max_length=doc_length)[0])
+    else:
+        perturbed_docs = []
+        for doc_length in doc_lengths:
+            perturbed_doc = ''
+            perturbed_doc_length = 0
+            while perturbed_doc_length < doc_length:
+                random_doc = loader.get_random_docs(1)[0]
+                random_doc_length = get_docs_tokens(docs=[random_doc], model=model)[0]
+                if random_doc_length + perturbed_doc_length > doc_length:
+                    perturbed_doc += truncate_docs(docs=random_doc, model=model, max_length=doc_length)
+                else:
+                    perturbed_doc_length += random_doc_length
+                    perturbed_doc += random_doc
+            perturbed_docs.append(perturbed_doc)
+
+    return perturbed_docs
 
 
 def generate_config(in_program_call=None):
@@ -212,7 +263,7 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
                                                                                 ret_doc_keys=[item['doc_key'] for item in ret_results[qs_id]],
                                                                                 dataset=dataset,
                                                                                 k=1,
-                                                                                dups=oracle_docs_list[perturb_idx[0]])
+                                                                                dups=oracle_docs_list[perturb_idx[0]])[0]
         ret_accs[perturb_idx[0]] = (ret_accs[perturb_idx[0]] * len(oracle_docs_list[perturb_idx[0]]) - 1) / len(oracle_docs_list[perturb_idx[0]])
         cur_ret_acc = sum(ret_accs) / len(ret_accs)
 
@@ -261,7 +312,8 @@ def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, dataset):
             doc_keys_list = []
             for oracle in oracle_list:
                 ret_doc_keys = [item['doc_key'] for item in ret_results[oracle['qs_id']]]
-                doc_keys_list.append(get_distracting_doc())
+                doc_keys_list.append(get_distracting_docs(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'],
+                                                          ret_doc_keys=ret_doc_keys, dataset=dataset, k=len(oracle['oracle_docs'])))
         elif perturb_doc_type == 'random':
             doc_keys_list = []
             if dataset in ['NQ', 'TriviaQA']: corpus_id_list = WikiCorpusLoader().load_wiki_id('NQ')
@@ -344,23 +396,24 @@ if __name__ == "__main__":
     """
     test control ret_acc
     """
-    # loader = NQTriviaQAUtils('NQ')
-    # oracle_list = loader.load_oracle_list()
-    # qs_list = loader.load_qs_list()
-    # ret_results = get_ret_results(dataset='NQ', retriever='BM25')
-    # # print([oracle['oracle_docs'] for oracle in oracle_list])
-    # perturb_oracle_keys, docs = control_ret_acc(ret_acc=1, oracle_list=oracle_list[:100], ret_results=ret_results, dataset='NQ')
-    #
-    # # golds = [oracle['oracle_docs'] for oracle in oracle_list]
-    # # preds = perturb_oracle_keys
-    # # print(golds)
-    # # print(preds)
-    # # recall_n = 0
-    # # for gold, pred in zip(golds, preds):
-    # #     cur_hit = sum([x in pred for x in gold])
-    # #     recall_n += cur_hit / len(gold)
-    # # recall_n /= len(preds)
-    # # print(recall_n)
+    loader = NQTriviaQAUtils('NQ')
+    loader = DS1000Loader()
+    oracle_list = loader.load_oracle_list()
+    qs_list = loader.load_qs_list()
+    ret_results = get_ret_results(dataset='DS1000', retriever='openai-embedding')
+    # print([oracle['oracle_docs'] for oracle in oracle_list])
+    perturb_oracle_keys, docs = control_ret_acc(ret_acc=0, oracle_list=oracle_list, ret_results=ret_results, dataset='DS1000')
+
+    golds = [oracle['oracle_docs'] for oracle in oracle_list]
+    preds = perturb_oracle_keys
+    print(golds)
+    print(preds)
+    recall_n = 0
+    for gold, pred in zip(golds, preds):
+        cur_hit = sum([x in pred for x in gold])
+        recall_n += cur_hit / len(gold)
+    recall_n /= len(preds)
+    print(recall_n)
     # wrong_count = 0
     # # docs = WikiCorpusLoader().get_docs(doc_keys_list=perturb_oracle_keys, dataset='NQ', num_procs=1)
     # for i, doc_keys in enumerate(perturb_oracle_keys):

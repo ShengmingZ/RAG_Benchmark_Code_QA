@@ -54,6 +54,13 @@ class PythonDocsLoader:
         return docs
 
 
+    def get_random_docs(self, k):
+        corpus_ids = self.load_api_signs()
+        random_doc_keys = random.sample(corpus_ids, k)
+        docs = self.get_docs(random_doc_keys)
+        return docs
+
+
     def process_docs(self):
         python_docs = dict()
         python_docs_third = json.load(open(self.api_doc_third_party, 'r'))
@@ -267,6 +274,13 @@ class WikiCorpusLoader:
                     docs_list[sample_idx] = docs
 
         return docs_list
+
+    def get_random_docs(self, k):
+        data_count = 21015325
+        doc_idxes = random.sample(range(data_count), k)
+        doc_keys = [str(idx) for idx in doc_idxes]
+        docs = self.get_docs([doc_keys], 'NQ')[0]
+        return docs
 
     # def process_wiki_corpus(self):
     #     wiki_rec_file = self.wiki_corpus_file.replace('.tsv', '_rec.tsv')
