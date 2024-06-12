@@ -276,13 +276,16 @@ def retrieve(args):
             doc_id_list = WikiCorpusLoader().load_wiki_id(args.dataset)
         elif args.dataset == 'conala':
             loader = ConalaLoader()
-            doc_id_list = [item[0] for item in PythonDocsLoader().load_api_signs()]
+            # doc_id_list = [item[0] for item in PythonDocsLoader().load_api_signs()]
+            doc_id_list = PythonDocsLoader().load_api_signs()
         elif args.dataset == 'DS1000':
             loader = DS1000Loader()
-            doc_id_list = [item[0] for item in PythonDocsLoader().load_api_signs()]
+            # doc_id_list = [item[0] for item in PythonDocsLoader().load_api_signs()]
+            doc_id_list = PythonDocsLoader().load_api_signs()
         elif args.dataset == 'pandas_numpy_eval':
             loader = PandasNumpyEvalLoader()
-            doc_id_list = [item[0] for item in PythonDocsLoader().load_api_signs()]
+            # doc_id_list = [item[0] for item in PythonDocsLoader().load_api_signs()]
+            doc_id_list = PythonDocsLoader().load_api_signs()
         qs_list = loader.load_qs_list()
         qs_id_list = [qs['qs_id'] for qs in qs_list]
 

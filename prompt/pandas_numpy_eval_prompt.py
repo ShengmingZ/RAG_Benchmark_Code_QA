@@ -1,11 +1,17 @@
+from prompt.prompt_utils import ensemble_prompt
+
 LLAMA_SYSTEM_PROMPT = """You are a senior python programmer, given some potential api documents starts with `## Potential documents`, and a unfinished code snippet starts with `## Unfinished Code Snippet`, 
 you should first read the potential documents, and then use the knowledge in documents to complete the code snippet according to the comments in the code.
 you should only output the uncompleted part of the code snippet, and the output code should starts with <code> and ends with </code>
 """
 
+LLAMA_SYSTEM_PROMPT_NO_RET = """You are a senior python programmer, given a unfinished code snippet starts with `## Unfinished Code Snippet`, you need to complete the code snippet according to the comments in the code.
+you should only output the uncompleted part of the code snippet, and the output code should starts with <code> and ends with </code>
+"""
 
 
-def llama_0shot_prompt(ret_docs, question, model):
+
+def prompt_0shot(ret_docs, question, model):
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
@@ -18,14 +24,24 @@ def llama_0shot_prompt(ret_docs, question, model):
 """
 
     sys_prompt = LLAMA_SYSTEM_PROMPT
-    if model.startswith('llama2') or model.startswith('codellama'):
-        prompt_template = f"""<s>[INST] <<SYS>> {sys_prompt} <</SYS>>\n{user_prompt}[/INST]"""
-    elif model.startswith('llama3'):
-        prompt_template = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{sys_prompt}<|eot_id|>\n
-<|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n
-<|start_header_id|>assistant<|end_header_id>
-"""
+#     if model.startswith('llama2') or model.startswith('codellama'):
+#         prompt_template = f"""<s>[INST] <<SYS>> {sys_prompt} <</SYS>>\n{user_prompt}[/INST]"""
+#     elif model.startswith('llama3'):
+#         prompt_template = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{sys_prompt}<|eot_id|>\n
+# <|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n
+# <|start_header_id|>assistant<|end_header_id>
+# """
+    prompt_template = ensemble_prompt(sys_prompt=sys_prompt, user_prompt=user_prompt, model=model)
+    return prompt_template
 
+
+def prompt_0shot_no_ret(question, model):
+    user_prompt = f"""
+## Unfinished Code Snippet:
+{question}
+"""
+    sys_prompt = LLAMA_SYSTEM_PROMPT_NO_RET
+    prompt_template = ensemble_prompt(sys_prompt=sys_prompt, user_prompt=user_prompt, model=model)
     return prompt_template
 
 
@@ -51,4 +67,4 @@ if __name__ == '__main__':
     print(question)
     print(output)
     docs = PythonDocsLoader().get_docs(oracle_list[0]['oracle_docs'])
-    print(llama_0shot_prompt(docs, question, 'codellama-13b-instruct'))
+    print(prompt_0shot(docs, question, 'codellama-13b-instruct'))

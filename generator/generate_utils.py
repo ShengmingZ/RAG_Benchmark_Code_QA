@@ -26,6 +26,8 @@ from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from dataset_utils.corpus_utils import PythonDocsLoader, WikiCorpusLoader
 
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 random.seed(0)
 
 AVG_PROMPT_LENGTH_HOTPOT = ...
@@ -105,8 +107,10 @@ def truncate_docs(docs, model, max_length):
         truncated_docs = []
         for doc in docs:
             tokens = tokenizer.encode(doc, max_length=max_length, truncation=True, add_special_tokens=False)
-            doc = tokenizer.decode(tokens[:max_length])
+            doc = tokenizer.decode(tokens)
             truncated_docs.append(doc)
+    else:
+        raise ValueError(f"Unknown model: {model}")
 
     return truncated_docs
 
@@ -129,10 +133,13 @@ def get_docs_tokens(docs, model):
         access_token = "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"
         tokenizer = AutoTokenizer.from_pretrained(model, torch_dtype=torch.float16, token=access_token)
         for doc in docs:
-            tokens = tokenizer.encode(doc, truncation=True, add_special_tokens=False)
+            tokens = tokenizer.encode(doc, add_special_tokens=False)
             docs_tokens.append(len(tokens))
     else:
         raise ValueError(f'Unknown model: {model} in get_docs_tokens')
+    # if max_length is not None:
+    #     for i in range(len(docs_tokens)):
+    #         docs_tokens[i] = docs_tokens[i] if docs_tokens[i] < max_length else max_length
 
     return docs_tokens
 
@@ -148,31 +155,30 @@ def get_irrelevant_docs(irrelevant_type, oracle_doc_keys, model, dataset):
     """
     assert irrelevant_type in ['dummy', 'diff']
     # get doc lengths
-    if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
-        loader = PythonDocsLoader()
-        docs = loader.get_docs(oracle_doc_keys)
-    else:
-        loader = WikiCorpusLoader()
-        docs = loader.get_docs([oracle_doc_keys], dataset)[0]
+    if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: docs = PythonDocsLoader().get_docs(oracle_doc_keys)
+    else: docs = WikiCorpusLoader().get_docs([oracle_doc_keys], dataset, num_procs=1)[0]
     doc_lengths = get_docs_tokens(docs, model)
+
     if irrelevant_type == 'dummy':
         dummy_string = 'The wiggly fluff went plop while the jibber-jabber bumbled and tumbled. Fizzle-flop danced around the wibbly-wobbly doodle, and snicker-snack bounced happily. Doodle-doo twirled and swirled in the zigzag zoom, and snuggle-bug snuggled close. Wobble-wobble wandered through the dilly-dally, giggling and jiggling all the while. Squiggle-squabble and waddle-waddle wobbled along, playing in the silly-sally world of random wozzle. The snickety-snack skipped and hopped, while the flibber-jabber giggled and squiggled. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Bloop bloop bloop, gloopy gloopy gloopy. Wobble wobble wobble, zigzag zigzag zigzag. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quibble quibble quibble, jibber jabber jibber. Nulla facilisi. Snick snick snick, jibble jibble jibble.'
         dummy_length = get_docs_tokens(docs=[dummy_string], model=model)[0]
         perturbed_docs = []
         for doc_length in doc_lengths:
-            dummy_string = dummy_string * (int(dummy_length/doc_length)+1)
+            dummy_string = dummy_string * (int(doc_length/dummy_length)+1)
             perturbed_docs.append(truncate_docs(docs=[dummy_string], model=model, max_length=doc_length)[0])
     else:
+        if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: loader = WikiCorpusLoader()
+        else: loader = PythonDocsLoader()
         perturbed_docs = []
         for doc_length in doc_lengths:
             perturbed_doc = ''
             perturbed_doc_length = 0
             while perturbed_doc_length < doc_length:
-                random_doc = loader.get_random_docs(1)[0]
+                random_doc = ' '.join(loader.get_random_docs(10))
                 random_doc_length = get_docs_tokens(docs=[random_doc], model=model)[0]
                 perturbed_doc += random_doc
                 perturbed_doc_length += random_doc_length
-            perturbed_doc = truncate_docs(docs=random_doc, model=model, max_length=doc_length)
+            perturbed_doc = truncate_docs(docs=[perturbed_doc], model=model, max_length=doc_length)[0]
             perturbed_docs.append(perturbed_doc)
 
     return perturbed_docs
@@ -283,7 +289,7 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
     #         oracle_docs_list[]
 
     if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
-        docs = WikiCorpusLoader().get_docs(oracle_docs_list, dataset)
+        docs = WikiCorpusLoader().get_docs(oracle_docs_list, dataset, num_procs=8)
     else:
         docs = [PythonDocsLoader().get_docs(oracle_docs) for oracle_docs in oracle_docs_list]
 
@@ -326,7 +332,7 @@ def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, model, data
             doc_keys_list = []
 
         if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
-            docs = WikiCorpusLoader().get_docs(doc_keys_list, dataset)
+            docs = WikiCorpusLoader().get_docs(doc_keys_list, dataset, num_procs=8)
         else:
             docs = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in doc_keys_list]
 
@@ -340,36 +346,66 @@ def process_retrieval_doc():
 
 
 def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name, doc_max_length):
-    _ret_docs_list = list()
-    for docs in ret_docs_list:
-        _ret_docs_list.append(truncate_docs(docs, model_name, doc_max_length))
-    ret_docs_list = _ret_docs_list
-
-    if dataset == 'NQ':
-        if prompt_type == '0shot':
-            generate_func = partial(NQ_prompt.llama_0shot_prompt, model=model_name)
-
-    elif dataset == 'conala':
-        if prompt_type == '0shot':
-            if model_name.startswith('llama') or model_name.startswith('codellama'):
-                generate_func = partial(conala_prompt.llama_0shot_prompt, model=model_name)
-            elif model_name.startswith('gpt'):
+    if not ret_docs_list:     # no retrieval
+        if dataset == 'NQ':
+            if prompt_type == '0shot':
                 generate_func = ...
-    elif dataset == 'DS1000':
-        if prompt_type == '0shot':
-            if model_name.startswith('llama') or model_name.startswith('codellama'):
-                generate_func = partial(DS1000_prompt.llama_0shot_prompt, model=model_name)
-    elif dataset == 'pandas_numpy_eval':
-        if prompt_type == '0shot':
-            if model_name.startswith('llama') or model_name.startswith('codellama'):
-                generate_func = partial(pandas_numpy_eval_prompt.llama_0shot_prompt, model=model_name)
+            else:
+                raise ValueError(f'Invalid prompt type: {prompt_type} for dataset {dataset}')
+        elif dataset == 'conala':
+            if prompt_type == '0shot':
+                generate_func = conala_prompt.prompt_0shot_no_ret
+            else:
+                raise ValueError(f'Invalid prompt type: {prompt_type} for dataset {dataset}')
+        elif dataset == 'DS1000':
+            if prompt_type == '0shot':
+                generate_func = DS1000_prompt.prompt_0shot_no_ret
+            else:
+                raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
+        elif dataset == 'pandas_numpy_eval':
+            if prompt_type == '0shot':
+                generate_func = pandas_numpy_eval_prompt.prompt_0shot_no_ret
+            else:
+                raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
+        else:
+            raise ValueError(f'invalid dataset {dataset}')
+        prompts = []
+        for ret_docs, question in zip(ret_docs_list, questions):
+            prompts.append(generate_func(question, model_name))
 
-    prompts = []
-    for ret_docs, question in zip(ret_docs_list, questions):
-        prompts.append(generate_func(ret_docs, question))
+    else:
+        if dataset == 'NQ':
+            if prompt_type == '0shot':
+                generate_func = ...
+            else:
+                raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
+        elif dataset == 'conala':
+            if prompt_type == '0shot':
+                generate_func = conala_prompt.prompt_0shot
+            else:
+                raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
+        elif dataset == 'DS1000':
+            if prompt_type == '0shot':
+                generate_func = DS1000_prompt.prompt_0shot
+            else:
+                raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
+        elif dataset == 'pandas_numpy_eval':
+            if prompt_type == '0shot':
+                generate_func = pandas_numpy_eval_prompt.prompt_0shot
+            else:
+                raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
+        else:
+            raise ValueError(f'invalid dataset {dataset}')
+        _ret_docs_list = list()
+        for docs in ret_docs_list:
+            _ret_docs_list.append(truncate_docs(docs, model_name, doc_max_length))
+        ret_docs_list = _ret_docs_list
+        prompts = []
+        for ret_docs, question in zip(ret_docs_list, questions):
+            prompts.append(generate_func(ret_docs, question, model_name))
+
     print(prompts[0])
     approximate_token(prompts, model_name)
-
     return prompts
 
 
@@ -378,6 +414,19 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
 
 if __name__ == "__main__":
     """test control ret type"""
+    loader = DS1000Loader()
+    oracle_list = loader.load_oracle_list()
+    qs_list = loader.load_qs_list()
+    ret_results = get_ret_results(dataset='DS1000', retriever='openai-embedding')
+    # print([oracle['oracle_docs'] for oracle in oracle_list])
+    oracle_list = oracle_list[:1]
+    perturb_oracle_keys, docs = perturb_ret_doc_type(perturb_doc_type='irrelevant_dummy', oracle_list=oracle_list, ret_results=ret_results,
+                                                     model='codellama-13b-instruct', dataset='DS1000')
+    print(docs[0])
+    print(get_docs_tokens(docs[0], model='codellama-13b-instruct'))
+    oracle_docs = PythonDocsLoader().get_docs(oracle_list[0]['oracle_docs'])
+    print(get_docs_tokens(oracle_docs, model='codellama-13b-instruct'))
+
 
 
     # test for control_ret_acc
@@ -397,24 +446,24 @@ if __name__ == "__main__":
     """
     test control ret_acc
     """
-    loader = NQTriviaQAUtils('NQ')
-    loader = DS1000Loader()
-    oracle_list = loader.load_oracle_list()
-    qs_list = loader.load_qs_list()
-    ret_results = get_ret_results(dataset='DS1000', retriever='openai-embedding')
-    # print([oracle['oracle_docs'] for oracle in oracle_list])
-    perturb_oracle_keys, docs = control_ret_acc(ret_acc=0, oracle_list=oracle_list, ret_results=ret_results, dataset='DS1000')
-
-    golds = [oracle['oracle_docs'] for oracle in oracle_list]
-    preds = perturb_oracle_keys
-    print(golds)
-    print(preds)
-    recall_n = 0
-    for gold, pred in zip(golds, preds):
-        cur_hit = sum([x in pred for x in gold])
-        recall_n += cur_hit / len(gold)
-    recall_n /= len(preds)
-    print(recall_n)
+    # loader = NQTriviaQAUtils('NQ')
+    # loader = DS1000Loader()
+    # oracle_list = loader.load_oracle_list()
+    # qs_list = loader.load_qs_list()
+    # ret_results = get_ret_results(dataset='DS1000', retriever='openai-embedding')
+    # # print([oracle['oracle_docs'] for oracle in oracle_list])
+    # perturb_oracle_keys, docs = control_ret_acc(ret_acc=0, oracle_list=oracle_list, ret_results=ret_results, dataset='DS1000')
+    #
+    # golds = [oracle['oracle_docs'] for oracle in oracle_list]
+    # preds = perturb_oracle_keys
+    # print(golds)
+    # print(preds)
+    # recall_n = 0
+    # for gold, pred in zip(golds, preds):
+    #     cur_hit = sum([x in pred for x in gold])
+    #     recall_n += cur_hit / len(gold)
+    # recall_n /= len(preds)
+    # print(recall_n)
     # wrong_count = 0
     # # docs = WikiCorpusLoader().get_docs(doc_keys_list=perturb_oracle_keys, dataset='NQ', num_procs=1)
     # for i, doc_keys in enumerate(perturb_oracle_keys):

@@ -15,3 +15,30 @@ def get_truncated_docs(api_signs):
             encoded_doc = encoded_doc[:max_length]
             doc = encoding.decode(encoded_doc)
         print(doc)
+
+
+def ensemble_prompt(sys_prompt, user_prompt, model, examples=None, answers=None):
+    if examples is not None: assert len(examples) == len(sys_prompt)
+    if model.startswith('llama2') or model.startswith('codellama'):
+        if examples is None:
+            prompt_template = f"""<s>[INST] <<SYS>> {sys_prompt} <</SYS>>\n{user_prompt}\n[/INST]"""
+        else:
+            prompt_template = f"""<s>[INST] <<SYS>> {sys_prompt} <</SYS>>\n{examples[0]}\n[/INST]{answers[0]}</s>\n"""
+            for example, answer in zip(examples, answers):
+                prompt_template += f"<s>[INST]{example}\n[/INST]{answer}</s>\n"
+            prompt_template += f"<s>[INST]{user_prompt}\n[/INST]"
+    elif model.startswith('llama3'):
+        prompt_template = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>{sys_prompt}<|eot_id|>\n"
+        if examples is not None:
+            for example, answer in zip(examples, answers):
+                prompt_template += f"<|start_header_id|>user<|end_header_id|>{example}<|eot_id|>\n\n<|start_header_id|>assistant<|end_header_id>{answer}<|eot_id|>\n\n"
+        prompt_template += f"<|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n\n<|start_header_id|>assistant<|end_header_id>"
+    elif model.startswith('gpt'):
+        prompt_template = sys_prompt + '\n'
+        for example, answer in zip(examples, answers):
+            prompt_template += f'{example}\n{answer}\n\n'
+        prompt_template += user_prompt
+    else:
+        raise ValueError(f'Unrecognized model: {model}')
+
+    return prompt_template

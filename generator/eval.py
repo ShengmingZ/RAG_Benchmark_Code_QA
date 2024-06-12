@@ -8,6 +8,7 @@ def config():
     parser.add_argument('--dataset', type=str, choices=['conala', 'DS1000', 'pandas_numpy_eval', 'hotpotQA'])
     parser.add_argument('--retriever', type=str, default='best', choices=['best', 'BM25', 'contriever', 'miniLM', 'openai-embedding'])
     parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type'])
+    parser.add_argument('--n', type=int, default=1)
     args = parser.parse_args()
     return args
 
@@ -20,7 +21,7 @@ if args.analysis_type == "retrieval_recall":
     # ret_acc_list = [1]
     result_list = list()
     for ret_acc in ret_acc_list:
-        cmd = f'python generator/code_eval.py --model {args.model} --dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --ret_acc {ret_acc}'
+        cmd = f'python generator/code_eval.py --model {args.model} --dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --ret_acc {ret_acc}'
         proc = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (output, error) = proc.communicate()
         passk = output.decode().split('\n')[-2]

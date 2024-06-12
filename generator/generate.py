@@ -18,7 +18,7 @@ from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
 from dataset_utils.corpus_utils import PythonDocsLoader, WikiCorpusLoader
-from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs, approximate_token
+from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs, approximate_token, perturb_ret_doc_type
 from dataset_utils.DS1000_utils import DS1000Loader
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 
@@ -90,6 +90,15 @@ class Generator:
                                                            oracle_list=self.oracle_list,
                                                            ret_results=self.ret_results,
                                                            dataset=self.dataset)
+        elif self.analysis_type == 'retrieval_doc_type':
+            ret_doc_keys_list, docs_list = perturb_ret_doc_type(perturb_doc_type=self.ret_doc_type,
+                                                                oracle_list=self.oracle_list,
+                                                                ret_results=self.ret_results,
+                                                                model=self.model,
+                                                                dataset=self.dataset)
+
+        else:
+            raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
 
         prompts = generate_prompts(questions=[qs['question'] for qs in self.qs_list],
                                    ret_docs_list=docs_list,
@@ -102,6 +111,8 @@ class Generator:
             outputs_list, logprobs_list = llama(prompts=prompts, model_name=self.model, max_new_tokens=self.max_tokens, n=self.n, stop='</code>')
         elif self.model.startswith('gpt'):
             outputs_list, logprobs_list = chatgpt(prompts=prompts, model=self.model, max_tokens=self.max_tokens, n=self.n, stop='</code>')
+        else:
+            raise NotImplementedError(f'unknown model {self.model}')
         gene_results = list()
         for idx, (outputs, logprobs) in enumerate(zip(outputs_list, logprobs_list)):
             gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'],
@@ -146,7 +157,7 @@ if __name__ == '__main__':
     # gene_conala.gene_response()
 
     in_program_call = None
-    # in_program_call = '--model codellama-13b-instruct --dataset NQ --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    # in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type oracle'
     args = generate_config(in_program_call)
     generator = Generator(args)
     # generator.test_prompt()

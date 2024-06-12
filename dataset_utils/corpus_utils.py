@@ -34,7 +34,7 @@ class PythonDocsLoader:
         python_docs = json.load(open(self.proc_corpus_file, 'r'))
         python_doc_id_list = []
         for item in python_docs:
-            python_doc_id_list.append(item['api_sign'])
+            python_doc_id_list.append(item['api_sign'][0])
         return python_doc_id_list
 
     def load_api_docs(self):
