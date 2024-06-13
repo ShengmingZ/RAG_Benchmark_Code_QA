@@ -404,7 +404,7 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
         for ret_docs, question in zip(ret_docs_list, questions):
             prompts.append(generate_func(ret_docs, question, model_name))
 
-    print(prompts[0])
+    # print(prompts[0])
     approximate_token(prompts, model_name)
     return prompts
 

@@ -65,21 +65,30 @@ class Generator:
         print('save_to:', self.save_file)
 
     def test_prompt(self):
-        if self.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
-            oracle_docs = self.oracle_list[0]['oracle_docs']
-            questions = [self.qs_list[0]['question']]
-            docs = [PythonDocsLoader().get_docs(oracle_docs)]
-        else:
-            oracle_docs = [self.oracle_list[0]['oracle_doc']]
-            questions = [self.qs_list[0]['question']]
-            docs = WikiCorpusLoader().get_docs([oracle_docs], 'NQ')
+        self.oracle_list = self.oracle_list[66:67]
+        self.qs_list = self.qs_list[66:67]
+        if self.analysis_type == 'retrieval_recall':
+            ret_doc_keys_list, docs_list = control_ret_acc(ret_acc=args.ret_acc,
+                                                           oracle_list=self.oracle_list,
+                                                           ret_results=self.ret_results,
+                                                           dataset=self.dataset)
+        elif self.analysis_type == 'retrieval_doc_type':
+            ret_doc_keys_list, docs_list = perturb_ret_doc_type(perturb_doc_type=self.ret_doc_type,
+                                                                oracle_list=self.oracle_list,
+                                                                ret_results=self.ret_results,
+                                                                model=self.model,
+                                                                dataset=self.dataset)
 
-        generate_prompts(questions=questions,
-                         ret_docs_list=docs,
-                         prompt_type=self.prompt_type,
-                         dataset=self.dataset,
-                         model_name=self.model,
-                         doc_max_length=self.doc_max_length)
+        else:
+            raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
+
+        prompts = generate_prompts(questions=[qs['question'] for qs in self.qs_list],
+                                   ret_docs_list=docs_list,
+                                   prompt_type=self.prompt_type,
+                                   dataset=self.dataset,
+                                   model_name=self.model,
+                                   doc_max_length=self.doc_max_length)
+        print(prompts[0])
 
     def gene_response(self):
         if os.path.exists(args.save_file):
@@ -157,6 +166,7 @@ if __name__ == '__main__':
     # gene_conala.gene_response()
 
     in_program_call = None
+    # in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     # in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type oracle'
     args = generate_config(in_program_call)
     generator = Generator(args)
