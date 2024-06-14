@@ -13,6 +13,7 @@ from generator.generate_utils import generate_config
 from dataset_utils.DS1000_utils import DS1000Loader
 from data.DS1000.ds1000 import DS1000Dataset
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
+from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
 
 
 def process_gene_results(args, outputs, code_prompt=None):
@@ -98,6 +99,14 @@ def process_gene_results(args, outputs, code_prompt=None):
                 pred = '\n'.join(output_lines)
             preds.append(pred)
 
+    elif args.dataset == 'NQ' or args.dataset == 'TriviaQA':
+        for output in outputs:
+            pred = output.replace('<answer>', '')
+            preds.append(pred)
+
+    else:
+        raise Exception('Not Implemented')
+
     return preds
 
 
@@ -116,7 +125,7 @@ def code_eval(args):
             outputs = process_gene_results(args, result['outputs'])
             # outputs = [result['oracle_output']]
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
-        passk = ConalaLoader().eval_passk(_gene_results, top_k=k_list)
+        scores = ConalaLoader().eval_passk(_gene_results, top_k=k_list)
 
     elif args.dataset == 'DS1000':
         # gene_results = json.load(open(DS1000Loader().oracle_doc_file, 'r'))
@@ -126,7 +135,7 @@ def code_eval(args):
             assert qs_list[idx]['qs_id'] == result['qs_id']
             outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
-        passk = DS1000Loader().eval_passk(_gene_results, k_list=k_list)
+        scores = DS1000Loader().eval_passk(_gene_results, k_list=k_list)
 
     elif args.dataset == 'pandas_numpy_eval':
         qs_list = PandasNumpyEvalLoader().load_qs_list()
@@ -135,10 +144,22 @@ def code_eval(args):
             assert qs_list[idx]['qs_id'] == result['qs_id']
             outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'])
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
-        passk = PandasNumpyEvalLoader().eval_passk(_gene_results, k_list=k_list)
+        scores = PandasNumpyEvalLoader().eval_passk(_gene_results, k_list=k_list)
 
+    elif args.dataset == 'NQ' or args.dataset == 'TriviaQA':
+        loader = NQTriviaQAUtils(args.dataset)
+        oracle_list = loader.load_oracle_list()
+        preds, answers_list = [], []
+        for result, oracle in zip(gene_results, oracle_list):
+            assert result['qs_id'] == oracle['qs_id']
+            preds.append(process_gene_results(args, result['outputs'])[0])
+            answers_list.append(oracle['answers'])
+        scores = loader.pred_eval(preds=preds, answers_list=answers_list)
 
-    return passk
+    else:
+        raise ValueError('Not supported dataset {}'.format(args.dataset))
+
+    return scores
 
 
 if __name__ == '__main__':
