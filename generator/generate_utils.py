@@ -17,7 +17,7 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from prompt import conala_prompt, DS1000_prompt, pandas_numpy_eval_prompt, NQ_prompt
+from prompt import conala_prompt, DS1000_prompt, pandas_numpy_eval_prompt, NQ_TriviaQA_prompt
 from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.DS1000_utils import DS1000Loader
@@ -303,6 +303,9 @@ def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, model, data
     :return:
     """
     assert perturb_doc_type in ['oracle', 'retrieved', 'distracting', 'random', 'irrelevant_dummy', 'irrelevant_diff', 'none']
+    if dataset == 'NQ' or dataset == 'TriviaQA':
+        for idx, oracle in enumerate(oracle_list):
+            oracle_list[idx]['oracle_docs'] = [oracle_list[idx]['oracle_doc']]
 
     if perturb_doc_type in ['irrelevant_diff', 'irrelevant_dummy']:
         docs, doc_keys_list = [], []
@@ -346,10 +349,10 @@ def process_retrieval_doc():
 
 
 def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name, doc_max_length):
-    if not ret_docs_list:     # no retrieval
-        if dataset == 'NQ':
+    if len(ret_docs_list) == 0:     # no retrieval
+        if dataset in ['NQ', 'TriviaQA']:
             if prompt_type == '0shot':
-                generate_func = ...
+                generate_func = NQ_TriviaQA_prompt.prompt_0shot_no_ret
             else:
                 raise ValueError(f'Invalid prompt type: {prompt_type} for dataset {dataset}')
         elif dataset == 'conala':
@@ -370,13 +373,13 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
         else:
             raise ValueError(f'invalid dataset {dataset}')
         prompts = []
-        for ret_docs, question in zip(ret_docs_list, questions):
+        for question in questions:
             prompts.append(generate_func(question, model_name))
 
     else:
-        if dataset == 'NQ':
+        if dataset == 'NQ' or dataset == 'TriviaQA':
             if prompt_type == '0shot':
-                generate_func = ...
+                generate_func = NQ_TriviaQA_prompt.prompt_0shot
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         elif dataset == 'conala':

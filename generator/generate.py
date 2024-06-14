@@ -109,6 +109,7 @@ class Generator:
         else:
             raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
 
+
         prompts = generate_prompts(questions=[qs['question'] for qs in self.qs_list],
                                    ret_docs_list=docs_list,
                                    prompt_type=self.prompt_type,
@@ -166,12 +167,12 @@ if __name__ == '__main__':
     # gene_conala.gene_response()
 
     in_program_call = None
-    # in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
-    # in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type oracle'
+    # in_program_call = '--model codellama-13b-instruct --dataset TriviaQA --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    # in_program_call = '--model codellama-13b-instruct --dataset NQ --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type oracle'
     args = generate_config(in_program_call)
     generator = Generator(args)
-    # generator.test_prompt()
-    gene_results = generator.gene_response()
+    generator.test_prompt()
+    # gene_results = generator.gene_response()
     # print(gene_results[0]['oracle_output'])
     # print('??')
     # print(gene_results[0]['outputs'][0])
