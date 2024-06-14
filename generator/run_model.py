@@ -15,10 +15,11 @@ def completions_with_backoff(**kwargs):
     return openai.ChatCompletion.create(**kwargs)
 
 
-def chatgpt(prompts, model='gpt-3.5-turbo-1106', temperature=0.7, max_tokens=1000, n=1, stop=None):
+def chatgpt(prompts, model, temperature=0.7, max_tokens=500, n=1, stop=None):
     outputs_list, logprobs_list = list(), list()
     for prompt in tqdm(prompts, total=len(prompts)):
-        messages = [{"role": "user", "content": prompt}]
+        sys_prompt, user_prompt = prompt
+        messages = [{"role": "system", "content": sys_prompt}, {"role": "user", "content": user_prompt}]
         response = completions_with_backoff(model=model, messages=messages, temperature=temperature, max_tokens=max_tokens, n=n, stop=stop, logprobs=True)
         outputs = [choice["message"]["content"] for choice in response["choices"]]
         logprobs = []

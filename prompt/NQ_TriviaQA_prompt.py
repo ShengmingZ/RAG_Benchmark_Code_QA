@@ -2,11 +2,11 @@ from prompt.prompt_utils import ensemble_prompt
 
 LLAMA_SYS_PROMPT = """You are a helpful assistant, given some potential documents starts with `## Potential documents` and a question starts with `## Question`, 
 you should first read the potential documents, and then use the knowledge in documents to answer the question.
-The answer should starts with <answer> and ends with </answer>
+You should only output the exact answer, and the answer should starts with <answer> and ends with </answer>
 """
 
 LLAMA_SYS_PROMPT_NO_RET = """You are a helpful assistant, given a question starts with `## Question`, you should use your own knowledge to answer the question.
-The answer should starts with <answer> and ends with </answer>
+You should only output the exact answer, and the answer should starts with <answer> and ends with </answer>
 """
 
 

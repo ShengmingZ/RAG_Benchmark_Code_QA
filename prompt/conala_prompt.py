@@ -13,7 +13,7 @@ The program should starts with <code> and ends with </code>
 
 # Todo: not finished func
 def prompt_3shots(ret_docs, question, model):
-    assert model in ['llama2-13b-chat', 'codellama-13b-instruct', 'llama3-8b', 'gpt-3.5-turbo', 'gpt-4o']
+    assert model in ['llama2-13b-chat', 'codellama-13b-instruct', 'llama3-8b', 'gpt-3.5-turbo-0125', 'gpt-4o']
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'

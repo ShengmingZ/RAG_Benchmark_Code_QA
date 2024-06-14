@@ -53,8 +53,10 @@ class Generator:
         self.oracle_list = self.dataset_loader.load_oracle_list()
         if self.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
             self.corpus_loader = PythonDocsLoader()
+            self.stop = '</code>'
         else:
             self.corpus_loader = WikiCorpusLoader()
+            self.stop = '</answer>'
         self.ret_results = get_ret_results(dataset=args.dataset, retriever=args.retriever)
 
         # test
@@ -88,7 +90,11 @@ class Generator:
                                    dataset=self.dataset,
                                    model_name=self.model,
                                    doc_max_length=self.doc_max_length)
-        print(prompts[0])
+        if self.model.startswith('gpt'):
+            print(prompts[0][0])
+            print(prompts[0][1])
+        else:
+            print(prompts[0])
 
     def gene_response(self):
         if os.path.exists(args.save_file):
@@ -118,9 +124,9 @@ class Generator:
                                    doc_max_length=self.doc_max_length)
 
         if self.model.startswith('llama') or self.model.startswith('codellama'):
-            outputs_list, logprobs_list = llama(prompts=prompts, model_name=self.model, max_new_tokens=self.max_tokens, n=self.n, stop='</code>')
+            outputs_list, logprobs_list = llama(prompts=prompts, model_name=self.model, max_new_tokens=self.max_tokens, n=self.n, stop=self.stop)
         elif self.model.startswith('gpt'):
-            outputs_list, logprobs_list = chatgpt(prompts=prompts, model=self.model, max_tokens=self.max_tokens, n=self.n, stop='</code>')
+            outputs_list, logprobs_list = chatgpt(prompts=prompts, model=self.model, max_tokens=self.max_tokens, n=self.n, stop=self.stop)
         else:
             raise NotImplementedError(f'unknown model {self.model}')
         gene_results = list()
@@ -167,12 +173,12 @@ if __name__ == '__main__':
     # gene_conala.gene_response()
 
     in_program_call = None
-    # in_program_call = '--model codellama-13b-instruct --dataset TriviaQA --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     # in_program_call = '--model codellama-13b-instruct --dataset NQ --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type oracle'
     args = generate_config(in_program_call)
     generator = Generator(args)
-    generator.test_prompt()
-    # gene_results = generator.gene_response()
+    # generator.test_prompt()
+    gene_results = generator.gene_response()
     # print(gene_results[0]['oracle_output'])
     # print('??')
     # print(gene_results[0]['outputs'][0])

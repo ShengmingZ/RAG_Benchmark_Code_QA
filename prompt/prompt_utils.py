@@ -34,10 +34,12 @@ def ensemble_prompt(sys_prompt, user_prompt, model, examples=None, answers=None)
                 prompt_template += f"<|start_header_id|>user<|end_header_id|>{example}<|eot_id|>\n\n<|start_header_id|>assistant<|end_header_id>{answer}<|eot_id|>\n\n"
         prompt_template += f"<|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n\n<|start_header_id|>assistant<|end_header_id>"
     elif model.startswith('gpt'):
-        prompt_template = sys_prompt + '\n'
-        for example, answer in zip(examples, answers):
-            prompt_template += f'{example}\n{answer}\n\n'
-        prompt_template += user_prompt
+        if examples is not None:
+            shots = ''
+            for example, answer in zip(examples, answers):
+                shots += f'{example}\n{answer}\n\n'
+            user_prompt += shots
+        prompt_template = [sys_prompt, user_prompt]
     else:
         raise ValueError(f'Unrecognized model: {model}')
 
