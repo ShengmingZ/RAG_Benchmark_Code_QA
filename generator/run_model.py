@@ -63,18 +63,26 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature
         input_ids = tokenizer(prompt, return_tensors="pt")['input_ids'].to("cuda")
         texts, logprobs = [], []
         for _ in range(n):
-            outputs = model.generate(
-                input_ids=input_ids,
-                return_dict_in_generate=True,
-                output_scores=True,
-                max_new_tokens=max_new_tokens,
-                temperature=temperature,
-                top_p=0.9,
-                do_sample=True,
-                pad_token_id=0,
-                bos_token_id=1,
-                eos_token_id=2
-            )
+            if temperature == 0:
+                outputs = model.generate(
+                    input_ids=input_ids,
+                    return_dict_in_generate=True,
+                    output_scores=True,
+                    max_new_tokens=max_new_tokens,
+                    do_sample=False,
+                    pad_token_id=tokenizer.eos_token_id
+                )
+            else:
+                outputs = model.generate(
+                    input_ids=input_ids,
+                    return_dict_in_generate=True,
+                    output_scores=True,
+                    max_new_tokens=max_new_tokens,
+                    temperature=temperature,
+                    top_p=0.9,
+                    do_sample=True,
+                    pad_token_id=tokenizer.eos_token_id
+                )
             text, logprob = process_naive_output(input_ids.shape[-1], outputs, tokenizer)
             text = text.split(stop)[0]
             texts.append(text)

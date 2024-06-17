@@ -68,8 +68,8 @@ class Generator:
         print('save_to:', self.save_file)
 
     def test_prompt(self):
-        self.oracle_list = self.oracle_list[66:67]
-        self.qs_list = self.qs_list[66:67]
+        self.oracle_list = self.oracle_list[65:66]
+        self.qs_list = self.qs_list[65:66]
         if self.analysis_type == 'retrieval_recall':
             ret_doc_keys_list, docs_list = control_ret_acc(ret_acc=args.ret_acc,
                                                            oracle_list=self.oracle_list,
