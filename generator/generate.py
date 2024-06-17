@@ -18,7 +18,7 @@ from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
 from dataset_utils.corpus_utils import PythonDocsLoader, WikiCorpusLoader
-from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs, approximate_token, perturb_ret_doc_type
+from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs, approximate_token, perturb_ret_doc_type, get_top_k_docs
 from dataset_utils.DS1000_utils import DS1000Loader
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 
@@ -75,6 +75,7 @@ class Generator:
             if qs['qs_id'] == self.oracle_list[0]['qs_id']:
                 self.qs_list = [qs]
                 break
+        assert len(self.qs_list) == len(self.oracle_list)
         if self.analysis_type == 'retrieval_recall':
             ret_doc_keys_list, docs_list = control_ret_acc(ret_acc=args.ret_acc,
                                                            oracle_list=self.oracle_list,
@@ -86,6 +87,12 @@ class Generator:
                                                                 ret_results=self.ret_results,
                                                                 model=self.model,
                                                                 dataset=self.dataset)
+
+        elif self.analysis_type == 'retrieval_doc_num':
+            ret_doc_keys_list, docs_list = get_top_k_docs(top_k=self.top_k,
+                                                          oracle_list=self.oracle_list,
+                                                          ret_results=self.ret_results,
+                                                          dataset=self.dataset)
 
         else:
             raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
@@ -117,6 +124,11 @@ class Generator:
                                                                 ret_results=self.ret_results,
                                                                 model=self.model,
                                                                 dataset=self.dataset)
+        elif self.analysis_type == 'retrieval_doc_num':
+            ret_doc_keys_list, docs_list = get_top_k_docs(top_k=self.top_k,
+                                                          oracle_list=self.oracle_list,
+                                                          ret_results=self.ret_results,
+                                                          dataset=self.dataset)
 
         else:
             raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
@@ -179,7 +191,7 @@ if __name__ == '__main__':
 
     in_program_call = None
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset NQ --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
-    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type oracle'
+    in_program_call = '--model gpt-3.5-turbo-0125 --dataset NQ --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type oracle'
     args = generate_config(in_program_call)
     generator = Generator(args)
     # generator.test_prompt()

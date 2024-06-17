@@ -197,7 +197,7 @@ def generate_config(in_program_call=None):
 
     parser.add_argument('--retriever', type=str, default='best', choices=['best', 'BM25', 'contriever', 'miniLM', 'openai-embedding'])
 
-    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type'])
+    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_num'])
     # each of the following parameter corresponds to one analysis, when choose one, the default value of the other parameters are the default value of RAG
     parser.add_argument('--ret_acc', type=float, default=1)     # top_k:len(oracle_docs), prompt_type:3shots, ret_doc_type:oracle/distracting
     parser.add_argument('--ret_doc_type', type=str, default='retrieved', choices=['oracle', 'retrieved', 'distracting', 'random', 'irrelevant_dummy', 'irrelevant_diff', 'none'])
@@ -296,6 +296,19 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
         docs = [PythonDocsLoader().get_docs(oracle_docs) for oracle_docs in oracle_docs_list]
 
     return oracle_docs_list, docs
+
+
+def get_top_k_docs(oracle_list, ret_results, top_k, dataset):
+    ret_doc_keys_list = []
+    for oracle in oracle_list:
+        ret_doc_keys = [item['doc_key'] for item in ret_results[oracle['qs_id']]]
+        ret_doc_keys_list.append(ret_doc_keys[:top_k])
+    if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+        docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list, dataset, num_procs=8)
+    else:
+        docs_list = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in ret_doc_keys_list]
+    return ret_doc_keys_list, docs_list
+
 
 
 def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, model, dataset):

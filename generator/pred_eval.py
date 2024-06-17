@@ -154,7 +154,7 @@ def code_eval(args):
         preds, answers_list = [], []
         for result, oracle in zip(gene_results, oracle_list):
             assert result['qs_id'] == oracle['qs_id']
-            preds.append(process_gene_results(args, result['outputs'])[0])
+            preds.append(process_gene_results(args, result['outputs'])[0])  # Todo: now only 1 inference
             answers_list.append(oracle['answers'])
         scores = loader.pred_eval(preds=preds, answers_list=answers_list)
 

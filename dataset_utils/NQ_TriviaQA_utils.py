@@ -15,6 +15,7 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
+from dataset_utils.corpus_utils import WikiCorpusLoader
 
 random.seed(0)
 
@@ -244,7 +245,7 @@ class NQTriviaQAUtils:
 
     def load_qs_list(self):
         data_list = json.load(open(self.sampled_data_file, 'r'))
-        qs_list = [dict(qs_id=idx, question=item['question']) for idx, item in enumerate(data_list)]
+        qs_list = [dict(qs_id=str(idx), question=item['question']) for idx, item in enumerate(data_list)]
         return qs_list
 
     def load_oracle_list(self):
