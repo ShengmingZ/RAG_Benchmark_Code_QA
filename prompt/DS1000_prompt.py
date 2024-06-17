@@ -301,7 +301,7 @@ def prompt_0shot(ret_docs, question, model):
 ## Problem: 
 {prompt}
 \n
-## Unfinished Code Snippet:
+## Unfinished Code Solution:
 {answer}
 """
 
@@ -332,7 +332,7 @@ def prompt_0shot_no_ret(question, model):
 ## Problem: 
 {prompt}
 \n
-## Unfinished Code Snippet:
+## Unfinished Code Solution:
 {answer}
 """
     prompt_template = ensemble_prompt(sys_prompt=LLAMA_SYSTEM_PROMPT_NO_RET, user_prompt=user_prompt, model=model)

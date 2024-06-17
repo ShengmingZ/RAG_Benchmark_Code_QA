@@ -54,10 +54,11 @@ class Generator:
         self.oracle_list = self.dataset_loader.load_oracle_list()
         if self.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
             self.corpus_loader = PythonDocsLoader()
-            self.stop = '</code>'
+            # self.stop = '</code>'
         else:
             self.corpus_loader = WikiCorpusLoader()
-            self.stop = '</answer>'
+            # self.stop = '</answer>'
+        self.stop = None
         self.ret_results = get_ret_results(dataset=args.dataset, retriever=args.retriever)
 
         # test
@@ -68,8 +69,12 @@ class Generator:
         print('save_to:', self.save_file)
 
     def test_prompt(self):
-        self.oracle_list = self.oracle_list[65:66]
-        self.qs_list = self.qs_list[65:66]
+        random.seed()
+        self.oracle_list = random.sample(self.oracle_list, 1)
+        for qs in self.qs_list:
+            if qs['qs_id'] == self.oracle_list[0]['qs_id']:
+                self.qs_list = [qs]
+                break
         if self.analysis_type == 'retrieval_recall':
             ret_doc_keys_list, docs_list = control_ret_acc(ret_acc=args.ret_acc,
                                                            oracle_list=self.oracle_list,
@@ -174,7 +179,7 @@ if __name__ == '__main__':
 
     in_program_call = None
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset NQ --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
-    # in_program_call = '--model codellama-13b-instruct --dataset NQ --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type oracle'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type oracle'
     args = generate_config(in_program_call)
     generator = Generator(args)
     # generator.test_prompt()

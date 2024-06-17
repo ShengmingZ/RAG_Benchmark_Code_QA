@@ -349,7 +349,8 @@ class NQTriviaQAUtils:
         for pred, answers in zip(preds, answers_list):
             is_correct = False
             for answer in answers:
-                if normalize_answer(pred) == normalize_answer(answer):
+                # if normalize_answer(pred) == normalize_answer(answer):
+                if normalize_answer(answer) in normalize_answer(pred):
                     is_correct = True
             if is_correct: exact_match += 1
         exact_match_rate = exact_match / len(preds)

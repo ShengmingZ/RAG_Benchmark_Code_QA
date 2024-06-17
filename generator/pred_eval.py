@@ -101,7 +101,9 @@ def process_gene_results(args, outputs, code_prompt=None):
 
     elif args.dataset == 'NQ' or args.dataset == 'TriviaQA':
         for output in outputs:
-            pred = output.replace('<answer>', '')
+            try:
+                pred = output.split('<answer>')[1]
+            except: pred = output
             preds.append(pred)
 
     else:
