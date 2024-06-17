@@ -31,6 +31,7 @@ class Generator:
         self.model = args.model
         self.n = args.n
         self.max_tokens = args.max_tokens
+        self.temperature = args.temperature
 
         self.retriever = args.retriever
 
@@ -124,9 +125,9 @@ class Generator:
                                    doc_max_length=self.doc_max_length)
 
         if self.model.startswith('llama') or self.model.startswith('codellama'):
-            outputs_list, logprobs_list = llama(prompts=prompts, model_name=self.model, max_new_tokens=self.max_tokens, n=self.n, stop=self.stop)
+            outputs_list, logprobs_list = llama(prompts=prompts, model_name=self.model, max_new_tokens=self.max_tokens, temperature=self.temperature, n=self.n, stop=self.stop)
         elif self.model.startswith('gpt'):
-            outputs_list, logprobs_list = chatgpt(prompts=prompts, model=self.model, max_tokens=self.max_tokens, n=self.n, stop=self.stop)
+            outputs_list, logprobs_list = chatgpt(prompts=prompts, model=self.model, max_tokens=self.max_tokens, temperature=self.temperature, n=self.n, stop=self.stop)
         else:
             raise NotImplementedError(f'unknown model {self.model}')
         gene_results = list()

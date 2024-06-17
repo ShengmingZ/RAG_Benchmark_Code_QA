@@ -31,7 +31,7 @@ def chatgpt(prompts, model, temperature=0.7, max_tokens=500, n=1, stop=None):
 
     return outputs_list, logprobs_list
 
-def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, n=1, stop=None):
+def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature=0.6, n=1, stop=None):
     """
     :param prompts:
     :param model_name:
@@ -68,7 +68,7 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, n=1, stop=N
                 return_dict_in_generate=True,
                 output_scores=True,
                 max_new_tokens=max_new_tokens,
-                temperature=0.6,
+                temperature=temperature,
                 top_p=0.9,
                 do_sample=True,
                 pad_token_id=0,
