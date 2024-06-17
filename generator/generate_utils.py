@@ -270,8 +270,9 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
         perturb_idx = random.sample(perturb_placeholder, 1)[0] # pick an oracle key and perturb
         perturb_placeholder.remove(perturb_idx)
         qs_id = oracle_list[perturb_idx[0]]['qs_id']
+        oracle_docs = oracle_list[perturb_idx[0]]['oracle_docs'] if dataset in ['conala', 'DS1000', 'pandas_numpy_eval'] else [oracle_list[perturb_idx[0]]['oracle_doc']]
         oracle_docs_list[perturb_idx[0]][perturb_idx[1]] = get_distracting_docs(qs_id=qs_id,
-                                                                                oracle_docs=oracle_list[perturb_idx[0]]['oracle_docs'],
+                                                                                oracle_docs=oracle_docs,
                                                                                 ret_doc_keys=[item['doc_key'] for item in ret_results[qs_id]],
                                                                                 dataset=dataset,
                                                                                 k=1,
