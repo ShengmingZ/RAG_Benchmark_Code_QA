@@ -21,7 +21,7 @@ if args.analysis_type == "retrieval_recall":
     # ret_acc_list = [1]
     result_list = list()
     for ret_acc in ret_acc_list:
-        cmd = f'python generator/code_eval.py --model {args.model} --dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --ret_acc {ret_acc}'
+        cmd = f'python generator/pred_eval.py --model {args.model} --dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --ret_acc {ret_acc}'
         proc = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (output, error) = proc.communicate()
         passk = output.decode().split('\n')[-2]
