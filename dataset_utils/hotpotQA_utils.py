@@ -172,7 +172,10 @@ class HotpotQAUtils:
             N = len(golds)
             for key in metrics[k].keys():
                 metrics[k][key] /= N
-        print(metrics)
+        _metrics = dict()
+        for k in top_k:
+            _metrics[k] = metrics[k]['sp_recall']
+        print(_metrics)
         return metrics
 
     @staticmethod

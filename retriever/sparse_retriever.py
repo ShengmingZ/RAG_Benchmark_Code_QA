@@ -281,7 +281,7 @@ def create_idx_for_corpus(args):
     if not es.indices.exists(index=es_idx):
         es.indices.create(index=es_idx)
         stream = stream_corpus_data(dataset)
-        for ok, res in streaming_bulk(es, actions=stream):
+        for ok, res in streaming_bulk(es, actions=stream, request_timeout=60):
             if not ok:
                 print(res)
 
