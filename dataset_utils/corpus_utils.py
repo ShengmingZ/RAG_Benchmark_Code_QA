@@ -123,7 +123,7 @@ class WikiCorpusLoader:
             contents = f.read().split('\n')
             for content in contents:
                 if content != '':
-                    data = json.loads(content)
+                    data = json.loads(content, encoding='utf-8')
                     return data
 
     def load_wiki_corpus_iter(self, dataset):
