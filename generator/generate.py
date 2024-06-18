@@ -198,13 +198,15 @@ if __name__ == '__main__':
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type none'
     args = generate_config(in_program_call)
     generator = Generator(args)
+    generator.oracle_list = generator.oracle_list[:20]
+    generator.qs_list = generator.qs_list[:20]
     # generator.test_prompt()
     gene_results = generator.gene_response()
     # print(gene_results[0]['oracle_output'])
     # print('??')
     # print(gene_results[0]['outputs'][0])
 
-    # result = json.load(open(args.save_file, 'r'))[0]
+    # result = json.load(open(args.save_file, 'r'))[1]
     # ret_docs = WikiCorpusLoader().get_docs([result['ret_docs']], 'NQ')[0]
     # print(NQ_TriviaQA_prompt.prompt_0shot(ret_docs, result['question'], model=args.model))
 
