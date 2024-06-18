@@ -95,7 +95,8 @@ def ret_eval(args):
         loader = PandasNumpyEvalLoader()
     ret_results = json.load(open(args.ret_result, 'r'))
 
-    top_k = [1, 3, 5, 10, 20, 50, 100, 200, 500, 1000, 2000]
+    # top_k = [1, 3, 5, 10, 20, 50, 100, 200, 500, 1000, 2000]
+    top_k = [1, 3, 5, 10, 20, 50, 100]
     if dataset == 'hotpotQA':
         oracle_list = loader.load_oracle_list()
         golds, preds = list(), list()
