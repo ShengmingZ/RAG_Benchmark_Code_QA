@@ -29,3 +29,15 @@ if args.analysis_type == "retrieval_recall":
         result_list.append(passk)
     for ret_acc, result in zip(ret_acc_list, result_list):
         print('ret_acc: ', ret_acc, result)
+
+elif args.analysis_type == "retrieval_doc_type":
+    ret_doc_type_list = ['oracle', 'retrieved', 'distracting', 'random', 'irrelevant_dummy', 'irrelevant_diff', 'none']
+    result_list = list()
+    for ret_doc_type in ret_doc_type_list:
+        cmd = f'python generator/pred_eval.py --model {args.model} --temperature {args.temperature} --dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --ret_doc_type {ret_doc_type}'
+        proc = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (output, error) = proc.communicate()
+        passk = output.decode().split('\n')[-2]
+        result_list.append(passk)
+    for ret_doc_type, result in zip(ret_doc_type_list, result_list):
+        print('ret_doc_type: ', ret_doc_type, result)
