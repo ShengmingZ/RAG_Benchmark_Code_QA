@@ -174,7 +174,7 @@ class HotpotQAUtils:
                 metrics[k][key] /= N
         _metrics = dict()
         for k in top_k:
-            _metrics[k] = metrics[k]['sp_recall']
+            _metrics[k] = round(metrics[k]['sp_recall'], 3)
         print(_metrics)
         return metrics
 
