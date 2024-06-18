@@ -51,7 +51,7 @@ def retriever_config(in_program_call=None):
         args.corpus_embed_file = os.path.join(root_path, f'data/python_docs/embed_{args.retriever}')
     elif args.dataset in ['hotpotQA']:
         args.corpus = 'wiki_hotpot'
-        args.corpus_embed_file = f'data/zhaoshengming/wikipedia/embed_{args.retriever}_hotpot'
+        args.corpus_embed_file = f'/data/zhaoshengming/wikipedia/embed_{args.retriever}_hotpot'
     elif args.dataset in ['TriviaQA', 'NQ']:
         args.corpus = 'wiki_nq'
         args.corpus_embed_file = f'/data/zhaoshengming/wikipedia/embed_{args.retriever}_NQ'
