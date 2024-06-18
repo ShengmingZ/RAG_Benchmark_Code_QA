@@ -175,7 +175,7 @@ class WikiCorpusLoader:
         doc_keys_placeholder = [[idx, key] for idx, key in enumerate(doc_keys)]
         docs = [None]*len(doc_keys)
         file_paths = self._get_hotpot_corpus_file_paths()
-        for file_path in tqdm(file_paths, total=len(file_paths)):
+        for file_path in file_paths:
             with bz2.open(file_path, 'rt') as f:
                 contents = f.read().split('\n')
                 for content in contents:
@@ -259,7 +259,8 @@ class WikiCorpusLoader:
                 _doc_keys_list.append([unicodedata.normalize('NFD', key) for key in doc_keys])
             doc_keys_list = _doc_keys_list
             with Pool(num_procs) as pool:
-                for sample_idx, docs in tqdm(enumerate(pool.imap(self._get_docs_hotpot, doc_keys_list)), total=len(doc_keys_list)):
+                # for sample_idx, docs in tqdm(enumerate(pool.imap(self._get_docs_hotpot, doc_keys_list)), total=len(doc_keys_list)):
+                for sample_idx, docs in enumerate(pool.imap(self._get_docs_hotpot, doc_keys_list)):
                     docs = [unicodedata.normalize('NFD', doc) for doc in docs]
                     docs_list[sample_idx] = docs
         elif dataset in ['TriviaQA', 'NQ']:
@@ -268,7 +269,8 @@ class WikiCorpusLoader:
                 _doc_keys_list.append([int(key) for key in doc_keys])
             doc_keys_list = _doc_keys_list
             with Pool(num_procs) as pool:
-                for sample_idx, docs in tqdm(enumerate(pool.imap(self._get_docs_NQ, doc_keys_list)), total=len(doc_keys_list)):
+                # for sample_idx, docs in tqdm(enumerate(pool.imap(self._get_docs_NQ, doc_keys_list)), total=len(doc_keys_list)):
+                for sample_idx, docs in enumerate(pool.imap(self._get_docs_NQ, doc_keys_list)):
                     # print(f'{sample_idx} completed')
                     docs = [unicodedata.normalize('NFD', doc) for doc in docs]
                     docs_list[sample_idx] = docs

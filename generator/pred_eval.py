@@ -18,86 +18,124 @@ from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
 
 def process_gene_results(args, outputs, code_prompt=None):
     preds = []
-    if args.dataset == 'conala' and args.model == 'codellama-13b-instruct':
-        for output in outputs:
-            if output.startswith(' '): output = output[1:]
-            pred = output.replace('<code>', '')
-            if '`' in pred:
-                lines = pred.split('\n')
-                try:
-                    _pred = lines[1]
-                    pred = _pred
-                except: ...
-            preds.append(pred)
-    elif args.dataset == 'DS1000' and args.model == 'codellama-13b-instruct':
-        loader = DS1000Loader()
-        qs_list = loader.load_qs_list()
-        for output in outputs:
-            # first extract code
-            if output.startswith(' '): output = output[1:]
-            pred = output
-            pred = pred.replace('```python', '```').replace('BEGIN SOLUTION', '').replace(' BEGIN SOLUTION', '')
-            try:
-                pred = pred.split('<code>')[1]
-            except: ...
-            try:
-                pred = pred.split('```')[1].split('```')[0]
-            except: ...
-            # then remove dup
-            prompt_lines = code_prompt.split('\n')
-            pred_lines = pred.split('\n')
-            _pred_lines = []
-            for pred_line in pred_lines:
-                if pred_line not in prompt_lines:
-                    _pred_lines.append(pred_line)
-            pred = '\n'.join(_pred_lines)
-            preds.append(pred)
+    if args.dataset == 'conala':
+        if 'llama' in args.model:
+            for output in outputs:
+                if output.startswith(' '): output = output[1:]
+                pred = output.replace('<code>', '')
+                if '`' in pred:
+                    lines = pred.split('\n')
+                    try:
+                        _pred = lines[1]
+                        pred = _pred
+                    except: ...
+                preds.append(pred)
+        elif 'gpt' in args.model:
+            for output in outputs:
+                pred = output.replace('<code>', '').replace('</code>', '').replace('\n', '')
+                preds.append(pred)
+        else:
+            raise Exception('Unknown model')
 
-    elif args.dataset == 'pandas_numpy_eval' and args.model == 'codellama-13b-instruct':
-        for output in outputs:
-            # first extract code
-            if output.startswith(' '): output = output[1:]
-            pred = output
-            pred = pred.replace('</s>', '').replace('```python', '```')
-            try:
-                pred = pred.split('<code>')[1]
-            except: ...
-            try:
-                pred = pred.split('```')[1].split('```')[0]
-            except: ...
-            try:
-                pred = pred.split('# Example usage')[0]
-            except: ...
-            try:
-                pred = pred.split('[out]')[0]
-            except: ...
-            pred = pred.replace('`', '')
-            # remove dup
-            prompt_lines = code_prompt.split('\n')
-            prompt_lines = [line for line in prompt_lines if line]
-            prompt_lines = [line for line in prompt_lines if not line.startswith('#') and not line.startswith('    #')]
-            code_prompt = '\n'.join(prompt_lines)
-            output_lines = pred.split('\n')
-            output_lines = [line for line in output_lines if line]
-            output_lines = [line for line in output_lines if not line.startswith('#') and not line.startswith('    #')]
-            output = '\n'.join(output_lines)
-            if output.startswith(code_prompt):
-                pred = output.replace(code_prompt, '')
-            elif prompt_lines[-1].startswith('def'):
-                if output_lines[0].startswith('def'):   # duplicate def, remove
-                    output_lines = output_lines[1:]
-                elif not output_lines[0].startswith('    '):    # add indent
-                    output_lines = ['    ' + line for line in output_lines]
-                # if 'return' not in output:
-                #     output_lines[-1] = output_lines[-1].replace('    ', '    return ')
-                pred = '\n'.join(output_lines)
-            elif output_lines[0].startswith(prompt_lines[-1]):  # only last line dup
-                output_lines[0] = output_lines[0].replace(prompt_lines[-1], '')
-                pred = '\n'.join(output_lines)
-            elif prompt_lines[-1] != '    ' and output_lines[0].startswith('return'):
-                output_lines[0] = '    ' + output_lines[0]
-                pred = '\n'.join(output_lines)
-            preds.append(pred)
+    elif args.dataset == 'DS1000':
+        if 'llama' in args.model:
+            for output in outputs:
+                # first extract code
+                if output.startswith(' '): output = output[1:]
+                pred = output
+                pred = pred.replace('```python', '```').replace('BEGIN SOLUTION', '').replace(' BEGIN SOLUTION', '')
+                try:
+                    pred = pred.split('<code>')[1]
+                except: ...
+                try:
+                    pred = pred.split('```')[1].split('```')[0]
+                except: ...
+                # then remove dup
+                prompt_lines = code_prompt.split('\n')
+                pred_lines = pred.split('\n')
+                _pred_lines = []
+                for pred_line in pred_lines:
+                    if pred_line not in prompt_lines:
+                        _pred_lines.append(pred_line)
+                pred = '\n'.join(_pred_lines)
+                preds.append(pred)
+        elif 'gpt' in args.model:
+            for output in outputs:
+                pred = output
+                try:
+                    pred = pred.split('BEGIN SOLUTION')[1]
+                except: ...
+                try:
+                    pred = pred.split('END SOLUTION')[0]
+                except: ...
+                pred = pred.replace('<code>', '').replace('</code>', '')
+                preds.append(pred)
+        else:
+            raise NotImplementedError('Unknown model')
+
+
+    elif args.dataset == 'pandas_numpy_eval':
+        if 'llama' in args.model:
+            for output in outputs:
+                # first extract code
+                if output.startswith(' '): output = output[1:]
+                pred = output
+                pred = pred.replace('</s>', '').replace('```python', '```')
+                try:
+                    pred = pred.split('<code>')[1]
+                except: ...
+                try:
+                    pred = pred.split('```')[1].split('```')[0]
+                except: ...
+                try:
+                    pred = pred.split('# Example usage')[0]
+                except: ...
+                try:
+                    pred = pred.split('[out]')[0]
+                except: ...
+                pred = pred.replace('`', '')
+                # remove dup
+                prompt_lines = code_prompt.split('\n')
+                prompt_lines = [line for line in prompt_lines if line]
+                prompt_lines = [line for line in prompt_lines if not line.startswith('#') and not line.startswith('    #')]
+                code_prompt = '\n'.join(prompt_lines)
+                output_lines = pred.split('\n')
+                output_lines = [line for line in output_lines if line]
+                output_lines = [line for line in output_lines if not line.startswith('#') and not line.startswith('    #')]
+                output = '\n'.join(output_lines)
+                if output.startswith(code_prompt):
+                    pred = output.replace(code_prompt, '')
+                elif prompt_lines[-1].startswith('def'):
+                    if output_lines[0].startswith('def'):   # duplicate def, remove
+                        output_lines = output_lines[1:]
+                    elif not output_lines[0].startswith('    '):    # add indent
+                        output_lines = ['    ' + line for line in output_lines]
+                    # if 'return' not in output:
+                    #     output_lines[-1] = output_lines[-1].replace('    ', '    return ')
+                    pred = '\n'.join(output_lines)
+                elif output_lines[0].startswith(prompt_lines[-1]):  # only last line dup
+                    output_lines[0] = output_lines[0].replace(prompt_lines[-1], '')
+                    pred = '\n'.join(output_lines)
+                elif prompt_lines[-1] != '    ' and output_lines[0].startswith('return'):
+                    output_lines[0] = '    ' + output_lines[0]
+                    pred = '\n'.join(output_lines)
+                preds.append(pred)
+        elif 'gpt' in args.model:   # gpt
+            for output in outputs:
+                pred = output.replace('<code>\n', '').replace('<code>', '').replace('</code>', '')
+                # remove "df =" dup
+                prompt_lines = code_prompt.split('\n')
+                prompt_lines = [line for line in prompt_lines if line]
+                prompt_lines = [line for line in prompt_lines if not line.startswith('#') and not line.startswith('    #')]
+                output_lines = pred.split('\n')
+                output_lines = [line for line in output_lines if line]
+                output_lines = [line for line in output_lines if not line.startswith('#') and not line.startswith('    #')]
+                if output_lines[0].startswith(prompt_lines[-1]):
+                    output_lines[0] = output_lines[0].replace(prompt_lines[-1], '')
+                    pred = '\n'.join(output_lines)
+                preds.append(pred)
+        else:
+            raise ValueError('Unrecognized model: {}'.format(args.model))
 
     elif args.dataset == 'NQ' or args.dataset == 'TriviaQA':
         for output in outputs:
@@ -167,6 +205,7 @@ def code_eval(args):
 if __name__ == '__main__':
     in_program_call = None
     # in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
 
     passk = code_eval(args)
@@ -184,14 +223,9 @@ if __name__ == '__main__':
     #     [lib, problema_id] = qs_id.split('_')
     #     data = ds1000[lib][int(problema_id)]
     #     print(f'<processed code {idx}>]\n')
-    #     # print([result['outputs'][0]])
+    #     print([result['outputs'][0]])
     #     outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
     #     print([outputs[0]])
-    #     # print([qs_list[idx]['question'].split('\nA:')[1]])
-    #     # print(oracle_list[idx+1]['output'])
-    #     # print(data.keys())
-    #     # print(data['test_code'])
-    #     # print(data['code_context'])
 
     """
     test process outputs for pandas_numpy_eval
@@ -204,30 +238,16 @@ if __name__ == '__main__':
     #     for data in dataset:
     #         if data['task_id'] == result['qs_id']:
     #             code_prompt = data['prompt']
+    #     print(code_prompt)
     #     outputs = process_gene_results(args, result['outputs'], code_prompt)
     #     print([outputs[0]])
-    #     # print([code_prompt])
-    #     # prompt_lines = code_prompt.split('\n')
-    #     # prompt_lines = [line for line in prompt_lines if line]
-    #     # prompt_lines = [line for line in prompt_lines if not line.startswith('#') and not line.startswith('    #')]
-    #     # code_prompt = '\n'.join(prompt_lines)
-    #     # output_lines = outputs[0].split('\n')
-    #     # output_lines = [line for line in output_lines if line]
-    #     # output_lines = [line for line in output_lines if not line.startswith('#') and not line.startswith('    #')]
-    #     # output = '\n'.join(output_lines)
-    #     # if not output.startswith(code_prompt):
-    #     #     print(f'\n{result["qs_id"]}')
-    #     #     print(code_prompt)
-    #     #     print('<output>')
-    #     #     print(output)
-    #     #     print(result['outputs'])
-    #     # if prompt_lines[-1].startswith('#'):
-    #     #     continue
-    #     # elif prompt_lines[-1].startswith('    #'):
-    #     #     continue
-    #     # elif prompt_lines[-1].startswith('    '):
-    #     #     continue
-    #     # elif prompt_lines[-1].endswith('return ') or prompt_lines[-1].endswith('= ') or prompt_lines[-1].endswith('='):
-    #     #     continue
-    #     # else:
-    #     #     print([code_prompt])
+
+    """
+    test for conala
+    """
+    # gene_results = json.load(open(args.save_file, 'r'))
+    # for idx, result in enumerate(gene_results):
+    #     print(f'<processed code {idx}>]\n')
+    #     print([result['outputs'][0]])
+    #     outputs = process_gene_results(args, result['outputs'])
+    #     print([outputs[0]])
