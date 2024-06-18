@@ -149,9 +149,11 @@ class Generator:
             raise NotImplementedError(f'unknown model {self.model}')
         gene_results = list()
         for idx, (outputs, logprobs) in enumerate(zip(outputs_list, logprobs_list)):
+            if self.ret_doc_type in ['irrelevant_dummy', 'irrelevant_diff', 'none']: ret_docs = None
+            else: ret_docs = ret_doc_keys_list[idx]
             gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'],
                                      question=self.qs_list[idx]['question'],
-                                     ret_docs=ret_doc_keys_list[idx] if self.ret_doc_type != 'none' else None,
+                                     ret_docs=ret_docs,
                                      outputs=outputs,
                                      logprobs=logprobs
                                      ))
