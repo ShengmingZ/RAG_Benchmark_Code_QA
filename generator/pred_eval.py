@@ -138,11 +138,12 @@ def process_gene_results(args, outputs, code_prompt=None):
             raise ValueError('Unrecognized model: {}'.format(args.model))
 
     elif args.dataset == 'NQ' or args.dataset == 'TriviaQA':
-        for output in outputs:
-            try:
-                pred = output.split('<answer>')[1]
-            except: pred = output
-            preds.append(pred)
+        if 'llama' in args.model:
+            for output in outputs:
+                try:
+                    pred = output.split('<answer>')[1]
+                except: pred = output
+                preds.append(pred)
 
     else:
         raise Exception('Not Implemented')
@@ -150,7 +151,7 @@ def process_gene_results(args, outputs, code_prompt=None):
     return preds
 
 
-def code_eval(args):
+def pred_eval(args):
     gene_results = json.load(open(args.save_file, 'r'))
     if args.n == 10:
         k_list = [1,3,5,10]
@@ -204,11 +205,11 @@ def code_eval(args):
 
 if __name__ == '__main__':
     in_program_call = None
-    # in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    # in_program_call = '--model llama2-13b-chat --dataset NQ --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
 
-    passk = code_eval(args)
+    passk = pred_eval(args)
 
     """
     test process outputs for DS1000
@@ -244,6 +245,16 @@ if __name__ == '__main__':
 
     """
     test for conala
+    """
+    # gene_results = json.load(open(args.save_file, 'r'))
+    # for idx, result in enumerate(gene_results):
+    #     print(f'<processed code {idx}>]\n')
+    #     print([result['outputs'][0]])
+    #     outputs = process_gene_results(args, result['outputs'])
+    #     print([outputs[0]])
+
+    """
+    test for NQ
     """
     # gene_results = json.load(open(args.save_file, 'r'))
     # for idx, result in enumerate(gene_results):
