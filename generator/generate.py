@@ -21,6 +21,7 @@ from dataset_utils.corpus_utils import PythonDocsLoader, WikiCorpusLoader
 from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs, approximate_token, perturb_ret_doc_type, get_top_k_docs
 from dataset_utils.DS1000_utils import DS1000Loader
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
+from prompt import NQ_TriviaQA_prompt
 
 
 class Generator:
@@ -154,6 +155,7 @@ class Generator:
             gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'],
                                      question=self.qs_list[idx]['question'],
                                      ret_docs=ret_docs,
+                                     prompt=prompts[idx],
                                      outputs=outputs,
                                      logprobs=logprobs
                                      ))
@@ -192,7 +194,7 @@ if __name__ == '__main__':
     # gene_conala.gene_response()
 
     in_program_call = None
-    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset NQ --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    # in_program_call = '--model llama2-13b-chat --dataset NQ --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 0.8'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type none'
     args = generate_config(in_program_call)
     generator = Generator(args)
@@ -201,4 +203,8 @@ if __name__ == '__main__':
     # print(gene_results[0]['oracle_output'])
     # print('??')
     # print(gene_results[0]['outputs'][0])
+
+    # result = json.load(open(args.save_file, 'r'))[0]
+    # ret_docs = WikiCorpusLoader().get_docs([result['ret_docs']], 'NQ')[0]
+    # print(NQ_TriviaQA_prompt.prompt_0shot(ret_docs, result['question'], model=args.model))
 
