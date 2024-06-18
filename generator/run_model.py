@@ -84,7 +84,7 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature
                     pad_token_id=tokenizer.eos_token_id
                 )
             text, logprob = process_naive_output(input_ids.shape[-1], outputs, tokenizer)
-            text = text.split(stop)[0]
+            print(text)
             texts.append(text)
             logprobs.append(logprob.tolist())
         texts_list.append(texts)
