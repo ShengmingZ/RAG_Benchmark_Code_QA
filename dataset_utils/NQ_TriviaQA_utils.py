@@ -355,6 +355,7 @@ class NQTriviaQAUtils:
                     is_correct = True
             if is_correct: exact_match += 1
         exact_match_rate = exact_match / len(preds)
+        print(exact_match_rate)
 
         return exact_match_rate
 
