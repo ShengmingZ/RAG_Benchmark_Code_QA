@@ -192,7 +192,7 @@ def pred_eval(args):
         oracle_list = loader.load_oracle_list()
         preds, answers_list = [], []
         for result, oracle in zip(gene_results, oracle_list):
-            assert result['qs_id'] == oracle['qs_id']
+            assert str(result['qs_id']) == str(oracle['qs_id'])
             preds.append(process_gene_results(args, result['outputs'])[0])  # Todo: now only 1 inference
             answers_list.append(oracle['answers'])
         scores = loader.pred_eval(preds=preds, answers_list=answers_list)
@@ -205,11 +205,12 @@ def pred_eval(args):
 
 if __name__ == '__main__':
     in_program_call = None
-    # in_program_call = '--model llama2-13b-chat --dataset NQ --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    in_program_call = '--model llama2-13b-chat --dataset NQ --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
 
     passk = pred_eval(args)
+    print(passk)
 
     """
     test process outputs for DS1000

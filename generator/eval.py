@@ -25,6 +25,7 @@ if args.analysis_type == "retrieval_recall":
         cmd = f'python generator/pred_eval.py --model {args.model} --temperature {args.temperature} --dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --ret_acc {ret_acc}'
         proc = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (output, error) = proc.communicate()
+        # if args.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
         passk = output.decode().split('\n')[-2]
         result_list.append(passk)
     for ret_acc, result in zip(ret_acc_list, result_list):
