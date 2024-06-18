@@ -119,20 +119,23 @@ class WikiCorpusLoader:
 
     @staticmethod
     def _load_data_from_bz2(file_path):
+        data_list = []
         with bz2.open(file_path, 'rt') as f:
             contents = f.read().split('\n')
             for content in contents:
                 if content != '':
                     data = json.loads(content, encoding='utf-8')
-                    return data
+                    data_list.append(data)
+        return data_list
 
     def load_wiki_corpus_iter(self, dataset):
         assert dataset in ['hotpotQA', 'TriviaQA', 'NQ']
         if dataset == 'hotpotQA':
-            file_paths = self._get_hotpot_corpus_file_paths()
-            for file_path in file_paths:
-                data = self._load_data_from_bz2(file_path)
-                yield dict(id=data['title'], text=''.join(data['text']))
+            # file_paths = self._get_hotpot_corpus_file_paths()
+            # for file_path in file_paths:
+            #     data = self._load_data_from_bz2(file_path)
+            #     yield dict(id=data['title'], text=''.join(data['text']))
+            raise NotImplementedError
         elif dataset in ['TriviaQA', 'NQ']:
             with open(self.wiki_corpus_file_NQ, 'r', newline='') as tsvfile:
                 reader = csv.reader(tsvfile, delimiter='\t')
@@ -146,8 +149,8 @@ class WikiCorpusLoader:
         if dataset == 'hotpotQA':
             file_paths = self._get_hotpot_corpus_file_paths()
             for file_path in file_paths:
-                data = self._load_data_from_bz2(file_path)
-                data_list.append(dict(id=data['title'], text=''.join(data['text'])))
+                data_list = self._load_data_from_bz2(file_path)
+                data_list.extend([dict(id=data['title'], text=''.join(data['text'])) for data in data_list])
         elif dataset in ['TriviaQA', 'NQ']:
             with open(self.wiki_corpus_file_NQ, 'r', newline='') as tsvfile:
                 reader = csv.reader(tsvfile, delimiter='\t')
