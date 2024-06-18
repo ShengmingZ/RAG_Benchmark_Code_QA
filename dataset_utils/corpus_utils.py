@@ -149,8 +149,8 @@ class WikiCorpusLoader:
         if dataset == 'hotpotQA':
             file_paths = self._get_hotpot_corpus_file_paths()
             for file_path in file_paths:
-                data_list = self._load_data_from_bz2(file_path)
-                data_list.extend([dict(id=data['title'], text=''.join(data['text'])) for data in data_list])
+                datas = self._load_data_from_bz2(file_path)
+                data_list.extend([dict(id=data['title'], text=''.join(data['text'])) for data in datas])
         elif dataset in ['TriviaQA', 'NQ']:
             with open(self.wiki_corpus_file_NQ, 'r', newline='') as tsvfile:
                 reader = csv.reader(tsvfile, delimiter='\t')
