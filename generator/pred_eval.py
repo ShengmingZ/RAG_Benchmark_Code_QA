@@ -205,7 +205,7 @@ def pred_eval(args):
 
 if __name__ == '__main__':
     in_program_call = None
-    in_program_call = '--model llama2-13b-chat --dataset NQ --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 0.8'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset DS1000 --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type none'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
 
@@ -257,9 +257,9 @@ if __name__ == '__main__':
     """
     test for NQ
     """
-    gene_results = json.load(open(args.save_file, 'r'))
-    for idx, result in enumerate(gene_results):
-        print(f'<processed code {idx}>]\n')
-        print([result['outputs'][0]])
-        outputs = process_gene_results(args, result['outputs'])
-        print([outputs[0]])
+    # gene_results = json.load(open(args.save_file, 'r'))
+    # for idx, result in enumerate(gene_results):
+    #     print(f'<processed code {idx}>]\n')
+    #     print([result['outputs'][0]])
+    #     outputs = process_gene_results(args, result['outputs'])
+    #     print([outputs[0]])
