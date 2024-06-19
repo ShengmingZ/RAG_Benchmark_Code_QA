@@ -29,7 +29,7 @@ if args.analysis_type == "retrieval_recall":
         passk = output.decode().split('\n')[-2]
         result_list.append(passk)
     for ret_acc, result in zip(ret_acc_list, result_list):
-        print('ret_acc: ', ret_acc, result)
+        print(f"{ret_acc}: {result}")
 
 elif args.analysis_type == "retrieval_doc_type":
     ret_doc_type_list = ['oracle', 'retrieved', 'distracting', 'random', 'irrelevant_dummy', 'irrelevant_diff', 'none']
@@ -41,4 +41,4 @@ elif args.analysis_type == "retrieval_doc_type":
         passk = output.decode().split('\n')[-2]
         result_list.append(passk)
     for ret_doc_type, result in zip(ret_doc_type_list, result_list):
-        print('ret_doc_type: ', ret_doc_type, result)
+        print(f'{ret_doc_type}: {result}')

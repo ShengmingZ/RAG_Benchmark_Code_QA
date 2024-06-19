@@ -138,12 +138,11 @@ def process_gene_results(args, outputs, code_prompt=None):
             raise ValueError('Unrecognized model: {}'.format(args.model))
 
     elif args.dataset == 'NQ' or args.dataset == 'TriviaQA':
-        if 'llama' in args.model:
-            for output in outputs:
-                try:
-                    pred = output.split('<answer>')[1]
-                except: pred = output
-                preds.append(pred)
+        for output in outputs:
+            try:
+                pred = output.split('<answer>')[1].split('</answer>')[0]
+            except: pred = output
+            preds.append(pred)
 
     else:
         raise Exception('Not Implemented')
@@ -206,7 +205,7 @@ def pred_eval(args):
 if __name__ == '__main__':
     in_program_call = None
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset DS1000 --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type none'
-    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset NQ --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
 
     passk = pred_eval(args)
