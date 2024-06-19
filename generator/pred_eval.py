@@ -23,6 +23,9 @@ def process_gene_results(args, outputs, code_prompt=None):
             for output in outputs:
                 if output.startswith(' '): output = output[1:]
                 pred = output.replace('<code>', '')
+                try:
+                    pred = pred.split('</code>')[0]
+                except: ...
                 if '`' in pred:
                     lines = pred.split('\n')
                     try:
@@ -46,6 +49,9 @@ def process_gene_results(args, outputs, code_prompt=None):
                 pred = pred.replace('```python', '```').replace('BEGIN SOLUTION', '').replace(' BEGIN SOLUTION', '')
                 try:
                     pred = pred.split('<code>')[1]
+                except: ...
+                try:
+                    pred = pred.split('</code>')[0]
                 except: ...
                 try:
                     pred = pred.split('```')[1].split('```')[0]
@@ -83,6 +89,9 @@ def process_gene_results(args, outputs, code_prompt=None):
                 pred = pred.replace('</s>', '').replace('```python', '```')
                 try:
                     pred = pred.split('<code>')[1]
+                except: ...
+                try:
+                    pred = pred.split('</code>')[0]
                 except: ...
                 try:
                     pred = pred.split('```')[1].split('```')[0]
@@ -204,8 +213,8 @@ def pred_eval(args):
 
 if __name__ == '__main__':
     in_program_call = None
-    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset DS1000 --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type none'
-    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset NQ --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    # in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    # in_program_call = '--model llama2-13b-chat --dataset NQ --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
 
     passk = pred_eval(args)
@@ -254,7 +263,7 @@ if __name__ == '__main__':
     #     print([outputs[0]])
 
     """
-    test for NQ
+    test for NQ, TriviaQA
     """
     # gene_results = json.load(open(args.save_file, 'r'))
     # for idx, result in enumerate(gene_results):

@@ -70,6 +70,19 @@ code_ret_recall_llama_n_10 = {
 }
 
 
+code_ret_recall_llama_n_1 = {
+    "conala": {
+
+    },
+    "DS1000": {
+
+    },
+    "pandas_numpy_eval": {
+
+    }
+}
+
+
 code_ret_recall_gpt_n_1 = {
     "conala": {
         1: {'pass@1': 0.38095238095238093},
@@ -124,5 +137,23 @@ code_ret_doc_type_gpt_n_1 = {
         "irrelevant": {'pass@1': 0.7664670658682635},
         "irrelevant_diff": {'pass@1': 0.78443113772455},
         "none": {'pass@1': 0.7784431137724551}
+    }
+}
+
+
+qa_ret_recall_gpt_n_1 = {
+    'NQ': {
+        1: 0.772,
+        0.8: 0.651,
+        0.6: 0.5315,
+        0.4: 0.4095,
+        0.2: 0.284,
+        0: 0.169,
+    },
+    "TriviaQA": {
+
+    },
+    "hotpotQA": {
+
     }
 }
