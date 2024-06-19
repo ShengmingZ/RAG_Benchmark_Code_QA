@@ -189,7 +189,7 @@ def retrieve_by_faiss(qs_embed, doc_embed, qs_id_list, doc_key_list, save_file, 
 
 def embed_corpus(args):
     # separately consider openai embedding
-    if args.corpus == 'wiki_nq' and args.retriever == 'openai-embedding':
+    if (args.corpus == 'wiki_nq' or args.corpus == 'wiki_hotpot') and args.retriever == 'openai-embedding':
         wiki_loader = WikiCorpusLoader()
         if os.path.exists(args.corpus_embed_file + '.npy'):
             all_embeddings = np.load(args.corpus_embed_file + '.npy')
@@ -211,7 +211,7 @@ def embed_corpus(args):
         data_count = 0
         batch = []
         all_embeddings_count = all_embeddings.shape[0]
-        for data in wiki_loader.load_wiki_corpus_iter('NQ'):
+        for data in wiki_loader.load_wiki_corpus_iter(args.dataset):
             if data_count < resume:
                 data_count += 1
                 continue
