@@ -80,6 +80,23 @@ def get_ret_results(dataset, retriever, normalize=False):
     return json.load(open(ret_result_file, 'r'))
 
 
+def verify_ret_docs(args):
+    from tqdm import tqdm
+    assert args.dataset in ['NQ', 'TriviaQA', 'hotpotQA']
+    ret_results = json.load(open(args.ret_result, 'r'))
+    loader = NQTriviaQAUtils(args.dataset)
+    corpus_loader = WikiCorpusLoader()
+    for qs_id in tqdm(ret_results.keys()):
+        ret_doc_keys = [item['doc_key'] for item in ret_results[qs_id]]
+        ret_docs = corpus_loader.get_docs([ret_doc_keys], args.dataset, num_procs=1)[0]
+        for idx, ret_doc in enumerate(ret_docs):
+            if loader.if_has_answer(ret_doc, qs_id): ret_results[qs_id][idx]['has_answer'] = True
+            else: ret_results[qs_id][idx]['has_answer'] = False
+
+    with open(args.ret_result, 'w+') as f:
+        json.dump(ret_results, f, indent=2)
+
+
 
 def ret_eval(args):
     dataset = args.dataset
@@ -124,20 +141,22 @@ def ret_eval(args):
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset hotpotQA --retriever BM25'
+    in_program_call = '--dataset NQ --retriever openai-embedding'
     args = retriever_config(in_program_call)
-    dataset = args.dataset
-    loader = HotpotQAUtils()
-    oracle_list = loader.load_oracle_list()
-    ret_results = json.load(open(args.ret_result, 'r'))
-    gold = oracle_list[1]['oracle_docs']
-    pred = [tmp['doc_key'] for tmp in ret_results[oracle_list[1]['qs_id']]]
-    # print(gold)
-    # print(pred)
-    # loader.eval_sp(golds=[gold], preds=[pred], top_k=[1,3,5,10,20,50,100])
+    verify_ret_docs(args)
 
-    docs = WikiCorpusLoader().get_docs([['Ugni myricoides']], dataset='hotpotQA', num_procs=4)
-    print(docs)
+    # dataset = args.dataset
+    # loader = HotpotQAUtils()
+    # oracle_list = loader.load_oracle_list()
+    # ret_results = json.load(open(args.ret_result, 'r'))
+    # gold = oracle_list[1]['oracle_docs']
+    # pred = [tmp['doc_key'] for tmp in ret_results[oracle_list[1]['qs_id']]]
+    # # print(gold)
+    # # print(pred)
+    # # loader.eval_sp(golds=[gold], preds=[pred], top_k=[1,3,5,10,20,50,100])
+    #
+    # docs = WikiCorpusLoader().get_docs([['Ugni myricoides']], dataset='hotpotQA', num_procs=4)
+    # print(docs)
 
     # test get_docs
     # in_program_call = '--dataset NQ --retriever BM25'

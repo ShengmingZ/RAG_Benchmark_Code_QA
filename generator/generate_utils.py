@@ -220,7 +220,7 @@ def generate_config(in_program_call=None):
     return args
 
 
-def get_distracting_docs(qs_id, oracle_docs, ret_doc_keys, dataset, k, dups=None):
+def get_distracting_docs(ret_result, dataset, k, oracle_docs, dups=None):
     """
     get high similarity but not oracle docs for a sample
     :param qs_id: qs_id of the sample
@@ -232,12 +232,16 @@ def get_distracting_docs(qs_id, oracle_docs, ret_doc_keys, dataset, k, dups=None
     :return:
     """
     distracting_docs = []
-    for doc_key in ret_doc_keys:
+    # ret_doc_keys = [item['doc_key'] for item in ret_result]
+    for item in ret_result:
+        doc_key = item['doc_key']
         if len(distracting_docs) == k: break
         if dups is not None and doc_key in dups: continue
         if dataset == 'NQ' or dataset == 'TriviaQA':
-            doc = WikiCorpusLoader().get_docs(doc_keys_list=[[doc_key]], dataset=dataset, num_procs=1)[0][0]
-            if not NQTriviaQAUtils(dataset).if_has_answer(doc=doc, qs_id=qs_id):
+            # doc = WikiCorpusLoader().get_docs(doc_keys_list=[[doc_key]], dataset=dataset, num_procs=1)[0][0]
+            # if not NQTriviaQAUtils(dataset).if_has_answer(doc=doc, qs_id=qs_id):
+            #     distracting_docs.append(doc_key)
+            if not item['has_answer']:
                 distracting_docs.append(doc_key)
         else:
             if doc_key not in oracle_docs:
@@ -271,9 +275,8 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
         perturb_placeholder.remove(perturb_idx)
         qs_id = oracle_list[perturb_idx[0]]['qs_id']
         oracle_docs = oracle_list[perturb_idx[0]]['oracle_docs'] if dataset in ['conala', 'DS1000', 'pandas_numpy_eval'] else [oracle_list[perturb_idx[0]]['oracle_doc']]
-        oracle_docs_list[perturb_idx[0]][perturb_idx[1]] = get_distracting_docs(qs_id=qs_id,
+        oracle_docs_list[perturb_idx[0]][perturb_idx[1]] = get_distracting_docs(ret_result=ret_results[qs_id],
                                                                                 oracle_docs=oracle_docs,
-                                                                                ret_doc_keys=[item['doc_key'] for item in ret_results[qs_id]],
                                                                                 dataset=dataset,
                                                                                 k=1,
                                                                                 dups=oracle_docs_list[perturb_idx[0]])[0]
@@ -337,9 +340,7 @@ def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, model, data
         elif perturb_doc_type == 'distracting':
             doc_keys_list = []
             for oracle in oracle_list:
-                ret_doc_keys = [item['doc_key'] for item in ret_results[oracle['qs_id']]]
-                doc_keys_list.append(get_distracting_docs(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'],
-                                                          ret_doc_keys=ret_doc_keys, dataset=dataset, k=len(oracle['oracle_docs'])))
+                doc_keys_list.append(get_distracting_docs(ret_result=ret_results[oracle['qs_id']], oracle_docs=oracle['oracle_docs'], dataset=dataset, k=len(oracle['oracle_docs'])))
         elif perturb_doc_type == 'random':
             doc_keys_list = []
             if dataset in ['NQ', 'TriviaQA']: corpus_id_list = WikiCorpusLoader().load_wiki_id('NQ')

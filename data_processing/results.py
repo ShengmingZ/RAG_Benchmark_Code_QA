@@ -125,6 +125,18 @@ code_ret_recall_gpt_n_1 = {
     }
 }
 
+code_ret_doc_type_llama_n_1 = {
+    "conala": {
+
+    },
+    "DS1000": {
+
+    },
+    "pandas_numpy_eval": {
+
+    }
+}
+
 code_ret_doc_type_gpt_n_1 = {
     "conala": {
         "oracle": {'pass@1': 0.38095238095238093},
@@ -156,6 +168,19 @@ code_ret_doc_type_gpt_n_1 = {
 }
 
 
+qa_ret_recall_llama_n_1 = {
+    'NQ': {
+
+    },
+    "TriviaQA": {
+
+    },
+    "hotpotQA": {
+
+    }
+}
+
+
 qa_ret_recall_gpt_n_1 = {
     'NQ': {
         1: 0.772,
@@ -164,6 +189,30 @@ qa_ret_recall_gpt_n_1 = {
         0.4: 0.4095,
         0.2: 0.284,
         0: 0.169,
+    },
+    "TriviaQA": {
+
+    },
+    "hotpotQA": {
+
+    }
+}
+
+qa_ret_doc_type_llama_n_1 = {
+    'NQ': {
+
+    },
+    "TriviaQA": {
+
+    },
+    "hotpotQA": {
+
+    }
+}
+
+qa_ret_doc_type_gpt_n_1 = {
+    'NQ': {
+
     },
     "TriviaQA": {
 
