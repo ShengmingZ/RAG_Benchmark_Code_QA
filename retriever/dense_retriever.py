@@ -210,7 +210,7 @@ def embed_corpus(args):
         batch_count = 0
         data_count = 0
         batch = []
-        all_embeddings_count = all_embeddings.shape[0]
+        all_embeddings_count = all_embeddings.shape[0] if all_embeddings is not None else 0
         for data in wiki_loader.load_wiki_corpus_iter(args.dataset):
             if data_count < resume:
                 data_count += 1
