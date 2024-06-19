@@ -135,6 +135,7 @@ class WikiCorpusLoader:
             for file_path in file_paths:
                 datas = self._load_data_from_bz2(file_path)
                 for data in datas:
+                    if data == '': continue
                     yield dict(id=data['title'], text=''.join(data['text']))
         elif dataset in ['TriviaQA', 'NQ']:
             with open(self.wiki_corpus_file_NQ, 'r', newline='') as tsvfile:
