@@ -216,10 +216,10 @@ def embed_corpus(args):
                 data_count += 1
                 continue
             else:
-                if batch_count == 1:
+                if batch_count == 1024:
                     print([batch])
                     embed_and_append(model_name='text-embedding-3-small', batch=batch)
-                    all_embeddings_count += 1
+                    all_embeddings_count += 1024
                     print(f'done embedding {all_embeddings_count}')
                     batch = []
                     batch_count = 0
