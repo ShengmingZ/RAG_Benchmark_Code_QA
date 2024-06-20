@@ -287,7 +287,7 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
         except:
             print(perturb_idx)
             print(len(oracle_docs_list))
-            print(len(oracle_docs_list[perturb_idx[0]]))
+            print(oracle_docs_list[perturb_idx[0]][perturb_idx[1]])
         ret_accs[perturb_idx[0]] = (ret_accs[perturb_idx[0]] * len(oracle_docs_list[perturb_idx[0]]) - 1) / len(oracle_docs_list[perturb_idx[0]])
         cur_ret_acc = sum(ret_accs) / len(ret_accs)
 
