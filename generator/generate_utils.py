@@ -167,8 +167,9 @@ def get_irrelevant_docs(irrelevant_type, oracle_doc_keys, model, dataset):
         dummy_length = get_docs_tokens(docs=[dummy_string], model=model)[0]
         perturbed_docs = []
         for doc_length in doc_lengths:
-            dummy_string = dummy_string * (int(doc_length/dummy_length)+1)
-            perturbed_docs.append(truncate_docs(docs=[dummy_string], model=model, max_length=doc_length)[0])
+            perturbed_doc = dummy_string * (int(doc_length/dummy_length))
+            perturbed_doc += truncate_docs(docs=[dummy_string], model=model, max_length=doc_length-int(doc_length/dummy_length)*dummy_length)[0]
+            perturbed_docs.append(perturbed_doc)
     else:
         if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: loader = WikiCorpusLoader()
         else: loader = PythonDocsLoader()
@@ -458,14 +459,15 @@ if __name__ == "__main__":
     """
     test control ret_acc
     """
-    # loader = NQTriviaQAUtils('NQ')
+    dataset = 'NQ'
+    loader = NQTriviaQAUtils('NQ')
     # loader = DS1000Loader()
-    loader = HotpotQAUtils()
+    # loader = HotpotQAUtils()
     oracle_list = loader.load_oracle_list()
     qs_list = loader.load_qs_list()
-    ret_results = get_ret_results(dataset='hotpotQA', retriever='BM25')
-    perturb_oracle_keys, docs = control_ret_acc(ret_acc=0.8, oracle_list=oracle_list[:200], ret_results=ret_results, dataset='hotpotQA')
-    loader.eval_sp(preds=perturb_oracle_keys, golds=[oracle['oracle_docs'] for oracle in oracle_list], top_k=[2])
+    ret_results = get_ret_results(dataset=dataset, retriever='openai-embedding')
+    perturb_oracle_keys, docs = control_ret_acc(ret_acc=0.8, oracle_list=oracle_list[:200], ret_results=ret_results, dataset=dataset)
+    # loader.eval_sp(preds=perturb_oracle_keys, golds=[oracle['oracle_docs'] for oracle in oracle_list[:200]], top_k=[2])
     # golds = [oracle['oracle_docs'] for oracle in oracle_list]
     # preds = perturb_oracle_keys
     # recall_n = 0
@@ -474,11 +476,11 @@ if __name__ == "__main__":
     #     recall_n += cur_hit / len(gold)
     # recall_n /= len(preds)
     # print(recall_n)
-    # wrong_count = 0
-    # for i, doc_keys in enumerate(perturb_oracle_keys):
-    #     doc = docs[i][0]
-    #     if not loader.if_has_answer(doc=doc, qs_id=oracle_list[i]['qs_id']):
-    #         wrong_count += 1
-    #         # print(f'wrong oracle for doc {qs_list[i]}')
-    # acc = 1 - (wrong_count / len(perturb_oracle_keys))
-    # print(acc)
+    wrong_count = 0
+    for i, doc_keys in enumerate(perturb_oracle_keys):
+        doc = docs[i][0]
+        if not loader.if_has_answer(doc=doc, qs_id=oracle_list[i]['qs_id']):
+            wrong_count += 1
+            # print(f'wrong oracle for doc {qs_list[i]}')
+    acc = 1 - (wrong_count / len(perturb_oracle_keys))
+    print(acc)
