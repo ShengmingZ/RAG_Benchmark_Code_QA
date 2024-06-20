@@ -141,7 +141,7 @@ def ret_eval(args):
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset NQ --retriever openai-embedding'
+    in_program_call = '--dataset TriviaQA --retriever openai-embedding'
     args = retriever_config(in_program_call)
     verify_ret_docs(args)
 

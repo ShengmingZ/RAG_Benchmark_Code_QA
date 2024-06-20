@@ -8,8 +8,6 @@ import torch
 from tqdm import tqdm
 from transformers import AutoTokenizer
 from functools import partial
-
-from prompt.hotpotqa_prompt import original_prompt
 from copy import deepcopy
 system = platform.system()
 if system == 'Darwin':
@@ -17,7 +15,7 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from prompt import conala_prompt, DS1000_prompt, pandas_numpy_eval_prompt, NQ_TriviaQA_prompt
+from prompt import conala_prompt, DS1000_prompt, pandas_numpy_eval_prompt, NQ_TriviaQA_prompt, hotpotQA_prompt
 from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.DS1000_utils import DS1000Loader
@@ -258,7 +256,7 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
     :return:
     """
     # perturb oracle_docs_list with high score related docs until it reaches the ret_acc
-    if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
+    if dataset in ['conala', 'DS1000', 'pandas_numpy_eval', 'hotpotQA']:
         oracle_docs_list = deepcopy([oracle['oracle_docs'] for oracle in oracle_list])
     else:
         oracle_docs_list = deepcopy([[oracle['oracle_doc']] for oracle in oracle_list])
@@ -274,7 +272,7 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
         perturb_idx = random.sample(perturb_placeholder, 1)[0] # pick an oracle key and perturb
         perturb_placeholder.remove(perturb_idx)
         qs_id = oracle_list[perturb_idx[0]]['qs_id']
-        oracle_docs = oracle_list[perturb_idx[0]]['oracle_docs'] if dataset in ['conala', 'DS1000', 'pandas_numpy_eval'] else [oracle_list[perturb_idx[0]]['oracle_doc']]
+        oracle_docs = oracle_list[perturb_idx[0]]['oracle_docs'] if dataset in ['conala', 'DS1000', 'pandas_numpy_eval', 'hotpotQA'] else [oracle_list[perturb_idx[0]]['oracle_doc']]
         oracle_docs_list[perturb_idx[0]][perturb_idx[1]] = get_distracting_docs(ret_result=ret_results[qs_id],
                                                                                 oracle_docs=oracle_docs,
                                                                                 dataset=dataset,
@@ -349,6 +347,8 @@ def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, model, data
                 doc_keys_list.append(random.sample(corpus_id_list, k=len(oracle['oracle_docs'])))
         elif perturb_doc_type == 'none':
             doc_keys_list = []
+        else:
+            raise ValueError('not supported perturb_doc_type {}'.format(perturb_doc_type))
 
         if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
             docs = WikiCorpusLoader().get_docs(doc_keys_list, dataset, num_procs=8)
@@ -356,12 +356,6 @@ def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, model, data
             docs = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in doc_keys_list]
 
     return doc_keys_list, docs
-
-
-
-
-def process_retrieval_doc():
-    ...
 
 
 def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name, doc_max_length):
@@ -384,6 +378,11 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
         elif dataset == 'pandas_numpy_eval':
             if prompt_type == '0shot':
                 generate_func = pandas_numpy_eval_prompt.prompt_0shot_no_ret
+            else:
+                raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
+        elif dataset == 'hotpotQA':
+            if prompt_type == '0shot':
+                generate_func = hotpotQA_prompt.prompt_0shot_no_ret
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         else:
@@ -411,6 +410,11 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
         elif dataset == 'pandas_numpy_eval':
             if prompt_type == '0shot':
                 generate_func = pandas_numpy_eval_prompt.prompt_0shot
+            else:
+                raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
+        elif dataset == 'hotpotQA':
+            if prompt_type == '0shot':
+                generate_func = hotpotQA_prompt.prompt_0shot
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         else:
@@ -451,12 +455,13 @@ if __name__ == "__main__":
     test control ret_acc
     """
     # loader = NQTriviaQAUtils('NQ')
-    # # loader = DS1000Loader()
-    # oracle_list = loader.load_oracle_list()
-    # qs_list = loader.load_qs_list()
-    # ret_results = get_ret_results(dataset='NQ', retriever='openai-embedding')
-    # # print([oracle['oracle_docs'] for oracle in oracle_list])
-    # perturb_oracle_keys, docs = control_ret_acc(ret_acc=0.8, oracle_list=oracle_list[:200], ret_results=ret_results, dataset='NQ')
+    # loader = DS1000Loader()
+    loader = HotpotQAUtils()
+    oracle_list = loader.load_oracle_list()
+    qs_list = loader.load_qs_list()
+    ret_results = get_ret_results(dataset='hotpotQA', retriever='BM25')
+    perturb_oracle_keys, docs = control_ret_acc(ret_acc=0.8, oracle_list=oracle_list[:200], ret_results=ret_results, dataset='hotpotQA')
+    loader.eval_sp(preds=perturb_oracle_keys, golds=[oracle['oracle_docs'] for oracle in oracle_list], top_k=[2])
     # golds = [oracle['oracle_docs'] for oracle in oracle_list]
     # preds = perturb_oracle_keys
     # recall_n = 0

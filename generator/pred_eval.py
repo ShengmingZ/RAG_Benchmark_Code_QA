@@ -2,6 +2,9 @@ import platform
 import sys
 import json
 import re
+
+from dataset_utils.hotpotQA_utils import HotpotQAUtils
+
 system = platform.system()
 if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
@@ -146,7 +149,7 @@ def process_gene_results(args, outputs, code_prompt=None):
         else:
             raise ValueError('Unrecognized model: {}'.format(args.model))
 
-    elif args.dataset == 'NQ' or args.dataset == 'TriviaQA':
+    elif args.dataset == 'NQ' or args.dataset == 'TriviaQA' or args.dataset == 'hotpotQA':
         for output in outputs:
             try:
                 pred = output.split('<answer>')[1].split('</answer>')[0]
@@ -204,6 +207,15 @@ def pred_eval(args):
             preds.append(process_gene_results(args, result['outputs'])[0])  # Todo: now only 1 inference
             answers_list.append(oracle['answers'])
         scores = loader.pred_eval(preds=preds, answers_list=answers_list)
+
+    elif args.dataset == 'hotpotQA':
+        loader = HotpotQAUtils()
+        oracle_list = loader.load_oracle_list()
+        pred_list = []
+        for result in gene_results:
+            output = process_gene_results(args, result['outputs'])[0]
+            pred_list.append(dict(qs_id=result['qs_id'], output=output))
+        scores = loader.eval_pred(pred_list=pred_list, oracle_list=oracle_list)
 
     else:
         raise ValueError('Not supported dataset {}'.format(args.dataset))
