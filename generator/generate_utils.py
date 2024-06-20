@@ -279,10 +279,10 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
         qs_id = oracle_list[perturb_idx[0]]['qs_id']
         oracle_docs = oracle_list[perturb_idx[0]]['oracle_docs'] if dataset in ['conala', 'DS1000', 'pandas_numpy_eval', 'hotpotQA'] else [oracle_list[perturb_idx[0]]['oracle_doc']]
         oracle_docs_list[perturb_idx[0]][perturb_idx[1]] = get_distracting_docs(ret_result=ret_results[qs_id],
-                                                                            oracle_docs=oracle_docs,
-                                                                            dataset=dataset,
-                                                                            k=1,
-                                                                            dups=oracle_docs_list[perturb_idx[0]])[0]
+                                                                                oracle_docs=oracle_docs,
+                                                                                dataset=dataset,
+                                                                                k=1,
+                                                                                dups=oracle_docs_list[perturb_idx[0]])[0]
         ret_accs[perturb_idx[0]] = (ret_accs[perturb_idx[0]] * len(oracle_docs_list[perturb_idx[0]]) - 1) / len(oracle_docs_list[perturb_idx[0]])
         cur_ret_acc = sum(ret_accs) / len(ret_accs)
 
