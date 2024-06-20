@@ -105,7 +105,9 @@ def truncate_docs(docs, model, max_length):
         tokenizer = AutoTokenizer.from_pretrained(model, torch_dtype=torch.float16, token=access_token)
         truncated_docs = []
         for doc in docs:
-            tokens = tokenizer.encode(doc, max_length=max_length, truncation=True, add_special_tokens=False)
+            try:
+                tokens = tokenizer.encode(doc, max_length=max_length, truncation=True, add_special_tokens=False)
+            except: print([doc])
             doc = tokenizer.decode(tokens)
             truncated_docs.append(doc)
     else:
