@@ -278,16 +278,11 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
         perturb_placeholder.remove(perturb_idx)
         qs_id = oracle_list[perturb_idx[0]]['qs_id']
         oracle_docs = oracle_list[perturb_idx[0]]['oracle_docs'] if dataset in ['conala', 'DS1000', 'pandas_numpy_eval', 'hotpotQA'] else [oracle_list[perturb_idx[0]]['oracle_doc']]
-        try:
-            oracle_docs_list[perturb_idx[0]][perturb_idx[1]] = get_distracting_docs(ret_result=ret_results[qs_id],
-                                                                                oracle_docs=oracle_docs,
-                                                                                dataset=dataset,
-                                                                                k=1,
-                                                                                dups=oracle_docs_list[perturb_idx[0]])[0]
-        except:
-            print(perturb_idx)
-            print(len(oracle_docs_list))
-            print(oracle_docs_list[perturb_idx[0]][perturb_idx[1]])
+        oracle_docs_list[perturb_idx[0]][perturb_idx[1]] = get_distracting_docs(ret_result=ret_results[qs_id],
+                                                                            oracle_docs=oracle_docs,
+                                                                            dataset=dataset,
+                                                                            k=1,
+                                                                            dups=oracle_docs_list[perturb_idx[0]])[0]
         ret_accs[perturb_idx[0]] = (ret_accs[perturb_idx[0]] * len(oracle_docs_list[perturb_idx[0]]) - 1) / len(oracle_docs_list[perturb_idx[0]])
         cur_ret_acc = sum(ret_accs) / len(ret_accs)
 
@@ -464,14 +459,14 @@ if __name__ == "__main__":
     """
     test control ret_acc
     """
-    dataset = 'NQ'
-    loader = NQTriviaQAUtils('NQ')
+    dataset = 'TriviaQA'
+    loader = NQTriviaQAUtils(dataset)
     # loader = DS1000Loader()
     # loader = HotpotQAUtils()
     oracle_list = loader.load_oracle_list()
     qs_list = loader.load_qs_list()
     ret_results = get_ret_results(dataset=dataset, retriever='openai-embedding')
-    perturb_oracle_keys, docs = control_ret_acc(ret_acc=0.8, oracle_list=oracle_list[:200], ret_results=ret_results, dataset=dataset)
+    perturb_oracle_keys, docs = control_ret_acc(ret_acc=0.2, oracle_list=oracle_list[:200], ret_results=ret_results, dataset=dataset)
     # loader.eval_sp(preds=perturb_oracle_keys, golds=[oracle['oracle_docs'] for oracle in oracle_list[:200]], top_k=[2])
     # golds = [oracle['oracle_docs'] for oracle in oracle_list]
     # preds = perturb_oracle_keys
