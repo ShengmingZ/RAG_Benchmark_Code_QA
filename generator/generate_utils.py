@@ -107,7 +107,9 @@ def truncate_docs(docs, model, max_length):
         for doc in docs:
             try:
                 tokens = tokenizer.encode(doc, max_length=max_length, truncation=True, add_special_tokens=False)
-            except: print([doc])
+            except:
+                print([doc])
+                raise Exception('find duplicated error')
             doc = tokenizer.decode(tokens)
             truncated_docs.append(doc)
     else:
