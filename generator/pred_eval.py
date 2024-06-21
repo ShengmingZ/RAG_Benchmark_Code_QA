@@ -2,9 +2,6 @@ import platform
 import sys
 import json
 import re
-
-from dataset_utils.hotpotQA_utils import HotpotQAUtils
-
 system = platform.system()
 if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
@@ -17,6 +14,8 @@ from dataset_utils.DS1000_utils import DS1000Loader
 from data.DS1000.ds1000 import DS1000Dataset
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
+from dataset_utils.hotpotQA_utils import HotpotQAUtils
+
 
 
 def process_gene_results(args, outputs, code_prompt=None):

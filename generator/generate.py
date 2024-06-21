@@ -72,6 +72,36 @@ class Generator:
         print('qs_num:', len(self.qs_list))
         print('save_to:', self.save_file)
 
+    def gene_prompts(self):
+        if self.analysis_type == 'retrieval_recall':
+            ret_doc_keys_list, docs_list = control_ret_acc(ret_acc=args.ret_acc,
+                                                           oracle_list=self.oracle_list,
+                                                           ret_results=self.ret_results,
+                                                           dataset=self.dataset)
+        elif self.analysis_type == 'retrieval_doc_type':
+            ret_doc_keys_list, docs_list = perturb_ret_doc_type(perturb_doc_type=self.ret_doc_type,
+                                                                oracle_list=self.oracle_list,
+                                                                ret_results=self.ret_results,
+                                                                model=self.model,
+                                                                dataset=self.dataset)
+        elif self.analysis_type == 'retrieval_doc_num':
+            ret_doc_keys_list, docs_list = get_top_k_docs(top_k=self.top_k,
+                                                          oracle_list=self.oracle_list,
+                                                          ret_results=self.ret_results,
+                                                          dataset=self.dataset)
+
+        else:
+            raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
+
+
+        prompts = generate_prompts(questions=[qs['question'] for qs in self.qs_list],
+                                   ret_docs_list=docs_list,
+                                   prompt_type=self.prompt_type,
+                                   dataset=self.dataset,
+                                   model_name=self.model,
+                                   doc_max_length=self.doc_max_length)
+        return ret_doc_keys_list, prompts
+
     def test_prompt(self):
         random.seed()
         self.oracle_list = random.sample(self.oracle_list, 1)
@@ -80,70 +110,22 @@ class Generator:
                 self.qs_list = [qs]
                 break
         assert len(self.qs_list) == len(self.oracle_list)
-        if self.analysis_type == 'retrieval_recall':
-            ret_doc_keys_list, docs_list = control_ret_acc(ret_acc=args.ret_acc,
-                                                           oracle_list=self.oracle_list,
-                                                           ret_results=self.ret_results,
-                                                           dataset=self.dataset)
-        elif self.analysis_type == 'retrieval_doc_type':
-            ret_doc_keys_list, docs_list = perturb_ret_doc_type(perturb_doc_type=self.ret_doc_type,
-                                                                oracle_list=self.oracle_list,
-                                                                ret_results=self.ret_results,
-                                                                model=self.model,
-                                                                dataset=self.dataset)
-
-        elif self.analysis_type == 'retrieval_doc_num':
-            ret_doc_keys_list, docs_list = get_top_k_docs(top_k=self.top_k,
-                                                          oracle_list=self.oracle_list,
-                                                          ret_results=self.ret_results,
-                                                          dataset=self.dataset)
-
-        else:
-            raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
-
-        prompts = generate_prompts(questions=[qs['question'] for qs in self.qs_list],
-                                   ret_docs_list=docs_list,
-                                   prompt_type=self.prompt_type,
-                                   dataset=self.dataset,
-                                   model_name=self.model,
-                                   doc_max_length=self.doc_max_length)
+        _, prompts = self.gene_prompts()
         if self.model.startswith('gpt'):
             print(prompts[0][0])
             print(prompts[0][1])
         else:
             print(prompts[0])
 
+    def calc_prompt_tokens(self):
+        self.gene_prompts()
+
     def gene_response(self):
         if os.path.exists(args.save_file):
             print(f'generation results exists for {args.save_file}')
             return
-        if self.analysis_type == 'retrieval_recall':
-            ret_doc_keys_list, docs_list = control_ret_acc(ret_acc=args.ret_acc,
-                                                           oracle_list=self.oracle_list,
-                                                           ret_results=self.ret_results,
-                                                           dataset=self.dataset)
-        elif self.analysis_type == 'retrieval_doc_type':
-            ret_doc_keys_list, docs_list = perturb_ret_doc_type(perturb_doc_type=self.ret_doc_type,
-                                                                oracle_list=self.oracle_list,
-                                                                ret_results=self.ret_results,
-                                                                model=self.model,
-                                                                dataset=self.dataset)
-        elif self.analysis_type == 'retrieval_doc_num':
-            ret_doc_keys_list, docs_list = get_top_k_docs(top_k=self.top_k,
-                                                          oracle_list=self.oracle_list,
-                                                          ret_results=self.ret_results,
-                                                          dataset=self.dataset)
 
-        else:
-            raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
-
-
-        prompts = generate_prompts(questions=[qs['question'] for qs in self.qs_list],
-                                   ret_docs_list=docs_list,
-                                   prompt_type=self.prompt_type,
-                                   dataset=self.dataset,
-                                   model_name=self.model,
-                                   doc_max_length=self.doc_max_length)
+        ret_doc_keys_list, prompts = self.gene_prompts()
 
         if self.model.startswith('llama') or self.model.startswith('codellama'):
             outputs_list, logprobs_list = llama(prompts=prompts, model_name=self.model, max_new_tokens=self.max_tokens, temperature=self.temperature, n=self.n, stop=self.stop)
@@ -197,17 +179,11 @@ if __name__ == '__main__':
     # gene_conala.gene_response()
 
     in_program_call = None
-    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset hotpotQA --retriever BM25 --analysis_type retrieval_doc_type --ret_doc_type none'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset NQ --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type irrelevant_dummy'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type none'
     args = generate_config(in_program_call)
     generator = Generator(args)
     # generator.test_prompt()
+    # generator.calc_prompt_tokens()
     gene_results = generator.gene_response()
-    # print(gene_results[0]['oracle_output'])
-    # print('??')
-    # print(gene_results[0]['outputs'][0])
-
-    # result = json.load(open(args.save_file, 'r'))[1]
-    # ret_docs = WikiCorpusLoader().get_docs([result['ret_docs']], 'NQ')[0]
-    # print(NQ_TriviaQA_prompt.prompt_0shot(ret_docs, result['question'], model=args.model))
 
