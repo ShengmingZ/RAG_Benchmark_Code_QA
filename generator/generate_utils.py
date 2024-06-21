@@ -200,11 +200,11 @@ def generate_config(in_program_call=None):
 
     parser.add_argument('--retriever', type=str, default='best', choices=['best', 'BM25', 'contriever', 'miniLM', 'openai-embedding'])
 
-    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_num'])
+    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection'])
     # each of the following parameter corresponds to one analysis, when choose one, the default value of the other parameters are the default value of RAG
     parser.add_argument('--ret_acc', type=float, default=1)     # top_k:len(oracle_docs), prompt_type:3shots, ret_doc_type:oracle/distracting
     parser.add_argument('--ret_doc_type', type=str, default='retrieved', choices=['oracle', 'retrieved', 'distracting', 'random', 'irrelevant_dummy', 'irrelevant_diff', 'none'])
-    parser.add_argument('--top_k', type=int, default=5)
+    parser.add_argument('--doc_selection_type', type=str, default='top_oracle', choices=['rerank_cohere', 'rerank_gpt', 'simi_score_0.05', 'simi_score_0.1', 'simi_score_0.2', 'top_oracle', 'top_1', 'top3', 'top_5', 'top_7', 'top_9', 'top_10', 'top_15', 'top_20'])
     parser.add_argument('--doc_max_length', type=int, default=1000)
     parser.add_argument('--prompt_type', type=str, default='0shot', choices=['3shots', '0shot', 'instruct', 'CoT'])
 
@@ -363,6 +363,66 @@ def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, model, data
     return doc_keys_list, docs
 
 
+def select_by_simi_score(ret_results, doc_selection_type):
+    try:
+        top_p = float(doc_selection_type.replace('simi_score_', ''))
+    except:
+        raise ValueError('invalid selection type format {}'.format(doc_selection_type))
+    # type 1: use global max min
+    # simi_score_min, simi_score_max = 0, 0
+    # for qs_id in ret_results.keys():
+    #     for item in ret_results[qs_id]:
+    #         simi_score_max = item['score'] if simi_score_max < item['score'] else simi_score_max
+    #         simi_score_min = item['score'] if simi_score_min > item['score'] else simi_score_min
+    # threshold = (simi_score_max - simi_score_min) * (1 - top_p) + simi_score_min
+    # count_ret_docs_above = []
+    # for qs_id in ret_results:
+    #     count_ret_docs_above.append(len([item for item in ret_results[qs_id] if item['score'] > threshold]))
+    # print(count_ret_docs_above)
+    # avg_ret_docs_above = sum(count_ret_docs_above) / len(ret_results)
+    # print(avg_ret_docs_above)
+    # type 2: use local max min
+    count_ret_docs_above = []
+    for qs_id in ret_results.keys():
+        scores_list = [item['score'] for item in ret_results[qs_id]]
+        simi_score_min, simi_score_max = min(scores_list), max(scores_list)
+        threshold = (simi_score_max - simi_score_min) * (1 - top_p) + simi_score_min
+        count_ret_docs_above.append(len([item for item in ret_results[qs_id] if item['score'] > threshold]))
+    print(count_ret_docs_above)
+    avg_ret_docs_above = sum(count_ret_docs_above) / len(ret_results)
+    print('{:.3f}'.format(avg_ret_docs_above))
+
+def select_by_rerank(ret_results, doc_selection_type):
+    try:
+        rerank_method = float(doc_selection_type.split('_')[1])
+        assert rerank_method in ['cohere', 'gpt']
+    except:
+        raise ValueError('invalid selection type format {}'.format(doc_selection_type))
+
+
+def select_retrieval_docs(ret_results, doc_selection_type):
+    if 'top' in doc_selection_type:
+        try:
+            top_k = int(doc_selection_type.split('_')[1])
+        except:
+            raise ValueError('invalid selection type format {}'.format(doc_selection_type))
+        ret_doc_keys_list = []
+        for qs_id in ret_results.keys():
+            ret_doc_keys_list.append([item['doc_key'] for item in ret_results[qs_id][:top_k]])
+    elif 'simi_score' in doc_selection_type:
+        ret_doc_keys_list = select_by_simi_score(ret_results, doc_selection_type)
+    elif 'rerank' in doc_selection_type:
+        ret_doc_keys_list = select_by_rerank(ret_results, doc_selection_type)
+    else:
+        raise ValueError('not supported doc_selection_type {}'.format(doc_selection_type))
+
+    if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+        docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list, dataset, num_procs=8)
+    else:
+        docs_list = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in ret_doc_keys_list]
+    return docs_list
+
+
 def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name, doc_max_length):
     if len(ret_docs_list) == 0:     # no retrieval
         if dataset in ['NQ', 'TriviaQA']:
@@ -459,28 +519,47 @@ if __name__ == "__main__":
     """
     test control ret_acc
     """
-    dataset = 'TriviaQA'
-    loader = NQTriviaQAUtils(dataset)
-    # loader = DS1000Loader()
-    # loader = HotpotQAUtils()
-    oracle_list = loader.load_oracle_list()
-    qs_list = loader.load_qs_list()
+    # dataset = 'TriviaQA'
+    # loader = NQTriviaQAUtils(dataset)
+    # # loader = DS1000Loader()
+    # # loader = HotpotQAUtils()
+    # oracle_list = loader.load_oracle_list()
+    # qs_list = loader.load_qs_list()
+    # ret_results = get_ret_results(dataset=dataset, retriever='openai-embedding')
+    # perturb_oracle_keys, docs = control_ret_acc(ret_acc=0.2, oracle_list=oracle_list[:200], ret_results=ret_results, dataset=dataset)
+    # # loader.eval_sp(preds=perturb_oracle_keys, golds=[oracle['oracle_docs'] for oracle in oracle_list[:200]], top_k=[2])
+    # # golds = [oracle['oracle_docs'] for oracle in oracle_list]
+    # # preds = perturb_oracle_keys
+    # # recall_n = 0
+    # # for gold, pred in zip(golds, preds):
+    # #     cur_hit = sum([x in pred for x in gold])
+    # #     recall_n += cur_hit / len(gold)
+    # # recall_n /= len(preds)
+    # # print(recall_n)
+    # wrong_count = 0
+    # for i, doc_keys in enumerate(perturb_oracle_keys):
+    #     doc = docs[i][0]
+    #     if not loader.if_has_answer(doc=doc, qs_id=oracle_list[i]['qs_id']):
+    #         wrong_count += 1
+    #         # print(f'wrong oracle for doc {qs_list[i]}')
+    # acc = 1 - (wrong_count / len(perturb_oracle_keys))
+    # print(acc)
+
+    """
+    try select by simi socre
+    """
+    dataset = 'pandas_numpy_eval'
     ret_results = get_ret_results(dataset=dataset, retriever='openai-embedding')
-    perturb_oracle_keys, docs = control_ret_acc(ret_acc=0.2, oracle_list=oracle_list[:200], ret_results=ret_results, dataset=dataset)
-    # loader.eval_sp(preds=perturb_oracle_keys, golds=[oracle['oracle_docs'] for oracle in oracle_list[:200]], top_k=[2])
-    # golds = [oracle['oracle_docs'] for oracle in oracle_list]
-    # preds = perturb_oracle_keys
-    # recall_n = 0
-    # for gold, pred in zip(golds, preds):
-    #     cur_hit = sum([x in pred for x in gold])
-    #     recall_n += cur_hit / len(gold)
-    # recall_n /= len(preds)
-    # print(recall_n)
-    wrong_count = 0
-    for i, doc_keys in enumerate(perturb_oracle_keys):
-        doc = docs[i][0]
-        if not loader.if_has_answer(doc=doc, qs_id=oracle_list[i]['qs_id']):
-            wrong_count += 1
-            # print(f'wrong oracle for doc {qs_list[i]}')
-    acc = 1 - (wrong_count / len(perturb_oracle_keys))
-    print(acc)
+    # select_by_simi_score(ret_results=ret_results, doc_selection_type='simi_score_0.05')
+    # select_by_simi_score(ret_results=ret_results, doc_selection_type='simi_score_0.1')
+    # select_by_simi_score(ret_results=ret_results, doc_selection_type='simi_score_0.2')
+    # select_by_simi_score(ret_results=ret_results, doc_selection_type='simi_score_0.3')
+    select_by_simi_score(ret_results=ret_results, doc_selection_type='simi_score_0.5')
+    """         0.05    0.1     0.2     0.3     0.5
+    conala:     1.5     2.1     3.9     6.6     17.9
+    DS1000:     1.4     2       3.5     6.2     17.4
+    pde:        1.4     1.9     3.7     6.8     19.1
+    NQ:         1.4     1.9     3.4     6       16.3
+    Tri:        1.3     1.8     3.1     5.3     14.7
+    hotpot:     1.2     1.4     2.2     3.4     8.6
+    """
