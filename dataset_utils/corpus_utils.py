@@ -202,7 +202,7 @@ class WikiCorpusLoader:
         #                         doc_keys_placeholder.remove(item)
         #                         if len(doc_keys_placeholder) == 0: return docs
         #                         break
-        for data in tqdm(self.load_wiki_corpus_iter('hotpotQA'), total=5198460):
+        for data in tqdm(self.load_wiki_corpus_iter('hotpotQA'), total=5233235):
             target_key = unicodedata.normalize('NFD', data['id'])
             matched_doc_keys = []
             for item in doc_keys_list_placeholder:
