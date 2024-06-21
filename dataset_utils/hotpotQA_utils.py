@@ -189,7 +189,7 @@ class HotpotQAUtils:
         metrics = {'em': 0, 'f1': 0, 'prec': 0, 'recall': 0}
         for pred, oracle in zip(pred_list, oracle_list):
             assert pred['qs_id'] == oracle['qs_id']
-            _update_answer(metrics, pred['output'], oracle['output'])
+            _update_answer(metrics, pred['output'], oracle['answer'])
         N = len(oracle_list)
         for k in metrics.keys():
             metrics[k] /= N

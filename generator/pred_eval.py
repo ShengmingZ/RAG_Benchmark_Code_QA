@@ -224,12 +224,11 @@ def pred_eval(args):
 
 if __name__ == '__main__':
     in_program_call = None
-    # in_program_call = '--model codellama-13b-instruct --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    # in_program_call = '--model llama2-13b-chat --dataset hotpotQA --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     # in_program_call = '--model llama2-13b-chat --dataset NQ --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
     args = generate_config(in_program_call)
 
-    passk = pred_eval(args)
-    # print(passk)
+    scores = pred_eval(args)
 
     """
     test process outputs for DS1000
