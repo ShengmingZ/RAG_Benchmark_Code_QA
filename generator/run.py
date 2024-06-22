@@ -8,7 +8,7 @@ def config():
     parser.add_argument('--temperature', type=float)
     parser.add_argument('--dataset', type=str, choices=['conala', 'DS1000', 'pandas_numpy_eval', 'NQ', 'TriviaQA', 'hotpotQA'])
     parser.add_argument('--retriever', type=str, default='best', choices=['best', 'BM25', 'contriever', 'miniLM', 'openai-embedding'])
-    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_num'])
+    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection'])
     parser.add_argument('--n', type=int, default=1)
     args = parser.parse_args()
     return args
@@ -32,9 +32,10 @@ elif args.analysis_type == "retrieval_doc_type":
         subprocess.check_output(cmd, shell=True)
         print(f'done ret_doc_type {ret_doc_type}')
 
-elif args.analysis_type == "rertieval_doc_num":
-    top_k_list = [1, 3, 5, 10, 20]    # top_k vs truncate
-    for top_k in top_k_list:
-        cmd = f'python generator/generate.py --model {args.model} --temperature {args.temperature} --dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --top_k {top_k}'
+elif args.analysis_type == "retrieval_doc_selection":
+    if args.dataset in ['NQ', 'TriviaQA', 'hotpotQA']: doc_selection_type_list = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
+    else: doc_selection_type_list = ['top_1', 'top_3', 'top_5', 'top_7', 'top_9']
+    for doc_selection_type in doc_selection_type_list:
+        cmd = f'python generator/generate.py --model {args.model} --temperature {args.temperature} --dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --doc_selection_type {doc_selection_type}'
         subprocess.check_output(cmd, shell=True)
-        print(f'done top_k {top_k}')
+        print(f'done doc_selection_type {doc_selection_type}')

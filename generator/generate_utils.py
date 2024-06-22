@@ -204,7 +204,7 @@ def generate_config(in_program_call=None):
     # each of the following parameter corresponds to one analysis, when choose one, the default value of the other parameters are the default value of RAG
     parser.add_argument('--ret_acc', type=float, default=1)     # top_k:len(oracle_docs), prompt_type:3shots, ret_doc_type:oracle/distracting
     parser.add_argument('--ret_doc_type', type=str, default='retrieved', choices=['oracle', 'retrieved', 'distracting', 'random', 'irrelevant_dummy', 'irrelevant_diff', 'none'])
-    parser.add_argument('--doc_selection_type', type=str, default='top_oracle', choices=['rerank_cohere', 'rerank_gpt', 'simi_score_0.05', 'simi_score_0.1', 'simi_score_0.2', 'top_oracle', 'top_1', 'top3', 'top_5', 'top_7', 'top_9', 'top_10', 'top_15', 'top_20'])
+    parser.add_argument('--doc_selection_type', type=str, default='top_oracle', choices=['rerank_cohere', 'rerank_gpt', 'simi_score_0.05', 'simi_score_0.1', 'simi_score_0.2', 'simi_score_0.3', 'top_oracle', 'top_1', 'top3', 'top_5', 'top_7', 'top_9', 'top_10', 'top_15', 'top_20'])
     parser.add_argument('--doc_max_length', type=int, default=1000)
     parser.add_argument('--prompt_type', type=str, default='0shot', choices=['3shots', '0shot', 'instruct', 'CoT'])
 
@@ -363,7 +363,7 @@ def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, model, data
     return doc_keys_list, docs
 
 
-def select_by_simi_score(ret_results, doc_selection_type):
+def select_by_simi_score(ret_results, doc_selection_type, dataset):
     try:
         top_p = float(doc_selection_type.replace('simi_score_', ''))
     except:
@@ -382,15 +382,20 @@ def select_by_simi_score(ret_results, doc_selection_type):
     # avg_ret_docs_above = sum(count_ret_docs_above) / len(ret_results)
     # print(avg_ret_docs_above)
     # type 2: use local max min
+    if dataset in ['NQ', 'TriviaQA', 'hotpointQA']: max_doc_num = 10
+    else: max_doc_num = 5
     count_ret_docs_above = []
+    ret_doc_keys_list = []
     for qs_id in ret_results.keys():
         scores_list = [item['score'] for item in ret_results[qs_id]]
         simi_score_min, simi_score_max = min(scores_list), max(scores_list)
         threshold = (simi_score_max - simi_score_min) * (1 - top_p) + simi_score_min
-        count_ret_docs_above.append(len([item for item in ret_results[qs_id] if item['score'] > threshold]))
-    print(count_ret_docs_above)
-    avg_ret_docs_above = sum(count_ret_docs_above) / len(ret_results)
-    print('{:.3f}'.format(avg_ret_docs_above))
+        count_ret_docs_above.append(len([item for item in ret_results[qs_id] if item['score'] > threshold][:max_doc_num]))
+        ret_doc_keys_list.append([item['doc_key'] for item in ret_results[qs_id] if item['score'] > threshold][:max_doc_num])
+    # print(count_ret_docs_above)
+    # avg_ret_docs_above = sum(count_ret_docs_above) / len(ret_results)
+    # print('{:.3f}'.format(avg_ret_docs_above))
+    return ret_doc_keys_list
 
 def select_by_rerank(ret_results, doc_selection_type):
     try:
@@ -400,7 +405,7 @@ def select_by_rerank(ret_results, doc_selection_type):
         raise ValueError('invalid selection type format {}'.format(doc_selection_type))
 
 
-def select_retrieval_docs(ret_results, doc_selection_type):
+def select_retrieval_docs(ret_results, doc_selection_type, dataset):
     if 'top' in doc_selection_type:
         try:
             top_k = int(doc_selection_type.split('_')[1])
@@ -548,13 +553,16 @@ if __name__ == "__main__":
     """
     try select by simi socre
     """
-    dataset = 'pandas_numpy_eval'
-    ret_results = get_ret_results(dataset=dataset, retriever='openai-embedding')
-    # select_by_simi_score(ret_results=ret_results, doc_selection_type='simi_score_0.05')
-    # select_by_simi_score(ret_results=ret_results, doc_selection_type='simi_score_0.1')
-    # select_by_simi_score(ret_results=ret_results, doc_selection_type='simi_score_0.2')
-    # select_by_simi_score(ret_results=ret_results, doc_selection_type='simi_score_0.3')
-    select_by_simi_score(ret_results=ret_results, doc_selection_type='simi_score_0.5')
+    # dataset = 'hotpotQA'
+    # ret_results = get_ret_results(dataset=dataset, retriever='openai-embedding')
+    # # select_by_simi_score(ret_results=ret_results, doc_selection_type='simi_score_0.05')
+    # # select_by_simi_score(ret_results=ret_results, doc_selection_type='simi_score_0.1')
+    # # select_by_simi_score(ret_results=ret_results, doc_selection_type='simi_score_0.2')
+    # # select_by_simi_score(ret_results=ret_results, doc_selection_type='simi_score_0.3')
+    # ret_doc_keys_list = select_by_simi_score(ret_results=ret_results, doc_selection_type='simi_score_0.3')
+    # loader = HotpotQAUtils()
+    # oracle_list = loader.load_oracle_list()
+    # scores = loader.eval_sp(preds=ret_doc_keys_list, golds=[oracle['oracle_docs'] for oracle in oracle_list], top_k=[5])
     """         0.05    0.1     0.2     0.3     0.5
     conala:     1.5     2.1     3.9     6.6     17.9
     DS1000:     1.4     2       3.5     6.2     17.4
@@ -563,3 +571,15 @@ if __name__ == "__main__":
     Tri:        1.3     1.8     3.1     5.3     14.7
     hotpot:     1.2     1.4     2.2     3.4     8.6
     """
+
+    """
+    count python avg doc length
+    """
+    python_docs = [item['doc'] for item in PythonDocsLoader().load_api_docs()]
+    doc_lengths = get_docs_tokens(python_docs, model='gpt-3.5-turbo')
+    avg_length = 0
+    for length in doc_lengths:
+        # avg_length += length if length <= 1000 else 1000
+        avg_length += length
+    avg_length = avg_length / len(doc_lengths)
+    print(avg_length)
