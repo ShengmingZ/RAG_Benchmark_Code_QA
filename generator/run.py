@@ -18,7 +18,7 @@ args = config()
 
 # ret acc
 if args.analysis_type == "retrieval_recall":
-    ret_acc_list = [1, 0.8, 0.6, 0.4, 0.2, 0]
+    ret_acc_list = [1.0, 0.8, 0.6, 0.4, 0.2, 0.0]
     # ret_acc_list = [1]
     for ret_acc in ret_acc_list:
         cmd = f'python generator/generate.py --model {args.model} --temperature {args.temperature} --dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --ret_acc {ret_acc}'

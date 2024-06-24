@@ -360,7 +360,7 @@ class NQTriviaQAUtils:
                 num_same = sum(common.values())
                 precision = num_same / len(pred_tokens)
                 recall = num_same / len(answer_tokens)
-                if recall > max_recall:
+                if recall > max_recall: # use answer with max recall to calc f1, prec, recall
                     max_recall = recall
                     max_precision = precision
                     max_f1 = 2 * precision * recall / (precision + recall)

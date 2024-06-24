@@ -18,7 +18,7 @@ args = config()
 
 # ret acc
 if args.analysis_type == "retrieval_recall":
-    ret_acc_list = [1, 0.8, 0.6, 0.4, 0.2, 0]
+    ret_acc_list = [1.0, 0.8, 0.6, 0.4, 0.2, 0.0]
     # ret_acc_list = [1]
     result_list = list()
     for ret_acc in ret_acc_list:
