@@ -356,6 +356,7 @@ class NQTriviaQAUtils:
                 nor_pred, nor_answer = normalize_answer(pred), normalize_answer(answer)
                 if nor_pred == nor_answer: em = 1
                 pred_tokens, answer_tokens = nor_pred.split(), nor_answer.split()
+                if len(answer_tokens) == 0: continue
                 common = Counter(pred_tokens) & Counter(answer_tokens)
                 num_same = sum(common.values())
                 precision = num_same / len(pred_tokens)
