@@ -1,5 +1,7 @@
 import json
 import os
+from collections import Counter
+
 import ijson
 import random
 import platform
@@ -346,18 +348,30 @@ class NQTriviaQAUtils:
         :param preds:
         :return:
         """
-        exact_match = 0
+        metrics = {'em': 0, 'f1': 0, 'prec': 0, 'recall': 0}
         for pred, answers in zip(preds, answers_list):
-            is_correct = False
+            em = 0
+            max_precision, max_recall, max_f1 = 0, 0, 0
             for answer in answers:
-                # if normalize_answer(pred) == normalize_answer(answer):
-                if normalize_answer(answer) in normalize_answer(pred):
-                    is_correct = True
-            if is_correct: exact_match += 1
-        exact_match_rate = exact_match / len(preds)
-        print(exact_match_rate)
-
-        return exact_match_rate
+                nor_pred, nor_answer = normalize_answer(pred), normalize_answer(answer)
+                if nor_pred == nor_answer: em = 1
+                pred_tokens, answer_tokens = nor_pred.split(), nor_answer.split()
+                common = Counter(pred_tokens) & Counter(answer_tokens)
+                num_same = sum(common.values())
+                precision = num_same / len(pred_tokens)
+                recall = num_same / len(answer_tokens)
+                if recall > max_recall:
+                    max_recall = recall
+                    max_precision = precision
+                    max_f1 = 2 * precision * recall / (precision + recall)
+            metrics['em'] += em
+            metrics['f1'] += max_f1
+            metrics['prec'] += max_precision
+            metrics['recall'] += max_recall
+        for key in metrics.keys():
+            metrics[key] /= len(preds)
+        print(metrics)
+        return metrics
 
 
 if __name__ == '__main__':

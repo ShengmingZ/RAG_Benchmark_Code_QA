@@ -243,7 +243,13 @@ qa_ret_recall_gpt_n_1 = {
 
 qa_ret_doc_type_llama_n_1 = {
     'NQ': {
-
+        "oracle": 0.7335,
+        "retrieved": 0.438,
+        "distracting": 0.219,
+        "random": 0.215,
+        "irrelevant_dummy": 0.203,
+        "irrelevant_diff": 0.2985,
+        "none": 0.4085,
     },
     "TriviaQA": {
 
@@ -264,7 +270,13 @@ qa_ret_doc_type_gpt_n_1 = {
         "none": 0.508,
     },
     "TriviaQA": {
-
+        "oracle": 0.894,
+        "retrieved": 0.739,
+        "distracting": 0.526,
+        "random": 0.7735,
+        "irrelevant_dummy": 0.7865,
+        "irrelevant_diff": 0.7785,
+        "none": 0.8675,
     },
     "hotpotQA": {
 

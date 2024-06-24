@@ -193,7 +193,7 @@ class HotpotQAUtils:
         N = len(oracle_list)
         for k in metrics.keys():
             metrics[k] /= N
-        metrics = dict(em=metrics['em'], f1=metrics['f1'])
+        # metrics = dict(em=metrics['em'], f1=metrics['f1'])
         print(metrics)
         return metrics
 

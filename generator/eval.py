@@ -41,4 +41,4 @@ elif args.analysis_type == "retrieval_doc_type":
         passk = output.decode().split('\n')[-2]
         result_list.append(passk)
     for ret_doc_type, result in zip(ret_doc_type_list, result_list):
-        print(f'{ret_doc_type}: {result},')
+        print(f'"{ret_doc_type}": {result},')
