@@ -304,16 +304,16 @@ def control_ret_acc(ret_acc, oracle_list, ret_results, dataset):
     return oracle_docs_list, docs
 
 
-def get_top_k_docs(oracle_list, ret_results, top_k, dataset):
-    ret_doc_keys_list = []
-    for oracle in oracle_list:
-        ret_doc_keys = [item['doc_key'] for item in ret_results[oracle['qs_id']]]
-        ret_doc_keys_list.append(ret_doc_keys[:top_k])
-    if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
-        docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list, dataset, num_procs=8)
-    else:
-        docs_list = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in ret_doc_keys_list]
-    return ret_doc_keys_list, docs_list
+# def get_top_k_docs(oracle_list, ret_results, top_k, dataset):
+#     ret_doc_keys_list = []
+#     for oracle in oracle_list:
+#         ret_doc_keys = [item['doc_key'] for item in ret_results[oracle['qs_id']]]
+#         ret_doc_keys_list.append(ret_doc_keys[:top_k])
+#     if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+#         docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list, dataset, num_procs=8)
+#     else:
+#         docs_list = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in ret_doc_keys_list]
+#     return ret_doc_keys_list, docs_list
 
 
 

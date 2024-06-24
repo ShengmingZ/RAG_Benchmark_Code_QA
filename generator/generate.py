@@ -18,7 +18,7 @@ from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
 from dataset_utils.corpus_utils import PythonDocsLoader, WikiCorpusLoader
-from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs, approximate_token, perturb_ret_doc_type, get_top_k_docs
+from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs, approximate_token, perturb_ret_doc_type, select_retrieval_docs
 from dataset_utils.DS1000_utils import DS1000Loader
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from dataset_utils.hotpotQA_utils import HotpotQAUtils
@@ -40,7 +40,7 @@ class Generator:
         self.analysis_type = args.analysis_type
         self.ret_acc = args.ret_acc
         self.ret_doc_type = args.ret_doc_type
-        self.top_k = args.top_k
+        self.doc_selection_type = args.doc_max_length
         self.prompt_type = args.prompt_type
         self.doc_max_length = args.doc_max_length
         # load docs
@@ -84,11 +84,10 @@ class Generator:
                                                                 ret_results=self.ret_results,
                                                                 model=self.model,
                                                                 dataset=self.dataset)
-        elif self.analysis_type == 'retrieval_doc_num':
-            ret_doc_keys_list, docs_list = get_top_k_docs(top_k=self.top_k,
-                                                          oracle_list=self.oracle_list,
-                                                          ret_results=self.ret_results,
-                                                          dataset=self.dataset)
+        elif self.analysis_type == 'retrieval_doc_selection':
+            ret_doc_keys_list, docs_list = select_retrieval_docs(ret_results=self.ret_results,
+                                                                 doc_selection_type=self.doc_selection_type,
+                                                                 dataset=self.dataset)
 
         else:
             raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
