@@ -245,7 +245,13 @@ qa_ret_doc_type_llama_n_1 = {
 
 qa_ret_doc_type_gpt_n_1 = {
     'NQ': {
-
+        "oracle": 0.7705,
+        "retrieved": 0.4345,
+        "distracting": 0.1665,
+        "random": 0.282,
+        "irrelevant_dummy": 0.2315,
+        "irrelevant_diff": 0.2425,
+        "none": 0.508,
     },
     "TriviaQA": {
 
