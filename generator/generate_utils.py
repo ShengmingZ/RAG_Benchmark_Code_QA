@@ -346,7 +346,7 @@ def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, model, data
                 doc_keys_list.append(get_distracting_docs(ret_result=ret_results[oracle['qs_id']], oracle_docs=oracle['oracle_docs'], dataset=dataset, k=len(oracle['oracle_docs'])))
         elif perturb_doc_type == 'random':
             doc_keys_list = []
-            if dataset in ['NQ', 'TriviaQA']: corpus_id_list = WikiCorpusLoader().load_wiki_id(dataset)
+            if dataset in ['NQ', 'TriviaQA', 'hotpotQA']: corpus_id_list = WikiCorpusLoader().load_wiki_id(dataset)
             else: corpus_id_list = PythonDocsLoader().load_api_signs()
             for oracle in oracle_list:
                 doc_keys_list.append(random.sample(corpus_id_list, k=len(oracle['oracle_docs'])))
