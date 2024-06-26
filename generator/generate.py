@@ -180,11 +180,11 @@ if __name__ == '__main__':
     in_program_call = None
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset hotpotQA --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type irrelevant_diff'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type none'
-    in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type top_5'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type top_5'
     args = generate_config(in_program_call)
     generator = Generator(args)
-    generator.test_prompt()
+    # generator.test_prompt()
     # generator.calc_prompt_tokens()
 
-    # gene_results = generator.gene_response()
+    gene_results = generator.gene_response()
 
