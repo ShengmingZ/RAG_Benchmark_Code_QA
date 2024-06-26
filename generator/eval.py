@@ -42,3 +42,16 @@ elif args.analysis_type == "retrieval_doc_type":
         result_list.append(passk)
     for ret_doc_type, result in zip(ret_doc_type_list, result_list):
         print(f'"{ret_doc_type}": {result},')
+
+elif args.analysis_type == "retrieval_doc_selection":
+    if args.dataset in ['NQ', 'TriviaQA', 'hotpotQA']: doc_selection_type_list = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
+    else: doc_selection_type_list = ['top_1', 'top_3', 'top_5', 'top_7', 'top_9']
+    result_list = list()
+    for doc_selection_type in doc_selection_type_list:
+        cmd = f'python generator/pred_eval.py --model {args.model} --temperature {args.temperature} --dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --doc_selection_type {doc_selection_type}'
+        proc = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (output, error) = proc.communicate()
+        passk = output.decode().split('\n')[-2]
+        result_list.append(passk)
+    for ret_doc_type, result in zip(doc_selection_type_list, result_list):
+        print(f'"{doc_selection_type}": {result},')

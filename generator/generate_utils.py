@@ -147,7 +147,7 @@ def get_docs_tokens(docs, model):
     return docs_tokens
 
 
-def get_irrelevant_docs(irrelevant_type, oracle_doc_keys, model, dataset):
+def get_irrelevant_docs(irrelevant_type, oracle_docs, model, dataset):
     """
     get irrelevant docs of 2 types, keep doc length == oracle doc length
     :param irrelevant_type:
@@ -157,10 +157,7 @@ def get_irrelevant_docs(irrelevant_type, oracle_doc_keys, model, dataset):
     :return:
     """
     assert irrelevant_type in ['dummy', 'diff']
-    # get doc lengths
-    if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: docs = PythonDocsLoader().get_docs(oracle_doc_keys)
-    else: docs = WikiCorpusLoader().get_docs([oracle_doc_keys], dataset, num_procs=1)[0]
-    doc_lengths = get_docs_tokens(docs, model)
+    doc_lengths = get_docs_tokens(oracle_docs, model)   # get doc lengths
 
     if irrelevant_type == 'dummy':
         dummy_string = 'The wiggly fluff went plop while the jibber-jabber bumbled and tumbled. Fizzle-flop danced around the wibbly-wobbly doodle, and snicker-snack bounced happily. Doodle-doo twirled and swirled in the zigzag zoom, and snuggle-bug snuggled close. Wobble-wobble wandered through the dilly-dally, giggling and jiggling all the while. Squiggle-squabble and waddle-waddle wobbled along, playing in the silly-sally world of random wozzle. The snickety-snack skipped and hopped, while the flibber-jabber giggled and squiggled. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Bloop bloop bloop, gloopy gloopy gloopy. Wobble wobble wobble, zigzag zigzag zigzag. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quibble quibble quibble, jibber jabber jibber. Nulla facilisi. Snick snick snick, jibble jibble jibble.'
@@ -204,7 +201,7 @@ def generate_config(in_program_call=None):
     # each of the following parameter corresponds to one analysis, when choose one, the default value of the other parameters are the default value of RAG
     parser.add_argument('--ret_acc', type=float, default=1)     # top_k:len(oracle_docs), prompt_type:3shots, ret_doc_type:oracle/distracting
     parser.add_argument('--ret_doc_type', type=str, default='retrieved', choices=['oracle', 'retrieved', 'distracting', 'random', 'irrelevant_dummy', 'irrelevant_diff', 'none'])
-    parser.add_argument('--doc_selection_type', type=str, default='top_oracle', choices=['rerank_cohere', 'rerank_gpt', 'simi_score_0.05', 'simi_score_0.1', 'simi_score_0.2', 'simi_score_0.3', 'top_oracle', 'top_1', 'top3', 'top_5', 'top_7', 'top_9', 'top_10', 'top_15', 'top_20'])
+    parser.add_argument('--doc_selection_type', type=str, default='top_oracle', choices=['simi_score_0.05', 'simi_score_0.1', 'simi_score_0.2', 'simi_score_0.3', 'top_oracle', 'top_1', 'top3', 'top_5', 'top_7', 'top_9', 'top_10', 'top_15', 'top_20'])
     parser.add_argument('--doc_max_length', type=int, default=1000)
     parser.add_argument('--prompt_type', type=str, default='0shot', choices=['3shots', '0shot', 'instruct', 'CoT'])
 
@@ -217,6 +214,10 @@ def generate_config(in_program_call=None):
             args.save_file += f'{args.ret_acc}.json'
         elif args.analysis_type == 'retrieval_doc_type':
             args.save_file += f'{args.ret_doc_type}.json'
+        elif args.analysis_type == 'retrieval_doc_selection':
+            args.save_file += f'{args.doc_selection_type}.json'
+        else:
+            raise ValueError(f'Unknown analysis type: {args.analysis_type}')
         args.save_file = os.path.join(root_path, args.save_file)
 
     print(json.dumps(vars(args), indent=2))
@@ -329,9 +330,14 @@ def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, model, data
             oracle_list[idx]['oracle_docs'] = [oracle_list[idx]['oracle_doc']]
 
     if perturb_doc_type in ['irrelevant_diff', 'irrelevant_dummy']:
-        docs, doc_keys_list = [], []
-        for oracle in oracle_list:
-            docs.append(get_irrelevant_docs(irrelevant_type=perturb_doc_type.split('_')[1], oracle_doc_keys=oracle['oracle_docs'], model=model, dataset=dataset))
+        oracle_doc_keys_list = [oracle['oracle_docs'] for oracle in oracle_list]    # get oracle docs list
+        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+            oracle_docs_list = WikiCorpusLoader().get_docs(oracle_doc_keys_list, dataset, num_procs=8)
+        else:
+            oracle_docs_list = [PythonDocsLoader().get_docs(oracle_docs) for oracle_docs in oracle_doc_keys_list]
+        docs_list, doc_keys_list = [], []   # required docs and doc keys
+        for oracle_docs in oracle_docs_list:
+            docs_list.append(get_irrelevant_docs(irrelevant_type=perturb_doc_type.split('_')[1], oracle_docs=oracle_docs, model=model, dataset=dataset))
     else:
         if perturb_doc_type == 'oracle':
             doc_keys_list = [oracle['oracle_docs'] for oracle in oracle_list]
@@ -356,11 +362,11 @@ def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, model, data
             raise ValueError('not supported perturb_doc_type {}'.format(perturb_doc_type))
 
         if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
-            docs = WikiCorpusLoader().get_docs(doc_keys_list, dataset, num_procs=8)
+            docs_list = WikiCorpusLoader().get_docs(doc_keys_list, dataset, num_procs=8)
         else:
-            docs = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in doc_keys_list]
+            docs_list = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in doc_keys_list]
 
-    return doc_keys_list, docs
+    return doc_keys_list, docs_list
 
 
 def select_by_simi_score(ret_results, doc_selection_type, dataset):
@@ -415,9 +421,9 @@ def select_retrieval_docs(ret_results, doc_selection_type, dataset):
         for qs_id in ret_results.keys():
             ret_doc_keys_list.append([item['doc_key'] for item in ret_results[qs_id][:top_k]])
     elif 'simi_score' in doc_selection_type:
-        ret_doc_keys_list = select_by_simi_score(ret_results, doc_selection_type)
-    elif 'rerank' in doc_selection_type:
-        ret_doc_keys_list = select_by_rerank(ret_results, doc_selection_type)
+        ret_doc_keys_list = select_by_simi_score(ret_results=ret_results, doc_selection_type=doc_selection_type, dataset=dataset)
+    # elif 'rerank' in doc_selection_type:
+    #     ret_doc_keys_list = select_by_rerank(ret_results, doc_selection_type)
     else:
         raise ValueError('not supported doc_selection_type {}'.format(doc_selection_type))
 
@@ -425,7 +431,7 @@ def select_retrieval_docs(ret_results, doc_selection_type, dataset):
         docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list, dataset, num_procs=8)
     else:
         docs_list = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in ret_doc_keys_list]
-    return docs_list
+    return ret_doc_keys_list, docs_list
 
 
 def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name, doc_max_length):
