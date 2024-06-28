@@ -50,8 +50,8 @@ you should first give some explanation why, and then give the exactly answer yes
 def rerank(ret_args, rerank_type):
     dataset = ret_args.dataset
     rerank_ret_results_file = ret_args.ret_result.replace('.json', '_rerank_cohere.json')
-    # if not os.path.exists(rerank_ret_results_file):
-    if True:
+    if not os.path.exists(rerank_ret_results_file):
+    # if True:
         # load ret results and qs_list
         ret_results = json.load(open(ret_args.ret_result, 'r'))
         if dataset == 'NQ' or dataset == 'TriviaQA': qs_list = NQTriviaQAUtils(dataset).load_qs_list()
@@ -123,7 +123,7 @@ def rerank(ret_args, rerank_type):
 
 if __name__ == '__main__':
     in_program_call = None
-    # in_program_call = '--dataset pandas_numpy_eval --retriever openai-embedding'
+    # in_program_call = '--dataset conala --retriever openai-embedding'
     ret_args = retriever_config(in_program_call)
     rerank(ret_args, rerank_type='cohere')
 
