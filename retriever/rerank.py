@@ -19,6 +19,7 @@ from dataset_utils.DS1000_utils import DS1000Loader
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from generator.generate_utils import truncate_docs
+from generator.run_model import chatgpt
 
 COHERE_API_KEY = 'fYEeEiZr5jloupFJyBxbZr0FCrHCkpabEIsCNplm'
 co = cohere.Client(COHERE_API_KEY)
@@ -36,16 +37,21 @@ def cohere_with_backoff(question, docs):
     response = json.loads(response)
     return response
 
-def gpt_rerank(question, docs):
+def llm_rerank(question, docs, model):
+    sys_prompt_reverse = """you are a helpful assistant, given a document and a question,
+your task is to identify whether the document can derive the question, 
+you should first give some explanation why, and then give the exactly answer yes or no"""
+
     sys_prompt = """you are a helpful assistant, given a document and a question, '
-                  your task is to identify whether this document is helpful to answer the question, 
-                  you should the rate the document of very helpful, somehow helpful, not helpful"""
+your task is to identify whether this document is helpful to answer the question, 
+you should first give some explanation why, and then give the exactly answer yes or no"""
 
 
 def rerank(ret_args, rerank_type):
     dataset = ret_args.dataset
     rerank_ret_results_file = ret_args.ret_result.replace('.json', '_rerank_cohere.json')
-    if not os.path.exists(rerank_ret_results_file):
+    # if not os.path.exists(rerank_ret_results_file):
+    if True:
         # load ret results and qs_list
         ret_results = json.load(open(ret_args.ret_result, 'r'))
         if dataset == 'NQ' or dataset == 'TriviaQA': qs_list = NQTriviaQAUtils(dataset).load_qs_list()
@@ -56,9 +62,8 @@ def rerank(ret_args, rerank_type):
         else: raise ValueError(f'Unknown dataset: {dataset}')
         # get top 100 docs for each sample as docs_list
         ret_doc_keys_list = []
-        for qs_id, qs in zip(ret_results.keys(), qs_list):
-            assert qs_id == qs['qs_id']
-            ret_doc_keys_list.append([item['doc_key'] for item in ret_results[qs_id]][:100])
+        for qs in qs_list:
+            ret_doc_keys_list.append([item['doc_key'] for item in ret_results[qs['qs_id']]][:100])
         if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
             docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list, dataset, num_procs=8)
         else:
@@ -103,6 +108,7 @@ def rerank(ret_args, rerank_type):
         ret_args.ret_result = rerank_ret_results_file
         ret_eval(ret_args)
     else:
+        rerank_results = json.load(open(rerank_ret_results_file, 'r'))
         top_k = [1,3,5,10,20,50,100]
         metrics = dict()
         for k in top_k:
@@ -117,11 +123,14 @@ def rerank(ret_args, rerank_type):
 
 if __name__ == '__main__':
     in_program_call = None
-    in_program_call = '--dataset conala --retriever openai-embedding'
+    # in_program_call = '--dataset pandas_numpy_eval --retriever openai-embedding'
     ret_args = retriever_config(in_program_call)
     rerank(ret_args, rerank_type='cohere')
 
-    # qs_list = ConalaLoader().load_qs_list()
+    # ret_eval(ret_args)
+
+
+    # qs_list = DS1000Loader().load_qs_list()
     # ret_results = json.load(open(ret_args.ret_result, 'r'))
     # for qs_id, qs in zip(ret_results.keys(), qs_list):
     #     if qs_id != qs['qs_id']:

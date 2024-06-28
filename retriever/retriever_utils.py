@@ -111,6 +111,9 @@ def ret_eval(args):
     elif dataset == 'pandas_numpy_eval':
         loader = PandasNumpyEvalLoader()
     ret_results = json.load(open(args.ret_result, 'r'))
+    if 'cohere' in args.ret_result:
+        for key in ret_results.keys():
+            ret_results[key] = ret_results[key][:-2]
 
     # top_k = [1, 3, 5, 10, 20, 50, 100, 200, 500, 1000, 2000]
     top_k = [1, 3, 5, 10, 20, 50, 100]
