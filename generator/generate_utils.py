@@ -411,15 +411,15 @@ def select_by_rerank(ret_results, doc_selection_type):
         raise ValueError('invalid selection type format {}'.format(doc_selection_type))
 
 
-def select_retrieval_docs(ret_results, doc_selection_type, dataset):
+def select_retrieval_docs(ret_results, oracle_list, doc_selection_type, dataset):
     if 'top' in doc_selection_type:
         try:
             top_k = int(doc_selection_type.split('_')[1])
         except:
             raise ValueError('invalid selection type format {}'.format(doc_selection_type))
         ret_doc_keys_list = []
-        for qs_id in ret_results.keys():
-            ret_doc_keys_list.append([item['doc_key'] for item in ret_results[qs_id][:top_k]])
+        for oracle in oracle_list:
+            ret_doc_keys_list.append([item['doc_key'] for item in ret_results[oracle['qs_id']][:top_k]])
     elif 'simi_score' in doc_selection_type:
         ret_doc_keys_list = select_by_simi_score(ret_results=ret_results, doc_selection_type=doc_selection_type, dataset=dataset)
     # elif 'rerank' in doc_selection_type:
