@@ -22,6 +22,7 @@ from generator.generate_utils import truncate_docs
 from generator.run_model import chatgpt
 
 COHERE_API_KEY = 'fYEeEiZr5jloupFJyBxbZr0FCrHCkpabEIsCNplm'
+COHERE_API_KEY = os.getenv('COHERE_API_KEY', '')
 co = cohere.Client(COHERE_API_KEY)
 
 
