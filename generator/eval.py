@@ -8,7 +8,7 @@ def config():
     parser.add_argument('--temperature', type=float)
     parser.add_argument('--dataset', type=str, choices=['conala', 'DS1000', 'pandas_numpy_eval', 'hotpotQA', 'NQ', 'TriviaQA'])
     parser.add_argument('--retriever', type=str, default='best', choices=['best', 'BM25', 'contriever', 'miniLM', 'openai-embedding'])
-    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type'])
+    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection'])
     parser.add_argument('--n', type=int, default=1)
     args = parser.parse_args()
     return args
