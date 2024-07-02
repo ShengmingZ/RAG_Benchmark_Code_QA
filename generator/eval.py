@@ -53,5 +53,5 @@ elif args.analysis_type == "retrieval_doc_selection":
         (output, error) = proc.communicate()
         passk = output.decode().split('\n')[-2]
         result_list.append(passk)
-    for ret_doc_type, result in zip(doc_selection_type_list, result_list):
+    for doc_selection_type, result in zip(doc_selection_type_list, result_list):
         print(f'"{doc_selection_type}": {result},')
