@@ -53,11 +53,10 @@ def chatgpt_batch(prompt_save_file, prompts, model, temperature=0.7, max_tokens=
 
     client = openai.OpenAI()
     batch_input_file = client.files.create(file=open(prompt_save_file, 'rb'), purpose='batch')
-    batch_id = batch_input_file.id
-    client.batches.create(input_file_id=batch_id,
-                          endpoint='/v1/chat/completions',
-                          completion_window='24h',
-                          metadata={'description': prompt_save_file})
+    response = client.batches.create(input_file_id=batch_input_file.id,
+                                     endpoint='/v1/chat/completions',
+                                     completion_window='24h',
+                                     metadata={'description': prompt_save_file})
 
     def get_batch_results(batch_id):
         status = client.batches.retrieve(batch_id).status
@@ -67,7 +66,8 @@ def chatgpt_batch(prompt_save_file, prompts, model, temperature=0.7, max_tokens=
             if status != 'in_progress': print(status)
         output_file_id = client.batches.retrieve(batch_id).output_file_id
         content = client.files.content(output_file_id)
-        responses = [json.loads(data) for data in content.text.split('\n')].sort(key=lambda x: x['custom_id'])
+        responses = [json.loads(data) for data in content.text.split('\n') if data != '']
+        responses.sort(key=lambda x: x['custom_id'])
         outputs_list, logprobs_list = [], []
         for response in responses:
             response = response['responses']['body']
@@ -80,7 +80,7 @@ def chatgpt_batch(prompt_save_file, prompts, model, temperature=0.7, max_tokens=
             logprobs_list.append(logprobs)
         return outputs_list, logprobs_list
 
-    outputs_list, logprobs_list = get_batch_results(batch_id)
+    outputs_list, logprobs_list = get_batch_results(response.id)
     return outputs_list, logprobs_list
 
 

@@ -12,7 +12,7 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from generator.run_model import chatgpt, llama
+from generator.run_model import chatgpt, llama, chatgpt_batch
 from prompt import conala_prompt
 from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
@@ -34,6 +34,7 @@ class Generator:
         self.n = args.n
         self.max_tokens = args.max_tokens
         self.temperature = args.temperature
+        self.batch = args.batch
 
         self.retriever = args.retriever
 
@@ -130,7 +131,11 @@ class Generator:
         if self.model.startswith('llama') or self.model.startswith('codellama'):
             outputs_list, logprobs_list = llama(prompts=prompts, model_name=self.model, max_new_tokens=self.max_tokens, temperature=self.temperature, n=self.n, stop=self.stop)
         elif self.model.startswith('gpt'):
-            outputs_list, logprobs_list = chatgpt(prompts=prompts, model=self.model, max_tokens=self.max_tokens, temperature=self.temperature, n=self.n, stop=self.stop)
+            if self.batch is False:
+                outputs_list, logprobs_list = chatgpt(prompts=prompts, model=self.model, max_tokens=self.max_tokens, temperature=self.temperature, n=self.n, stop=self.stop)
+            else:
+                prompt_save_file = self.save_file.replace('.json', '_prompts.json')
+                outputs_list, logprobs_list = chatgpt_batch(prompt_save_file=prompt_save_file, prompts=prompts, model=self.model, max_tokens=self.max_tokens, temperature=self.temperature, n=self.n, stop=self.stop)
         else:
             raise NotImplementedError(f'unknown model {self.model}')
         gene_results = list()
@@ -140,7 +145,6 @@ class Generator:
             gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'],
                                      question=self.qs_list[idx]['question'],
                                      ret_docs=ret_docs,
-                                     prompt=prompts[idx],
                                      outputs=outputs,
                                      logprobs=logprobs
                                      ))

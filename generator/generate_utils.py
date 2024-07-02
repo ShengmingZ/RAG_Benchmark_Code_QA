@@ -194,8 +194,9 @@ def generate_config(in_program_call=None):
     parser.add_argument('--temperature', type=float, default=0.7)
     parser.add_argument('--n', type=int, default=1)
     parser.add_argument('--max_tokens', type=int, default=500)
+    parser.add_argument('--batch', action='store_true')
 
-    parser.add_argument('--retriever', type=str, default='best', choices=['best', 'BM25', 'contriever', 'miniLM', 'openai-embedding'])
+    parser.add_argument('--retriever', type=str, default='best', choices=['best', 'BM25', 'contriever', 'miniLM', 'openai-embedding', 'codeT5'])
 
     parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection'])
     # each of the following parameter corresponds to one analysis, when choose one, the default value of the other parameters are the default value of RAG
