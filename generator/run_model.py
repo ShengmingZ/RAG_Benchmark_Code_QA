@@ -1,4 +1,6 @@
-import os
+import os, json
+import time
+
 import openai
 import backoff
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -10,7 +12,7 @@ from tqdm import tqdm
 openai.api_key = os.getenv("OPENAI_API_KEY","")
 
 
-@backoff.on_exception(backoff.expo, openai.error.OpenAIError)
+@backoff.on_exception(backoff.expo, openai.APIError)
 def completions_with_backoff(**kwargs):
     return openai.ChatCompletion.create(**kwargs)
 
@@ -30,6 +32,58 @@ def chatgpt(prompts, model, temperature=0.7, max_tokens=500, n=1, stop=None):
         logprobs_list.append(logprobs)
 
     return outputs_list, logprobs_list
+
+
+def chatgpt_batch(prompt_save_file, prompts, model, temperature=0.7, max_tokens=500, n=1, stop=None):
+    requests = list()
+    for idx, prompt in enumerate(prompts):
+        sys_prompt, user_prompt = prompt
+        message = [{"role": "system", "content": sys_prompt}, {"role": "user", "content": user_prompt}]
+        request = {"custom_id": str(idx), "method": "POST", "url": "/v1/chat/completions",
+                   "body": {"model": model,
+                            "messages": message,
+                            "max_tokens": max_tokens,
+                            "n": n,
+                            "stop": stop,
+                            "logprobs": True}}
+        requests.append(request)
+    with open(prompt_save_file, 'w+') as f:
+        for request in requests:
+            f.write(json.dumps(request)+'\n')
+
+    client = openai.OpenAI()
+    batch_input_file = client.files.create(file=open(prompt_save_file, 'rb'), purpose='batch')
+    batch_id = batch_input_file.id
+    client.batches.create(input_file_id=batch_id,
+                          endpoint='/v1/chat/completions',
+                          completion_window='24h',
+                          metadata={'description': prompt_save_file})
+
+    def get_batch_results(batch_id):
+        status = client.batches.retrieve(batch_id).status
+        while status != 'completed':
+            time.sleep(300)
+            status = client.batches.retrieve(batch_id).status
+            if status != 'in_progress': print(status)
+        output_file_id = client.batches.retrieve(batch_id).output_file_id
+        content = client.files.content(output_file_id)
+        responses = [json.loads(data) for data in content.text.split('\n')].sort(key=lambda x: x['custom_id'])
+        outputs_list, logprobs_list = [], []
+        for response in responses:
+            response = response['responses']['body']
+            outputs = [choice["message"]["content"] for choice in response["choices"]]
+            logprobs = []
+            for choice in response["choices"]:
+                logprob = choice["logprobs"]
+                logprobs.append([item['logprob'] for item in logprob['content']])
+            outputs_list.append(outputs)
+            logprobs_list.append(logprobs)
+        return outputs_list, logprobs_list
+
+    outputs_list, logprobs_list = get_batch_results(batch_id)
+    return outputs_list, logprobs_list
+
+
 
 def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature=0.6, n=1, stop=None):
     """
