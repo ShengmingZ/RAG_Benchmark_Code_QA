@@ -72,7 +72,7 @@ def chatgpt_batch(prompt_save_file, prompts, model, temperature=0.7, max_tokens=
         responses.sort(key=lambda x: x['custom_id'])
         outputs_list, logprobs_list = [], []
         for response in responses:
-            response = response['responses']['body']
+            response = response['response']['body']
             outputs = [choice["message"]["content"] for choice in response["choices"]]
             logprobs = []
             for choice in response["choices"]:
