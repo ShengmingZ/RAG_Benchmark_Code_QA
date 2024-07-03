@@ -18,7 +18,7 @@ from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
 from dataset_utils.corpus_utils import PythonDocsLoader, WikiCorpusLoader
-from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs, approximate_token, perturb_ret_doc_type, select_retrieval_docs
+from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs, approximate_token, perturb_ret_doc_type, select_retrieval_docs, get_docs_for_pl_analysis
 from dataset_utils.DS1000_utils import DS1000Loader
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from dataset_utils.hotpotQA_utils import HotpotQAUtils
@@ -43,6 +43,7 @@ class Generator:
         self.ret_doc_type = args.ret_doc_type
         self.doc_selection_type = args.doc_selection_type
         self.prompt_type = args.prompt_type
+        self.pl_analysis = args.pl_analysis
         self.doc_max_length = args.doc_max_length
         # load docs
         if self.dataset == 'conala':
@@ -90,6 +91,12 @@ class Generator:
                                                                  oracle_list=self.oracle_list,
                                                                  doc_selection_type=self.doc_selection_type,
                                                                  dataset=self.dataset)
+        elif self.analysis_type == 'prompt_length':
+            ret_doc_keys_list, docs_list = get_docs_for_pl_analysis(pl_analysis=self.pl_analysis,
+                                                                    oracle_list=self.oracle_list,
+                                                                    ret_results=self.ret_results,
+                                                                    model=self.model,
+                                                                    dataset=self.dataset)
 
         else:
             raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
@@ -184,7 +191,7 @@ if __name__ == '__main__':
     # gene_conala.gene_response()
 
     in_program_call = None
-    # in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type top_1'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --batch --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis irrelevant_dummy_top10'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type none'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type top_5'
     args = generate_config(in_program_call)

@@ -198,13 +198,14 @@ def generate_config(in_program_call=None):
 
     parser.add_argument('--retriever', type=str, default='best', choices=['best', 'BM25', 'contriever', 'miniLM', 'openai-embedding', 'codeT5'])
 
-    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection'])
+    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection', 'prompt_length'])
     # each of the following parameter corresponds to one analysis, when choose one, the default value of the other parameters are the default value of RAG
     parser.add_argument('--ret_acc', type=float, default=1)     # top_k:len(oracle_docs), prompt_type:3shots, ret_doc_type:oracle/distracting
     parser.add_argument('--ret_doc_type', type=str, default='retrieved', choices=['oracle', 'retrieved', 'distracting', 'random', 'irrelevant_dummy', 'irrelevant_diff', 'none'])
     parser.add_argument('--doc_selection_type', type=str, default='top_oracle', choices=['simi_score_0.05', 'simi_score_0.1', 'simi_score_0.2', 'simi_score_0.3', 'top_oracle', 'top_1', 'top_3', 'top_5', 'top_7', 'top_9', 'top_10', 'top_11', 'top_13', 'top_15', 'top_20', 'top_25', 'top_30'])
     parser.add_argument('--doc_max_length', type=int, default=1000)
     parser.add_argument('--prompt_type', type=str, default='0shot', choices=['3shots', '0shot', 'instruct', 'CoT'])
+    parser.add_argument('--pl_analysis', type=str, default='oracle_top10', choices=['oracle_top10', 'distracting_top10', 'random_top10', 'irrelevant_dummy_top10', 'irrelevant_diff_top10'])
 
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
 
@@ -219,6 +220,8 @@ def generate_config(in_program_call=None):
                 args.save_file += f'{args.ret_doc_type}.json'
             elif args.analysis_type == 'retrieval_doc_selection':
                 args.save_file += f'{args.doc_selection_type}.json'
+            elif args.analysis_type == 'prompt_length':
+                args.save_file += f'{args.pl_analysis}.json'
             else:
                 raise ValueError(f'Unknown analysis type: {args.analysis_type}')
         args.save_file = os.path.join(root_path, args.save_file)
@@ -363,6 +366,57 @@ def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, model, data
             doc_keys_list = []
         else:
             raise ValueError('not supported perturb_doc_type {}'.format(perturb_doc_type))
+
+        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+            docs_list = WikiCorpusLoader().get_docs(doc_keys_list, dataset, num_procs=8)
+        else:
+            docs_list = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in doc_keys_list]
+
+    return doc_keys_list, docs_list
+
+
+def get_docs_for_pl_analysis(pl_analysis, oracle_list, ret_results, model, dataset):
+    # for analyze prompt length: augment QA ret_doc_type_analysis with top k=10
+    assert pl_analysis in ['oracle_top10', 'distracting_top10', 'random_top10', 'irrelevant_dummy_top10', 'irrelevant_diff_top10']
+    if dataset == 'NQ' or dataset == 'TriviaQA':
+        for idx, oracle in enumerate(oracle_list):
+            oracle_list[idx]['oracle_docs'] = [oracle_list[idx]['oracle_doc']]
+
+    if pl_analysis in ['irrelevant_diff_top10', 'irrelevant_dummy_top10']:
+        oracle_doc_keys_list_top10 = []
+        for oracle in oracle_list:
+            oracle_doc_keys_list_top10.append((oracle['oracle_docs'] * 10)[:10])  # follow oracle_top10
+        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+            oracle_docs_list = WikiCorpusLoader().get_docs(oracle_doc_keys_list_top10, dataset, num_procs=8)
+        else:
+            oracle_docs_list = [PythonDocsLoader().get_docs(oracle_docs) for oracle_docs in oracle_doc_keys_list_top10]
+        docs_list, doc_keys_list = [], []  # required docs and doc keys
+        for oracle_docs in oracle_docs_list:
+            docs_list.append(get_irrelevant_docs(irrelevant_type=pl_analysis.split('_')[1], oracle_docs=oracle_docs, model=model, dataset=dataset))
+    else:
+        if pl_analysis == 'oracle_top10':
+            doc_keys_list = []
+            for oracle in oracle_list:
+                doc_keys_list.append((oracle['oracle_docs']*10)[:10])   # repeat the oracle docs
+        # elif pl_analysis == 'retrieved':
+        #     doc_keys_list = []
+        #     for oracle in oracle_list:
+        #         ret_doc_keys = [item['doc_key'] for item in ret_results[oracle['qs_id']]]
+        #         doc_keys_list.append(ret_doc_keys[:len(oracle['oracle_docs'])])
+        elif pl_analysis == 'distracting_top10':
+            doc_keys_list = []
+            for oracle in oracle_list:
+                doc_keys_list.append(get_distracting_docs(ret_result=ret_results[oracle['qs_id']], oracle_docs=oracle['oracle_docs'], dataset=dataset, k=10))
+        elif pl_analysis == 'random_top10':
+            doc_keys_list = []
+            if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+                corpus_id_list = WikiCorpusLoader().load_wiki_id(dataset)
+            else:
+                corpus_id_list = PythonDocsLoader().load_api_signs()
+            for _ in oracle_list:
+                doc_keys_list.append(random.sample(corpus_id_list, k=10))
+        else:
+            raise ValueError('not supported prompt length analysis {}'.format(pl_analysis))
 
         if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
             docs_list = WikiCorpusLoader().get_docs(doc_keys_list, dataset, num_procs=8)
