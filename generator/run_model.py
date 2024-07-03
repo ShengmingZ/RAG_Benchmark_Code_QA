@@ -42,6 +42,7 @@ def chatgpt_batch(prompt_save_file, prompts, model, temperature=0.7, max_tokens=
         request = {"custom_id": str(idx), "method": "POST", "url": "/v1/chat/completions",
                    "body": {"model": model,
                             "messages": message,
+                            'temperature': temperature,
                             "max_tokens": max_tokens,
                             "n": n,
                             "stop": stop,
@@ -51,37 +52,34 @@ def chatgpt_batch(prompt_save_file, prompts, model, temperature=0.7, max_tokens=
         for request in requests:
             f.write(json.dumps(request)+'\n')
 
-    client = openai.OpenAI()
     batch_input_file = client.files.create(file=open(prompt_save_file, 'rb'), purpose='batch')
     response = client.batches.create(input_file_id=batch_input_file.id,
                                      endpoint='/v1/chat/completions',
                                      completion_window='24h',
                                      metadata={'description': prompt_save_file})
-    print('batch_id: ', response.id)
+    batch_id = response.id
+    print('batch_id: ', batch_id)
 
-    def get_batch_results(batch_id):
+    # extract batch results
+    status = client.batches.retrieve(batch_id).status
+    while status != 'completed':
+        time.sleep(300)
         status = client.batches.retrieve(batch_id).status
-        while status != 'completed':
-            time.sleep(300)
-            status = client.batches.retrieve(batch_id).status
-            if status != 'in_progress': print(status)
-        output_file_id = client.batches.retrieve(batch_id).output_file_id
-        content = client.files.content(output_file_id)
-        responses = [json.loads(data) for data in content.text.split('\n') if data != '']
-        responses.sort(key=lambda x: int(x['custom_id']))
-        outputs_list, logprobs_list = [], []
-        for response in responses:
-            response = response['response']['body']
-            outputs = [choice["message"]["content"] for choice in response["choices"]]
-            logprobs = []
-            for choice in response["choices"]:
-                logprob = choice["logprobs"]
-                logprobs.append([item['logprob'] for item in logprob['content']])
-            outputs_list.append(outputs)
-            logprobs_list.append(logprobs)
-        return outputs_list, logprobs_list
-
-    outputs_list, logprobs_list = get_batch_results(response.id)
+        if status != 'in_progress': print(status)
+    output_file_id = client.batches.retrieve(batch_id).output_file_id
+    content = client.files.content(output_file_id)
+    responses = [json.loads(data) for data in content.text.split('\n') if data != '']
+    responses.sort(key=lambda x: int(x['custom_id']))
+    outputs_list, logprobs_list = [], []
+    for response in responses:
+        response = response['response']['body']
+        outputs = [choice["message"]["content"] for choice in response["choices"]]
+        logprobs = []
+        for choice in response["choices"]:
+            logprob = choice["logprobs"]
+            logprobs.append([item['logprob'] for item in logprob['content']])
+        outputs_list.append(outputs)
+        logprobs_list.append(logprobs)
     return outputs_list, logprobs_list
 
 
