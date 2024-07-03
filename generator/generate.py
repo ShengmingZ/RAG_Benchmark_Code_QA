@@ -122,7 +122,7 @@ class Generator:
         self.gene_prompts()
 
     def gene_response(self):
-        if self.batch: self.save_file = self.save_file.replace('.json', '_test_batch.json')
+        # if self.batch: self.save_file = self.save_file.replace('.json', '_test_batch.json')
         if os.path.exists(self.save_file):
             print(f'generation results exists for {self.save_file}')
             return
