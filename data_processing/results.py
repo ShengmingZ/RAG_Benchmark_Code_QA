@@ -50,6 +50,11 @@ retrieval_accuracy = {
 }
 
 
+retriever_perf = {
+
+}
+
+
 code_ret_recall_llama_n_10 = {
     "conala": {
         1: {'pass@1': 0.2880952380952381, 'pass@3': 0.4255952380952382, 'pass@5': 0.4743008314436886, 'pass@10': 0.5238095238095238},

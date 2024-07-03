@@ -8,7 +8,8 @@ qa_dataset_names, code_dataset_names = dataset_names[:3], dataset_names[3:]
 retriever_names = ['BM25', 'miniLM', 'openai-embedding', 'contriever', 'codeT5']
 top_ks = [1, 3, 5, 10, 20, 50, 100]
 ret_recalls = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
-ret_doc_types = ["oracle", "retrieved", "distracting", "random", "irrelevant_dummy", "irrelevant_diff", "none"]
+# ret_doc_types = ["oracle", "retrieved", "distracting", "random", "irrelevant_dummy", "irrelevant_diff", "none"]
+ret_doc_types = ["oracle", "distracting", "random", "irrelevant_dummy", "irrelevant_diff"]
 
 
 def make_ret_doc_type_analysis():
@@ -34,8 +35,8 @@ def make_ret_doc_type_analysis():
     bar_width = 0.8 / len(qa_gpt_perf_datas)
     x = len(ret_doc_types)
     doc_type_index = np.arange(x)
-    colors1 = plt.cm.viridis(np.linspace(0, 1, len(qa_gpt_perf_datas)))
-    colors2 = plt.cm.plasma(np.linspace(0, 1, len(code_gpt_perf_datas)))
+    colors1 = plt.cm.viridis(np.linspace(0, 0.5, len(qa_gpt_perf_datas)))
+    colors2 = plt.cm.plasma(np.linspace(0.5, 1, len(code_gpt_perf_datas)))
     for idx, perf_data in enumerate(qa_gpt_perf_datas):
         ax1.bar(doc_type_index+idx*bar_width, perf_data, width=bar_width, label=qa_dataset_names[idx], color=colors1[idx])
     ax1.set_xlabel('document type')

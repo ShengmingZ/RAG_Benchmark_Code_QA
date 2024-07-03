@@ -210,15 +210,17 @@ def generate_config(in_program_call=None):
 
     # construct save file
     if args.save_file is None:
-        args.save_file = f'data/{args.dataset}/results/model_{args.model}_n_{args.n}_{args.analysis_type}_'
-        if args.analysis_type == 'retrieval_recall':
-            args.save_file += f'{args.ret_acc}.json'
-        elif args.analysis_type == 'retrieval_doc_type':
-            args.save_file += f'{args.ret_doc_type}.json'
-        elif args.analysis_type == 'retrieval_doc_selection':
-            args.save_file += f'{args.doc_selection_type}.json'
+        if args.retriever != 'openai-embedding': args.save_file = f'data/{args.dataset}/results/model_{args.model}_retriever_{args.retriever}.json'
         else:
-            raise ValueError(f'Unknown analysis type: {args.analysis_type}')
+            args.save_file = f'data/{args.dataset}/results/model_{args.model}_n_{args.n}_{args.analysis_type}_'
+            if args.analysis_type == 'retrieval_recall':
+                args.save_file += f'{args.ret_acc}.json'
+            elif args.analysis_type == 'retrieval_doc_type':
+                args.save_file += f'{args.ret_doc_type}.json'
+            elif args.analysis_type == 'retrieval_doc_selection':
+                args.save_file += f'{args.doc_selection_type}.json'
+            else:
+                raise ValueError(f'Unknown analysis type: {args.analysis_type}')
         args.save_file = os.path.join(root_path, args.save_file)
 
     print(json.dumps(vars(args), indent=2))
