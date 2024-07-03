@@ -9,12 +9,13 @@ import torch
 import numpy as np
 from tqdm import tqdm
 
-openai.api_key = os.getenv("OPENAI_API_KEY","")
+openai.api_key = os.getenv("OPENAI_API_KEY", "")
+client = openai.OpenAI(api_key=openai.api_key)
 
 
 @backoff.on_exception(backoff.expo, openai.APIError)
 def completions_with_backoff(**kwargs):
-    return openai.ChatCompletion.create(**kwargs)
+    return client.chat.completions.create(**kwargs)
 
 
 def chatgpt(prompts, model, temperature=0.7, max_tokens=500, n=1, stop=None):
@@ -23,11 +24,11 @@ def chatgpt(prompts, model, temperature=0.7, max_tokens=500, n=1, stop=None):
         sys_prompt, user_prompt = prompt
         messages = [{"role": "system", "content": sys_prompt}, {"role": "user", "content": user_prompt}]
         response = completions_with_backoff(model=model, messages=messages, temperature=temperature, max_tokens=max_tokens, n=n, stop=stop, logprobs=True)
-        outputs = [choice["message"]["content"] for choice in response["choices"]]
+        print(response.choices)
+        outputs = [choice.message.content for choice in response.choices]
         logprobs = []
-        for choice in response["choices"]:
-            logprob = choice["logprobs"]
-            logprobs.append([item['logprob'] for item in logprob['content']])
+        for choice in response.choices:
+            logprobs.append([item.logprob for item in choice.logprobs.content])
         outputs_list.append(outputs)
         logprobs_list.append(logprobs)
 
@@ -149,4 +150,7 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature
 
 
 if __name__ == "__main__":
-    ...
+    prompts = [['You are a helpful assistant', 'hello']]
+    output_lists, _ = chatgpt(prompts=prompts, model='gpt-3.5-turbo-0125')
+    print(output_lists)
+    print(_)
