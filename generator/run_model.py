@@ -68,7 +68,7 @@ def chatgpt_batch(prompt_save_file, prompts, model, temperature=0.7, max_tokens=
         output_file_id = client.batches.retrieve(batch_id).output_file_id
         content = client.files.content(output_file_id)
         responses = [json.loads(data) for data in content.text.split('\n') if data != '']
-        responses.sort(key=lambda x: x['custom_id'])
+        responses.sort(key=lambda x: int(x['custom_id']))
         outputs_list, logprobs_list = [], []
         for response in responses:
             response = response['response']['body']

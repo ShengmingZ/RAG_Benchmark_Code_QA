@@ -44,7 +44,7 @@ elif args.analysis_type == "retrieval_doc_type":
         print(f'"{ret_doc_type}": {result},')
 
 elif args.analysis_type == "retrieval_doc_selection":
-    if args.dataset in ['NQ', 'TriviaQA', 'hotpotQA']: doc_selection_type_list = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
+    if args.dataset in ['NQ', 'TriviaQA', 'hotpotQA']: doc_selection_type_list = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20', 'top_25', 'top_30']
     else: doc_selection_type_list = ['top_1', 'top_3', 'top_5', 'top_7', 'top_9']
     result_list = list()
     for doc_selection_type in doc_selection_type_list:
