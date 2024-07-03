@@ -33,7 +33,7 @@ elif args.analysis_type == "retrieval_doc_type":
         print(f'done ret_doc_type {ret_doc_type}')
 
 elif args.analysis_type == "retrieval_doc_selection":
-    if args.dataset in ['NQ', 'TriviaQA', 'hotpotQA']: doc_selection_type_list = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
+    if args.dataset in ['NQ', 'TriviaQA', 'hotpotQA']: doc_selection_type_list = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20', 'top_25', 'top_30']
     else: doc_selection_type_list = ['top_1', 'top_3', 'top_5', 'top_7', 'top_9']
     for doc_selection_type in doc_selection_type_list:
         cmd = f'python generator/generate.py --model {args.model} --temperature {args.temperature} --dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --doc_selection_type {doc_selection_type}'

@@ -57,6 +57,7 @@ def chatgpt_batch(prompt_save_file, prompts, model, temperature=0.7, max_tokens=
                                      endpoint='/v1/chat/completions',
                                      completion_window='24h',
                                      metadata={'description': prompt_save_file})
+    print('batch_id: ', response.id)
 
     def get_batch_results(batch_id):
         status = client.batches.retrieve(batch_id).status
