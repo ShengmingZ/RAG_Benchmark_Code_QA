@@ -202,7 +202,7 @@ def generate_config(in_program_call=None):
     # each of the following parameter corresponds to one analysis, when choose one, the default value of the other parameters are the default value of RAG
     parser.add_argument('--ret_acc', type=float, default=1)     # top_k:len(oracle_docs), prompt_type:3shots, ret_doc_type:oracle/distracting
     parser.add_argument('--ret_doc_type', type=str, default='retrieved', choices=['oracle', 'retrieved', 'distracting', 'random', 'irrelevant_dummy', 'irrelevant_diff', 'none'])
-    parser.add_argument('--doc_selection_type', type=str, default='top_oracle', choices=['simi_score_0.05', 'simi_score_0.1', 'simi_score_0.2', 'simi_score_0.3', 'top_oracle', 'top_1', 'top3', 'top_5', 'top_7', 'top_9', 'top_10', 'top_15', 'top_20'])
+    parser.add_argument('--doc_selection_type', type=str, default='top_oracle', choices=['simi_score_0.05', 'simi_score_0.1', 'simi_score_0.2', 'simi_score_0.3', 'top_oracle', 'top_1', 'top3', 'top_5', 'top_7', 'top_9', 'top_10', 'top_11', 'top_13', 'top_15', 'top_20', 'top_25', 'top_30'])
     parser.add_argument('--doc_max_length', type=int, default=1000)
     parser.add_argument('--prompt_type', type=str, default='0shot', choices=['3shots', '0shot', 'instruct', 'CoT'])
 
