@@ -24,7 +24,6 @@ def chatgpt(prompts, model, temperature=0.7, max_tokens=500, n=1, stop=None):
         sys_prompt, user_prompt = prompt
         messages = [{"role": "system", "content": sys_prompt}, {"role": "user", "content": user_prompt}]
         response = completions_with_backoff(model=model, messages=messages, temperature=temperature, max_tokens=max_tokens, n=n, stop=stop, logprobs=True)
-        print(response.choices)
         outputs = [choice.message.content for choice in response.choices]
         logprobs = []
         for choice in response.choices:
