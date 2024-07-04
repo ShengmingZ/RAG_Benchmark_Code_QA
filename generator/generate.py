@@ -92,7 +92,6 @@ class Generator:
                                                                  doc_selection_type=self.doc_selection_type,
                                                                  dataset=self.dataset)
         elif self.analysis_type == 'prompt_length':
-            self.oracle_list = self.oracle_list[:20]
             ret_doc_keys_list, docs_list = get_docs_for_pl_analysis(pl_analysis=self.pl_analysis,
                                                                     oracle_list=self.oracle_list,
                                                                     ret_results=self.ret_results,
