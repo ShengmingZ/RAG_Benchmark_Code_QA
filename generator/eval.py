@@ -55,3 +55,15 @@ elif args.analysis_type == "retrieval_doc_selection":
         result_list.append(passk)
     for doc_selection_type, result in zip(doc_selection_type_list, result_list):
         print(f'"{doc_selection_type}": {result},')
+
+elif args.analysis_type == 'prompt_length':
+    pl_analysis_types = ['oracle_top10', 'distracting_top10', 'random_top10', 'irrelevant_diff_top10', 'irrelevant_dummy_top10']
+    result_list = list()
+    for pl_analysis_type in pl_analysis_types:
+        cmd = f'python generator/pred_eval.py --model {args.model} --temperature {args.temperature} --dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --pl_analysis {pl_analysis_type}'
+        proc = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (output, error) = proc.communicate()
+        passk = output.decode().split('\n')[-2]
+        result_list.append(passk)
+    for pl_analysis_type, result in zip(pl_analysis_types, result_list):
+        print(f'"{pl_analysis_type}": {result},')
