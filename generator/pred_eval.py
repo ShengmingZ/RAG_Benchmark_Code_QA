@@ -1,3 +1,4 @@
+import os.path
 import platform
 import sys
 import json
@@ -170,13 +171,6 @@ def pred_eval(args):
     else:
         raise ValueError('args.n must be 1 or 10')
 
-    # prompt length
-    total_prompt_length = 0
-    with open(args.promt_save_file, 'r') as f:
-        for line in f:
-            total_prompt_length += json.loads(line)['prompt_length']
-    avg_prompt_length = total_prompt_length / len(gene_results)
-
     if args.dataset == 'conala':
         _gene_results = list()
         for result in gene_results:
@@ -226,9 +220,17 @@ def pred_eval(args):
     else:
         raise ValueError('Not supported dataset {}'.format(args.dataset))
 
-    assert isinstance(scores, dict)
-    scores['avg_prompt_length'] = avg_prompt_length
+    # prompt length, only calc when prompt save file exists
+    if os.path.exists(args.prompt_save_file):
+        total_prompt_length = 0
+        with open(args.promt_save_file, 'r') as f:
+            for line in f:
+                total_prompt_length += json.loads(line)['prompt_length']
+        avg_prompt_length = total_prompt_length / len(gene_results)
+        assert isinstance(scores, dict)
+        scores['avg_prompt_length'] = avg_prompt_length
     print(scores)
+
     return scores
 
 
