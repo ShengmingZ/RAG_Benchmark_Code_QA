@@ -103,13 +103,13 @@ class Generator:
             raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
 
 
-        prompts = generate_prompts(questions=[qs['question'] for qs in self.qs_list],
+        prompts, pl_list = generate_prompts(questions=[qs['question'] for qs in self.qs_list],
                                    ret_docs_list=docs_list,
                                    prompt_type=self.prompt_type,
                                    dataset=self.dataset,
                                    model_name=self.model,
                                    doc_max_length=self.doc_max_length)
-        return ret_doc_keys_list, prompts
+        return ret_doc_keys_list, prompts, pl_list
 
     def test_prompt(self):
         random.seed()
@@ -119,7 +119,7 @@ class Generator:
                 self.qs_list = [qs]
                 break
         assert len(self.qs_list) == len(self.oracle_list)
-        _, prompts = self.gene_prompts()
+        _, prompts, _ = self.gene_prompts()
         if self.model.startswith('gpt'):
             print(prompts[0][0])
             print(prompts[0][1])
@@ -133,10 +133,10 @@ class Generator:
         if os.path.exists(self.prompt_save_file):
             print(f'prompt file exists for {self.prompt_save_file}')
             return
-        ret_doc_keys_list, prompts = self.gene_prompts()
+        ret_doc_keys_list, prompts, pl_list = self.gene_prompts()
         with open(self.prompt_save_file, 'w+') as f:
-            for doc_keys, prompt in zip(ret_doc_keys_list, prompts):
-                f.write(json.dumps(dict(ret_doc_keys=doc_keys, prompt=prompt)) + '\n')
+            for doc_keys, prompt, pl in zip(ret_doc_keys_list, prompts, pl_list):
+                f.write(json.dumps(dict(ret_doc_keys=doc_keys, prompt=prompt, prompt_length=pl)) + '\n')
 
     def gene_response(self):
         if os.path.exists(self.result_save_file):

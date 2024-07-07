@@ -122,12 +122,12 @@ class DS1000Loader:
             total_pass_score[lib] = pass_scores
         avg_pass_score = {key: 0 for key in pass_scores}
         for lib in total_pass_score.keys():
-            print(f'{lib} pass score: {total_pass_score[lib]}')
+            # print(f'{lib} pass score: {total_pass_score[lib]}')
             for key in avg_pass_score.keys():
                 avg_pass_score[key] += total_pass_score[lib][key]
         for key in avg_pass_score.keys():
             avg_pass_score[key] = avg_pass_score[key] / len(total_pass_score.keys())
-        print(avg_pass_score)
+        # print(avg_pass_score)
 
         return avg_pass_score
 

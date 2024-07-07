@@ -184,7 +184,7 @@ class ConalaLoader:
         for pass_k in pass_k_list:
             for key in pass_keys: _pass_k[key] += pass_k[key]
         for key in pass_keys: _pass_k[key] = _pass_k[key] / len(results)
-        print(_pass_k)
+        # print(_pass_k)
         return _pass_k
 
     @staticmethod

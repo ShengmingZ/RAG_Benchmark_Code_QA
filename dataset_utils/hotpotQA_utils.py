@@ -194,6 +194,6 @@ class HotpotQAUtils:
         for k in metrics.keys():
             metrics[k] /= N
         # metrics = dict(em=metrics['em'], f1=metrics['f1'])
-        print(metrics)
+        # print(metrics)
         return metrics
 

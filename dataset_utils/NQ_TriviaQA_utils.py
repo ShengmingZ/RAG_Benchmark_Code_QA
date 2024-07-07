@@ -371,7 +371,7 @@ class NQTriviaQAUtils:
             metrics['recall'] += max_recall
         for key in metrics.keys():
             metrics[key] /= len(preds)
-        print(metrics)
+        # print(metrics)
         return metrics
 
 

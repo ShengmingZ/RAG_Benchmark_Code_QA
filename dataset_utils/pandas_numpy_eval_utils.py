@@ -114,7 +114,7 @@ class PandasNumpyEvalLoader:
                 pass_scores[f'pass@{k}'] += pass_at_k(n=total_num, c=passed_num, k=k)
         for key in pass_scores.keys():
             pass_scores[key] = pass_scores[key] / len(results_list)
-        print(pass_scores)
+        # print(pass_scores)
         return pass_scores
 
     @staticmethod

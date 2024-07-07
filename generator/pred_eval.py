@@ -162,13 +162,20 @@ def process_gene_results(args, outputs, code_prompt=None):
 
 
 def pred_eval(args):
-    gene_results = json.load(open(args.save_file, 'r'))
+    gene_results = json.load(open(args.result_save_file, 'r'))
     if args.n == 10:
         k_list = [1,3,5,10]
     elif args.n == 1:
         k_list = [1]
     else:
         raise ValueError('args.n must be 1 or 10')
+
+    # prompt length
+    total_prompt_length = 0
+    with open(args.promt_save_file, 'r') as f:
+        for line in f:
+            total_prompt_length += json.loads(line)['prompt_length']
+    avg_prompt_length = total_prompt_length / len(gene_results)
 
     if args.dataset == 'conala':
         _gene_results = list()
@@ -219,6 +226,9 @@ def pred_eval(args):
     else:
         raise ValueError('Not supported dataset {}'.format(args.dataset))
 
+    assert isinstance(scores, dict)
+    scores['avg_prompt_length'] = avg_prompt_length
+    print(scores)
     return scores
 
 
@@ -234,7 +244,7 @@ if __name__ == '__main__':
     test process outputs for DS1000
     """
     # ds1000 = DS1000Dataset(source_dir='../data/DS1000/ds1000_data', libs='all', mode='Insertion')
-    # gene_results = json.load(open(args.save_file, 'r'))
+    # gene_results = json.load(open(args.result_save_file, 'r'))
     # loader = DS1000Loader()
     # oracle_list = loader.load_oracle_list()
     # qs_list = loader.load_qs_list()
@@ -251,7 +261,7 @@ if __name__ == '__main__':
     test process outputs for pandas_numpy_eval
     """
     # dataset = json.load(open('../data/pandas_numpy_eval/data/pandas_numpy_eval.json', 'r'))
-    # gene_results = json.load(open(args.save_file, 'r'))
+    # gene_results = json.load(open(args.result_save_file, 'r'))
     # for idx, result in enumerate(gene_results):
     #     print(f'<processed code {idx}>]\n')
     #     print([result['outputs'][0]])
@@ -265,7 +275,7 @@ if __name__ == '__main__':
     """
     test for conala
     """
-    # gene_results = json.load(open(args.save_file, 'r'))
+    # gene_results = json.load(open(args.result_save_file, 'r'))
     # for idx, result in enumerate(gene_results):
     #     print(f'<processed code {idx}>]\n')
     #     print([result['outputs'][0]])
@@ -275,7 +285,7 @@ if __name__ == '__main__':
     """
     test for NQ, TriviaQA
     """
-    # gene_results = json.load(open(args.save_file, 'r'))
+    # gene_results = json.load(open(args.result_save_file, 'r'))
     # for idx, result in enumerate(gene_results):
     #     print(f'<processed code {idx}>]\n')
     #     print([result['outputs'][0]])
