@@ -29,7 +29,8 @@ class Generator:
     def __init__(self, args):
         # load parameters
         self.dataset = args.dataset
-        self.save_file = args.save_file
+        self.result_save_file = args.result_save_file
+        self.prompt_save_file = args.prompt_save_file
         self.model = args.model
         self.n = args.n
         self.max_tokens = args.max_tokens
@@ -72,7 +73,7 @@ class Generator:
         # self.oracle_list = self.oracle_list[:1]
 
         print('qs_num:', len(self.qs_list))
-        print('save_to:', self.save_file)
+        print('result save_to:', self.result_save_file)
 
     def gene_prompts(self):
         if self.analysis_type == 'retrieval_recall':
@@ -128,13 +129,29 @@ class Generator:
     def calc_prompt_tokens(self):
         self.gene_prompts()
 
+    def save_prompts(self):
+        if os.path.exists(self.prompt_save_file):
+            print(f'prompt file exists for {self.prompt_save_file}')
+            return
+        ret_doc_keys_list, prompts = self.gene_prompts()
+        with open(self.prompt_save_file, 'w+') as f:
+            for doc_keys, prompt in zip(ret_doc_keys_list, prompts):
+                f.write(json.dumps(dict(ret_doc_keys=doc_keys, prompt=prompt)) + '\n')
+
     def gene_response(self):
-        # if self.batch: self.save_file = self.save_file.replace('.json', '_test_batch.json')
-        if os.path.exists(self.save_file):
-            print(f'generation results exists for {self.save_file}')
+        if os.path.exists(self.result_save_file):
+            print(f'generation results exists for {self.result_save_file}')
+            return
+        if not os.path.exists(self.prompt_save_file):
+            print(f'need to save prompts as {self.prompt_save_file}')
             return
 
-        ret_doc_keys_list, prompts = self.gene_prompts()
+        ret_doc_keys_list, prompts = [], []
+        with open(self.prompt_save_file, 'r') as f:
+            for line in f:
+                data = json.loads(line)
+                ret_doc_keys_list.append(data['ret_doc_keys'])
+                prompts.append(data['prompt'])
 
         if self.model.startswith('llama') or self.model.startswith('codellama'):
             outputs_list, logprobs_list = llama(prompts=prompts, model_name=self.model, max_new_tokens=self.max_tokens, temperature=self.temperature, n=self.n, stop=self.stop)
@@ -142,8 +159,9 @@ class Generator:
             if self.batch is False:
                 outputs_list, logprobs_list = chatgpt(prompts=prompts, model=self.model, max_tokens=self.max_tokens, temperature=self.temperature, n=self.n, stop=self.stop)
             else:
-                prompt_save_file = self.save_file.replace('.json', '_prompts.json')
-                outputs_list, logprobs_list = chatgpt_batch(prompt_save_file=prompt_save_file, prompts=prompts, model=self.model, max_tokens=self.max_tokens, temperature=self.temperature, n=self.n, stop=self.stop)
+                prompt_file_for_batch = self.prompt_save_file.replace('prompts.jsonl', 'prompts_for_batch.jsonl')
+                assert 'prompts_for_batch.jsonl' in prompt_file_for_batch
+                outputs_list, logprobs_list = chatgpt_batch(prompt_file_for_batch=prompt_file_for_batch, prompts=prompts, model=self.model, max_tokens=self.max_tokens, temperature=self.temperature, n=self.n, stop=self.stop)
         else:
             raise NotImplementedError(f'unknown model {self.model}')
         gene_results = list()
@@ -156,7 +174,7 @@ class Generator:
                                      outputs=outputs,
                                      logprobs=logprobs
                                      ))
-        save_results_to_files(self.save_file, gene_results, overwrite=True)
+        save_results_to_files(self.result_save_file, gene_results, overwrite=True)
         return gene_results
 
 
@@ -199,5 +217,6 @@ if __name__ == '__main__':
     # generator.test_prompt()
     # generator.calc_prompt_tokens()
 
+    generator.save_prompts()
     gene_results = generator.gene_response()
 

@@ -51,6 +51,7 @@ def save_results_to_files(save_file, gene_results, overwrite=False):
 
 
 def approximate_token(prompts, model):
+    pl_list = []
     if model.startswith('gpt'):
         import tiktoken
         max_tokens, avg_tokens = 0, 0
@@ -58,11 +59,11 @@ def approximate_token(prompts, model):
         for prompt in prompts:
             total_prompt = prompt[0] + prompt[1]
             tokens = len(encoding.encode(total_prompt))
+            pl_list.append(tokens)
             avg_tokens += tokens
             if tokens > max_tokens: max_tokens = tokens
         avg_tokens = avg_tokens / len(prompts)
         print(f"Average tokens: {avg_tokens:.3f}, Max tokens: {max_tokens}")
-        return avg_tokens
     elif model.startswith('llama') or model.startswith('codellama'):
         if model == 'llama2-13b-chat':
             model = 'meta-llama/Llama-2-13b-chat-hf'
@@ -76,11 +77,14 @@ def approximate_token(prompts, model):
         max_tokens = 0
         for prompt in prompts:
             tokens = len(tokenizer(prompt, return_tensors='pt')['input_ids'][0])
+            pl_list.append(tokens)
             if tokens > max_tokens: max_tokens = tokens
             avg_tokens += tokens
         avg_tokens = avg_tokens / len(prompts)
         print(f"Average tokens: {avg_tokens:.3f}, Max tokens: {max_tokens}")
-        return avg_tokens
+    else:
+        raise Exception("Invalid model name")
+    return pl_list
 
 
 def truncate_docs(docs, model, max_length):
@@ -188,7 +192,9 @@ def get_irrelevant_docs(irrelevant_type, oracle_docs, model, dataset):
 def generate_config(in_program_call=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, choices=['tldr', 'conala', 'DS1000', 'pandas_numpy_eval', 'hotpotQA', 'NQ', 'TriviaQA'])
-    parser.add_argument('--save_file', type=str, default=None)
+    parser.add_argument('--result_save_file', type=str, default=None)
+    parser.add_argument('--prompt_save_file', type=str, default=None)
+
     # model parameters
     parser.add_argument('--model', type=str, default='gpt-3.5-turbo-1106', choices=['llama3-8b', 'llama2-13b-chat', 'codellama-13b-instruct', 'gpt-3.5-turbo-0125', 'gpt-4o'])
     parser.add_argument('--temperature', type=float)
@@ -210,21 +216,22 @@ def generate_config(in_program_call=None):
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
 
     # construct save file
-    if args.save_file is None:
-        if args.retriever != 'openai-embedding': args.save_file = f'data/{args.dataset}/results/model_{args.model}_retriever_{args.retriever}.json'
+    if args.result_save_file is None:
+        if args.retriever != 'openai-embedding': args.result_save_file = f'data/{args.dataset}/results/model_{args.model}_retriever_{args.retriever}.json'
         else:
-            args.save_file = f'data/{args.dataset}/results/model_{args.model}_n_{args.n}_{args.analysis_type}_'
+            args.result_save_file = f'data/{args.dataset}/results/model_{args.model}_n_{args.n}_{args.analysis_type}_'
             if args.analysis_type == 'retrieval_recall':
-                args.save_file += f'{args.ret_acc}.json'
+                args.result_save_file += f'{args.ret_acc}.json'
             elif args.analysis_type == 'retrieval_doc_type':
-                args.save_file += f'{args.ret_doc_type}.json'
+                args.result_save_file += f'{args.ret_doc_type}.json'
             elif args.analysis_type == 'retrieval_doc_selection':
-                args.save_file += f'{args.doc_selection_type}.json'
+                args.result_save_file += f'{args.doc_selection_type}.json'
             elif args.analysis_type == 'prompt_length':
-                args.save_file += f'{args.pl_analysis}.json'
+                args.result_save_file += f'{args.pl_analysis}.json'
             else:
                 raise ValueError(f'Unknown analysis type: {args.analysis_type}')
-        args.save_file = os.path.join(root_path, args.save_file)
+        args.result_save_file = os.path.join(root_path, args.result_save_file)
+        args.prompt_save_file = args.result_save_file.replace('.json', '_prompts.jsonl')
 
     print(json.dumps(vars(args), indent=2))
     return args
@@ -561,8 +568,8 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
             prompts.append(generate_func(ret_docs, question, model_name))
 
     # print(prompts[0])
-    approximate_token(prompts, model_name)
-    return prompts
+    pl_list = approximate_token(prompts, model_name)
+    return prompts, pl_list
 
 
 

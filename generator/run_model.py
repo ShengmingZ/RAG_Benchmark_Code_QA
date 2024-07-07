@@ -34,7 +34,7 @@ def chatgpt(prompts, model, temperature=0.7, max_tokens=500, n=1, stop=None):
     return outputs_list, logprobs_list
 
 
-def chatgpt_batch(prompt_save_file, prompts, model, temperature=0.7, max_tokens=500, n=1, stop=None):
+def chatgpt_batch(prompt_file_for_batch, prompts, model, temperature=0.7, max_tokens=500, n=1, stop=None):
     requests = list()
     for idx, prompt in enumerate(prompts):
         sys_prompt, user_prompt = prompt
@@ -48,15 +48,15 @@ def chatgpt_batch(prompt_save_file, prompts, model, temperature=0.7, max_tokens=
                             "stop": stop,
                             "logprobs": True}}
         requests.append(request)
-    with open(prompt_save_file, 'w+') as f:
+    with open(prompt_file_for_batch, 'w+') as f:
         for request in requests:
             f.write(json.dumps(request)+'\n')
 
-    batch_input_file = client.files.create(file=open(prompt_save_file, 'rb'), purpose='batch')
+    batch_input_file = client.files.create(file=open(prompt_file_for_batch, 'rb'), purpose='batch')
     response = client.batches.create(input_file_id=batch_input_file.id,
                                      endpoint='/v1/chat/completions',
                                      completion_window='24h',
-                                     metadata={'description': prompt_save_file})
+                                     metadata={'description': prompt_file_for_batch})
     batch_id = response.id
     print('batch_id: ', batch_id)
 
@@ -147,7 +147,8 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature
 
 
 if __name__ == "__main__":
-    prompts = [['You are a helpful assistant', 'hello']]
-    output_lists, _ = chatgpt(prompts=prompts, model='gpt-3.5-turbo-0125')
-    print(output_lists)
-    print(_)
+    # prompts = [['You are a helpful assistant', 'hello']]
+    # output_lists, _ = chatgpt(prompts=prompts, model='gpt-3.5-turbo-0125')
+    # print(output_lists)
+    # print(_)
+    ...
