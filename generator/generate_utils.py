@@ -499,7 +499,7 @@ def get_docs_for_ret_results(ret_results, dataset):
     return ret_results_docs
 
 
-def gene_prompt_by_prompt_length(ret_results, doc_selection_type, qs_list, dataset, model):
+def gene_prompt_by_prompt_length(ret_results, doc_selection_type, qs_list, dataset, model, doc_max_length):
     """
     this function is for doc selection: control prompt length, directly return the target prompt
     :param ret_results:
@@ -521,23 +521,25 @@ def gene_prompt_by_prompt_length(ret_results, doc_selection_type, qs_list, datas
         ret_result_docs = ret_results_docs[qs['qs_id']]
         for doc_idx in range(len(ret_result_docs)):
             cur_ret_docs = [item['doc'] for item in ret_result_docs[:doc_idx]]
+            if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: cur_ret_docs = truncate_docs(cur_ret_docs, model=model, max_length=doc_max_length)
             cur_prompt = generate_func(cur_ret_docs, qs['question'], model)
             prompt = cur_prompt[0] + cur_prompt[1] if 'gpt' in model else cur_prompt
             cur_pl = get_docs_tokens([prompt], model)[0]
             if cur_pl > target_pl: break
         if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:   # for qa task, mean doc length is 100, keep prompt length in [-50, 50] -> if doc above 50 remove, else append
-            if cur_pl - target_pl > 50: ret_docs = cur_ret_docs[:-2]
+            if cur_pl - target_pl > 50:
+                ret_docs = cur_ret_docs[:-1]
             else: ret_docs = cur_ret_docs
         else:   # for code task, mean doc length is 200, but doc length vary, to keep [-100, 100]: if keep -> prompt above less than 100, then keep, if remove prompt lower less 100, then remove, else truncate
             if cur_pl - target_pl < 100: ret_docs = cur_ret_docs
             else:
                 last_doc_length = get_docs_tokens([cur_ret_docs[-1]], model)[0]
                 if cur_pl - last_doc_length < target_pl - 100:
-                    ret_docs = cur_ret_docs[:-2]
-                    truncated_last_doc = truncate_docs([cur_ret_docs[-1]], model, max_length=target_pl-(cur_pl-last_doc_length))[0]
+                    ret_docs = cur_ret_docs[:-1]
+                    truncated_last_doc = truncate_docs([cur_ret_docs[-1]], model, max_length=int(target_pl-(cur_pl-last_doc_length)))[0]
                     ret_docs.append(truncated_last_doc)
                 else:
-                    ret_docs = cur_ret_docs[:-2]
+                    ret_docs = cur_ret_docs[:-1]
         ret_doc_keys = [item['doc_key'] for item in ret_result_docs[:len(ret_docs)]]
         ret_doc_keys_list.append(ret_doc_keys)
         prompt = generate_func(ret_docs, qs['question'], model)
@@ -653,12 +655,30 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
 
 
 if __name__ == "__main__":
-    """a temp run to get docs for ret results"""
+    """test control prompt length"""
     in_program_call = None
-    # in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type retrieval_doc_selection'
-    args = generate_config()
-    ret_results = get_ret_results(dataset=args.dataset, retriever=args.retriever)
-    get_docs_for_ret_results(ret_results=ret_results, dataset=args.dataset)
+    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type pl_1000'
+    args = generate_config(in_program_call)
+    # loader = NQTriviaQAUtils(dataset='NQ')
+    loader = ConalaLoader()
+    qs_list = loader.load_qs_list()[:10]
+    ret_results = get_ret_results(dataset=args.dataset, retriever='openai-embedding')
+    ret_doc_keys_list, prompts, pl_list = gene_prompt_by_prompt_length(ret_results=ret_results, doc_selection_type=args.doc_selection_type, qs_list=qs_list, dataset=args.dataset, model=args.model, doc_max_length=args.doc_max_length)
+    print(prompts[0])
+    print(pl_list)
+    print(ret_doc_keys_list)
+    true_pl_list = get_docs_tokens([prompt[0]+prompt[1] for prompt in prompts], model=args.model)
+    for pl, true_pl in zip(pl_list, true_pl_list):
+        print(pl, true_pl)
+
+
+
+    """a temp run to get docs for ret results"""
+    # in_program_call = None
+    # # in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type retrieval_doc_selection'
+    # args = generate_config(in_program_call)
+    # ret_results = get_ret_results(dataset=args.dataset, retriever=args.retriever)
+    # get_docs_for_ret_results(ret_results=ret_results, dataset=args.dataset)
 
 
     """test control ret type"""

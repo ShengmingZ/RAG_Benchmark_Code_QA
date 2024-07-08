@@ -143,22 +143,30 @@ class Generator:
     def save_prompts(self):
         if os.path.exists(self.prompt_save_file):
             print(f'prompt file exists for {self.prompt_save_file}')
-            return
-        ret_doc_keys_list, prompts, pl_list = self.gene_prompts()
-        print(prompts)
-        with open(self.prompt_save_file, 'w+') as f:
-            for idx in range(len(prompts)):
-                if len(ret_doc_keys_list) != len(prompts):
-                    assert len(ret_doc_keys_list) == 0
-                    doc_keys = []
-                else:
-                    doc_keys = ret_doc_keys_list[idx]
-                f.write(json.dumps(dict(ret_doc_keys=doc_keys, prompt=prompts[idx], prompt_length=pl_list[idx])) + '\n')
+            ret_doc_keys_list, prompts, pl_list = [], [], []
+            with open(self.prompt_save_file, 'r') as f:
+                for line in f:
+                    data = json.loads(line)
+                    if len(data['ret_doc_keys']) != 0: ret_doc_keys_list.append(data['ret_doc_keys'])
+                    prompts.append(data['prompt'])
+                    pl_list.append(data['prompt_length'])
+        else:
+            ret_doc_keys_list, prompts, pl_list = self.gene_prompts()
+            with open(self.prompt_save_file, 'w+') as f:
+                for idx in range(len(prompts)):
+                    if len(ret_doc_keys_list) != len(prompts):
+                        assert len(ret_doc_keys_list) == 0
+                        doc_keys = []
+                    else:
+                        doc_keys = ret_doc_keys_list[idx]
+                    f.write(json.dumps(dict(ret_doc_keys=doc_keys, prompt=prompts[idx], prompt_length=pl_list[idx])) + '\n')
+        # output some information of the ret docs
         if len(ret_doc_keys_list) != 0:
             ret_doc_key_flags_list, avg_ret_recall, avg_oracle_percent, avg_oracle_rank = ret_eval_by_doc_keys(dataset=self.dataset, oracle_list=self.oracle_list, ret_doc_keys_list=ret_doc_keys_list)
             print('ret recall: ', avg_ret_recall)
             print('avg oracle doc percentage: ', avg_oracle_percent)
-            print('avg oracle doc rank: ', avg_oracle_rank)
+            print('avg oracle doc rank: ', avg_oracle_rank+1)   # rank start from 1
+            print('avg prompt length: ', sum(pl_list)/len(pl_list))
 
     def gene_response(self):
         if os.path.exists(self.result_save_file):
@@ -168,12 +176,13 @@ class Generator:
             print(f'need to save prompts as {self.prompt_save_file}')
             return
 
-        ret_doc_keys_list, prompts = [], []
+        ret_doc_keys_list, prompts, pl_list = [], [], []
         with open(self.prompt_save_file, 'r') as f:
             for line in f:
                 data = json.loads(line)
-                ret_doc_keys_list.append(data['ret_doc_keys'])
+                if len(data['ret_doc_keys']) != 0: ret_doc_keys_list.append(data['ret_doc_keys'])
                 prompts.append(data['prompt'])
+                pl_list.append(data['prompt_length'])
 
         if self.model.startswith('llama') or self.model.startswith('codellama'):
             outputs_list, logprobs_list = llama(prompts=prompts, model_name=self.model, max_new_tokens=self.max_tokens, temperature=self.temperature, n=self.n, stop=self.stop)
@@ -231,7 +240,7 @@ if __name__ == '__main__':
     # gene_conala.gene_response()
 
     in_program_call = None
-    # in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --batch --dataset NQ --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 0.6'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --action gene_prompts --temperature 0 --n 1 --batch --dataset hotpotQA --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 0.6'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type none'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type top_5'
     args = generate_config(in_program_call)
