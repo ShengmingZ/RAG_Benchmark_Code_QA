@@ -378,7 +378,7 @@ qa_ret_doc_type_gpt_n_1 = {
 
 # top1 top5 top10 top15 top20 top25 top30
 # top1 top3 top5 top7 top9 top11 top13
-# top1-top7 llama 4k top1-top28 gpt 16k
+# top1-top7 code-llama 16k top1-top28 gpt 16k
 code_ret_doc_selection_llama_n_1 = {
 
 }

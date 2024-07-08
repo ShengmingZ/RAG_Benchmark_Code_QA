@@ -134,9 +134,15 @@ class Generator:
             print(f'prompt file exists for {self.prompt_save_file}')
             return
         ret_doc_keys_list, prompts, pl_list = self.gene_prompts()
+        print(prompts)
         with open(self.prompt_save_file, 'w+') as f:
-            for doc_keys, prompt, pl in zip(ret_doc_keys_list, prompts, pl_list):
-                f.write(json.dumps(dict(ret_doc_keys=doc_keys, prompt=prompt, prompt_length=pl)) + '\n')
+            for idx in range(len(prompts)):
+                if len(ret_doc_keys_list) != len(prompts):
+                    assert len(ret_doc_keys_list) == 0
+                    doc_keys = []
+                else:
+                    doc_keys = ret_doc_keys_list[idx]
+                f.write(json.dumps(dict(ret_doc_keys=doc_keys, prompt=prompts[idx], prompt_length=pl_list[idx])) + '\n')
 
     def gene_response(self):
         if os.path.exists(self.result_save_file):
@@ -215,8 +221,8 @@ if __name__ == '__main__':
     args = generate_config(in_program_call)
     generator = Generator(args)
     # generator.test_prompt()
-    # generator.calc_prompt_tokens()
 
     generator.save_prompts()
-    gene_results = generator.gene_response()
+
+    # gene_results = generator.gene_response()
 

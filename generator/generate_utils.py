@@ -630,7 +630,7 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
 if __name__ == "__main__":
     """a temp run to get docs for ret results"""
     in_program_call = None
-    # in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type ret_doc_selection'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type retrieval_doc_selection'
     args = generate_config()
     ret_results = get_ret_results(dataset=args.dataset, retriever=args.retriever)
     get_docs_for_ret_results(ret_results=ret_results, dataset=args.dataset)
