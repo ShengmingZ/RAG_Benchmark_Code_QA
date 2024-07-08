@@ -194,6 +194,7 @@ def generate_config(in_program_call=None):
     parser.add_argument('--dataset', type=str, choices=['tldr', 'conala', 'DS1000', 'pandas_numpy_eval', 'hotpotQA', 'NQ', 'TriviaQA'])
     parser.add_argument('--result_save_file', type=str, default=None)
     parser.add_argument('--prompt_save_file', type=str, default=None)
+    parser.add_argument('--action', type=str, choices=['gene_prompts', 'gene_responses', 'eval_pred'])
 
     # model parameters
     parser.add_argument('--model', type=str, default='gpt-3.5-turbo-1106', choices=['llama3-8b', 'llama2-13b-chat', 'codellama-13b-instruct', 'gpt-3.5-turbo-0125', 'gpt-4o'])
@@ -498,30 +499,51 @@ def get_docs_for_ret_results(ret_results, dataset):
     return ret_results_docs
 
 
-def select_by_prompt_length(ret_results, doc_selection_type, oralce_list, dataset, model):
+def gene_prompt_by_prompt_length(ret_results, doc_selection_type, qs_list, dataset, model):
+    """
+    this function is for doc selection: control prompt length, directly return the target prompt
+    :param ret_results:
+    :param doc_selection_type:
+    :param oracle_list:
+    :param dataset:
+    :param model:
+    :return:
+    """
     try:
-        prompt_length = float(doc_selection_type.replace('pl_', ''))    # todo: calc prompt length for prompt template and questions
+        target_pl = float(doc_selection_type.replace('pl_', ''))    # todo: calc prompt length for prompt template and questions
     except:
         raise ValueError('invalid prompt length selection format {}'.format(doc_selection_type))
-    if dataset in ['NQ', 'TriviaQA', 'hotpotQA']: batch = 20
-    else: batch = 5
+    generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
     ret_results_docs = get_docs_for_ret_results(ret_results, dataset)
-    for oracle in oralce_list:
-        pl_of_ret_docs, selected_ret_doc_keys = 0, []
-        ret_result, ret_result_docs = ret_results[oracle['qs_id']], ret_results_docs[oracle['qs_id']]
-        for item1, item2 in zip(ret_result_docs, ret_result[:100]): assert item1['doc_key'] == item2['doc_key']
-        for doc_idx in range(0, len(ret_result_docs), batch):
-            docs = ret_result_docs[doc_idx:doc_idx+batch]
-            tokens = get_docs_tokens(docs, model)
-            for token_idx in range(len(tokens)):
-                pl_of_ret_docs += tokens[token_idx]
-                selected_ret_doc_keys.append(ret_result[doc_idx+token_idx])
-                if token_idx+1 < len(tokens) and pl_of_ret_docs + tokens[token_idx+1] >= prompt_length:
-                    undecided_token = tokens[token_idx+1]
-                    undecided_ret_doc = ret_result
-                    break
-
-
+    prompts = []
+    ret_doc_keys_list = []
+    for qs in qs_list:
+        ret_result_docs = ret_results_docs[qs['qs_id']]
+        for doc_idx in range(len(ret_result_docs)):
+            cur_ret_docs = [item['doc'] for item in ret_result_docs[:doc_idx]]
+            cur_prompt = generate_func(cur_ret_docs, qs['question'], model)
+            prompt = cur_prompt[0] + cur_prompt[1] if 'gpt' in model else cur_prompt
+            cur_pl = get_docs_tokens([prompt], model)[0]
+            if cur_pl > target_pl: break
+        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:   # for qa task, mean doc length is 100, keep prompt length in [-50, 50] -> if doc above 50 remove, else append
+            if cur_pl - target_pl > 50: ret_docs = cur_ret_docs[:-2]
+            else: ret_docs = cur_ret_docs
+        else:   # for code task, mean doc length is 200, but doc length vary, to keep [-100, 100]: if keep -> prompt above less than 100, then keep, if remove prompt lower less 100, then remove, else truncate
+            if cur_pl - target_pl < 100: ret_docs = cur_ret_docs
+            else:
+                last_doc_length = get_docs_tokens([cur_ret_docs[-1]], model)[0]
+                if cur_pl - last_doc_length < target_pl - 100:
+                    ret_docs = cur_ret_docs[:-2]
+                    truncated_last_doc = truncate_docs([cur_ret_docs[-1]], model, max_length=target_pl-(cur_pl-last_doc_length))[0]
+                    ret_docs.append(truncated_last_doc)
+                else:
+                    ret_docs = cur_ret_docs[:-2]
+        ret_doc_keys = [item['doc_key'] for item in ret_result_docs[:len(ret_docs)]]
+        ret_doc_keys_list.append(ret_doc_keys)
+        prompt = generate_func(ret_docs, qs['question'], model)
+        prompts.append(prompt)
+    pl_list = approximate_token(prompts, model)
+    return ret_doc_keys_list, prompts, pl_list
 
 
 
@@ -538,8 +560,6 @@ def select_retrieval_docs(ret_results, oracle_list, doc_selection_type, dataset)
         ret_doc_keys_list = select_by_simi_score(ret_results=ret_results, doc_selection_type=doc_selection_type, oracle_list=oracle_list, dataset=dataset)
     # elif 'rerank' in doc_selection_type:
     #     ret_doc_keys_list = select_by_rerank(ret_results, doc_selection_type)
-    elif 'pl' in doc_selection_type:
-        ret_doc_keys_list = select_by_prompt_length(ret_results=ret_results, doc_selection_type=doc_selection_type, oracle_list=oracle_list, dataset=dataset)
     else:
         raise ValueError('not supported doc_selection_type {}'.format(doc_selection_type))
 
@@ -550,8 +570,8 @@ def select_retrieval_docs(ret_results, oracle_list, doc_selection_type, dataset)
     return ret_doc_keys_list, docs_list
 
 
-def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name, doc_max_length):
-    if len(ret_docs_list) == 0:     # no retrieval
+def _get_generate_func(dataset, no_ret_flag, prompt_type):
+    if no_ret_flag is True:     # no retrieval
         if dataset in ['NQ', 'TriviaQA']:
             if prompt_type == '0shot':
                 generate_func = NQ_TriviaQA_prompt.prompt_0shot_no_ret
@@ -579,10 +599,6 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         else:
             raise ValueError(f'invalid dataset {dataset}')
-        prompts = []
-        for question in questions:
-            prompts.append(generate_func(question, model_name))
-
     else:
         if dataset == 'NQ' or dataset == 'TriviaQA':
             if prompt_type == '0shot':
@@ -611,6 +627,16 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         else:
             raise ValueError(f'invalid dataset {dataset}')
+    return generate_func
+
+
+def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name, doc_max_length):
+    generate_func = _get_generate_func(dataset=dataset, no_ret_flag=True if len(ret_docs_list) == 0 else False, prompt_type=prompt_type)   # get prompt gene func
+    if len(ret_docs_list) == 0:     # no retrieval
+        prompts = []
+        for question in questions:
+            prompts.append(generate_func(question, model_name))
+    else:
         _ret_docs_list = list()
         for docs in ret_docs_list:
             _ret_docs_list.append(truncate_docs(docs, model_name, doc_max_length))
@@ -619,7 +645,6 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
         for ret_docs, question in zip(ret_docs_list, questions):
             prompts.append(generate_func(ret_docs, question, model_name))
 
-    # print(prompts[0])
     pl_list = approximate_token(prompts, model_name)
     return prompts, pl_list
 

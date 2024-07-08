@@ -18,11 +18,13 @@ from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
 from dataset_utils.corpus_utils import PythonDocsLoader, WikiCorpusLoader
-from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs, approximate_token, perturb_ret_doc_type, select_retrieval_docs, get_docs_for_pl_analysis
+from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs, approximate_token, perturb_ret_doc_type, select_retrieval_docs, get_docs_for_pl_analysis, gene_prompt_by_prompt_length
 from dataset_utils.DS1000_utils import DS1000Loader
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from dataset_utils.hotpotQA_utils import HotpotQAUtils
 from prompt import NQ_TriviaQA_prompt
+from retriever.retriever_utils import retriever_config, ret_eval_by_doc_keys
+from generator.pred_eval import pred_eval
 
 
 class Generator:
@@ -88,10 +90,13 @@ class Generator:
                                                                 model=self.model,
                                                                 dataset=self.dataset)
         elif self.analysis_type == 'retrieval_doc_selection':
-            ret_doc_keys_list, docs_list = select_retrieval_docs(ret_results=self.ret_results,
-                                                                 oracle_list=self.oracle_list,
-                                                                 doc_selection_type=self.doc_selection_type,
-                                                                 dataset=self.dataset)
+            if 'pl' not in self.doc_selection_type:
+                ret_doc_keys_list, docs_list = select_retrieval_docs(ret_results=self.ret_results,
+                                                                     oracle_list=self.oracle_list,
+                                                                     doc_selection_type=self.doc_selection_type,
+                                                                     dataset=self.dataset)
+            else:
+                docs_list = []
         elif self.analysis_type == 'prompt_length':
             ret_doc_keys_list, docs_list = get_docs_for_pl_analysis(pl_analysis=self.pl_analysis,
                                                                     oracle_list=self.oracle_list,
@@ -102,13 +107,19 @@ class Generator:
         else:
             raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
 
-
-        prompts, pl_list = generate_prompts(questions=[qs['question'] for qs in self.qs_list],
-                                   ret_docs_list=docs_list,
-                                   prompt_type=self.prompt_type,
-                                   dataset=self.dataset,
-                                   model_name=self.model,
-                                   doc_max_length=self.doc_max_length)
+        if len(docs_list) == 0:
+            ret_doc_keys_list, prompts, pl_list = gene_prompt_by_prompt_length(ret_results=self.ret_results,
+                                                                               doc_selection_type=self.doc_selection_type,
+                                                                               qs_list=self.qs_list,
+                                                                               dataset=self.dataset,
+                                                                               model=self.model)
+        else:
+            prompts, pl_list = generate_prompts(questions=[qs['question'] for qs in self.qs_list],
+                                                ret_docs_list=docs_list,
+                                                prompt_type=self.prompt_type,
+                                                dataset=self.dataset,
+                                                model_name=self.model,
+                                                doc_max_length=self.doc_max_length)
         return ret_doc_keys_list, prompts, pl_list
 
     def test_prompt(self):
@@ -143,6 +154,11 @@ class Generator:
                 else:
                     doc_keys = ret_doc_keys_list[idx]
                 f.write(json.dumps(dict(ret_doc_keys=doc_keys, prompt=prompts[idx], prompt_length=pl_list[idx])) + '\n')
+        if len(ret_doc_keys_list) != 0:
+            ret_doc_key_flags_list, avg_ret_recall, avg_oracle_percent, avg_oracle_rank = ret_eval_by_doc_keys(dataset=self.dataset, oracle_list=self.oracle_list, ret_doc_keys_list=ret_doc_keys_list)
+            print('ret recall: ', avg_ret_recall)
+            print('avg oracle doc percentage: ', avg_oracle_percent)
+            print('avg oracle doc rank: ', avg_oracle_rank)
 
     def gene_response(self):
         if os.path.exists(self.result_save_file):
@@ -215,14 +231,17 @@ if __name__ == '__main__':
     # gene_conala.gene_response()
 
     in_program_call = None
-    # in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --batch --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis irrelevant_dummy_top10'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --batch --dataset NQ --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 0.6'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type none'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type top_5'
     args = generate_config(in_program_call)
     generator = Generator(args)
     # generator.test_prompt()
 
-    generator.save_prompts()
-
-    # gene_results = generator.gene_response()
+    if args.action == 'gene_prompts':
+        generator.save_prompts()
+    elif args.action == 'gene_responses':
+        gene_results = generator.gene_response()
+    elif args.action == 'eval_pred':
+        pred_eval(args)
 

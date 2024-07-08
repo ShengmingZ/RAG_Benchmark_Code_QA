@@ -98,7 +98,7 @@ def verify_ret_docs(args):
 
 
 
-def ret_eval(args):
+def ret_eval(args, top_k=None):
     dataset = args.dataset
     if dataset == 'hotpotQA':
         loader = HotpotQAUtils()
@@ -115,8 +115,7 @@ def ret_eval(args):
         for key in ret_results.keys():
             ret_results[key] = ret_results[key][:-2]
 
-    # top_k = [1, 3, 5, 10, 20, 50, 100, 200, 500, 1000, 2000]
-    top_k = [1, 3, 5, 10, 20, 50, 100]
+    if top_k is None: top_k = [1, 3, 5, 10, 20, 50, 100]
     if dataset == 'hotpotQA':
         oracle_list = loader.load_oracle_list()
         golds, preds = list(), list()
@@ -132,14 +131,69 @@ def ret_eval(args):
             ret_doc_keys_list.append([tmp['doc_key'] for tmp in ret_results[oracle['qs_id']]][:top_k[-1]])
         ret_docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list, dataset)
         print('load docs done')
-        hits_rate = loader.retrieval_eval(docs_list=ret_docs_list, answers_list=answers_list, top_k=top_k)
+        metrics = loader.retrieval_eval(docs_list=ret_docs_list, answers_list=answers_list, top_k=top_k)
     elif dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
         oracle_list = loader.load_oracle_list()
         golds, preds = list(), list()
         for oracle in oracle_list:
             golds.append(oracle['oracle_docs'])
             preds.append([tmp['doc_key'] for tmp in ret_results[oracle['qs_id']]])
-        recall_n = loader.calc_recall(src=golds, pred=preds, top_k=top_k)
+        metrics = loader.calc_recall(src=golds, pred=preds, top_k=top_k)
+    print(metrics)
+    return metrics
+
+
+
+def ret_eval_by_doc_keys(dataset, oracle_list, ret_doc_keys_list):
+    ret_doc_key_flags_list = []     # correspond to ret_doc_keys_list: each element record if the ret doc if oracle or not
+    ret_recall_list = []    # record ret recall for each sample
+    oracle_rank_list = []   # record oracle doc rank for each sample
+    oracle_percent_list = []    # record oracle doc percentage for each sample
+    if dataset == 'NQ' or dataset == 'TriviaQA':
+        from dataset_utils.NQ_TriviaQA_utils import has_answer
+        ret_docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list, dataset)
+        for ret_docs, oracle in zip(ret_docs_list, oracle_list):
+            ret_doc_key_flags = []
+            oracle_doc_rank = -1
+            oracle_doc_count = 0
+            for idx, ret_doc in enumerate(ret_docs):
+                if has_answer(oracle['answers'], ret_doc):
+                    ret_doc_key_flags.append(True)
+                    if oracle_doc_rank == -1: oracle_doc_rank = idx
+                    oracle_doc_count += 1
+                else: ret_doc_key_flags.append(False)
+            if True in ret_doc_key_flags:  ret_recall_list.append(1)
+            else: ret_recall_list.append(0)
+            if oracle_doc_rank == -1: oracle_rank_list.append([])
+            else: oracle_rank_list.append([oracle_doc_rank])
+            oracle_percent_list.append(oracle_doc_count / len(ret_doc_key_flags))
+            ret_doc_key_flags_list.append(ret_doc_key_flags)
+    else:
+        for ret_doc_keys, oracle in zip(ret_doc_keys_list, oracle_list):
+            ret_doc_key_flags = []
+            oracle_doc_ranks = []
+            oracle_doc_count = 0
+            for idx, ret_doc_key in enumerate(ret_doc_keys):
+                if ret_doc_key in oracle['oracle_docs']:
+                    ret_doc_key_flags.append(True)
+                    oracle_doc_count += 1
+                    oracle_doc_ranks.append(idx)
+                else: ret_doc_key_flags.append(False)
+            ret_recall_list.append(ret_doc_key_flags.count(True) / len(oracle['oracle_docs']))
+            oracle_rank_list.append(oracle_doc_ranks)
+            oracle_percent_list.append(oracle_doc_count / len(ret_doc_key_flags))
+            ret_doc_key_flags_list.append(ret_doc_key_flags)
+
+    avg_ret_recall = sum(ret_recall_list) / len(ret_recall_list)
+    avg_oracle_percent = sum(oracle_percent_list) / len(oracle_percent_list)
+    total_rank_count = sum(len(sublist) for sublist in oracle_rank_list)
+    total_rank = sum(sum(sublist) for sublist in oracle_rank_list)
+    avg_oracle_rank = total_rank / total_rank_count
+
+    return ret_doc_key_flags_list, avg_ret_recall, avg_oracle_percent, avg_oracle_rank
+
+
+
 
 
 
