@@ -376,7 +376,9 @@ qa_ret_doc_type_gpt_n_1 = {
     }
 }
 
-
+# top1 top5 top10 top15 top20 top25 top30
+# top1 top3 top5 top7 top9 top11 top13
+# top1-top7 llama 4k top1-top28 gpt 16k
 code_ret_doc_selection_llama_n_1 = {
 
 }
@@ -431,6 +433,9 @@ qa_ret_doc_selection_llama_n_1 = {
     }
 }
 
+# top1 top10 top20 top30 top40 top50 top60
+# top1 top5 top10 top15 top20 top25 top30
+# top1-top80 for gpt (16k) top1-top20 for llama (4k)
 qa_ret_doc_selection_gpt_n_1 = {
     'NQ': {
         "top_1": {'em': 0.25, 'f1': 0.3922751526271766, 'prec': 0.38121272333562434, 'recall': 0.5068083333333334},

@@ -13,7 +13,7 @@ ret_doc_types = ["oracle", "distracting", "random", "irrelevant_dummy", "irrelev
 
 
 def make_doc_selection_analysis():
-    graph_name = 'doc_selection_analysis.pdf'
+    graph_name = 'select_topk_analysis.pdf'
     qa_gpt_perf_datas = []
     qa_gpt_doc_selection_types = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20', 'top_25', 'top_30']
     for dataset_name in qa_dataset_names:
