@@ -490,7 +490,7 @@ def get_docs_for_ret_results(ret_results, dataset):
         else:
             docs_list = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in ret_doc_keys_list]
         # store
-        ret_results_docs = []
+        ret_results_docs = dict()
         for doc_keys, docs, qs_id in zip(ret_doc_keys_list, docs_list, ret_results.keys()):
             ret_results_docs[qs_id] = [dict(doc_key=doc_key, doc=doc) for doc_key, doc in zip(doc_keys, docs)]
         with open(ret_docs_path, 'w+') as f:
