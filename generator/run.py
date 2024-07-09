@@ -44,7 +44,7 @@ if args.analysis_type == "retrieval_recall":
         print(batch_cmd)
     else:
         subprocess.check_output(batch_cmd, shell=True)
-    print(f'done {args.action} for retrieval recall analysis, {args.model} {args.dataset}')
+        print(f'done {args.action} for retrieval recall analysis, {args.model} {args.dataset}')
 
 
 elif args.analysis_type == "retrieval_doc_type":
@@ -72,7 +72,7 @@ elif args.analysis_type == "retrieval_doc_type":
         print(batch_cmd)
     else:
         subprocess.check_output(batch_cmd, shell=True)
-    print(f'done {args.action} for ret_doc_type analysis, {args.model} {args.dataset}')
+        print(f'done {args.action} for ret_doc_type analysis, {args.model} {args.dataset}')
 
 
 elif args.analysis_type.startswith("retrieval_doc_selection"):
@@ -114,7 +114,7 @@ elif args.analysis_type.startswith("retrieval_doc_selection"):
         print(batch_cmd)
     else:
         subprocess.check_output(batch_cmd, shell=True)
-    print(f'done {args.action} for retrieval doc selection analysis, {args.model} {args.dataset}')
+        print(f'done {args.action} for retrieval doc selection analysis, {args.model} {args.dataset}')
 
 
 elif args.analysis_type.startswith('prompt_length'):
@@ -143,4 +143,4 @@ elif args.analysis_type.startswith('prompt_length'):
         print(batch_cmd)
     else:
         subprocess.check_output(batch_cmd, shell=True)
-    print(f'done {args.action} for prompt length analysis, {args.model} {args.dataset}')
+        print(f'done {args.action} for prompt length analysis, {args.model} {args.dataset}')

@@ -65,7 +65,7 @@ def retriever_config(in_program_call=None):
         else:
             args.es_idx = 'python_docs'
 
-    print(json.dumps(vars(args), indent=2))
+    # print(json.dumps(vars(args), indent=2))
     return args
 
 
