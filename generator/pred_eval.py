@@ -249,7 +249,7 @@ def pred_eval(args):
         # print('avg prompt length: ', sum(pl_list) / len(pl_list))
         scores['ret_recall'] = avg_ret_recall
         scores['oracle_percent'] = avg_oracle_percent
-        scores['oracle_rank'] = avg_oracle_rank
+        scores['oracle_rank'] = avg_oracle_rank + 1
         scores['prompt_length'] = sum(pl_list) / len(pl_list)
     scores = {key: round(value, 3) for key, value in scores.items()}
     print(scores)
