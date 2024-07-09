@@ -38,8 +38,12 @@ if args.analysis_type == "retrieval_recall":
         batch_cmd = ''
         for cmd in cmds:
             batch_cmd = batch_cmd + cmd + ' & '
-    print(batch_cmd)
-    subprocess.check_output(batch_cmd, shell=True)
+
+    if args.action == 'eval_pred':
+        print('run following cmd:')
+        print(batch_cmd)
+    else:
+        subprocess.check_output(batch_cmd, shell=True)
     print(f'done {args.action} for retrieval recall analysis, {args.model} {args.dataset}')
 
 
@@ -62,8 +66,12 @@ elif args.analysis_type == "retrieval_doc_type":
         batch_cmd = ''
         for cmd in cmds:
             batch_cmd = batch_cmd + cmd + ' ; '
-    print(batch_cmd)
-    subprocess.check_output(batch_cmd, shell=True)
+
+    if args.action == 'eval_pred':
+        print('run following cmd:')
+        print(batch_cmd)
+    else:
+        subprocess.check_output(batch_cmd, shell=True)
     print(f'done {args.action} for ret_doc_type analysis, {args.model} {args.dataset}')
 
 
@@ -101,8 +109,11 @@ elif args.analysis_type.startswith("retrieval_doc_selection"):
         batch_cmd = ''
         for cmd in cmds:
             batch_cmd = batch_cmd + cmd + ' ; '
-    print(batch_cmd)
-    subprocess.check_output(batch_cmd, shell=True)
+    if args.action == 'eval_pred':
+        print('run following cmd:')
+        print(batch_cmd)
+    else:
+        subprocess.check_output(batch_cmd, shell=True)
     print(f'done {args.action} for retrieval doc selection analysis, {args.model} {args.dataset}')
 
 
@@ -127,6 +138,9 @@ elif args.analysis_type.startswith('prompt_length'):
         batch_cmd = ''
         for cmd in cmds:
             batch_cmd = batch_cmd + cmd + ' ; '
-    print(batch_cmd)
-    subprocess.check_output(batch_cmd, shell=True)
+    if args.action == 'eval_pred':
+        print('run following cmd:')
+        print(batch_cmd)
+    else:
+        subprocess.check_output(batch_cmd, shell=True)
     print(f'done {args.action} for prompt length analysis, {args.model} {args.dataset}')
