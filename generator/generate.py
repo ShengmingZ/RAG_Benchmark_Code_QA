@@ -95,14 +95,14 @@ class Generator:
                                                                      oracle_list=self.oracle_list,
                                                                      doc_selection_type=self.doc_selection_type,
                                                                      dataset=self.dataset)
-            else:
-                docs_list = []
         elif self.analysis_type == 'prompt_length':
-            ret_doc_keys_list, docs_list = get_docs_for_pl_analysis(pl_analysis=self.pl_analysis,
-                                                                    oracle_list=self.oracle_list,
-                                                                    ret_results=self.ret_results,
-                                                                    model=self.model,
-                                                                    dataset=self.dataset)
+            ...
+        #     if 'pl' not in self.pl_analysis:
+        #         ret_doc_keys_list, docs_list = get_docs_for_pl_analysis(pl_analysis=self.pl_analysis,
+        #                                                                 oracle_list=self.oracle_list,
+        #                                                                 ret_results=self.ret_results,
+        #                                                                 model=self.model,
+        #                                                                 dataset=self.dataset)
 
         else:
             raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
@@ -114,6 +114,12 @@ class Generator:
                                                                                dataset=self.dataset,
                                                                                model=self.model,
                                                                                doc_max_length=self.doc_max_length)
+        elif self.analysis_type == 'prompt_length':
+            ret_doc_keys_list, prompts, pl_list = get_docs_for_pl_analysis(pl_analysis=self.pl_analysis,
+                                                                           oracle_list=self.oracle_list,
+                                                                           ret_results=self.ret_results,
+                                                                           model=self.model,
+                                                                           dataset=self.dataset)
         else:
             prompts, pl_list = generate_prompts(questions=[qs['question'] for qs in self.qs_list],
                                                 ret_docs_list=docs_list,
