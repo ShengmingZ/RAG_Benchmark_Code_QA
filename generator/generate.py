@@ -259,5 +259,6 @@ if __name__ == '__main__':
     elif args.action == 'gene_responses':
         gene_results = generator.gene_response()
     elif args.action == 'eval_pred':
+        print(args.prompt_save_file)
         pred_eval(args)
 
