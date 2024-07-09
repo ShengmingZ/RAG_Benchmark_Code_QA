@@ -221,14 +221,14 @@ def pred_eval(args):
         raise ValueError('Not supported dataset {}'.format(args.dataset))
 
     # prompt length, only calc when prompt save file exists
-    if os.path.exists(args.prompt_save_file):
-        total_prompt_length = 0
-        with open(args.promt_save_file, 'r') as f:
-            for line in f:
-                total_prompt_length += json.loads(line)['prompt_length']
-        avg_prompt_length = total_prompt_length / len(gene_results)
-        assert isinstance(scores, dict)
-        scores['avg_prompt_length'] = avg_prompt_length
+    # if os.path.exists(args.prompt_save_file):
+    #     total_prompt_length = 0
+    #     with open(args.prompt_save_file, 'r') as f:
+    #         for line in f:
+    #             total_prompt_length += json.loads(line)['prompt_length']
+    #     avg_prompt_length = total_prompt_length / len(gene_results)
+    #     assert isinstance(scores, dict)
+    #     scores['avg_prompt_length'] = avg_prompt_length
     print(scores)
 
     return scores
