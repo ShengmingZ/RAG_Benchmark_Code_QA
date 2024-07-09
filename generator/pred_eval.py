@@ -173,31 +173,34 @@ def pred_eval(args):
         raise ValueError('args.n must be 1 or 10')
 
     if args.dataset == 'conala':
+        loader = ConalaLoader()
         _gene_results = list()
         for result in gene_results:
             outputs = process_gene_results(args, result['outputs'])
             # outputs = [result['oracle_output']]
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
-        scores = ConalaLoader().eval_passk(_gene_results, top_k=k_list)
+        scores = loader.eval_passk(_gene_results, top_k=k_list)
 
     elif args.dataset == 'DS1000':
         # gene_results = json.load(open(DS1000Loader().oracle_doc_file, 'r'))
-        qs_list = DS1000Loader().load_qs_list()
+        loader = DS1000Loader()
+        qs_list = loader.load_qs_list()
         _gene_results = list()
         for idx, result in enumerate(gene_results):
             assert qs_list[idx]['qs_id'] == result['qs_id']
             outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
-        scores = DS1000Loader().eval_passk(_gene_results, k_list=k_list)
+        scores = loader.eval_passk(_gene_results, k_list=k_list)
 
     elif args.dataset == 'pandas_numpy_eval':
-        qs_list = PandasNumpyEvalLoader().load_qs_list()
+        loader = PandasNumpyEvalLoader()
+        qs_list = loader.load_qs_list()
         _gene_results = []
         for idx, result in enumerate(gene_results):
             assert qs_list[idx]['qs_id'] == result['qs_id']
             outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'])
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
-        scores = PandasNumpyEvalLoader().eval_passk(_gene_results, k_list=k_list)
+        scores = loader.eval_passk(_gene_results, k_list=k_list)
 
     elif args.dataset == 'NQ' or args.dataset == 'TriviaQA':
         loader = NQTriviaQAUtils(args.dataset)
@@ -238,7 +241,8 @@ def pred_eval(args):
             prompts.append(data['prompt'])
             pl_list.append(data['prompt_length'])
     if len(ret_doc_keys_list) != 0:
-        ret_doc_key_flags_list, avg_ret_recall, avg_oracle_percent, avg_oracle_rank = ret_eval_by_doc_keys(dataset=args.dataset, oracle_list=args.oracle_list, ret_doc_keys_list=ret_doc_keys_list)
+        oracle_list = loader.load_oracle_list()
+        ret_doc_key_flags_list, avg_ret_recall, avg_oracle_percent, avg_oracle_rank = ret_eval_by_doc_keys(dataset=args.dataset, oracle_list=oracle_list, ret_doc_keys_list=ret_doc_keys_list)
         print('ret recall: ', avg_ret_recall)
         print('avg oracle doc percentage: ', avg_oracle_percent)
         print('avg oracle doc rank: ', avg_oracle_rank + 1)  # rank start from 1
