@@ -514,7 +514,9 @@ qa_ret_doc_selection_topk_llama_n_1 = {
 
 qa_ret_doc_selection_topk_gpt_n_1 = {
     'NQ': {
-        'top_1': {'em': 0.254, 'f1': 0.390954031764147, 'prec': 0.380972455993706, 'recall': 0.49956666666666666}
+        'top_1': {'em': 0.254, 'f1': 0.391, 'prec': 0.381, 'recall': 0.5, 'ret_recall': 0.472, 'oracle_percentage': 0.472, 'oracle_rank': 1.0, 'prompt_length': 226.675},
+        'top_20': {'em': 0.35, 'f1': 0.497, 'prec': 0.483, 'recall': 0.629, 'ret_recall': 0.871, 'oracle_percentage': 0.19, 'oracle_rank': 3.07, 'prompt_length': 2833},
+        'top_40': {'em': 0.346, 'f1': 0.496, 'prec': 0.482, 'recall': 0.635, 'ret_recall': 0.911, 'oracle_percent': 0.147, 'oracle_rank': 3.238, 'prompt_length': 5577.404}
     },
     'TriviaQA': {},
     'hotpotQA': {}

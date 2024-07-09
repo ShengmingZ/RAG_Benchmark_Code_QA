@@ -18,7 +18,7 @@ from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
 from dataset_utils.corpus_utils import PythonDocsLoader, WikiCorpusLoader
-from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs, approximate_token, perturb_ret_doc_type, select_retrieval_docs, get_docs_for_pl_analysis, gene_prompt_by_prompt_length
+from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs, approximate_token, perturb_ret_doc_type, select_retrieval_docs, gene_prompts_for_pl_analysis, gene_prompts_by_prompt_length
 from dataset_utils.DS1000_utils import DS1000Loader
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from dataset_utils.hotpotQA_utils import HotpotQAUtils
@@ -108,14 +108,14 @@ class Generator:
             raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
 
         if self.analysis_type == 'retrieval_doc_selection' and 'pl' in self.doc_selection_type:
-            ret_doc_keys_list, prompts, pl_list = gene_prompt_by_prompt_length(ret_results=self.ret_results,
+            ret_doc_keys_list, prompts, pl_list = gene_prompts_by_prompt_length(ret_results=self.ret_results,
                                                                                doc_selection_type=self.doc_selection_type,
                                                                                qs_list=self.qs_list,
                                                                                dataset=self.dataset,
                                                                                model=self.model,
                                                                                doc_max_length=self.doc_max_length)
         elif self.analysis_type == 'prompt_length':
-            ret_doc_keys_list, prompts, pl_list = get_docs_for_pl_analysis(pl_analysis=self.pl_analysis,
+            ret_doc_keys_list, prompts, pl_list = gene_prompts_for_pl_analysis(pl_analysis=self.pl_analysis,
                                                                            oracle_list=self.oracle_list,
                                                                            ret_results=self.ret_results,
                                                                            model=self.model,

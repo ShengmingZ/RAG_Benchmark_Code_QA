@@ -383,43 +383,111 @@ def perturb_ret_doc_type(perturb_doc_type, oracle_list, ret_results, model, data
     return doc_keys_list, docs_list
 
 
-# todo
-def get_docs_for_pl_analysis(pl_analysis, oracle_list, ret_results, model, dataset):
-    # assert pl_analysis in ['oracle_top10', 'distracting_top10', 'random_top10', 'irrelevant_dummy_top10', 'irrelevant_diff_top10']
+def _truncate_prompt_to_control_prompt_length(dataset, cur_pl, target_pl, cur_docs, doc_keys, model):
+    if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:  # for qa task, mean doc length is 100, keep prompt length in [-50, 50] -> if doc above 50 remove, else append
+        if cur_pl - target_pl > 50:
+            docs = cur_docs[:-1]
+        else:
+            docs = cur_docs
+    else:  # for code task, mean doc length is 200, but doc length vary, to keep [-100, 100]: if keep -> prompt above less than 100, then keep, if remove prompt lower less 100, then remove, else truncate
+        if cur_pl - target_pl < 100:
+            docs = cur_docs
+        else:
+            last_doc_length = get_docs_tokens([cur_docs[-1]], model)[0]
+            if cur_pl - last_doc_length < target_pl - 100:
+                docs = cur_docs[:-1]
+                truncated_last_doc = truncate_docs([cur_docs[-1]], model, max_length=int(target_pl - (cur_pl - last_doc_length)))[0]
+                docs.append(truncated_last_doc)
+            else:
+                docs = cur_docs[:-1]
+    return doc_keys[:len(docs)], docs
+
+
+def get_prompt_of_target_pl(dataset, target_pl, docs, doc_keys, model, question, generate_func):
+    for doc_idx in range(len(docs)):
+        cur_docs = docs[:doc_idx]
+        cur_prompt = generate_func(cur_docs, question, model)
+        prompt = cur_prompt[0] + cur_prompt[1] if 'gpt' in model else cur_prompt
+        cur_pl = get_docs_tokens([prompt], model)[0]
+        if cur_pl > target_pl: break
+    doc_keys, docs = _truncate_prompt_to_control_prompt_length(dataset=dataset, cur_pl=cur_pl, target_pl=target_pl, cur_docs=cur_docs, doc_keys=doc_keys, model=model)
+    prompt = generate_func(docs, question, model)
+    return doc_keys, docs, prompt
+
+
+def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, model, dataset, doc_max_length):
     try:
-        target_pl = int(pl_analysis.rsplit('_',1)[1])
+        target_pl = int(pl_analysis.rsplit('_', 1)[1])
     except:
         raise ValueError('not supported pl_analysis type {}'.format(pl_analysis))
-    if dataset == 'NQ' or dataset == 'TriviaQA':
-        for idx, oracle in enumerate(oracle_list):
-            oracle_list[idx]['oracle_docs'] = [oracle_list[idx]['oracle_doc']]
 
-    oracle_doc_keys_list = [oracle['oracle_docs'] for oracle in oracle_list]
-    if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
-        oracle_docs_list = WikiCorpusLoader().get_docs(oracle_doc_keys_list, dataset, num_procs=8)
-    else:
-        oracle_docs_list = [PythonDocsLoader().get_docs(oracle_docs) for oracle_docs in oracle_doc_keys_list]
-    oracle_doc_keys_list_by_target_pl, oracle_docs_list_by_target_pl = ...  # repeat oracle docs until a certain prompt length
-
+    target_doc_keys_list, prompts = [], []
     if pl_analysis.startswith('oracle'):
-        doc_keys_list, docs_list = oracle_doc_keys_list_by_target_pl, oracle_docs_list_by_target_pl
-    elif pl_analysis == 'random_top10':
-        doc_keys_list = []
+        # get oracle docs
+        if dataset == 'NQ' or dataset == 'TriviaQA':
+            for idx, oracle in enumerate(oracle_list):
+                oracle_list[idx]['oracle_docs'] = [oracle_list[idx]['oracle_doc']]
+        oracle_doc_keys_list = [oracle['oracle_docs'] for oracle in oracle_list]
+        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+            oracle_docs_list = WikiCorpusLoader().get_docs(oracle_doc_keys_list, dataset, num_procs=8)
+        else:
+            oracle_docs_list = [PythonDocsLoader().get_docs(oracle_docs) for oracle_docs in oracle_doc_keys_list]
+        # repeat oracle docs until the target prompt length
+        generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
+        for qs, oracle_docs, oracle_doc_keys in zip(qs_list, oracle_docs_list, oracle_doc_keys_list):
+            if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: oracle_docs = truncate_docs(oracle_docs, model=model, max_length=doc_max_length)
+            repeated_oracle_docs, repeated_oracle_doc_keys = oracle_docs * 100, oracle_doc_keys * 100
+            doc_keys, docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl, docs=repeated_oracle_docs,
+                                                       doc_keys=repeated_oracle_doc_keys, model=model, question=qs['question'], generate_func=generate_func)
+            target_doc_keys_list.append(doc_keys)
+            prompts.append(prompt)
+
+    elif pl_analysis.startswith('random'):
+        # get random docs
         if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
             corpus_id_list = WikiCorpusLoader().load_wiki_id(dataset)
         else:
             corpus_id_list = PythonDocsLoader().load_api_signs()
+        random_doc_keys_list = []
         for _ in oracle_list:
-            doc_keys_list.append(random.sample(corpus_id_list, 100))
-        docs_list = ...
-    elif pl_analysis.startswith('irrelevant_diff_top10') or pl_analysis.startswith('irrelevant_dummy_top10'):
-        docs_list, doc_keys_list = [], []  # required docs and doc keys
-        for docs in oracle_doc_keys_list_by_target_pl:
-            docs_list.append(get_irrelevant_docs(irrelevant_type=pl_analysis.split('_')[1], oracle_docs=docs, model=model, dataset=dataset))
+            random_doc_keys_list.append(random.sample(corpus_id_list, 100))
+        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+            random_docs_list = WikiCorpusLoader().get_docs(random_doc_keys_list, dataset, num_procs=8)
+        else:
+            random_docs_list = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in random_doc_keys_list]
+        generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
+        for qs, random_docs, random_doc_keys in zip(qs_list, random_docs_list, random_doc_keys_list):
+            if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: random_doc_keys = truncate_docs(random_docs, model=model, max_length=doc_max_length)
+            doc_keys, docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl, docs=random_docs,
+                                                       doc_keys=random_doc_keys, model=model, question=qs['question'], generate_func=generate_func)
+            target_doc_keys_list.append(doc_keys)
+            prompts.append(prompt)
+
+    elif pl_analysis.startswith('irrelevant'):
+        # get oracle docs, and use get_irrelevant docs to control the same prompt length
+        if dataset == 'NQ' or dataset == 'TriviaQA':
+            for idx, oracle in enumerate(oracle_list):
+                oracle_list[idx]['oracle_docs'] = [oracle_list[idx]['oracle_doc']]
+        oracle_doc_keys_list = [oracle['oracle_docs'] for oracle in oracle_list]
+        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+            oracle_docs_list = WikiCorpusLoader().get_docs(oracle_doc_keys_list, dataset, num_procs=8)
+        else:
+            oracle_docs_list = [PythonDocsLoader().get_docs(oracle_docs) for oracle_docs in oracle_doc_keys_list]
+        generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
+        for qs, oracle_docs, oracle_doc_keys in zip(qs_list, oracle_docs_list, oracle_doc_keys_list):
+            if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: oracle_docs = truncate_docs(oracle_docs, model=model, max_length=doc_max_length)
+            repeated_oracle_docs, repeated_oracle_doc_keys = oracle_docs * 100, oracle_doc_keys * 100
+            doc_keys, docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl,
+                                                             docs=repeated_oracle_docs,
+                                                             doc_keys=repeated_oracle_doc_keys, model=model,
+                                                             question=qs['question'], generate_func=generate_func)
+            irrelevant_docs = get_irrelevant_docs(irrelevant_type=pl_analysis.split('_')[1], oracle_docs=docs, model=model, dataset=dataset)
+            prompt = generate_func(irrelevant_docs, qs['question'], model)
+            prompts.append(prompt)
     else:
         raise ValueError('not supported prompt length analysis {}'.format(pl_analysis))
 
-    return doc_keys_list, docs_list
+    return target_doc_keys_list, prompts
 
 
 def select_by_simi_score(ret_results, doc_selection_type, oracle_list, dataset):
@@ -487,7 +555,7 @@ def get_docs_for_ret_results(ret_results, dataset):
     return ret_results_docs
 
 
-def gene_prompt_by_prompt_length(ret_results, doc_selection_type, qs_list, dataset, model, doc_max_length):
+def gene_prompts_by_prompt_length(ret_results, doc_selection_type, qs_list, dataset, model, doc_max_length):
     """
     this function is for doc selection: control prompt length, directly return the target prompt
     :param ret_results:
@@ -498,7 +566,7 @@ def gene_prompt_by_prompt_length(ret_results, doc_selection_type, qs_list, datas
     :return:
     """
     try:
-        target_pl = float(doc_selection_type.replace('pl_', ''))    # todo: calc prompt length for prompt template and questions
+        target_pl = float(doc_selection_type.replace('pl_', ''))
     except:
         raise ValueError('invalid prompt length selection format {}'.format(doc_selection_type))
     generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
@@ -507,31 +575,38 @@ def gene_prompt_by_prompt_length(ret_results, doc_selection_type, qs_list, datas
     ret_doc_keys_list = []
     for qs in qs_list:
         ret_result_docs = ret_results_docs[qs['qs_id']]
-        for doc_idx in range(len(ret_result_docs)):
-            cur_ret_docs = [item['doc'] for item in ret_result_docs[:doc_idx]]
-            if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: cur_ret_docs = truncate_docs(cur_ret_docs, model=model, max_length=doc_max_length)
-            cur_prompt = generate_func(cur_ret_docs, qs['question'], model)
-            prompt = cur_prompt[0] + cur_prompt[1] if 'gpt' in model else cur_prompt
-            cur_pl = get_docs_tokens([prompt], model)[0]
-            if cur_pl > target_pl: break
-        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:   # for qa task, mean doc length is 100, keep prompt length in [-50, 50] -> if doc above 50 remove, else append
-            if cur_pl - target_pl > 50:
-                ret_docs = cur_ret_docs[:-1]
-            else: ret_docs = cur_ret_docs
-        else:   # for code task, mean doc length is 200, but doc length vary, to keep [-100, 100]: if keep -> prompt above less than 100, then keep, if remove prompt lower less 100, then remove, else truncate
-            if cur_pl - target_pl < 100: ret_docs = cur_ret_docs
-            else:
-                last_doc_length = get_docs_tokens([cur_ret_docs[-1]], model)[0]
-                if cur_pl - last_doc_length < target_pl - 100:
-                    ret_docs = cur_ret_docs[:-1]
-                    truncated_last_doc = truncate_docs([cur_ret_docs[-1]], model, max_length=int(target_pl-(cur_pl-last_doc_length)))[0]
-                    ret_docs.append(truncated_last_doc)
-                else:
-                    ret_docs = cur_ret_docs[:-1]
-        ret_doc_keys = [item['doc_key'] for item in ret_result_docs[:len(ret_docs)]]
-        ret_doc_keys_list.append(ret_doc_keys)
-        prompt = generate_func(ret_docs, qs['question'], model)
+        ret_docs = [item['doc'] for item in ret_result_docs]
+        ret_doc_keys = [item['doc_key'] for item in ret_result_docs]
+        if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: ret_docs = truncate_docs(ret_docs, model=model, max_length=doc_max_length)
+        doc_keys, docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl, docs=ret_docs,
+                                                         doc_keys=ret_doc_keys, model=model, question=qs['question'], generate_func=generate_func)
+        ret_doc_keys_list.append(doc_keys)
         prompts.append(prompt)
+        # for doc_idx in range(len(ret_result_docs)):
+        #     cur_ret_docs = [item['doc'] for item in ret_result_docs[:doc_idx]]
+        #     if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: cur_ret_docs = truncate_docs(cur_ret_docs, model=model, max_length=doc_max_length)
+        #     cur_prompt = generate_func(cur_ret_docs, qs['question'], model)
+        #     prompt = cur_prompt[0] + cur_prompt[1] if 'gpt' in model else cur_prompt
+        #     cur_pl = get_docs_tokens([prompt], model)[0]
+        #     if cur_pl > target_pl: break
+        # if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:   # for qa task, mean doc length is 100, keep prompt length in [-50, 50] -> if doc above 50 remove, else append
+        #     if cur_pl - target_pl > 50:
+        #         ret_docs = cur_ret_docs[:-1]
+        #     else: ret_docs = cur_ret_docs
+        # else:   # for code task, mean doc length is 200, but doc length vary, to keep [-100, 100]: if keep -> prompt above less than 100, then keep, if remove prompt lower less 100, then remove, else truncate
+        #     if cur_pl - target_pl < 100: ret_docs = cur_ret_docs
+        #     else:
+        #         last_doc_length = get_docs_tokens([cur_ret_docs[-1]], model)[0]
+        #         if cur_pl - last_doc_length < target_pl - 100:
+        #             ret_docs = cur_ret_docs[:-1]
+        #             truncated_last_doc = truncate_docs([cur_ret_docs[-1]], model, max_length=int(target_pl-(cur_pl-last_doc_length)))[0]
+        #             ret_docs.append(truncated_last_doc)
+        #         else:
+        #             ret_docs = cur_ret_docs[:-1]
+        # ret_doc_keys = [item['doc_key'] for item in ret_result_docs[:len(ret_docs)]]
+        # ret_doc_keys_list.append(ret_doc_keys)
+        # prompt = generate_func(ret_docs, qs['question'], model)
+        # prompts.append(prompt)
     pl_list = approximate_token(prompts, model)
     return ret_doc_keys_list, prompts, pl_list
 
