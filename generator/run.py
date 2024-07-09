@@ -93,7 +93,6 @@ elif args.analysis_type.startswith("retrieval_doc_selection"):
         batch_cmd = ''
         for cmd in cmds:
             batch_cmd = batch_cmd + cmd + ' & '
-        subprocess.check_output(batch_cmd, shell=True)
     else:
         for doc_selection_type in doc_selection_type_list:
             cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} '

@@ -427,7 +427,7 @@ code_ret_doc_selection_topk_gpt_n_1 = {
 
 
 
-# todo: pl 500 2000 4000 6000 8000 for code llama and gpt
+# todo: pl 1000 2000 4000 6000 8000 for code llama and gpt
 
 code_ret_doc_selection_pl_llama_n_1 = {
     'conala': {

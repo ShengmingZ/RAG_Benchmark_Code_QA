@@ -645,7 +645,7 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
 if __name__ == "__main__":
     """test control prompt length"""
     in_program_call = None
-    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type pl_1000'
+    in_program_call = '--model llama2-13b-chat --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type pl_1000'
     args = generate_config(in_program_call)
     # loader = NQTriviaQAUtils(dataset='NQ')
     loader = ConalaLoader()
@@ -653,9 +653,9 @@ if __name__ == "__main__":
     ret_results = get_ret_results(dataset=args.dataset, retriever='openai-embedding')
     ret_doc_keys_list, prompts, pl_list = gene_prompt_by_prompt_length(ret_results=ret_results, doc_selection_type=args.doc_selection_type, qs_list=qs_list, dataset=args.dataset, model=args.model, doc_max_length=args.doc_max_length)
     print(prompts[0])
-    print(pl_list)
     print(ret_doc_keys_list)
-    true_pl_list = get_docs_tokens([prompt[0]+prompt[1] for prompt in prompts], model=args.model)
+    # true_pl_list = get_docs_tokens([prompt[0]+prompt[1] for prompt in prompts], model=args.model)
+    true_pl_list = get_docs_tokens(prompts, args.model)
     for pl, true_pl in zip(pl_list, true_pl_list):
         print(pl, true_pl)
 
