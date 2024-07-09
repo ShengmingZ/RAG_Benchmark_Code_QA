@@ -112,7 +112,8 @@ class Generator:
                                                                                doc_selection_type=self.doc_selection_type,
                                                                                qs_list=self.qs_list,
                                                                                dataset=self.dataset,
-                                                                               model=self.model)
+                                                                               model=self.model,
+                                                                               doc_max_length=self.doc_max_length)
         else:
             prompts, pl_list = generate_prompts(questions=[qs['question'] for qs in self.qs_list],
                                                 ret_docs_list=docs_list,
