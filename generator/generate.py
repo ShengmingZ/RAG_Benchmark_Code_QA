@@ -107,7 +107,7 @@ class Generator:
         else:
             raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
 
-        if len(docs_list) == 0:
+        if self.analysis_type == 'retrieval_doc_selection' and 'pl' in self.doc_selection_type:
             ret_doc_keys_list, prompts, pl_list = gene_prompt_by_prompt_length(ret_results=self.ret_results,
                                                                                doc_selection_type=self.doc_selection_type,
                                                                                qs_list=self.qs_list,
