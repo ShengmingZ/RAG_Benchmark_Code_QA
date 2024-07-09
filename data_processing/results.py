@@ -513,7 +513,9 @@ qa_ret_doc_selection_topk_llama_n_1 = {
 # }
 
 qa_ret_doc_selection_topk_gpt_n_1 = {
-    'NQ': {},
+    'NQ': {
+        'top_1': {'em': 0.254, 'f1': 0.390954031764147, 'prec': 0.380972455993706, 'recall': 0.49956666666666666}
+    },
     'TriviaQA': {},
     'hotpotQA': {}
 }

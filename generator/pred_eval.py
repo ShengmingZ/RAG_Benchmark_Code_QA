@@ -16,6 +16,7 @@ from data.DS1000.ds1000 import DS1000Dataset
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
 from dataset_utils.hotpotQA_utils import HotpotQAUtils
+from retriever.retriever_utils import ret_eval_by_doc_keys
 
 
 
@@ -229,6 +230,19 @@ def pred_eval(args):
     #     avg_prompt_length = total_prompt_length / len(gene_results)
     #     assert isinstance(scores, dict)
     #     scores['avg_prompt_length'] = avg_prompt_length
+    ret_doc_keys_list, prompts, pl_list = [], [], []
+    with open(args.prompt_save_file, 'r') as f:
+        for line in f:
+            data = json.loads(line)
+            if len(data['ret_doc_keys']) != 0: ret_doc_keys_list.append(data['ret_doc_keys'])
+            prompts.append(data['prompt'])
+            pl_list.append(data['prompt_length'])
+    if len(ret_doc_keys_list) != 0:
+        ret_doc_key_flags_list, avg_ret_recall, avg_oracle_percent, avg_oracle_rank = ret_eval_by_doc_keys(dataset=args.dataset, oracle_list=args.oracle_list, ret_doc_keys_list=ret_doc_keys_list)
+        print('ret recall: ', avg_ret_recall)
+        print('avg oracle doc percentage: ', avg_oracle_percent)
+        print('avg oracle doc rank: ', avg_oracle_rank + 1)  # rank start from 1
+        print('avg prompt length: ', sum(pl_list) / len(pl_list))
     print(scores)
 
     return scores
