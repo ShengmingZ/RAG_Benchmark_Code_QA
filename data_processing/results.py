@@ -563,7 +563,7 @@ qa_ret_doc_selection_pl_llama_n_1 = {
 
 
 
-# todo: prompt length analysis: pl=500 1000 2000 3000 4000 ?
+# todo: prompt length analysis: pl=500 1000 1500 2000 for llama; 500 2000 4000 6000 8000 for gpt
 
 # qa_pl_analysis_gpt_n_1 = {
 #     'NQ': {
