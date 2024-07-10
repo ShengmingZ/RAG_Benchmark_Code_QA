@@ -105,7 +105,7 @@ class Generator:
                                                                     ret_results=self.ret_results,
                                                                     model=self.model,
                                                                     dataset=self.dataset)
-            elif self.analysis_type == 'retrieval_doc_selection' and 'pl' not in self.pl_analysis:
+            elif self.analysis_type == 'retrieval_doc_selection' and 'pl' not in self.doc_selection_type:
                 ret_doc_keys_list, docs_list = select_retrieval_docs(ret_results=self.ret_results,
                                                                      oracle_list=self.oracle_list,
                                                                      doc_selection_type=self.doc_selection_type,
