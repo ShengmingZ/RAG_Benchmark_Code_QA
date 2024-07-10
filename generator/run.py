@@ -113,6 +113,7 @@ elif args.analysis_type.startswith("retrieval_doc_selection"):
         print('run following cmd:')
         print(batch_cmd)
     else:
+        print(batch_cmd)
         subprocess.check_output(batch_cmd, shell=True)
         print(f'done {args.action} for retrieval doc selection analysis, {args.model} {args.dataset}')
 
