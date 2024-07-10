@@ -212,7 +212,7 @@ def generate_config(in_program_call=None):
     parser.add_argument('--doc_selection_type', type=str, default=None)
     parser.add_argument('--doc_max_length', type=int, default=1000)
     parser.add_argument('--prompt_type', type=str, default='0shot', choices=['3shots', '0shot', 'instruct', 'CoT'])
-    parser.add_argument('--pl_analysis', type=str, default='oracle_top10', choices=['oracle_top10', 'distracting_top10', 'random_top10', 'irrelevant_dummy_top10', 'irrelevant_diff_top10'])
+    parser.add_argument('--pl_analysis', type=str, default=None)
 
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
 
@@ -457,7 +457,7 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, model, datas
             random_docs_list = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in random_doc_keys_list]
         generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
         for qs, random_docs, random_doc_keys in zip(qs_list, random_docs_list, random_doc_keys_list):
-            if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: random_doc_keys = truncate_docs(random_docs, model=model, max_length=doc_max_length)
+            if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: random_docs = truncate_docs(random_docs, model=model, max_length=doc_max_length)
             doc_keys, docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl, docs=random_docs,
                                                        doc_keys=random_doc_keys, model=model, question=qs['question'], generate_func=generate_func)
             target_doc_keys_list.append(doc_keys)
@@ -486,8 +486,8 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, model, datas
             prompts.append(prompt)
     else:
         raise ValueError('not supported prompt length analysis {}'.format(pl_analysis))
-
-    return target_doc_keys_list, prompts
+    pl_list = approximate_token(prompts, model)
+    return target_doc_keys_list, prompts, pl_list
 
 
 def select_by_simi_score(ret_results, doc_selection_type, oracle_list, dataset):
@@ -720,15 +720,19 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
 if __name__ == "__main__":
     """test control prompt length"""
     in_program_call = None
-    in_program_call = '--model llama2-13b-chat --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type pl_1000'
+    # in_program_call = '--model llama2-13b-chat --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type pl_1000'
+    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type prompt_length --pl_analysis irrelevant_dummy_1000'
     args = generate_config(in_program_call)
     # loader = NQTriviaQAUtils(dataset='NQ')
     loader = ConalaLoader()
-    qs_list = loader.load_qs_list()[:10]
+    # loader = HotpotQAUtils()
+    qs_list = loader.load_qs_list()[:3]
+    oracle_list = loader.load_oracle_list()[:3]
     ret_results = get_ret_results(dataset=args.dataset, retriever='openai-embedding')
-    ret_doc_keys_list, prompts, pl_list = gene_prompt_by_prompt_length(ret_results=ret_results, doc_selection_type=args.doc_selection_type, qs_list=qs_list, dataset=args.dataset, model=args.model, doc_max_length=args.doc_max_length)
+    # ret_doc_keys_list, prompts, pl_list = gene_prompts_by_prompt_length(ret_results=ret_results, doc_selection_type=args.doc_selection_type, qs_list=qs_list, dataset=args.dataset, model=args.model, doc_max_length=args.doc_max_length)
+    doc_keys_list, prompts, pl_list = gene_prompts_for_pl_analysis(pl_analysis=args.pl_analysis, oracle_list=oracle_list, qs_list=qs_list, model=args.model, dataset=args.dataset, doc_max_length=args.doc_max_length)
     print(prompts[0])
-    print(ret_doc_keys_list)
+    print(doc_keys_list)
     # true_pl_list = get_docs_tokens([prompt[0]+prompt[1] for prompt in prompts], model=args.model)
     true_pl_list = get_docs_tokens(prompts, args.model)
     for pl, true_pl in zip(pl_list, true_pl_list):
