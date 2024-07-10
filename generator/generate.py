@@ -160,12 +160,12 @@ class Generator:
                         doc_keys = ret_doc_keys_list[idx]
                     f.write(json.dumps(dict(ret_doc_keys=doc_keys, prompt=prompts[idx], prompt_length=pl_list[idx])) + '\n')
         # output some information of the ret docs
-        if len(ret_doc_keys_list) != 0:
-            ret_doc_key_flags_list, avg_ret_recall, avg_oracle_percent, avg_oracle_rank = ret_eval_by_doc_keys(dataset=self.dataset, oracle_list=self.oracle_list, ret_doc_keys_list=ret_doc_keys_list)
-            print('ret recall: ', avg_ret_recall)
-            print('avg oracle doc percentage: ', avg_oracle_percent)
-            print('avg oracle doc rank: ', avg_oracle_rank+1)   # rank start from 1
-            print('avg prompt length: ', sum(pl_list)/len(pl_list))
+        # if len(ret_doc_keys_list) != 0:
+        #     ret_doc_key_flags_list, avg_ret_recall, avg_oracle_percent, avg_oracle_rank = ret_eval_by_doc_keys(dataset=self.dataset, oracle_list=self.oracle_list, ret_doc_keys_list=ret_doc_keys_list)
+        #     print('ret recall: ', avg_ret_recall)
+        #     print('avg oracle doc percentage: ', avg_oracle_percent)
+        #     print('avg oracle doc rank: ', avg_oracle_rank+1)   # rank start from 1
+        #     print('avg prompt length: ', sum(pl_list)/len(pl_list))
 
     def gene_response(self):
         if os.path.exists(self.result_save_file):
