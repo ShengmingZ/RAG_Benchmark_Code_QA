@@ -78,35 +78,6 @@ class Generator:
         print('result save_to:', self.result_save_file)
 
     def gene_prompts(self):
-        if self.analysis_type == 'retrieval_recall':
-            ret_doc_keys_list, docs_list = control_ret_acc(ret_acc=args.ret_acc,
-                                                           oracle_list=self.oracle_list,
-                                                           ret_results=self.ret_results,
-                                                           dataset=self.dataset)
-        elif self.analysis_type == 'retrieval_doc_type':
-            ret_doc_keys_list, docs_list = perturb_ret_doc_type(perturb_doc_type=self.ret_doc_type,
-                                                                oracle_list=self.oracle_list,
-                                                                ret_results=self.ret_results,
-                                                                model=self.model,
-                                                                dataset=self.dataset)
-        elif self.analysis_type == 'retrieval_doc_selection':
-            if 'pl' not in self.doc_selection_type:
-                ret_doc_keys_list, docs_list = select_retrieval_docs(ret_results=self.ret_results,
-                                                                     oracle_list=self.oracle_list,
-                                                                     doc_selection_type=self.doc_selection_type,
-                                                                     dataset=self.dataset)
-        elif self.analysis_type == 'prompt_length':
-            ...
-        #     if 'pl' not in self.pl_analysis:
-        #         ret_doc_keys_list, docs_list = get_docs_for_pl_analysis(pl_analysis=self.pl_analysis,
-        #                                                                 oracle_list=self.oracle_list,
-        #                                                                 ret_results=self.ret_results,
-        #                                                                 model=self.model,
-        #                                                                 dataset=self.dataset)
-
-        else:
-            raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
-
         if self.analysis_type == 'retrieval_doc_selection' and 'pl' in self.doc_selection_type:
             ret_doc_keys_list, prompts, pl_list = gene_prompts_by_prompt_length(ret_results=self.ret_results,
                                                                                doc_selection_type=self.doc_selection_type,
@@ -116,17 +87,38 @@ class Generator:
                                                                                doc_max_length=self.doc_max_length)
         elif self.analysis_type == 'prompt_length':
             ret_doc_keys_list, prompts, pl_list = gene_prompts_for_pl_analysis(pl_analysis=self.pl_analysis,
-                                                                           oracle_list=self.oracle_list,
-                                                                           ret_results=self.ret_results,
-                                                                           model=self.model,
-                                                                           dataset=self.dataset)
+                                                                               oracle_list=self.oracle_list,
+                                                                               qs_list=self.qs_list,
+                                                                               model=self.model,
+                                                                               dataset=self.dataset,
+                                                                               doc_max_length=self.doc_max_length)
+
         else:
+            if self.analysis_type == 'retrieval_recall':
+                ret_doc_keys_list, docs_list = control_ret_acc(ret_acc=args.ret_acc,
+                                                               oracle_list=self.oracle_list,
+                                                               ret_results=self.ret_results,
+                                                               dataset=self.dataset)
+            elif self.analysis_type == 'retrieval_doc_type':
+                ret_doc_keys_list, docs_list = perturb_ret_doc_type(perturb_doc_type=self.ret_doc_type,
+                                                                    oracle_list=self.oracle_list,
+                                                                    ret_results=self.ret_results,
+                                                                    model=self.model,
+                                                                    dataset=self.dataset)
+            elif self.analysis_type == 'retrieval_doc_selection' and 'pl' not in self.pl_analysis:
+                ret_doc_keys_list, docs_list = select_retrieval_docs(ret_results=self.ret_results,
+                                                                     oracle_list=self.oracle_list,
+                                                                     doc_selection_type=self.doc_selection_type,
+                                                                     dataset=self.dataset)
+            else:
+                raise NotImplementedError(f'unknown analysis type: {self.analysis_type}')
             prompts, pl_list = generate_prompts(questions=[qs['question'] for qs in self.qs_list],
                                                 ret_docs_list=docs_list,
                                                 prompt_type=self.prompt_type,
                                                 dataset=self.dataset,
                                                 model_name=self.model,
                                                 doc_max_length=self.doc_max_length)
+
         return ret_doc_keys_list, prompts, pl_list
 
     def test_prompt(self):
