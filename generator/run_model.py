@@ -54,10 +54,10 @@ def chatgpt_batch(prompt_file_for_batch, prompts, model, temperature=0.7, max_to
 
     # if same metadata exists, then just get results, else create batch
     batch_id = None
-    batches = client.batches.list()
-    for data in batches.data:
-        if data.metadata['description'] == prompt_file_for_batch:
-            batch_id = data.id
+    # batches = client.batches.list()
+    # for data in batches.data:
+    #     if data.metadata['description'] == prompt_file_for_batch:
+    #         batch_id = data.id
     if batch_id is None:
         batch_input_file = client.files.create(file=open(prompt_file_for_batch, 'rb'), purpose='batch')
         response = client.batches.create(input_file_id=batch_input_file.id,
@@ -73,6 +73,7 @@ def chatgpt_batch(prompt_file_for_batch, prompts, model, temperature=0.7, max_to
         time.sleep(300)
         status = client.batches.retrieve(batch_id).status
         if status != 'in_progress': print(status)
+    assert client.batches.retrieve(batch_id).request_counts.failed == 0
     output_file_id = client.batches.retrieve(batch_id).output_file_id
     content = client.files.content(output_file_id)
     responses = [json.loads(data) for data in content.text.split('\n') if data != '']
@@ -123,31 +124,31 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature
         input_ids = tokenizer(prompt, return_tensors="pt")['input_ids'].to("cuda")
         texts, logprobs = [], []
         for _ in range(n):
-            # try:
-            if temperature == 0:
-                outputs = model.generate(
-                    input_ids=input_ids,
-                    return_dict_in_generate=True,
-                    output_scores=True,
-                    max_new_tokens=max_new_tokens,
-                    do_sample=False,
-                    pad_token_id=tokenizer.eos_token_id
-                )
-            else:
-                outputs = model.generate(
-                    input_ids=input_ids,
-                    return_dict_in_generate=True,
-                    output_scores=True,
-                    max_new_tokens=max_new_tokens,
-                    temperature=temperature,
-                    top_p=0.9,
-                    do_sample=True,
-                    pad_token_id=tokenizer.eos_token_id
-                )
-            text, logprob = process_naive_output(input_ids.shape[-1], outputs, tokenizer)
-            # except:
-            #     # use llama api
-            #     raise Exception('out of GPU memory')
+            try:
+                if temperature == 0:
+                    outputs = model.generate(
+                        input_ids=input_ids,
+                        return_dict_in_generate=True,
+                        output_scores=True,
+                        max_new_tokens=max_new_tokens,
+                        do_sample=False,
+                        pad_token_id=tokenizer.eos_token_id
+                    )
+                else:
+                    outputs = model.generate(
+                        input_ids=input_ids,
+                        return_dict_in_generate=True,
+                        output_scores=True,
+                        max_new_tokens=max_new_tokens,
+                        temperature=temperature,
+                        top_p=0.9,
+                        do_sample=True,
+                        pad_token_id=tokenizer.eos_token_id
+                    )
+                text, logprob = process_naive_output(input_ids.shape[-1], outputs, tokenizer)
+            except:
+                # use llama api
+                raise Exception('out of GPU memory')
             texts.append(text)
             logprobs.append(logprob.tolist())
         texts_list.append(texts)
