@@ -711,6 +711,17 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
             prompts.append(generate_func(ret_docs, question, model_name))
 
     pl_list = approximate_token(prompts, model_name)
+    # if exceed prompt limit, truncate more docs
+    if dataset in ['conala', 'pandas_numpy_eval', 'DS1000']:
+        for idx, pl in enumerate(pl_list):
+            new_doc_max_length = doc_max_length
+            while pl > 16000:
+                new_doc_max_length -= 100
+                ret_docs_list[idx] = truncate_docs(ret_docs_list[idx], model_name, new_doc_max_length)
+                prompt = generate_func(ret_docs_list[idx], questions[idx], model_name)
+                pl = get_docs_tokens(docs=[prompt[0]+prompt[1]] if 'gpt' in model_name else [prompt], model=model_name)[0]
+                prompts[idx] = prompt
+        pl_list = approximate_token(prompts, model_name)
     return prompts, pl_list
 
 

@@ -377,7 +377,7 @@ qa_ret_doc_type_gpt_n_1 = {
 }
 
 # todo: top1 top5 top10 top15 top20 for code llama (16k) and gpt (16k)
-code_ret_doc_selection_topK_llama_n_1 = {
+code_ret_doc_selection_topk_llama_n_1 = {
     'conala': {
 
     },
@@ -413,17 +413,33 @@ code_ret_doc_selection_topK_llama_n_1 = {
 #     }
 # }
 
+# todo: truncate docs for 1000, 500, and only leave api signature
+# todo: for oracle top1. might still < retrieved top_5
 code_ret_doc_selection_topk_gpt_n_1 = {
     'conala': {
-
+        'top_1': {'pass@1': 0.179, 'ret_recall': 0.004, 'oracle_percent': 0.012, 'oracle_rank': 1.0, 'prompt_length': 157.976},
+        'top_5': {'pass@1': 0.274, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.5, 'prompt_length': 484.774},
+        'top_10': {'pass@1': 0.286, 'ret_recall': 0.151, 'oracle_percent': 0.019, 'oracle_rank': 4.5, 'prompt_length': 875.19},
+        'top_15': {'pass@1': 0.25, 'ret_recall': 0.193, 'oracle_percent': 0.018, 'oracle_rank': 6.87, 'prompt_length': 1405.833},
+        'top_20': {'pass@1': 0.25, 'ret_recall': 0.211, 'oracle_percent': 0.015, 'oracle_rank': 7.68, 'prompt_length': 1897.905}
     },
     'DS1000': {
-
+        'top_1': {'pass@1': 0.235, 'ret_recall': 0.043, 'oracle_percent': 0.108, 'oracle_rank': 1.0, 'prompt_length': 1045.637},
+        'top_5': {'pass@1': 0.323, 'ret_recall': 0.117, 'oracle_percent': 0.054, 'oracle_rank': 2.31, 'prompt_length': 3139.516},
+        'top_10': {'pass@1': 0.328, 'ret_recall': 0.181, 'oracle_percent': 0.041, 'oracle_rank': 4.262, 'prompt_length': 5508.363},
+        'top_15': {'pass@1': 0.29, 'ret_recall': 0.21, 'oracle_percent': 0.033, 'oracle_rank': 5.692, 'prompt_length': 7801.21},
+        'top_20': None
     },
     'pandas_numpy_eval': {
-
+        'top_1': {'pass@1': 0.629, 'ret_recall': 0.099, 'oracle_percent': 0.12, 'oracle_rank': 1.0, 'prompt_length': 507.605},
+        'top_5': {'pass@1': 0.725, 'ret_recall': 0.222, 'oracle_percent': 0.053, 'oracle_rank': 2.068, 'prompt_length': 1805.76},
+        'top_10': {'pass@1': 0.737, 'ret_recall': 0.294, 'oracle_percent': 0.036, 'oracle_rank': 3.533, 'prompt_length': 3438.928},
+        'top_15': {'pass@1': 0.701, 'ret_recall': 0.357, 'oracle_percent': 0.029, 'oracle_rank': 5.0, 'prompt_length': 4953.91},
+        'top_20': {'pass@1': 0.713, 'ret_recall': 0.395, 'oracle_percent': 0.024, 'oracle_rank': 6.213, 'prompt_length': 6499.341}
     }
 }
+
+
 
 
 
