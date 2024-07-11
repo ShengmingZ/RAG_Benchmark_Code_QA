@@ -54,10 +54,10 @@ def chatgpt_batch(prompt_file_for_batch, prompts, model, temperature=0.7, max_to
 
     # if same metadata exists, then just get results, else create batch
     batch_id = None
-    # batches = client.batches.list()
-    # for data in batches.data:
-    #     if data.metadata['description'] == prompt_file_for_batch:
-    #         batch_id = data.id
+    batches = client.batches.list()
+    for data in batches.data:
+        if data.metadata['description'] == prompt_file_for_batch:
+            batch_id = data.id
     if batch_id is None:
         batch_input_file = client.files.create(file=open(prompt_file_for_batch, 'rb'), purpose='batch')
         response = client.batches.create(input_file_id=batch_input_file.id,
