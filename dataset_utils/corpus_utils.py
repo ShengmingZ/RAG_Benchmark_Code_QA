@@ -22,13 +22,29 @@ random.seed(0)
 
 
 class PythonDocsLoader:
-    def __init__(self):
+    def __init__(self, prepare_random_docs=False):
         self.root = root_path
         self.api_doc_builtin = os.path.join(root_path, 'data/python_docs/api_doc_builtin.json')
         self.api_sign_builtin = os.path.join(root_path, 'data/python_docs/api_sign_builtin.txt')
         self.api_doc_third_party = self.api_doc_builtin.replace('builtin', 'third_party')
         self.api_sign_third_party = self.api_sign_builtin.replace('builtin', 'third_party')
         self.proc_corpus_file = os.path.join(self.root, 'data/python_docs/proc_python_docs.json')
+        self.random_docs_file = os.path.join(self.root, 'data/python_docs/random_docs.txt')
+        if prepare_random_docs:
+            self.random_docs = self._prepare_random_docs()
+
+    def _prepare_random_docs(self):
+        if not os.path.exists(self.random_docs_file):
+            all_docs = [item['doc'] for item in self.load_api_docs()]
+            random_docs = random.sample(all_docs, 5000)
+            with open(self.random_docs_file, 'w') as f:
+                for doc in random_docs:
+                    f.write(doc + '\n')
+        else:
+            with open(self.random_docs_file, 'r') as f:
+                random_docs = f.read().splitlines()
+        return random_docs
+
 
     def load_api_signs(self):
         python_docs = json.load(open(self.proc_corpus_file, 'r'))
@@ -55,10 +71,7 @@ class PythonDocsLoader:
 
 
     def get_random_docs(self, k):
-        corpus_ids = self.load_api_signs()
-        random_doc_keys = random.sample(corpus_ids, k)
-        docs = self.get_docs(random_doc_keys)
-        return docs
+        return random.sample(self.random_docs, k)
 
 
     def process_docs(self):
@@ -99,15 +112,20 @@ class PythonDocsLoader:
 #     python_docs_loader.process_docs()
 
 class WikiCorpusLoader:
-    def __init__(self):
+    def __init__(self, prepare_random_docs=False):
         if system == 'Darwin':
             self.wiki_corpus_file_NQ = os.path.join(root_path, 'data/wikipedia/psgs_w100.tsv')
             self.wiki_corpus_file_hotpot = os.path.join(root_path, 'data/wikipedia/enwiki-20171001-pages-meta-current-withlinks-abstracts')
             self.index_offsets_file = os.path.join(root_path, 'data/wikipedia/index_offsets.txt')
+            self.random_docs_file = os.path.join(root_path, 'data/wikipedia/random_docs.txt')
         elif system == 'Linux':
             self.wiki_corpus_file_NQ = '/data/zhaoshengming/wikipedia/psgs_w100.tsv'
             self.wiki_corpus_file_hotpot = '/data/zhaoshengming/wikipedia/enwiki-20171001-pages-meta-current-withlinks-abstracts'
             self.index_offsets_file = '/data/zhaoshengming/wikipedia/index_offsets.txt'
+            self.random_docs_file = '/data/zhaoshengming/wikipedia/random_docs.txt'
+        if prepare_random_docs:
+            self.random_docs = self._prepare_random_docs()
+
 
     def _get_hotpot_corpus_file_paths(self):
         file_paths = []
@@ -303,12 +321,22 @@ class WikiCorpusLoader:
 
         return docs_list
 
-    def get_random_docs(self, k):
-        data_count = 21015325
-        doc_idxes = random.sample(range(data_count), k)
-        doc_keys = [str(idx) for idx in doc_idxes]
-        docs = self.get_docs([doc_keys], 'NQ')[0]
+    def _prepare_random_docs(self):
+        if not os.path.exists(self.random_docs_file):
+            data_count = 21015325
+            doc_idxes = random.sample(range(data_count), 10000)
+            doc_keys = [str(idx) for idx in doc_idxes]
+            docs = self.get_docs([doc_keys], 'NQ')[0]
+            with open(self.random_docs_file, 'w') as f:
+                for doc in docs:
+                    f.write(doc + '\n')
+        else:
+            with open(self.random_docs_file, 'r') as f:
+                docs = f.read().splitlines()
         return docs
+
+    def get_random_docs(self, k):
+        return random.sample(self.random_docs, k)
 
     # def process_wiki_corpus(self):
     #     wiki_rec_file = self.wiki_corpus_file.replace('.tsv', '_rec.tsv')

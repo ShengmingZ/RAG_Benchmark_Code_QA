@@ -5,6 +5,7 @@ import platform
 import sys, os
 import random
 import torch
+import time
 from tqdm import tqdm
 from transformers import AutoTokenizer
 from functools import partial
@@ -172,8 +173,8 @@ def get_irrelevant_docs(irrelevant_type, oracle_docs, model, dataset):
             perturbed_doc += truncate_docs(docs=[dummy_string], model=model, max_length=doc_length-int(doc_length/dummy_length)*dummy_length)[0]
             perturbed_docs.append(perturbed_doc)
     else:
-        if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: loader = WikiCorpusLoader()
-        else: loader = PythonDocsLoader()
+        if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: loader = WikiCorpusLoader(prepare_random_docs=True)
+        else: loader = PythonDocsLoader(prepare_random_docs=True)
         perturbed_docs = []
         for doc_length in doc_lengths:
             perturbed_doc = ''
@@ -432,6 +433,7 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, model, datas
             oracle_docs_list = WikiCorpusLoader().get_docs(oracle_doc_keys_list, dataset, num_procs=8)
         else:
             oracle_docs_list = [PythonDocsLoader().get_docs(oracle_docs) for oracle_docs in oracle_doc_keys_list]
+        start_time = time.time()
         # repeat oracle docs until the target prompt length
         generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
         for qs, oracle_docs, oracle_doc_keys in zip(qs_list, oracle_docs_list, oracle_doc_keys_list):
@@ -441,6 +443,7 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, model, datas
                                                        doc_keys=repeated_oracle_doc_keys, model=model, question=qs['question'], generate_func=generate_func)
             target_doc_keys_list.append(doc_keys)
             prompts.append(prompt)
+        print('time cost: ', time.time() - start_time)
 
     elif pl_analysis.startswith('random'):
         # get random docs
@@ -455,6 +458,7 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, model, datas
             random_docs_list = WikiCorpusLoader().get_docs(random_doc_keys_list, dataset, num_procs=8)
         else:
             random_docs_list = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in random_doc_keys_list]
+        start_time = time.time()
         generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
         for qs, random_docs, random_doc_keys in zip(qs_list, random_docs_list, random_doc_keys_list):
             if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: random_docs = truncate_docs(random_docs, model=model, max_length=doc_max_length)
@@ -462,6 +466,7 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, model, datas
                                                        doc_keys=random_doc_keys, model=model, question=qs['question'], generate_func=generate_func)
             target_doc_keys_list.append(doc_keys)
             prompts.append(prompt)
+        print('time cost: ', time.time() - start_time)
 
     elif pl_analysis.startswith('irrelevant'):
         # get oracle docs, and use get_irrelevant docs to control the same prompt length
@@ -473,6 +478,7 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, model, datas
             oracle_docs_list = WikiCorpusLoader().get_docs(oracle_doc_keys_list, dataset, num_procs=8)
         else:
             oracle_docs_list = [PythonDocsLoader().get_docs(oracle_docs) for oracle_docs in oracle_doc_keys_list]
+        start_time = time.time()
         generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
         for qs, oracle_docs, oracle_doc_keys in zip(qs_list, oracle_docs_list, oracle_doc_keys_list):
             if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: oracle_docs = truncate_docs(oracle_docs, model=model, max_length=doc_max_length)
@@ -484,6 +490,7 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, model, datas
             irrelevant_docs = get_irrelevant_docs(irrelevant_type=pl_analysis.split('_')[1], oracle_docs=docs, model=model, dataset=dataset)
             prompt = generate_func(irrelevant_docs, qs['question'], model)
             prompts.append(prompt)
+        print('time cost: ', time.time() - start_time)
     else:
         raise ValueError('not supported prompt length analysis {}'.format(pl_analysis))
     pl_list = approximate_token(prompts, model)
@@ -732,22 +739,23 @@ if __name__ == "__main__":
     """test control prompt length"""
     in_program_call = None
     # in_program_call = '--model llama2-13b-chat --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type pl_1000'
-    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type prompt_length --pl_analysis irrelevant_dummy_1000'
+    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis irrelevant_diff_2000'  # random
     args = generate_config(in_program_call)
-    # loader = NQTriviaQAUtils(dataset='NQ')
-    loader = ConalaLoader()
+    loader = NQTriviaQAUtils(dataset='NQ')
+    # loader = ConalaLoader()
     # loader = HotpotQAUtils()
-    qs_list = loader.load_qs_list()[:3]
-    oracle_list = loader.load_oracle_list()[:3]
+    qs_list = loader.load_qs_list()[:10]
+    oracle_list = loader.load_oracle_list()[:10]
     ret_results = get_ret_results(dataset=args.dataset, retriever='openai-embedding')
     # ret_doc_keys_list, prompts, pl_list = gene_prompts_by_prompt_length(ret_results=ret_results, doc_selection_type=args.doc_selection_type, qs_list=qs_list, dataset=args.dataset, model=args.model, doc_max_length=args.doc_max_length)
     doc_keys_list, prompts, pl_list = gene_prompts_for_pl_analysis(pl_analysis=args.pl_analysis, oracle_list=oracle_list, qs_list=qs_list, model=args.model, dataset=args.dataset, doc_max_length=args.doc_max_length)
-    print(prompts[0])
-    print(doc_keys_list)
-    # true_pl_list = get_docs_tokens([prompt[0]+prompt[1] for prompt in prompts], model=args.model)
-    true_pl_list = get_docs_tokens(prompts, args.model)
-    for pl, true_pl in zip(pl_list, true_pl_list):
-        print(pl, true_pl)
+    print(prompts[0][1])
+    print(prompts[1][1])
+    # print(doc_keys_list)
+    # # true_pl_list = get_docs_tokens([prompt[0]+prompt[1] for prompt in prompts], model=args.model)
+    # true_pl_list = get_docs_tokens(prompts, args.model)
+    # for pl, true_pl in zip(pl_list, true_pl_list):
+    #     print(pl, true_pl)
 
 
 
