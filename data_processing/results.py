@@ -602,12 +602,25 @@ code_pl_analysis_llama_n_1 = {}
 
 code_pl_analysis_gpt_n_1 = {}
 
+
 qa_pl_analysis_gpt_n_1 = {
     'NQ': {
-        'oracle': {},
-        'random': {},
-        'irrelevant_diff': {},
-        'irrelevant_dummy': {}
+        'oracle': {
+            'oracle': {'em': 0.5195, 'f1': 0.676, 'prec': 0.657, 'recall': 0.8195},
+            'pl_2000': {'em': 0.532, 'f1': 0.689, 'prec': 0.67, 'recall': 0.825, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 1981.419}
+        },
+        'random': {
+            'random': {'em': 0.159, 'f1': 0.261, 'prec': 0.261, 'recall': 0.351},
+            'pl_2000': {'em': 0.19, 'f1': 0.301, 'prec': 0.303, 'recall': 0.387, 'ret_recall': 0.035, 'oracle_percent': 0.004, 'oracle_rank': 6.507, 'prompt_length': 1976.963}
+        },
+        'irrelevant_diff': {
+            'irrelevant_diff': {'em': 0.142, 'f1': 0.2265, 'prec': 0.224, 'recall': 0.307},
+            'pl_2000': {'em': 0.161, 'f1': 0.265, 'prec': 0.261, 'recall': 0.362}
+        },
+        'irrelevant_dummy': {
+            'irrelevant_dummy': {'em': 0.12, 'f1': 0.198, 'prec': 0.1875, 'recall': 0.288},
+            'pl_2000': {'em': 0.154, 'f1': 0.254, 'prec': 0.246, 'recall': 0.35}
+        }
     },
     'TriviaQA': {
         'oracle': {},
