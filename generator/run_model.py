@@ -151,6 +151,7 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature
             #     raise Exception('out of GPU memory')
             texts.append(text)
             logprobs.append(logprob.tolist())
+        del input_ids, outputs
         texts_list.append(texts)
         logprobs_list.append(logprobs)
 

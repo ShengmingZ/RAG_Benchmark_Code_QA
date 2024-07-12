@@ -615,11 +615,11 @@ qa_pl_analysis_gpt_n_1 = {
         },
         'irrelevant_diff': {
             'irrelevant_diff': {'em': 0.142, 'f1': 0.2265, 'prec': 0.224, 'recall': 0.307},
-            'pl_2000': {'em': 0.161, 'f1': 0.265, 'prec': 0.261, 'recall': 0.362}
+            'pl_2000': {'em': 0.161, 'f1': 0.265, 'prec': 0.261, 'recall': 0.362, 'prompt_length': 1987.57}
         },
         'irrelevant_dummy': {
             'irrelevant_dummy': {'em': 0.12, 'f1': 0.198, 'prec': 0.1875, 'recall': 0.288},
-            'pl_2000': {'em': 0.154, 'f1': 0.254, 'prec': 0.246, 'recall': 0.35}
+            'pl_2000': {'em': 0.154, 'f1': 0.254, 'prec': 0.246, 'recall': 0.35, 'prompt_length': 1984.417}
         }
     },
     'TriviaQA': {
