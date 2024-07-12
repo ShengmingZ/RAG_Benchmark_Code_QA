@@ -729,7 +729,6 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
             pl = get_docs_tokens(docs=[prompt[0]+prompt[1]] if 'gpt' in model_name else [prompt], model=model_name)[0]
             prompts[idx] = prompt
     pl_list = approximate_token(prompts, model_name)
-    print(pl_list)
     return prompts, pl_list
 
 
