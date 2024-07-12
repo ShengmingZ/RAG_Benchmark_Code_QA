@@ -719,7 +719,7 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
 
     pl_list = approximate_token(prompts, model_name)
     # if exceed prompt limit, truncate more docs
-    token_limit = 16000 if 'gpt' in model_name else 8000
+    token_limit = 16000 if 'gpt' in model_name else 7000
     for idx, pl in enumerate(pl_list):
         new_doc_max_length = doc_max_length
         while pl > token_limit:
