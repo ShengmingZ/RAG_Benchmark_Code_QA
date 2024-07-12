@@ -376,6 +376,8 @@ qa_ret_doc_type_gpt_n_1 = {
     }
 }
 
+
+
 # todo: top1 top5 top10 top15 top20 for code llama (16k) and gpt (16k)
 code_ret_doc_selection_topk_llama_n_1 = {
     'conala': {
@@ -413,8 +415,7 @@ code_ret_doc_selection_topk_llama_n_1 = {
 #     }
 # }
 
-# todo: truncate docs for 1000, 500, and only leave api signature
-# todo: for oracle top1. might still < retrieved top_5
+
 code_ret_doc_selection_topk_gpt_n_1 = {
     'conala': {
         'top_1': {'pass@1': 0.179, 'ret_recall': 0.004, 'oracle_percent': 0.012, 'oracle_rank': 1.0, 'prompt_length': 157.976},
@@ -439,40 +440,6 @@ code_ret_doc_selection_topk_gpt_n_1 = {
     }
 }
 
-
-
-
-
-# todo: pl 1000 2000 4000 6000 8000 for code llama and gpt
-
-code_ret_doc_selection_pl_llama_n_1 = {
-    'conala': {
-
-    },
-    'DS1000': {
-
-    },
-    'pandas_numpy_eval': {
-
-    }
-}
-
-code_ret_doc_selection_pl_gpt_n_1 = {
-    'conala': {
-
-    },
-    'DS1000': {
-
-    },
-    'pandas_numpy_eval': {
-
-    }
-}
-
-
-
-
-# todo: top1-top80 for gpt (16k max tokens) top1-top20 for llama (4k max tokens)
 
 qa_ret_doc_selection_topk_llama_n_1 = {
     'NQ': {
@@ -545,7 +512,7 @@ qa_ret_doc_selection_topk_gpt_n_1 = {
         "top_10": {'em': 0.671, 'f1': 0.752, 'prec': 0.729, 'recall': 0.837},
         "top_15": {'em': 0.673, 'f1': 0.757, 'prec': 0.733, 'recall': 0.843},
         'top_20': {'em': 0.677, 'f1': 0.758, 'prec': 0.735, 'recall': 0.84, 'ret_recall': 0.952, 'oracle_percent': 0.375, 'oracle_rank': 2.271, 'prompt_length': 2904.057},
-        'top_40': None,
+        'top_40': {'em': 0.697, 'f1': 0.774, 'prec': 0.75, 'recall': 0.857, 'ret_recall': 0.975, 'oracle_percent': 0.316, 'oracle_rank': 2.883, 'prompt_length': 5714.368},
         'top_60': {'em': 0.7, 'f1': 0.775, 'prec': 0.752, 'recall': 0.856, 'ret_recall': 0.984, 'oracle_percent': 0.285, 'oracle_rank': 3.321, 'prompt_length': 8529.492},
         'top_80': {'em': 0.683, 'f1': 0.763, 'prec': 0.739, 'recall': 0.855, 'ret_recall': 0.986, 'oracle_percent': 0.263, 'oracle_rank': 3.459, 'prompt_length': 11346.743}
     },
@@ -575,6 +542,32 @@ qa_ret_doc_selection_pl_llama_n_1 = {
     'NQ': {},
     'TriviaQA': {},
     'hotpotQA': {}
+}
+
+# todo: pl 1000 2000 4000 6000 8000 for code llama and gpt
+
+code_ret_doc_selection_pl_llama_n_1 = {
+    'conala': {
+
+    },
+    'DS1000': {
+
+    },
+    'pandas_numpy_eval': {
+
+    }
+}
+
+code_ret_doc_selection_pl_gpt_n_1 = {
+    'conala': {
+
+    },
+    'DS1000': {
+
+    },
+    'pandas_numpy_eval': {
+
+    }
 }
 
 
