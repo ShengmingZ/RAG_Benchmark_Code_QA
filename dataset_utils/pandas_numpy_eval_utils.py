@@ -76,6 +76,7 @@ class PandasNumpyEvalLoader:
         #     for line in f:
         #         data_list.append(json.loads(line))
         data_list = json.load(open(self.data_file, 'r'))
+        eval_records = dict()
 
         with ThreadPoolExecutor(max_workers=num_procs) as executor:
             results_list = defaultdict(list)
@@ -90,13 +91,14 @@ class PandasNumpyEvalLoader:
                             futures.append(future)
             for future in tqdm(as_completed(futures), total=len(futures)):
                 result = future.result()
+                eval_records[result['task_id']] = result['result']
                 results_list[result['task_id']].append(result['passed'])
             # for id, results in results_list.items():
             #     if False in results:
             #         print(id)
             results_list = list(results_list.values())
 
-        return self.pass_rate(results_list, k_list)
+        return self.pass_rate(results_list, k_list), eval_records
 
     @staticmethod
     def pass_rate(results_list, k_list):

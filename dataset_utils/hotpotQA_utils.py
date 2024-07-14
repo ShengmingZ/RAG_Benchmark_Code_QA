@@ -14,7 +14,7 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from data.DS1000.ds1000 import DS1000Dataset
+from dataset_utils.NQ_TriviaQA_utils import has_answer
 
 random.seed(0)
 
@@ -187,8 +187,11 @@ class HotpotQAUtils:
         :return:
         """
         metrics = {'em': 0, 'f1': 0, 'prec': 0, 'recall': 0}
+        eval_records = dict()
         for pred, oracle in zip(pred_list, oracle_list):
             assert pred['qs_id'] == oracle['qs_id']
+            if has_answer([oracle], pred): eval_records['qs_id'] = True
+            else: eval_records['qs_id'] = False
             _update_answer(metrics, pred['output'], oracle['answer'])
         N = len(oracle_list)
         for k in metrics.keys():

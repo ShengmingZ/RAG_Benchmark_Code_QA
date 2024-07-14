@@ -164,6 +164,13 @@ def process_gene_results(args, outputs, code_prompt=None):
 
 
 def pred_eval(args):
+    eval_save_file = args.result_save_file.replace('.json', '_eval.json')
+    if os.path.exists(eval_save_file):
+        print('eval file exists already, {}'.format(eval_save_file))
+        eval_results = json.load(open(eval_save_file, 'r'))
+        print(eval_results['scores'])
+        return
+
     gene_results = json.load(open(args.result_save_file, 'r'))
     if args.n == 10:
         k_list = [1,3,5,10]
@@ -179,7 +186,7 @@ def pred_eval(args):
             outputs = process_gene_results(args, result['outputs'])
             # outputs = [result['oracle_output']]
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
-        scores = loader.eval_passk(_gene_results, top_k=k_list)
+        scores, eval_records = loader.eval_passk(_gene_results, top_k=k_list)
 
     elif args.dataset == 'DS1000':
         # gene_results = json.load(open(DS1000Loader().oracle_doc_file, 'r'))
@@ -190,7 +197,7 @@ def pred_eval(args):
             assert qs_list[idx]['qs_id'] == result['qs_id']
             outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
-        scores = loader.eval_passk(_gene_results, k_list=k_list)
+        scores, eval_records = loader.eval_passk(_gene_results, k_list=k_list)
 
     elif args.dataset == 'pandas_numpy_eval':
         loader = PandasNumpyEvalLoader()
@@ -200,7 +207,7 @@ def pred_eval(args):
             assert qs_list[idx]['qs_id'] == result['qs_id']
             outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'])
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
-        scores = loader.eval_passk(_gene_results, k_list=k_list)
+        scores, eval_records = loader.eval_passk(_gene_results, k_list=k_list)
 
     elif args.dataset == 'NQ' or args.dataset == 'TriviaQA':
         loader = NQTriviaQAUtils(args.dataset)
@@ -210,7 +217,10 @@ def pred_eval(args):
             assert str(result['qs_id']) == str(oracle['qs_id'])
             preds.append(process_gene_results(args, result['outputs'])[0])  # Todo: now only 1 inference
             answers_list.append(oracle['answers'])
-        scores = loader.pred_eval(preds=preds, answers_list=answers_list)
+        scores, _eval_records = loader.pred_eval(preds=preds, answers_list=answers_list)
+        eval_records = dict()
+        for idx, oracle in enumerate(oracle_list):
+            eval_records[oracle['qs_id']] = _eval_records[idx]
 
     elif args.dataset == 'hotpotQA':
         loader = HotpotQAUtils()
@@ -219,7 +229,7 @@ def pred_eval(args):
         for result in gene_results:
             output = process_gene_results(args, result['outputs'])[0]
             pred_list.append(dict(qs_id=result['qs_id'], output=output))
-        scores = loader.eval_pred(pred_list=pred_list, oracle_list=oracle_list)
+        scores, eval_records = loader.eval_pred(pred_list=pred_list, oracle_list=oracle_list)
 
     else:
         raise ValueError('Not supported dataset {}'.format(args.dataset))
@@ -253,6 +263,8 @@ def pred_eval(args):
     scores['prompt_length'] = sum(pl_list) / len(pl_list)
     scores = {key: round(value, 3) for key, value in scores.items()}
     print(scores)
+    with open(eval_save_file, 'w') as f:
+        json.dump(dict(scores=scores, eval_records=eval_records), f, indent=2)
 
     return scores
 

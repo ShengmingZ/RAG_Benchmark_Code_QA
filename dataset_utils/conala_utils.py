@@ -149,6 +149,7 @@ class ConalaLoader:
 
 
     def eval_passk(self, results, top_k, num_proc=16):
+        eval_records = dict()
         unittests = json.load(open(self.unittest_file, 'r'))
         code_eval_metric = evaluate.load("code_eval")
         wrong_ids = []
@@ -177,6 +178,7 @@ class ConalaLoader:
             )
             # print(pass_k)
             if pass_k['pass@1'] != 1: wrong_ids.append(qs_id)
+            eval_records[qs_id] = pass_k
             pass_k_list.append(pass_k)
         _pass_k = {}
         pass_keys = list(pass_k_list[0].keys())
@@ -185,7 +187,7 @@ class ConalaLoader:
             for key in pass_keys: _pass_k[key] += pass_k[key]
         for key in pass_keys: _pass_k[key] = _pass_k[key] / len(results)
         # print(_pass_k)
-        return _pass_k
+        return _pass_k, eval_records
 
     @staticmethod
     def calc_recall(src, pred, top_k):
