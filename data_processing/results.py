@@ -602,6 +602,16 @@ code_pl_analysis_llama_n_1 = {
     'conala': {
         'oracle': {
             'pl_500': {'pass@1': 0.333, 'ret_recall': 3.855, 'oracle_percent': 1.0, 'oracle_rank': 6.158, 'prompt_length': 503.619}
+            'pl_2000': {'pass@1': 0.357, 'ret_recall': 16.663, 'oracle_percent': 1.0, 'oracle_rank': 27.302, 'prompt_length': 2010.036}
+        },
+        'random': {
+            'pl_500': {'pass@1': 0.321, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 491.19}
+        },
+        'irrelevant_diff': {
+            'pl_500': {'pass@1': 0.274, 'prompt_length': 511.476}
+        },
+        'irrelevant_dummy': {
+            'pl_500': {'pass@1': 0.274, 'prompt_length': 512.143}
         }
     }
 }

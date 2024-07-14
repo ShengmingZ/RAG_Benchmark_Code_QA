@@ -171,14 +171,16 @@ def ret_eval_by_doc_keys(dataset, oracle_list, ret_doc_keys_list):
     else:
         for ret_doc_keys, oracle in zip(ret_doc_keys_list, oracle_list):
             ret_doc_key_flags = []
-            oracle_doc_ranks = []
             oracle_doc_count = 0
             for idx, ret_doc_key in enumerate(ret_doc_keys):
                 if ret_doc_key in oracle['oracle_docs']:
                     ret_doc_key_flags.append(True)
                     oracle_doc_count += 1
-                    oracle_doc_ranks.append(idx)
                 else: ret_doc_key_flags.append(False)
+            oracle_doc_ranks = []
+            for idx, ret_doc_key in enumerate(set(ret_doc_keys)):
+                if ret_doc_key in oracle['oracle_docs']:
+                    oracle_doc_ranks.append(idx)
             ret_recall_list.append(ret_doc_key_flags.count(True) / len(oracle['oracle_docs']))
             oracle_rank_list.append(oracle_doc_ranks)
             oracle_percent_list.append(oracle_doc_count / len(ret_doc_key_flags))
