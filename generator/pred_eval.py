@@ -261,7 +261,7 @@ def pred_eval(args):
         scores['oracle_percent'] = avg_oracle_percent
         scores['oracle_rank'] = avg_oracle_rank
     scores['prompt_length'] = sum(pl_list) / len(pl_list)
-    scores = {key: round(value, 3) for key, value in scores.items()}
+    scores = {key: round(value, 3) for key, value in scores.items() if value is not None}
     print(scores)
     with open(eval_save_file, 'w') as f:
         json.dump(dict(scores=scores, eval_records=eval_records), f, indent=2)
