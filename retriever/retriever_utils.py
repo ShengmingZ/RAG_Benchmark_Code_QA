@@ -188,7 +188,7 @@ def ret_eval_by_doc_keys(dataset, oracle_list, ret_doc_keys_list):
     avg_oracle_percent = sum(oracle_percent_list) / len(oracle_percent_list)
     total_rank_count = sum(len(sublist) for sublist in oracle_rank_list)
     total_rank = sum(sum(sublist) for sublist in oracle_rank_list)
-    avg_oracle_rank = total_rank / total_rank_countm if total_rank_count > 0 else None
+    avg_oracle_rank = total_rank / total_rank_count + 1 if total_rank_count > 0 else None
 
     return ret_doc_key_flags_list, avg_ret_recall, avg_oracle_percent, avg_oracle_rank
 
