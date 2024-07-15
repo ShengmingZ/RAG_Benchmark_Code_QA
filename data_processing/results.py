@@ -381,13 +381,25 @@ qa_ret_doc_type_gpt_n_1 = {
 # todo: top1 top5 top10 top15 top20 for code llama (16k) and gpt (16k)
 code_ret_doc_selection_topk_llama_n_1 = {
     'conala': {
-
+        'top_1': {'pass@1': 0.167, 'ret_recall': 0.004, 'oracle_percent': 0.012, 'oracle_rank': 1.0, 'prompt_length': 192.631},
+        'top_5': {'pass@1': 0.226, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.7, 'prompt_length': 542.631},
+        'top_10': {'pass@1': 0.214, 'ret_recall': 0.151, 'oracle_percent': 0.019, 'oracle_rank': 6.562, 'prompt_length': 968.214},
+        'top_15': {'pass@1': 0.19, 'ret_recall': 0.193, 'oracle_percent': 0.018, 'oracle_rank': 8.609, 'prompt_length': 1538.417},
+        'top_20': {'pass@1': 0.143, 'ret_recall': 0.211, 'oracle_percent': 0.015, 'oracle_rank': 9.56, 'prompt_length': 2045.929}
     },
     'DS1000': {
-
+        'top_1': {'pass@1': 0.128, 'ret_recall': 0.043, 'oracle_percent': 0.108, 'oracle_rank': 1.0, 'prompt_length': 1155.414},
+        'top_5': {'pass@1': 0.069, 'ret_recall': 0.117, 'oracle_percent': 0.054, 'oracle_rank': 3.095, 'prompt_length': 3275.248},
+        'top_10': {'pass@1': 0.065, 'ret_recall': 0.181, 'oracle_percent': 0.041, 'oracle_rank': 4.646, 'prompt_length': 5470.917},
+        'top_15': {'pass@1': 0.105, 'ret_recall': 0.21, 'oracle_percent': 0.033, 'oracle_rank': 8.346, 'prompt_length': 6466.204},
+        'top_20': {'pass@1': 0.076, 'ret_recall': 0.229, 'oracle_percent': 0.027, 'oracle_rank': 11.238, 'prompt_length': 6848.389}
     },
     'pandas_numpy_eval': {
-
+        'top_1': {'pass@1': 0.431, 'ret_recall': 0.099, 'oracle_percent': 0.12, 'oracle_rank': 1.0, 'prompt_length': 573.844},
+        'top_5': {'pass@1': 0.491, 'ret_recall': 0.222, 'oracle_percent': 0.053, 'oracle_rank': 3.182, 'prompt_length': 1935.874},
+        'top_10': {'pass@1': 0.587, 'ret_recall': 0.294, 'oracle_percent': 0.036, 'oracle_rank': 4.967, 'prompt_length': 3660.982},
+        'top_15': {'pass@1': 0.611, 'ret_recall': 0.357, 'oracle_percent': 0.029, 'oracle_rank': 8.736, 'prompt_length': 5122.91},
+        'top_20': {'pass@1': 0.581, 'ret_recall': 0.395, 'oracle_percent': 0.024, 'oracle_rank': 10.425, 'prompt_length': 6155.419}
     }
 }
 
@@ -598,25 +610,48 @@ code_ret_doc_selection_pl_gpt_n_1 = {
 #     },
 # }
 
-code_pl_analysis_llama_n_1 = {
+# "oracle": {'pass@1': 0.38095238095238093},
+#         "retrieved": {'pass@1': 0.21428571428571427},
+#         "distracting": {'pass@1': 0.2261904761904762},
+#         "random": {'pass@1': 0.2619047619047619},
+#         "irrelevant_dummy": {'pass@1': 0.30952380952380953},
+#         "irrelevant_diff": {'pass@1': 0.3333333333333333},
+#         "none": {'pass@1': 0.21428571428571427}
+
+code_pl_analysis_gpt_n_1 = {
     'conala': {
         'oracle': {
-            'pl_500': {'pass@1': 0.333, 'ret_recall': 3.855, 'oracle_percent': 1.0, 'oracle_rank': 6.158, 'prompt_length': 503.619}
-            'pl_2000': {'pass@1': 0.357, 'ret_recall': 16.663, 'oracle_percent': 1.0, 'oracle_rank': 27.302, 'prompt_length': 2010.036}
+            'oracle': {'pass@1': 0.381, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.589, 'prompt_length': 820.869},
+            'pl_500': {'pass@1': 0.333, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.226, 'prompt_length': 503.619},
+            'pl_2000': {'pass@1': 0.357, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.552, 'prompt_length': 2010.036},
+            'pl_4000': {'pass@1': 0.357, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.589, 'prompt_length': 3917.75},
+            'pl_8000': {'pass@1': 0.321, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.589, 'prompt_length': 7127.048}
         },
         'random': {
-            'pl_500': {'pass@1': 0.321, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 491.19}
+            'random': {'pass@1': 0.262, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 402.667},
+            'pl_500': {'pass@1': 0.321, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 491.19},
+            'pl_2000': {'pass@1': 0.321, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1997.595},
+            'pl_4000': {'pass@1': 0.345, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 3990.845},
+            'pl_8000': {'pass@1': 0.333, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 7983.607}
         },
         'irrelevant_diff': {
-            'pl_500': {'pass@1': 0.274, 'prompt_length': 511.476}
+            'irrelevant_diff': {'pass@1': 0.333, 'prompt_length': 814.833},
+            'pl_500': {'pass@1': 0.274, 'prompt_length': 511.476},
+            'pl_2000': {'pass@1': 0.31, 'prompt_length': 2036.19},
+            'pl_4000': {'pass@1': 0.333, 'prompt_length': 3966.048},
+            'pl_8000': {'pass@1': 0.345, 'prompt_length': 7197.583}
         },
         'irrelevant_dummy': {
-            'pl_500': {'pass@1': 0.274, 'prompt_length': 512.143}
+            'irrelevant_dummy': {'pass@1': 0.31, 'prompt_length': 814.321},
+            'pl_500': {'pass@1': 0.274, 'prompt_length': 512.143},
+            'pl_2000': {'pass@1': 0.345, 'prompt_length': 2037.429},
+            'pl_4000': {'pass@1': 0.286, 'prompt_length': 3967.869},
+            'pl_8000': {'pass@1': 0.321, 'prompt_length': 7195.548}
         }
     }
 }
 
-code_pl_analysis_gpt_n_1 = {}
+code_pl_analysis_llama_n_1 = {}
 
 
 qa_pl_analysis_gpt_n_1 = {
