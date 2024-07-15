@@ -239,7 +239,7 @@ if __name__ == '__main__':
     # gene_conala.gene_response()
 
     in_program_call = None
-    in_program_call = '--model codellama-13b-instruct --action gene_prompts --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type top_40'
+    # in_program_call = '--model codellama-13b-instruct --action gene_prompts --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type top_40'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type none'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type top_5'
     args = generate_config(in_program_call)
