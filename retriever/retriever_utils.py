@@ -178,7 +178,7 @@ def ret_eval_by_doc_keys(dataset, oracle_list, ret_doc_keys_list):
                     oracle_doc_count += 1
                 else: ret_doc_key_flags.append(False)
             oracle_doc_ranks = []
-            for idx, ret_doc_key in enumerate(set(ret_doc_keys)):
+            for idx, ret_doc_key in enumerate(list(dict.fromkeys(ret_doc_keys))):
                 if ret_doc_key in oracle['oracle_docs']:
                     oracle_doc_ranks.append(idx)
             ret_recall_list.append(ret_doc_key_flags.count(True) / len(oracle['oracle_docs']))

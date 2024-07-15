@@ -9,7 +9,7 @@ retriever_names = ['BM25', 'miniLM', 'openai-embedding', 'contriever', 'codeT5']
 top_ks = [1, 3, 5, 10, 20, 50, 100]
 ret_recalls = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
 # ret_doc_types = ["oracle", "retrieved", "distracting", "random", "irrelevant_dummy", "irrelevant_diff", "none"]
-ret_doc_types = ["oracle", "distracting", "random", "irrelevant_dummy", "irrelevant_diff", 'none']
+ret_doc_types = ["oracle", "distracting", "random", "irrelevant_dummy", "irrelevant_diff"]
 
 
 def make_doc_selection_analysis():
@@ -156,7 +156,7 @@ def make_ret_recall_analysis():
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))  # ax1: qa, ax2: code
     for idx, (perf_data, dataset_name) in enumerate(zip(llama_perf_datas, dataset_names)):
         line, = ax1.plot(x, perf_data, marker='o', linestyle='-', label=dataset_name)
-        ax1.axhline(y=llama_perf_none[idx], color=line.get_color(), linestyle='--', label='no ret')
+        # ax1.axhline(y=llama_perf_none[idx], color=line.get_color(), linestyle='--', label='no ret')  # plot none result
     ax1.set_xlabel('retrieval recall')
     ax1.set_ylabel('performance')
     ax1.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
@@ -164,7 +164,7 @@ def make_ret_recall_analysis():
     ax1.set_title('Retrieval Recall: llama2-13b performance')
     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas, dataset_names)):
         line, = ax2.plot(x, perf_data, marker='o', linestyle='-', label=dataset_name)
-        ax2.axhline(y=gpt_perf_none[idx], color=line.get_color(), linestyle='--', label='no ret')
+        # ax2.axhline(y=gpt_perf_none[idx], color=line.get_color(), linestyle='--', label='no ret')   # plot none result
     ax2.set_xlabel('retrieval recall')
     ax2.set_ylabel('performance')
     ax2.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
@@ -258,5 +258,5 @@ if __name__ == '__main__':
     # make_avg_ret_recall()
     # make_qa_code_ret_recall()
     # make_ret_recall_analysis()
-    # make_ret_doc_type_analysis()
-    make_doc_selection_analysis()
+    make_ret_doc_type_analysis()
+    # make_doc_selection_analysis()

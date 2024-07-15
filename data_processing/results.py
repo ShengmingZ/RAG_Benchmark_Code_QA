@@ -75,13 +75,22 @@ retriever_perf_llama = {
         'contriever': {'em': 0.034, 'f1': 0.1464155973383291, 'prec': 0.10548973484569028, 'recall': 0.4808009157509159}
     },
     'conala': {
-
+        'BM25': {'pass@1': 0.19, 'ret_recall': 0.083, 'oracle_percent': 0.019, 'oracle_rank': 2.25, 'prompt_length': 2999.786},
+        'miniLM': {'pass@1': 0.214, 'ret_recall': 0.111, 'oracle_percent': 0.029, 'oracle_rank': 2.833, 'prompt_length': 732.595},
+        'openai-embedding': ,
+        'codeT5': ,
     },
     'DS1000': {
-
+        'BM25': ,
+        'miniLM': ,
+        'openai-embedding': ,
+        'codeT5': ,
     },
     'pandas_numpy_eval': {
-
+        'BM25': ,
+        'miniLM': ,
+        'openai-embedding': ,
+        'codeT5': ,
     }
 }
 
@@ -106,13 +115,22 @@ retriever_perf_gpt = {
         'contriever': {'em': 0.263, 'f1': 0.380517603212683, 'prec': 0.3865593114832381, 'recall': 0.43119434731934764}
     },
     'conala': {
-
+        'BM25': {'pass@1': 0.357, 'ret_recall': 0.083, 'oracle_percent': 0.019, 'oracle_rank': 2.25, 'prompt_length': 2958.607},
+        'miniLM': {'pass@1': 0.298, 'ret_recall': 0.111, 'oracle_percent': 0.029, 'oracle_rank': 2.25, 'prompt_length': 663.631},
+        'openai-embedding': {'pass@1': 0.274, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.4, 'prompt_length': 484.774},
+        'codeT5': {'pass@1': 0.345, 'ret_recall': 0.147, 'oracle_percent': 0.038, 'oracle_rank': 2.562, 'prompt_length': 1151.321}
     },
     'DS1000': {
-
+        'BM25': {'em': 0.254, 'f1': 0.3799936204388769, 'prec': 0.37224948402243435, 'recall': 0.47907500000000014},
+        'miniLM': {'em': 0.319, 'f1': 0.45539919755019664, 'prec': 0.43953505825638856, 'recall': 0.5902750000000003},
+        'openai-embedding': {'em': 0.3445, 'f1': 0.49073557800297163, 'prec': 0.4763133890449864, 'recall': 0.6221250000000003},
+        'codeT5': {'em': 0.267, 'f1': 0.39120396494624526, 'prec': 0.38556238871240267, 'recall': 0.4977666666666666}
     },
     'pandas_numpy_eval': {
-
+        'BM25': {'em': 0.254, 'f1': 0.3799936204388769, 'prec': 0.37224948402243435, 'recall': 0.47907500000000014},
+        'miniLM': {'em': 0.319, 'f1': 0.45539919755019664, 'prec': 0.43953505825638856, 'recall': 0.5902750000000003},
+        'openai-embedding': {'em': 0.3445, 'f1': 0.49073557800297163, 'prec': 0.4763133890449864, 'recall': 0.6221250000000003},
+        'codeT5': {'em': 0.267, 'f1': 0.39120396494624526, 'prec': 0.38556238871240267, 'recall': 0.4977666666666666}
     }
 }
 
