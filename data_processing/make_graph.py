@@ -12,7 +12,7 @@ ret_recalls = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
 ret_doc_types = ["oracle", "distracting", "random", "irrelevant_dummy", "irrelevant_diff"]
 
 
-def make_doc_selection_analysis():
+def make_doc_selection_topk_analysis():
     graph_name = 'select_topk_analysis.pdf'
     qa_gpt_perf_datas = []
     qa_gpt_doc_selection_types = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20', 'top_25', 'top_30']
@@ -206,6 +206,53 @@ def make_ret_recall_analysis():
     plt.show()
 
 
+def make_qa_code_retriever_perf():
+    graph_name = 'qa_code_perf_on_retriever.pdf'
+    gpt_qa_retriever_perf_datas, llama_qa_retriever_perf_datas = dict(), dict()
+    gpt_code_retriever_perf_datas, llama_code_retriever_perf_datas = dict(), dict()
+    for retriever_name in retriever_names:
+        if retriever_name == 'contriever':
+            gpt_qa_retriever_perf_datas[retriever_name] = sum([results.retriever_perf_gpt[qa_name][retriever_name]['recall'] for qa_name in qa_dataset_names])/3 # get mean perf of qa dataset
+            llama_qa_retriever_perf_datas[retriever_name] = sum([results.retriever_perf_llama[qa_name][retriever_name]['recall'] for qa_name in qa_dataset_names])/3
+        elif retriever_name == 'codeT5':
+            gpt_code_retriever_perf_datas[retriever_name] = sum([results.retriever_perf_gpt[code_name][retriever_name]['pass@1'] for code_name in code_dataset_names])/3
+            llama_code_retriever_perf_datas[retriever_name] = sum([results.retriever_perf_llama[code_name][retriever_name]['pass@1'] for code_name in code_dataset_names])/3
+        else:
+            gpt_qa_retriever_perf_datas[retriever_name] = sum([results.retriever_perf_gpt[qa_name][retriever_name]['recall'] for qa_name in qa_dataset_names])/3
+            llama_qa_retriever_perf_datas[retriever_name] = sum([results.retriever_perf_llama[qa_name][retriever_name]['recall'] for qa_name in qa_dataset_names])/3
+            gpt_code_retriever_perf_datas[retriever_name] = sum([results.retriever_perf_gpt[code_name][retriever_name]['pass@1'] for code_name in code_dataset_names])/3
+            llama_code_retriever_perf_datas[retriever_name] = sum([results.retriever_perf_llama[code_name][retriever_name]['pass@1'] for code_name in code_dataset_names])/3
+
+    plt.style.use('ggplot')
+    bar_width = 0.8 / 4
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(12, 2))  # ax1: qa, ax2: code
+    colors = plt.cm.viridis(np.linspace(0, 1, len(retriever_names)))
+    axs = [ax1, ax2, ax3, ax4]
+    retriever_data_list = [llama_qa_retriever_perf_datas, gpt_qa_retriever_perf_datas, llama_code_retriever_perf_datas, gpt_code_retriever_perf_datas]
+    for ax_idx, (ax, retriever_data) in enumerate(zip(axs, retriever_data_list)):
+        for idx, retriever_name in enumerate(retriever_names):
+            if retriever_name in retriever_data.keys():
+                ax.bar(idx*bar_width if retriever_name != 'codeT5' else (idx-1)*bar_width, retriever_data[retriever_name], width=bar_width, label=retriever_name, color=colors[idx])
+        ax.set_ylabel('Performance')
+        ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        if ax_idx == 0: ax.set_title('QA Datasets, llama2-13b', fontsize=10)
+        elif ax_idx == 1: ax.set_title('QA Datasets, gpt-3.5', fontsize=10)
+        elif ax_idx == 2: ax.set_title('Code Datasets, llama2-13b', fontsize=10)
+        else: ax.set_title('Code Datasets, gpt-3.5', fontsize=10)
+    # for idx, retriever_name in enumerate(retriever_names):
+    #     if retriever_name in llama_qa_retriever_perf_datas.keys():
+    #         ax1.bar(idx*bar_width, llama_qa_retriever_perf_datas[retriever_name], width=bar_width, label=retriever_name, color=colors[idx])
+
+    ax1_handles, ax1_labels = ax1.get_legend_handles_labels()
+    ax3_handles, ax3_labels = ax3.get_legend_handles_labels()
+    handles, labels = list(dict.fromkeys(ax1_handles + ax3_handles)), list(dict.fromkeys(ax1_labels + ax3_labels))
+    fig.legend(handles, labels, loc='lower center', ncol=5, fontsize=10, bbox_to_anchor=(0.5, -0.15))
+    plt.savefig('graph/' + graph_name, bbox_inches='tight')
+    plt.show()
+
+
+
+
 def make_qa_code_ret_recall():
     graph_name = 'qa_code_ret_recall.pdf'
     qa_retrieval_acc_datas = []
@@ -286,6 +333,8 @@ def make_avg_ret_recall():
 if __name__ == '__main__':
     # make_avg_ret_recall()
     # make_qa_code_ret_recall()
-    make_ret_recall_analysis()
+    # make_ret_recall_analysis()
     # make_ret_doc_type_analysis()
     # make_doc_selection_analysis()
+
+    make_qa_code_retriever_perf()

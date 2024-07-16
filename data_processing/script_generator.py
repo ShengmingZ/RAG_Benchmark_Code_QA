@@ -1,14 +1,14 @@
 files = ['run.py', 'generate.py']
-file = files[0]
+file = files[1]
 
 actions = ['gene_prompts', 'gene_responses', 'eval_pred']
-action = actions[0]
+action = actions[2]
 
 models = ['gpt-3.5-turbo-0125', 'codellama-13b-instruct', 'llama2-13b-chat']
 model = models[1]
 
 datasets = ['conala', 'DS1000', 'pandas_numpy_eval']
-dataset = datasets[0]
+dataset = datasets[2]
 
 retrievers = ['BM25', 'miniLM', 'openai-embedding', 'codeT5']
 retriever = retrievers[2]

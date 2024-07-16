@@ -87,10 +87,10 @@ retriever_perf_llama = {
         'codeT5': {'pass@1': 0.102, 'ret_recall': 0.024, 'oracle_percent': 0.006, 'oracle_rank': 2.6, 'prompt_length': 4172.554},
     },
     'pandas_numpy_eval': {
-        # 'BM25': ,
-        # 'miniLM': ,
-        # 'openai-embedding': ,
-        # 'codeT5': ,
+        'BM25': {'pass@1': 0.581, 'ret_recall': 0.131, 'oracle_percent': 0.031, 'oracle_rank': 2.846, 'prompt_length': 3984.994},
+        'miniLM': {'pass@1': 0.521, 'ret_recall': 0.18, 'oracle_percent': 0.046, 'oracle_rank': 2.684, 'prompt_length': 1640.132},
+        'openai-embedding': {'pass@1': 0.491, 'ret_recall': 0.222, 'oracle_percent': 0.053, 'oracle_rank': 2.068, 'prompt_length': 1935.874},
+        'codeT5': {'pass@1': 0.515, 'ret_recall': 0.048, 'oracle_percent': 0.012, 'oracle_rank': 3.5, 'prompt_length': 2107.778},
     }
 }
 
@@ -165,12 +165,12 @@ code_ret_recall_llama_n_10 = {
 
 code_ret_recall_llama_n_1 = {
     "conala": {
-        1: {'pass@1': 0.2976190476190476},
-        0.8: {'pass@1': 0.27380952380952384},
-        0.6: {'pass@1': 0.23809523809523808},
-        0.4: {'pass@1': 0.19047619047619047},
-        0.2: {'pass@1': 0.16666666666666666},
-        0: {'pass@1': 0.14047619047619048}
+        1: {'pass@1': 0.298, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.589, 'prompt_length': 853.226},
+        0.8: {'pass@1': 0.274, 'ret_recall': 0.794, 'oracle_percent': 0.794, 'oracle_rank': 1.602, 'prompt_length': 729.262},
+        0.6: {'pass@1': 0.238, 'ret_recall': 0.599, 'oracle_percent': 0.599, 'oracle_rank': 1.586, 'prompt_length': 601.821},
+        0.4: {'pass@1': 0.19, 'ret_recall': 0.389, 'oracle_percent': 0.389, 'oracle_rank': 1.614, 'prompt_length': 509.131},
+        0.2: {'pass@1': 0.167, 'ret_recall': 0.198, 'oracle_percent': 0.198, 'oracle_rank': 1.633, 'prompt_length': 377.0},
+        0: {'pass@1': 0.14, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 217.095}
     },
     "DS1000": {
         1: {'pass@1': 0.17325001466877898},
@@ -193,12 +193,12 @@ code_ret_recall_llama_n_1 = {
 
 code_ret_recall_gpt_n_1 = {
     "conala": {
-        1: {'pass@1': 0.38095238095238093},
-        0.8: {'pass@1': 0.3333333333333333},
-        0.6: {'pass@1': 0.32142857142857145},
-        0.4: {'pass@1': 0.2857142857142857},
-        0.2: {'pass@1': 0.23809523809523808},
-        0: {'pass@1': 0.21428571428571427}
+        1: {'pass@1': 0.381, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.589, 'prompt_length': 820.869},
+        0.8: {'pass@1': 0.333, 'ret_recall': 0.794, 'oracle_percent': 0.794, 'oracle_rank': 1.602, 'prompt_length': 691.393},
+        0.6: {'pass@1': 0.321, 'ret_recall': 0.599, 'oracle_percent': 0.599, 'oracle_rank': 1.586, 'prompt_length': 562.964},
+        0.4: {'pass@1': 0.286, 'ret_recall': 0.389, 'oracle_percent': 0.389, 'oracle_rank': 1.614, 'prompt_length': 471.881},
+        0.2: {'pass@1': 0.238, 'ret_recall': 0.198, 'oracle_percent': 0.198, 'oracle_rank': 1.633, 'prompt_length': 339.857},
+        0: {'pass@1': 0.214, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 178.619}
     },
     'DS1000': {
         1: {'pass@1': 0.3543272897963973},
