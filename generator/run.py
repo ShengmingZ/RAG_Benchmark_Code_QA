@@ -35,6 +35,7 @@ if args.analysis_type == "retrieval_recall":
         for ret_acc in ret_acc_list:
             cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} '
                    f'--dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --ret_acc {ret_acc}')
+            cmds.append(cmd)
         batch_cmd = ''
         for cmd in cmds:
             batch_cmd = batch_cmd + cmd + ' ; '
@@ -44,7 +45,6 @@ if args.analysis_type == "retrieval_recall":
         print(batch_cmd)
     else:
         subprocess.check_output(batch_cmd, shell=True)
-        print(batch_cmd)
         print(f'done {args.action} for retrieval recall analysis, {args.model} {args.dataset}')
 
 
