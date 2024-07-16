@@ -145,7 +145,7 @@ def ret_eval(args, top_k=None):
 
 
 def ret_eval_by_doc_keys(dataset, oracle_list, ret_doc_keys_list):
-    ret_doc_key_flags_list = []     # correspond to ret_doc_keys_list: each element record if the ret doc if oracle or not
+    ret_doc_key_flags_list = dict()     # correspond to ret_doc_keys_list: each element record if the ret doc if oracle or not
     ret_recall_list = []    # record ret recall for each sample
     oracle_rank_list = []   # record oracle doc rank for each sample
     oracle_percent_list = []    # record oracle doc percentage for each sample
