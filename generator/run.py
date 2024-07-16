@@ -37,7 +37,7 @@ if args.analysis_type == "retrieval_recall":
                    f'--dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --ret_acc {ret_acc}')
         batch_cmd = ''
         for cmd in cmds:
-            batch_cmd = batch_cmd + cmd + ' & '
+            batch_cmd = batch_cmd + cmd + ' ; '
 
     if args.action == 'eval_pred':
         print('run following cmd:')

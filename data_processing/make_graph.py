@@ -99,34 +99,63 @@ def make_ret_doc_type_analysis():
             [results.code_ret_doc_type_llama_n_1[dataset_name][ret_doc_type]['pass@1'] for ret_doc_type in ret_doc_types])
     qa_gpt_perf_datas, code_gpt_perf_datas = gpt_perf_datas[:3], gpt_perf_datas[3:]
 
+    # plt.style.use('ggplot')
+    # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))  # ax1: qa, ax2: code
+    # bar_width = 0.8 / len(qa_gpt_perf_datas)
+    # x = len(ret_doc_types)
+    # doc_type_index = np.arange(x)
+    # colors1 = plt.cm.viridis(np.linspace(0, 0.5, len(qa_gpt_perf_datas)))
+    # colors2 = plt.cm.plasma(np.linspace(0.5, 1, len(code_gpt_perf_datas)))
+    # for idx, perf_data in enumerate(qa_gpt_perf_datas):
+    #     ax1.bar(doc_type_index+idx*bar_width, perf_data, width=bar_width, label=qa_dataset_names[idx], color=colors1[idx])
+    # ax1.set_xlabel('document type')
+    # ax1.set_ylabel('performance')
+    # ax1.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+    # ax1.set_xticks(doc_type_index+bar_width*(x/2-0.5))  # set place of xticks
+    # ax1.set_xticklabels(ret_doc_types, rotation=45, ha='right')
+    # ax1.set_title('Document Type: llama2-13b performance')
+    # for idx, perf_data in enumerate(code_gpt_perf_datas):
+    #     ax2.bar(doc_type_index + idx * bar_width, perf_data, width=bar_width, label=code_dataset_names[idx], color=colors2[idx])
+    # ax2.set_xlabel('document type')
+    # ax2.set_ylabel('performance')
+    # ax2.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+    # ax2.set_xticks(doc_type_index + bar_width * (x / 2 - 0.5))  # set place of xticks
+    # ax2.set_xticklabels(ret_doc_types, rotation=45, ha='right')
+    # ax2.set_title('Document Type: gpt-3.5 performance')
+    # ax1_handles, ax1_labels = ax1.get_legend_handles_labels()
+    # ax2_handles, ax2_labels = ax2.get_legend_handles_labels()
+    # handles, labels = ax1_handles + ax2_handles, ax1_labels + ax2_labels
+    # fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=10, bbox_to_anchor=(0.5, -0.05))
+    # plt.savefig('graph/' + graph_name, bbox_inches='tight')
+    # plt.show()
+
     plt.style.use('ggplot')
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))  # ax1: qa, ax2: code
-    bar_width = 0.8 / len(qa_gpt_perf_datas)
+    fig, (ax1, ax2, ax3, ax4, ax5, ax6) = plt.subplots(1, 6, figsize=(24, 2))  # ax1: qa, ax2: code
     x = len(ret_doc_types)
     doc_type_index = np.arange(x)
-    colors1 = plt.cm.viridis(np.linspace(0, 0.5, len(qa_gpt_perf_datas)))
-    colors2 = plt.cm.plasma(np.linspace(0.5, 1, len(code_gpt_perf_datas)))
-    for idx, perf_data in enumerate(qa_gpt_perf_datas):
-        ax1.bar(doc_type_index+idx*bar_width, perf_data, width=bar_width, label=qa_dataset_names[idx], color=colors1[idx])
-    ax1.set_xlabel('document type')
-    ax1.set_ylabel('performance')
-    ax1.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
-    ax1.set_xticks(doc_type_index+bar_width*(x/2-0.5))  # set place of xticks
-    ax1.set_xticklabels(ret_doc_types, rotation=45, ha='right')
-    ax1.set_title('Document Type: llama2-13b performance')
-    for idx, perf_data in enumerate(code_gpt_perf_datas):
-        ax2.bar(doc_type_index + idx * bar_width, perf_data, width=bar_width, label=code_dataset_names[idx], color=colors2[idx])
-    ax2.set_xlabel('document type')
-    ax2.set_ylabel('performance')
-    ax2.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
-    ax2.set_xticks(doc_type_index + bar_width * (x / 2 - 0.5))  # set place of xticks
-    ax2.set_xticklabels(ret_doc_types, rotation=45, ha='right')
-    ax2.set_title('Document Type: gpt-3.5 performance')
+    colors1 = plt.cm.viridis(np.linspace(0, 1, len(ret_doc_types)))
+    # colors2 = plt.cm.plasma(np.linspace(0.5, 1, len(code_gpt_perf_datas)))
+    axs = [ax1, ax2, ax3]
+    yticks_list = [[0,1], [0,1], [0,1]]
+    for idx, ax in enumerate(axs):
+        ax.bar(range(len(qa_gpt_perf_datas[idx])), qa_gpt_perf_datas[idx], label=ret_doc_types, color=colors1)
+        ax.set_xlabel(qa_dataset_names[idx])
+        ax.set_ylabel('Recall')
+        ax.set_yticks(yticks_list[idx])
+        ax.set_ylim(yticks_list[idx][0], yticks_list[idx][-1])
+    axs = [ax4, ax5, ax6]
+    yticks_list = [[0.2, 0.4], [0.2, 0.4], [0.6, 0.8]]
+    for idx, ax in enumerate(axs):
+        ax.bar(range(len(code_gpt_perf_datas[idx])), code_gpt_perf_datas[idx], label=ret_doc_types, color=colors1)
+        ax.set_xlabel(code_dataset_names[idx])
+        ax.set_ylabel('pass@1')
+        ax.set_yticks(yticks_list[idx])
+        ax.set_ylim(yticks_list[idx][0], yticks_list[idx][-1])
 
-    ax1_handles, ax1_labels = ax1.get_legend_handles_labels()
-    ax2_handles, ax2_labels = ax2.get_legend_handles_labels()
-    handles, labels = ax1_handles + ax2_handles, ax1_labels + ax2_labels
-    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=10, bbox_to_anchor=(0.5, -0.05))
+    handles, labels = ax1.get_legend_handles_labels()
+    # ax2_handles, ax2_labels = ax2.get_legend_handles_labels()
+    # handles, labels = ax1_handles + ax2_handles, ax1_labels + ax2_labels
+    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=10, bbox_to_anchor=(0.5, -0.1))
     plt.savefig('graph/' + graph_name, bbox_inches='tight')
     plt.show()
 
@@ -156,7 +185,7 @@ def make_ret_recall_analysis():
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))  # ax1: qa, ax2: code
     for idx, (perf_data, dataset_name) in enumerate(zip(llama_perf_datas, dataset_names)):
         line, = ax1.plot(x, perf_data, marker='o', linestyle='-', label=dataset_name)
-        # ax1.axhline(y=llama_perf_none[idx], color=line.get_color(), linestyle='--', label='no ret')  # plot none result
+        ax1.axhline(y=llama_perf_none[idx], color=line.get_color(), linestyle='--', label='no ret')  # plot none result
     ax1.set_xlabel('retrieval recall')
     ax1.set_ylabel('performance')
     ax1.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
@@ -164,7 +193,7 @@ def make_ret_recall_analysis():
     ax1.set_title('Retrieval Recall: llama2-13b performance')
     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas, dataset_names)):
         line, = ax2.plot(x, perf_data, marker='o', linestyle='-', label=dataset_name)
-        # ax2.axhline(y=gpt_perf_none[idx], color=line.get_color(), linestyle='--', label='no ret')   # plot none result
+        ax2.axhline(y=gpt_perf_none[idx], color=line.get_color(), linestyle='--', label='no ret')   # plot none result
     ax2.set_xlabel('retrieval recall')
     ax2.set_ylabel('performance')
     ax2.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
@@ -257,6 +286,6 @@ def make_avg_ret_recall():
 if __name__ == '__main__':
     # make_avg_ret_recall()
     # make_qa_code_ret_recall()
-    # make_ret_recall_analysis()
-    make_ret_doc_type_analysis()
+    make_ret_recall_analysis()
+    # make_ret_doc_type_analysis()
     # make_doc_selection_analysis()
