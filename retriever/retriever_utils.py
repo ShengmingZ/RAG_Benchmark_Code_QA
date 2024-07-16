@@ -167,7 +167,7 @@ def ret_eval_by_doc_keys(dataset, oracle_list, ret_doc_keys_list):
             if oracle_doc_rank == -1: oracle_rank_list.append([])
             else: oracle_rank_list.append([oracle_doc_rank])
             oracle_percent_list.append(oracle_doc_count / len(ret_doc_key_flags))
-            ret_doc_key_flags_list.append(ret_doc_key_flags)
+            ret_doc_key_flags_list[oracle['qs_id']] = ret_doc_key_flags
     else:
         for ret_doc_keys, oracle in zip(ret_doc_keys_list, oracle_list):
             ret_doc_key_flags = []
@@ -184,7 +184,7 @@ def ret_eval_by_doc_keys(dataset, oracle_list, ret_doc_keys_list):
             ret_recall_list.append(ret_doc_key_flags.count(True) / len(oracle['oracle_docs']))
             oracle_rank_list.append(oracle_doc_ranks)
             oracle_percent_list.append(oracle_doc_count / len(ret_doc_key_flags))
-            ret_doc_key_flags_list.append(ret_doc_key_flags)
+            ret_doc_key_flags_list[oracle['qs_id']] = ret_doc_key_flags
 
     avg_ret_recall = sum(ret_recall_list) / len(ret_recall_list)
     avg_oracle_percent = sum(oracle_percent_list) / len(oracle_percent_list)
