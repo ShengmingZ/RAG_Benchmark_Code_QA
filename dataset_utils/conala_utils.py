@@ -179,7 +179,7 @@ class ConalaLoader:
             # print(pass_k)
             if pass_k['pass@1'] != 1: wrong_ids.append(qs_id)
             print(_['0'])
-            eval_records[qs_id] = _['0'][0][1]['result']  # todo: modify for pass@k, k > 1
+            eval_records[qs_id] = _
             pass_k_list.append(pass_k)
         _pass_k = {}
         pass_keys = list(pass_k_list[0].keys())
