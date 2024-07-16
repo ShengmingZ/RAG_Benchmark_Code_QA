@@ -27,8 +27,8 @@ ret_eval_false_eval_true_count = 0
 ret_eval_false_eval_false_count = 0
 for qs in qs_list:
     qs_id = qs['qs_id']
-    print(eval_records[qs_id])
-    eval = eval_records[qs_id]['0'][0][1]['passed']
+    print(eval_records[qs_id][0])
+    eval = eval_records[qs_id][0][0][1]
     retrieval = retrieval_records[qs_id]
     ret_eval = ret_eval_records[qs_id]
     output = output_records[qs_id]
