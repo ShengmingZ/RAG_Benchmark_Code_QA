@@ -180,6 +180,7 @@ def pred_eval(args):
         raise ValueError('args.n must be 1 or 10')
 
     output_records = dict()
+    retrieval_records = dict()
 
     if args.dataset == 'conala':
         loader = ConalaLoader()
@@ -189,6 +190,7 @@ def pred_eval(args):
             # outputs = [result['oracle_output']]
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
             output_records[result['qs_id']] = outputs
+            retrieval_records[result['qs_id']] = result['ret_docs']
         scores, eval_records = loader.eval_passk(_gene_results, top_k=k_list)
 
     elif args.dataset == 'DS1000':
@@ -201,6 +203,7 @@ def pred_eval(args):
             outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
             output_records[result['qs_id']] = outputs
+            retrieval_records[result['qs_id']] = result['ret_docs']
         scores, eval_records = loader.eval_passk(_gene_results, k_list=k_list)
 
     elif args.dataset == 'pandas_numpy_eval':
@@ -212,6 +215,7 @@ def pred_eval(args):
             outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'])
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
             output_records[result['qs_id']] = outputs
+            retrieval_records[result['qs_id']] = result['ret_docs']
         scores, eval_records = loader.eval_passk(_gene_results, k_list=k_list)
 
     elif args.dataset == 'NQ' or args.dataset == 'TriviaQA':
@@ -224,6 +228,7 @@ def pred_eval(args):
             preds.append(pred)
             answers_list.append(oracle['answers'])
             output_records[result['qs_id']] = [pred]
+            retrieval_records[result['qs_id']] = result['ret_docs']
         scores, _eval_records = loader.pred_eval(preds=preds, answers_list=answers_list)
         eval_records = dict()
         for idx, oracle in enumerate(oracle_list):
@@ -237,6 +242,7 @@ def pred_eval(args):
             output = process_gene_results(args, result['outputs'])[0]   # Todo: now only 1 inference
             pred_list.append(dict(qs_id=result['qs_id'], output=output))
             output_records[result['qs_id']] = [output]
+            retrieval_records[result['qs_id']] = result['ret_docs']
         scores, eval_records = loader.eval_pred(pred_list=pred_list, oracle_list=oracle_list)
 
     else:
@@ -272,7 +278,8 @@ def pred_eval(args):
     scores = {key: round(value, 3) for key, value in scores.items() if value is not None}
     print(scores)
     with open(eval_save_file, 'w') as f:
-        json.dump(dict(scores=scores, eval_records=eval_records, output_records=output_records, retrieval_records=ret_doc_key_flags_list if len(ret_doc_keys_list) != 0 else []), f, indent=2)
+        json.dump(dict(scores=scores, eval_records=eval_records, output_records=output_records, retrieval_records=retrieval_records,
+                       ret_eval_records=ret_doc_key_flags_list if len(ret_doc_keys_list) != 0 else []), f, indent=2)
 
     return scores
 
