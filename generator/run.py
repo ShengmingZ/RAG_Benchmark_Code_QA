@@ -72,6 +72,7 @@ elif args.analysis_type == "retrieval_doc_type":
         print(batch_cmd)
     else:
         subprocess.check_output(batch_cmd, shell=True)
+        print(batch_cmd)
         print(f'done {args.action} for ret_doc_type analysis, {args.model} {args.dataset}')
 
 
