@@ -42,9 +42,16 @@ def eval_vs_eval(dataset, eval_datas1, eval_datas2):
         for key in eval_records1.keys():
             eval_records1[key] = eval_records1[key][0]
             eval_records2[key] = eval_records2[key][0]
+    elif dataset == 'pandas_numpy_eval':
+        for key in eval_records1.keys():
+            if 'passed' in eval_records1[key]: eval_records1[key] = True
+            else: eval_records1[key] = False
+            if 'passed' in eval_records2[key]: eval_records2[key] = True
+            else: eval_records2[key] = False
 
 
     evals1, evals2 = [], []
+    evals1_wo_false, evals2_wo_false = [], []
     for key in eval_records1.keys():
         if eval_records1[key] == eval_records2[key]:
             if eval_records1[key] is True:
@@ -56,18 +63,21 @@ def eval_vs_eval(dataset, eval_datas1, eval_datas2):
                 data1_true_data2_false_count += 1
             else:
                 data1_false_data2_true_count += 1
-        if eval_records1[key] is False and eval_records2[key] is False:
-            continue
-        else:
-            evals1.append(eval_records1[key])
-            evals2.append(eval_records2[key])
+
+        if eval_records1[key] is True or eval_records2[key] is True:
+            evals1_wo_false.append(eval_records1[key])
+            evals2_wo_false.append(eval_records2[key])
+        evals1.append(eval_records1[key])
+        evals2.append(eval_records2[key])
     hamming_dist = hamming(evals1, evals2)
+    hamming_dist_wo_false = hamming(evals1_wo_false, evals2_wo_false)
 
     print('data1 True. data2 True', data1_true_data2_true_count / len(eval_records1))
     print('data1 True, data2 False', data1_true_data2_false_count / len(eval_records1))
     print('data1 False, data2 True', data1_false_data2_true_count / len(eval_records1))
     print('data1 False, data2 False', data1_false_data2_false_count / len(eval_records1))
-    print('hamming dist without both False: ', hamming_dist)
+    print('hamming dist: ', hamming_dist)
+    print('hamming dist without both False: ', hamming_dist_wo_false)
 
 
 
@@ -108,13 +118,13 @@ def ret_eval_vs_eval(eval_datas):
 
 
 if __name__ == '__main__':
-    in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset conala --retriever openai-embedding '
-                       '--analysis_type retrieval_recall --n 1 --ret_acc 0')
+    in_program_call = ('--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset DS1000 --retriever openai-embedding '
+                       '--analysis_type retrieval_recall --n 1 --ret_acc 1.0')
     args = generate_config(in_program_call)
     eval_file = args.result_save_file.replace('.json', '_eval.json')
     eval_datas = json.load(open(eval_file))
 
-    in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset conala --retriever openai-embedding '
+    in_program_call = ('--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset DS1000 --retriever openai-embedding '
                        '--analysis_type retrieval_doc_type --n 1 --ret_doc_type none')
     args = generate_config(in_program_call)
     eval_file = args.result_save_file.replace('.json', '_eval.json')

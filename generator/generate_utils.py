@@ -217,6 +217,11 @@ def generate_config(in_program_call=None):
 
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
 
+
+    # if args.n == 1: args.temperature = 0
+    # else:
+    #     if 'llama' in args.model: args.temperature = 0.6
+    #     else: args.temperature = 0.7
     # construct save file
     if args.result_save_file is None:
         if args.retriever != 'openai-embedding': args.result_save_file = f'data/{args.dataset}/results/model_{args.model}_retriever_{args.retriever}.json'

@@ -173,7 +173,7 @@ code_ret_recall_llama_n_1 = {
         0: {'pass@1': 0.14, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 217.095}
     },
     "DS1000": {
-        1: {'pass@1': 0.17325001466877898},
+        1: {'pass@1': 0.173, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 2.159, 'prompt_length': 2270.185},
         0.8: {'pass@1': 0.1448986876332414},
         0.6: {'pass@1': 0.1550577949891451},
         0.4: {'pass@1': 0.15203602652115236},
@@ -181,7 +181,7 @@ code_ret_recall_llama_n_1 = {
         0: {'pass@1': 0.09799477791468636}
     },
     "pandas_numpy_eval": {
-        1: {'pass@1': 0.5568862275449101},
+        1: {'pass@1': 0.557, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.427, 'prompt_length': 1223.281},
         0.8: {'pass@1': 0.5149700598802395},
         0.6: {'pass@1': 0.5029940119760479},
         0.4: {'pass@1': 0.47305389221556887},
@@ -210,7 +210,7 @@ code_ret_recall_gpt_n_1 = {
     },
     'pandas_numpy_eval': {
         1: {'pass@1': 0.7844311377245509},
-        0.8: {'pass@1': 0.7724550898203593},
+        0.8: {'pass@1': 0.772, 'ret_recall': 0.795, 'oracle_percent': 0.795, 'oracle_rank': 1.42, 'prompt_length': 1032.581},
         0.6: {'pass@1': 0.7544910179640718},
         0.4: {'pass@1': 0.7485029940119761},
         0.2: {'pass@1': 0.6946107784431138},
@@ -226,7 +226,7 @@ code_ret_doc_type_llama_n_1 = {
         "random": {'pass@1': 0.21428571428571427},
         "irrelevant_dummy": {'pass@1': 0.2261904761904762},
         "irrelevant_diff": {'pass@1': 0.19047619047619047},
-        "none": {'pass@1': 0.2261904761904762},
+        "none": {'pass@1': 0.226, 'prompt_length': 92.714},
     },
     "DS1000": {
         "oracle": {'pass@1': 0.17325001466877898},
@@ -235,7 +235,7 @@ code_ret_doc_type_llama_n_1 = {
         "random": {'pass@1': 0.09306166754679342},
         "irrelevant_dummy": {'pass@1': 0.1189765103952747},
         "irrelevant_diff": {'pass@1': 0.13781709010541962},
-        "none": {'pass@1': 0.16641974222065756},
+        "none": {'pass@1': 0.166, 'prompt_length': 514.739},
     },
     "pandas_numpy_eval": {
         "oracle": {'pass@1': 0.5568862275449101},
@@ -244,7 +244,7 @@ code_ret_doc_type_llama_n_1 = {
         "random": {'pass@1': 0.5149700598802395},
         "irrelevant_dummy": {'pass@1': 0.5329341317365269},
         "irrelevant_diff": {'pass@1': 0.6407185628742516},
-        "none": {'pass@1': 0.562874251497006},
+        "none": {'pass@1': 0.563, 'prompt_length': 187.036},
     }
 }
 
@@ -274,7 +274,7 @@ code_ret_doc_type_gpt_n_1 = {
         "random": {'pass@1': 0.7544910179640718},
         "irrelevant_dummy": {'pass@1': 0.7664670658682635},
         "irrelevant_diff": {'pass@1': 0.78443113772455},
-        "none": {'pass@1': 0.7784431137724551}
+        "none": {'pass@1': 0.778, 'prompt_length': 142.186}
     }
 }
 
