@@ -3,6 +3,7 @@ import platform
 import sys
 import json
 import re
+import numpy as np
 system = platform.system()
 if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
@@ -275,6 +276,13 @@ def pred_eval(args):
         scores['oracle_percent'] = avg_oracle_percent
         scores['oracle_rank'] = avg_oracle_rank
     scores['prompt_length'] = sum(pl_list) / len(pl_list)
+    # calc perplexity
+    perplexity = 0
+    for result in gene_results:
+        logprobs = result['logprobs'][0]  # todo: only for n=1
+        if len(logprobs) == 1: logprobs = logprobs[0]  # for llama
+        perplexity += np.exp(-sum(logprobs) / len(logprobs))
+    scores['perplexity'] = perplexity / len(gene_results)
     scores = {key: round(value, 3) for key, value in scores.items() if value is not None}
     print(scores)
     with open(eval_save_file, 'w') as f:

@@ -1,4 +1,5 @@
 import json
+import numpy as np
 import sys, platform
 from scipy.spatial.distance import hamming
 system = platform.system()
@@ -11,8 +12,17 @@ from generator.generate_utils import generate_config
 from dataset_utils.conala_utils import ConalaLoader
 
 
-def perplexity_analysis():
-    ...
+def perplexity_analysis(results):
+    perplexity = 0
+    for result in results:
+        logprobs = result['logprobs'][0]    # todo: only for n=1
+        if len(logprobs) == 1: logprobs = logprobs[0]   # for llama
+        perplexity += np.exp(-sum(logprobs)/len(logprobs))
+    perplexity /= len(results)
+
+    print(perplexity)
+    return perplexity
+
 
 
 def code_error_type(eval_datas):
@@ -118,18 +128,25 @@ def ret_eval_vs_eval(eval_datas):
 
 
 if __name__ == '__main__':
-    in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset conala --retriever openai-embedding '
-                       '--analysis_type retrieval_recall --n 1 --ret_acc 0.2')
-    args = generate_config(in_program_call)
-    eval_file = args.result_save_file.replace('.json', '_eval.json')
-    eval_datas = json.load(open(eval_file))
-
-    in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset conala --retriever openai-embedding '
-                       '--analysis_type retrieval_recall --n 1 --ret_acc 0')
-    args = generate_config(in_program_call)
-    eval_file = args.result_save_file.replace('.json', '_eval.json')
-    eval_datas2 = json.load(open(eval_file))
+    # in_program_call = ('--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset conala --retriever openai-embedding '
+    #                    '--analysis_type retrieval_recall --n 1 --ret_acc 1.0')
+    # args = generate_config(in_program_call)
+    # eval_file = args.result_save_file.replace('.json', '_eval.json')
+    # eval_datas = json.load(open(eval_file))
+    #
+    # in_program_call = ('--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset conala --retriever openai-embedding '
+    #                    '--analysis_type retrieval_doc_type --n 1 --ret_doc_type none')
+    # args = generate_config(in_program_call)
+    # eval_file = args.result_save_file.replace('.json', '_eval.json')
+    # eval_datas2 = json.load(open(eval_file))
 
     # ret_eval_vs_eval(eval_datas)
 
-    eval_vs_eval(args.dataset, eval_datas, eval_datas2)
+    # eval_vs_eval(args.dataset, eval_datas, eval_datas2)
+
+
+    in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset conala --retriever openai-embedding '
+                       '--analysis_type retrieval_doc_type --n 1 --ret_doc_type none')
+    args = generate_config(in_program_call)
+    results = json.load(open(args.result_save_file))[:1]
+    perplexity_analysis(results)
