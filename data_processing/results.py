@@ -256,7 +256,7 @@ code_ret_doc_type_gpt_n_1 = {
         "random": {'pass@1': 0.2619047619047619},
         "irrelevant_dummy": {'pass@1': 0.30952380952380953},
         "irrelevant_diff": {'pass@1': 0.3333333333333333},
-        "none": {'pass@1': 0.21428571428571427}
+        "none":{'pass@1': 0.214, 'prompt_length': 66.369}
     },
     "DS1000": {
         "oracle": {'pass@1': 0.34041982045414537},

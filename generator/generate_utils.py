@@ -234,6 +234,7 @@ def generate_config(in_program_call=None):
                 raise ValueError(f'Unknown analysis type: {args.analysis_type}')
         args.result_save_file = os.path.join(root_path, args.result_save_file)
         args.prompt_save_file = args.result_save_file.replace('.json', '_prompts.jsonl')
+        if args.n != 1: args.prompt_save_file = args.prompt_save_file.replace(f'n_{args.n}', 'n_1') # prompt does not change when run multi times
 
     print(json.dumps(vars(args), indent=2))
     return args
