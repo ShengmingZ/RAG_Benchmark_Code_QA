@@ -2,7 +2,7 @@ files = ['run.py', 'generate.py']
 file = files[0]
 
 actions = ['gene_prompts', 'gene_responses', 'eval_pred']
-action = actions[2]
+action = actions[0]
 
 models = ['gpt-3.5-turbo-0125', 'codellama-13b-instruct', 'llama2-13b-chat']
 model = models[2]
