@@ -1,14 +1,14 @@
 files = ['run.py', 'generate.py']
-file = files[1]
+file = files[0]
 
 actions = ['gene_prompts', 'gene_responses', 'eval_pred']
 action = actions[2]
 
 models = ['gpt-3.5-turbo-0125', 'codellama-13b-instruct', 'llama2-13b-chat']
-model = models[1]
+model = models[2]
 
 datasets = ['conala', 'DS1000', 'pandas_numpy_eval', 'NQ', 'TriviaQA', 'hotpotQA']
-dataset = datasets[0]
+dataset = datasets[3]
 
 retrievers = ['BM25', 'miniLM', 'openai-embedding', 'codeT5']
 retriever = retrievers[2]
@@ -37,6 +37,6 @@ if file == 'generate.py':
               f"--retriever {retriever} --analysis_type {analysis_type} --ret_acc 0.6")
 else:
     script = (f"python generator/{file} --action {action} --model {model} --temperature 0 --n 1 --dataset {dataset} "
-              f"--retriever {retriever} --analysis_type ")
+              f"--retriever {retriever} --analysis_type {analysis_type}")
 
 print(script)

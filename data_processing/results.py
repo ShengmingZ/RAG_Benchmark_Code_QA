@@ -174,19 +174,19 @@ code_ret_recall_llama_n_1 = {
     },
     "DS1000": {
         1: {'pass@1': 0.173, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 2.159, 'prompt_length': 2270.185},
-        0.8: {'pass@1': 0.1448986876332414},
-        0.6: {'pass@1': 0.1550577949891451},
-        0.4: {'pass@1': 0.15203602652115236},
-        0.2: {'pass@1': 0.12498533122102917},
-        0: {'pass@1': 0.09799477791468636}
+        0.8: {'pass@1': 0.145, 'ret_recall': 0.799, 'oracle_percent': 0.799, 'oracle_rank': 2.178, 'prompt_length': 2215.07},
+        0.6: {'pass@1': 0.155, 'ret_recall': 0.6, 'oracle_percent': 0.6, 'oracle_rank': 2.139, 'prompt_length': 2123.834},
+        0.4: {'pass@1': 0.152, 'ret_recall': 0.399, 'oracle_percent': 0.399, 'oracle_rank': 2.103, 'prompt_length': 2084.478},
+        0.2: {'pass@1': 0.125, 'ret_recall': 0.194, 'oracle_percent': 0.194, 'oracle_rank': 2.134, 'prompt_length': 2020.943},
+        0: {'pass@1': 0.098, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 2024.369}
     },
     "pandas_numpy_eval": {
         1: {'pass@1': 0.557, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.427, 'prompt_length': 1223.281},
-        0.8: {'pass@1': 0.5149700598802395},
-        0.6: {'pass@1': 0.5029940119760479},
-        0.4: {'pass@1': 0.47305389221556887},
-        0.2: {'pass@1': 0.4431137724550898},
-        0: {'pass@1': 0.38922155688622756}
+        0.8: {'pass@1': 0.515, 'ret_recall': 0.795, 'oracle_percent': 0.795, 'oracle_rank': 1.42, 'prompt_length': 1096.006},
+        0.6: {'pass@1': 0.503, 'ret_recall': 0.6, 'oracle_percent': 0.6, 'oracle_rank': 1.348, 'prompt_length': 996.479},
+        0.4: {'pass@1': 0.473, 'ret_recall': 0.395, 'oracle_percent': 0.395, 'oracle_rank': 1.326, 'prompt_length': 900.713},
+        0.2: {'pass@1': 0.443, 'ret_recall': 0.199, 'oracle_percent': 0.199, 'oracle_rank': 1.2, 'prompt_length': 779.413},
+        0: {'pass@1': 0.389, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 691.868}
     }
 }
 
@@ -265,7 +265,7 @@ code_ret_doc_type_gpt_n_1 = {
         "random": {'pass@1': 0.32965000293375574},
         "irrelevant_dummy": {'pass@1': 0.341829490113243},
         "irrelevant_diff": {'pass@1': 0.38344726085000685},
-        "none": {'pass@1': 0.32624977996831545},
+        "none": {'pass@1': 0.326, 'prompt_length': 413.535},
     },
     "pandas_numpy_eval": {
         "oracle": {'pass@1': 0.7904191616766467},
