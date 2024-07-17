@@ -118,14 +118,14 @@ def ret_eval_vs_eval(eval_datas):
 
 
 if __name__ == '__main__':
-    in_program_call = ('--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset DS1000 --retriever openai-embedding '
-                       '--analysis_type retrieval_recall --n 1 --ret_acc 1.0')
+    in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset DS1000 --retriever openai-embedding '
+                       '--analysis_type retrieval_recall --n 1 --ret_acc 0.8')
     args = generate_config(in_program_call)
     eval_file = args.result_save_file.replace('.json', '_eval.json')
     eval_datas = json.load(open(eval_file))
 
-    in_program_call = ('--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset DS1000 --retriever openai-embedding '
-                       '--analysis_type retrieval_doc_type --n 1 --ret_doc_type none')
+    in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset DS1000 --retriever openai-embedding '
+                       '--analysis_type retrieval_recall --n 1 --ret_acc 0.6')
     args = generate_config(in_program_call)
     eval_file = args.result_save_file.replace('.json', '_eval.json')
     eval_datas2 = json.load(open(eval_file))

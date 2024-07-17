@@ -201,12 +201,12 @@ code_ret_recall_gpt_n_1 = {
         0: {'pass@1': 0.214, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 178.619}
     },
     'DS1000': {
-        1: {'pass@1': 0.3543272897963973},
-        0.8: {'pass@1': 0.35302665806098305},
-        0.6: {'pass@1': 0.32576228754718456},
-        0.4: {'pass@1': 0.3544363277200806},
-        0.2: {'pass@1': 0.29130043615169476},
-        0: {'pass@1': 0.27517015783606175}
+        1: {'pass@1': 0.354, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 2.159, 'prompt_length': 2172.236},
+        0.8: {'pass@1': 0.353, 'ret_recall': 0.799, 'oracle_percent': 0.799, 'oracle_rank': 2.178, 'prompt_length': 2111.662},
+        0.6: {'pass@1': 0.326, 'ret_recall': 0.6, 'oracle_percent': 0.6, 'oracle_rank': 2.139, 'prompt_length': 2009.433},
+        0.4: {'pass@1': 0.354, 'ret_recall': 0.399, 'oracle_percent': 0.399, 'oracle_rank': 2.103, 'prompt_length': 1969.465},
+        0.2: {'pass@1': 0.296, 'ret_recall': 0.194, 'oracle_percent': 0.194, 'oracle_rank': 2.134, 'prompt_length': 1900.93},
+        0: {'pass@1': 0.275, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1898.79}
     },
     'pandas_numpy_eval': {
         1: {'pass@1': 0.7844311377245509},

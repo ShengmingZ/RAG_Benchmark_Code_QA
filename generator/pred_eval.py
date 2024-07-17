@@ -165,11 +165,11 @@ def process_gene_results(args, outputs, code_prompt=None):
 
 def pred_eval(args):
     eval_save_file = args.result_save_file.replace('.json', '_eval.json')
-    # if os.path.exists(eval_save_file):
-    #     print('eval file exists already, {}'.format(eval_save_file))
-    #     eval_results = json.load(open(eval_save_file, 'r'))
-    #     print(eval_results['scores'])
-    #     return
+    if os.path.exists(eval_save_file):
+        print('eval file exists already, {}'.format(eval_save_file))
+        eval_results = json.load(open(eval_save_file, 'r'))
+        print(eval_results['scores'])
+        return
 
     gene_results = json.load(open(args.result_save_file, 'r'))
     if args.n == 10:
