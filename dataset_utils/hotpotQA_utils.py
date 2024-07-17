@@ -93,7 +93,7 @@ def _update_answer(metrics, prediction, gold):
     metrics['f1'] += f1
     metrics['prec'] += prec
     metrics['recall'] += recall
-    return em, prec, recall
+    return em, f1, prec, recall
 
 
 class HotpotQAUtils:
@@ -189,10 +189,15 @@ class HotpotQAUtils:
         metrics = {'em': 0, 'f1': 0, 'prec': 0, 'recall': 0}
         eval_records = dict()
         for pred, oracle in zip(pred_list, oracle_list):
+            eval_records[pred['qs_id']] = dict()
             assert pred['qs_id'] == oracle['qs_id']
-            if has_answer([oracle], pred): eval_records['qs_id'] = True
-            else: eval_records['qs_id'] = False
-            _update_answer(metrics, pred['output'], oracle['answer'])
+            if has_answer([oracle], pred): eval_records[pred['qs_id']]['has_answer'] = True
+            else: eval_records[pred['qs_id']]['has_answer'] = False
+            em, f1, prec, recall = _update_answer(metrics, pred['output'], oracle['answer'])
+            eval_records[pred['qs_id']]['em'] = em
+            eval_records[pred['qs_id']]['f1'] = f1
+            eval_records[pred['qs_id']]['prec'] = prec
+            eval_records[pred['qs_id']]['recall'] = recall
         N = len(oracle_list)
         for k in metrics.keys():
             metrics[k] /= N

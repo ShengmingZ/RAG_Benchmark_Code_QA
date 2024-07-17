@@ -349,9 +349,11 @@ class NQTriviaQAUtils:
         :return:
         """
         metrics = {'em': 0, 'f1': 0, 'prec': 0, 'recall': 0}
-        eval_records = [False] * len(answers_list)
-        for idx, pred, answers in enumerate(zip(preds, answers_list)):
-            if has_answer(answers, pred): eval_records[idx] = True
+        eval_records = dict()
+        for idx, (pred, answers) in enumerate(zip(preds, answers_list)):
+            eval_records[idx] = dict()
+            if has_answer(answers, pred): eval_records[idx]['has_answer'] = True
+            else: eval_records[idx]['has_answer'] = False
             em = 0
             max_precision, max_recall, max_f1 = 0, 0, 0
             for answer in answers:
@@ -371,6 +373,10 @@ class NQTriviaQAUtils:
             metrics['f1'] += max_f1
             metrics['prec'] += max_precision
             metrics['recall'] += max_recall
+            eval_records[idx]['em'] = em
+            eval_records[idx]['f1'] = max_f1
+            eval_records[idx]['prec'] = max_precision
+            eval_records[idx]['recall'] = max_recall
         for key in metrics.keys():
             metrics[key] /= len(preds)
         # print(metrics)
