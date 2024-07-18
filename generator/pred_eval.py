@@ -18,6 +18,7 @@ from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
 from dataset_utils.hotpotQA_utils import HotpotQAUtils
 from retriever.retriever_utils import ret_eval_by_doc_keys
+from data_processing.analyze_result import analyze_results_for_code
 
 
 
@@ -283,6 +284,13 @@ def pred_eval(args):
         if len(logprobs) == 1: logprobs = logprobs[0]  # for llama
         perplexity += np.exp(-sum(logprobs) / len(logprobs))
     scores['perplexity'] = perplexity / len(gene_results)
+    # extra analyze for code
+    if data in ['conala', 'DS1000', 'pandas_numpy_eval']:
+        eval_datas = dict(eval_records=eval_records, output_records=output_records, retrieval_records=retrieval_records, ret_eval_records=ret_doc_key_flags_list if len(ret_doc_keys_list) != 0 else [])
+        retrieval_consistency, syntax_error, semantic_error = analyze_results_for_code(args.data, eval_datas)
+        scores['retrieval_consistency'] = retrieval_consistency
+        scores['syntax_error_percent'] = syntax_error
+        scores['semantic_error_percent'] = semantic_error
     scores = {key: round(value, 3) for key, value in scores.items() if value is not None}
     print(scores)
     with open(eval_save_file, 'w') as f:

@@ -61,7 +61,8 @@ def count_semantic_error(dataset, eval_datas):
 
     # print('semantic partial correct percentage: ', round(semantic_partial_correct_count/len(output_records),3))
     # print('semantic correct percentage: ', round(semantic_all_correct_count/len(output_records),3))
-    print('semantic error percentage: ', round(semantic_error_count/len(output_records),3))
+    # print('semantic error percentage: ', round(semantic_error_count/len(output_records),3))
+    return semantic_error_count/len(output_records)
 
 
 
@@ -99,11 +100,12 @@ def count_syntax_error(dataset, eval_datas):
         except:
             syntax_error_count += 1
 
-    print('Syntax error percentage: ', round(syntax_error_count / len(output_records),3))
+    # print('Syntax error percentage: ', round(syntax_error_count / len(output_records),3))
+    return syntax_error_count / len(output_records)
 
 
 
-def retrieval_consistency(eval_datas):
+def calc_retrieval_consistency(eval_datas):
     # todo: for qa: detect if answer in the corpus
     retrieval_in_output_count = 0
     retrieval_not_in_output_count = 0
@@ -129,10 +131,10 @@ def retrieval_consistency(eval_datas):
         if True in retrieval_in_output_dict[key]: retrieval_in_output_count += 1
         else: retrieval_not_in_output_count += 1
 
-    print('retrieval consistency: ', round(retrieval_consistency/len(output_records),3))
+    # print('retrieval consistency: ', round(retrieval_consistency/len(output_records),3))
     # print('retrieval in output count: ', retrieval_in_output_count)
     # print('retrieval not in output count: ', retrieval_not_in_output_count)
-    return retrieval_in_output_dict
+    return retrieval_consistency/len(output_records)
 
 
 def retrieval_consistency_vs_eval(dataset, eval_datas):
@@ -262,6 +264,13 @@ def ret_eval_vs_eval(eval_datas):
     print('ret eval False, eval False percent', ret_eval_false_eval_false_count / len(qs_list))
 
 
+def analyze_results_for_code(dataset, eval_datas):
+    ret_consistency = calc_retrieval_consistency(eval_datas)
+    syntax_error = count_syntax_error(dataset, eval_datas)
+    semantic_error = count_semantic_error(dataset, eval_datas)
+    return ret_consistency, syntax_error, semantic_error
+
+
 if __name__ == '__main__':
     """
     in_program_call = ('--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset conala --retriever openai-embedding '
@@ -291,7 +300,7 @@ if __name__ == '__main__':
 
     calc_perplexity(results)
 
-    retrieval_consistency(eval_datas)
+    calc_retrieval_consistency(eval_datas)
     # retrieval_consistency_vs_eval(args.dataset, eval_datas)
 
     count_syntax_error(args.dataset, eval_datas)
