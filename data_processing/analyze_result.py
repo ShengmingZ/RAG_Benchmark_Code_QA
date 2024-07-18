@@ -59,7 +59,7 @@ def count_semantic_error(dataset, eval_datas):
         if False not in oracle_docs_in_output_dict[qs_id]: semantic_all_correct_count += 1
 
     print('semantic partial correct percentage: ', round(semantic_partial_correct_count/len(output_records),3))
-    print('semantic correct percentage: ', round(semantic_all_correct_count/len(output_records),3)
+    print('semantic correct percentage: ', round(semantic_all_correct_count/len(output_records),3))
 
 
 
