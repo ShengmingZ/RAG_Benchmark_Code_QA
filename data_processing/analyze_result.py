@@ -24,7 +24,7 @@ def calc_perplexity(results):
         perplexity += np.exp(-sum(logprobs)/len(logprobs))
     perplexity /= len(results)
 
-    print('perplexity: ', perplexity)
+    print('perplexity: ', round(perplexity,3))
     return perplexity
 
 
