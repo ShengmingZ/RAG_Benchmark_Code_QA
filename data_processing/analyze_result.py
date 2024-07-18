@@ -58,8 +58,8 @@ def count_semantic_error(dataset, eval_datas):
         if True in oracle_docs_in_output_dict[qs_id]: semantic_partial_correct_count += 1
         if False not in oracle_docs_in_output_dict[qs_id]: semantic_all_correct_count += 1
 
-    print('semantic partial correct percentage: ', semantic_partial_correct_count/len(output_records))
-    print('semantic correct percentage: ', semantic_all_correct_count/len(output_records))
+    print('semantic partial correct percentage: ', round(semantic_partial_correct_count/len(output_records),3))
+    print('semantic correct percentage: ', round(semantic_all_correct_count/len(output_records),3)
 
 
 
@@ -97,7 +97,7 @@ def count_syntax_error(dataset, eval_datas):
         except:
             syntax_error_count += 1
 
-    print('Syntax error percentage: ', syntax_error_count / len(output_records))
+    print('Syntax error percentage: ', round(syntax_error_count / len(output_records),3))
 
 
 
@@ -123,13 +123,13 @@ def retrieval_consistency(eval_datas):
 
 
     for key in retrieval_in_output_dict.keys():
-        retrieval_consistency += retrieval_in_output_dict[key].count(True) / len(retrieval_in_output_dict[key])
+        retrieval_consistency += retrieval_in_output_dict[key].count(True)
         if True in retrieval_in_output_dict[key]: retrieval_in_output_count += 1
         else: retrieval_not_in_output_count += 1
 
-    print('retrieval consistency: ', retrieval_consistency/len(output_records))
-    print('retrieval in output count: ', retrieval_in_output_count)
-    print('retrieval not in output count: ', retrieval_not_in_output_count)
+    print('retrieval consistency: ', round(retrieval_consistency/len(output_records),3))
+    # print('retrieval in output count: ', retrieval_in_output_count)
+    # print('retrieval not in output count: ', retrieval_not_in_output_count)
     return retrieval_in_output_dict
 
 

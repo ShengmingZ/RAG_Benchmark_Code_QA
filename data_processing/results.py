@@ -75,7 +75,7 @@ retriever_perf_llama = {
         'contriever': {'em': 0.034, 'f1': 0.1464155973383291, 'prec': 0.10548973484569028, 'recall': 0.4808009157509159}
     },
     'conala': {
-        'BM25': {'pass@1': 0.19, 'ret_recall': 0.083, 'oracle_percent': 0.019, 'oracle_rank': 2.75, 'prompt_length': 2999.786, 'perplexity': 1.132},
+        'BM25': {'pass@1': 0.19, 'ret_recall': 0.083, 'oracle_percent': 0.019, 'oracle_rank': 2.75, 'prompt_length': 2999.786, 'perplexity': 1.132, 'retrieval_consistency': 0.110},
         'miniLM': {'pass@1': 0.214, 'ret_recall': 0.111, 'oracle_percent': 0.029, 'oracle_rank': 2.417, 'prompt_length': 732.595},
         'openai-embedding': {'pass@1': 0.226, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.5, 'prompt_length': 542.631},
         'codeT5': {'pass@1': 0.238, 'ret_recall': 0.147, 'oracle_percent': 0.038, 'oracle_rank': 2.125, 'prompt_length': 1232.524},
