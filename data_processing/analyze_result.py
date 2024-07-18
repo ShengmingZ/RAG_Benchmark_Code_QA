@@ -79,7 +79,7 @@ def count_syntax_error(dataset, eval_datas):
             programs.append(program)
     elif dataset == 'pandas_numpy_eval':
         loader = PandasNumpyEvalLoader()
-        unittests = json.load(open(loader.pandas_eval_file, 'r'))
+        unittests = json.load(open(loader.data_file, 'r'))
         for qs_id in output_records.keys():
             for item in unittests:
                 if item['task_id'] == qs_id: unittest = item
