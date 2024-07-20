@@ -24,7 +24,7 @@ def calc_perplexity(results):
         perplexity += np.exp(-sum(logprobs)/len(logprobs))
     perplexity /= len(results)
 
-    print('perplexity: ', round(perplexity,3))
+    # print('perplexity: ', round(perplexity,3))
     return perplexity
 
 
@@ -114,6 +114,8 @@ def calc_retrieval_consistency(eval_datas):
     retrieval_records = eval_datas['retrieval_records']
     retrieval_in_output_dict = dict()
 
+    if len(next(iter(retrieval_records.values()))) == 0: return None
+
     for key in retrieval_records.keys():
         retrieval_in_output = list()
         retrieved_funcs = [item.rsplit('.', 1)[-1] for item in retrieval_records[key]]
@@ -138,7 +140,7 @@ def calc_retrieval_consistency(eval_datas):
 
 
 def retrieval_consistency_vs_eval(dataset, eval_datas):
-    retrieval_in_output_dict = retrieval_consistency(eval_datas)
+    retrieval_in_output_dict = calc_retrieval_consistency(eval_datas)
     eval_records = eval_datas['eval_records']
     if dataset == 'conala':
         for key in eval_records.keys():
@@ -290,18 +292,21 @@ if __name__ == '__main__':
     eval_vs_eval(args.dataset, eval_datas, eval_datas2)
     """
 
-    in_program_call = (
-        '--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset conala --retriever BM25 '
-        '--analysis_type retrieval_doc_selection --n 1 --doc_selection_type top_5')
-    args = generate_config(in_program_call)
-    results = json.load(open(args.result_save_file))
-    eval_file = args.result_save_file.replace('.json', '_eval.json')
-    eval_datas = json.load(open(eval_file))
+    for ret_acc in [1.0, 0.8, 0.6, 0.4, 0.2, 0]:
+        in_program_call = (
+            '--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset pandas_numpy_eval --retriever openai-embedding '
+            f'--analysis_type retrieval_recall --n 1 --ret_acc {ret_acc}')
+        args = generate_config(in_program_call)
+        results = json.load(open(args.result_save_file))
+        eval_file = args.result_save_file.replace('.json', '_eval.json')
+        eval_datas = json.load(open(eval_file))
 
-    calc_perplexity(results)
+        perplexity = calc_perplexity(results)
 
-    calc_retrieval_consistency(eval_datas)
-    # retrieval_consistency_vs_eval(args.dataset, eval_datas)
+        retrieval_consistency = calc_retrieval_consistency(eval_datas)
+        # retrieval_consistency_vs_eval(args.dataset, eval_datas)
 
-    count_syntax_error(args.dataset, eval_datas)
-    count_semantic_error(args.dataset, eval_datas)
+        syntax_error_count = count_syntax_error(args.dataset, eval_datas)
+        semantic_error_count = count_semantic_error(args.dataset, eval_datas)
+
+        print(dict(perplexity=round(perplexity,3), retrieval_consistency=round(retrieval_consistency,3), syntax_error_count=round(syntax_error_count,3), semantic_error_count=round(semantic_error_count,3)))
