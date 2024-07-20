@@ -114,7 +114,7 @@ def calc_retrieval_consistency(eval_datas):
     retrieval_records = eval_datas['retrieval_records']
     retrieval_in_output_dict = dict()
 
-    if len(next(iter(retrieval_records.values()))) == 0: return None
+    if next(iter(retrieval_records.values())) is None: return None
 
     for key in retrieval_records.keys():
         retrieval_in_output = list()
