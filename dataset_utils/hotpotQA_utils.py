@@ -203,5 +203,5 @@ class HotpotQAUtils:
             metrics[k] /= N
         # metrics = dict(em=metrics['em'], f1=metrics['f1'])
         # print(metrics)
-        return metrics
+        return metrics, eval_records
 
