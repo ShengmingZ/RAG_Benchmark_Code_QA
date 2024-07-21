@@ -1,5 +1,6 @@
 import json
 import ast
+from scipy.stats import pearsonr
 import numpy as np
 import sys, platform
 from scipy.spatial.distance import hamming
@@ -13,6 +14,8 @@ from generator.generate_utils import generate_config
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from dataset_utils.DS1000_utils import DS1000Loader
+from data_processing import results, make_graph
+
 
 
 
@@ -273,7 +276,45 @@ def analyze_results_for_code(dataset, eval_datas):
     return ret_consistency, syntax_error, semantic_error
 
 
+def calc_pearson_r():
+    p_score_dict = dict()
+    p_score_dict['llama'], p_score_dict['gpt'] = dict(), dict()
+
+    """perplexity vs performance retrieval recall analysis """
+    # model_names = ['gpt', 'llama', 'gpt', 'llama']
+    # metric_names = ['recall', 'recall', 'pass@1', 'pass@1']
+    # dataset_names_list = [make_graph.qa_dataset_names, make_graph.qa_dataset_names, make_graph.code_dataset_names, make_graph.code_dataset_names]
+    # datas = [results.qa_ret_recall_gpt_n_1, results.qa_ret_recall_llama_n_1, results.code_ret_recall_gpt_n_1, results.code_ret_recall_llama_n_1]
+    # for model_name, metric_name, dataset_names, data in zip(model_names, metric_names, dataset_names_list, datas):
+    #     for dataset_name in dataset_names:
+    #         perf_list = [data[dataset_name][ret_recall][metric_name] for ret_recall in make_graph.ret_recalls]
+    #         perplexity_list = [data[dataset_name][ret_recall]['perplexity'] for ret_recall in make_graph.ret_recalls]
+    #         p_score, _ = pearsonr(perf_list, perplexity_list)
+    #         p_score_dict[model_name][dataset_name] = p_score
+    # print('p_score of perplexity and performance, retrieval recall analysis', p_score_dict)
+
+
+    """syntax error vs performance for retrieval recall analysis"""
+    model_names = ['gpt', 'llama']
+    metric_names = ['pass@1', 'pass@1']
+    dataset_names_list = [make_graph.code_dataset_names, make_graph.code_dataset_names]
+    datas = [results.code_ret_recall_gpt_n_1, results.code_ret_recall_llama_n_1]
+    for model_name, metric_name, dataset_names, data in zip(model_names, metric_names, dataset_names_list, datas):
+        for dataset_name in dataset_names:
+            perf_list = [data[dataset_name][ret_recall][metric_name] for ret_recall in make_graph.ret_recalls]
+            # perf_list = make_graph.ret_recalls
+            syntax_error_percent_list = [data[dataset_name][ret_recall]['semantic_error_percent'] for ret_recall in make_graph.ret_recalls]
+            p_score, _ = pearsonr(perf_list, syntax_error_percent_list)
+            p_score_dict[model_name][dataset_name] = round(p_score,3)
+    print('p_score of syntax error percent and performance, retrieval recall analysis: \n', p_score_dict)
+
+
+    return p_score_dict
+
+
 if __name__ == '__main__':
+    calc_pearson_r()
+
     """
     in_program_call = ('--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset conala --retriever openai-embedding '
                        '--analysis_type retrieval_recall --n 1 --ret_acc 1.0')
@@ -292,21 +333,23 @@ if __name__ == '__main__':
     eval_vs_eval(args.dataset, eval_datas, eval_datas2)
     """
 
-    for ret_acc in [1.0, 0.8, 0.6, 0.4, 0.2, 0]:
-        in_program_call = (
-            '--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset pandas_numpy_eval --retriever openai-embedding '
-            f'--analysis_type retrieval_recall --n 1 --ret_acc {ret_acc}')
-        args = generate_config(in_program_call)
-        results = json.load(open(args.result_save_file))
-        eval_file = args.result_save_file.replace('.json', '_eval.json')
-        eval_datas = json.load(open(eval_file))
 
-        perplexity = calc_perplexity(results)
+    # for ret_acc in [1.0, 0.8, 0.6, 0.4, 0.2, 0]:
+    #     in_program_call = (
+    #         '--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset pandas_numpy_eval --retriever openai-embedding '
+    #         f'--analysis_type retrieval_recall --n 1 --ret_acc {ret_acc}')
+    #     args = generate_config(in_program_call)
+    #     results = json.load(open(args.result_save_file))
+    #     eval_file = args.result_save_file.replace('.json', '_eval.json')
+    #     eval_datas = json.load(open(eval_file))
+    #
+    #     perplexity = calc_perplexity(results)
+    #
+    #     retrieval_consistency = calc_retrieval_consistency(eval_datas)
+    #     # retrieval_consistency_vs_eval(args.dataset, eval_datas)
+    #
+    #     syntax_error_count = count_syntax_error(args.dataset, eval_datas)
+    #     semantic_error_count = count_semantic_error(args.dataset, eval_datas)
+    #
+    #     print(dict(perplexity=round(perplexity,3), retrieval_consistency=round(retrieval_consistency,3), syntax_error_percent=round(syntax_error_count,3), semantic_error_percent=round(semantic_error_count,3)))
 
-        retrieval_consistency = calc_retrieval_consistency(eval_datas)
-        # retrieval_consistency_vs_eval(args.dataset, eval_datas)
-
-        syntax_error_count = count_syntax_error(args.dataset, eval_datas)
-        semantic_error_count = count_semantic_error(args.dataset, eval_datas)
-
-        print(dict(perplexity=round(perplexity,3), retrieval_consistency=round(retrieval_consistency,3), syntax_error_count=round(syntax_error_count,3), semantic_error_count=round(semantic_error_count,3)))

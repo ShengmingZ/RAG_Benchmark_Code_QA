@@ -191,7 +191,7 @@ class HotpotQAUtils:
         for pred, oracle in zip(pred_list, oracle_list):
             eval_records[pred['qs_id']] = dict()
             assert pred['qs_id'] == oracle['qs_id']
-            if has_answer([oracle], pred): eval_records[pred['qs_id']]['has_answer'] = True
+            if has_answer([oracle['answer']], pred): eval_records[pred['qs_id']]['has_answer'] = True
             else: eval_records[pred['qs_id']]['has_answer'] = False
             em, f1, prec, recall = _update_answer(metrics, pred['output'], oracle['answer'])
             eval_records[pred['qs_id']]['em'] = em
