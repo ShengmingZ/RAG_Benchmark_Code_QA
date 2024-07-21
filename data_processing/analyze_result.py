@@ -14,7 +14,7 @@ from generator.generate_utils import generate_config
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from dataset_utils.DS1000_utils import DS1000Loader
-from data_processing import results, make_graph
+from data_processing import results
 
 
 
@@ -279,6 +279,9 @@ def analyze_results_for_code(dataset, eval_datas):
 def calc_pearson_r():
     p_score_dict = dict()
     p_score_dict['llama'], p_score_dict['gpt'] = dict(), dict()
+    dataset_names = ['NQ', 'TriviaQA', 'hotpotQA', 'conala', 'DS1000', 'pandas_numpy_eval']
+    qa_dataset_names, code_dataset_names = dataset_names[:3], dataset_names[3:]
+    ret_recalls = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
 
     """perplexity vs performance retrieval recall analysis """
     # model_names = ['gpt', 'llama', 'gpt', 'llama']
@@ -297,13 +300,13 @@ def calc_pearson_r():
     """syntax error vs performance for retrieval recall analysis"""
     model_names = ['gpt', 'llama']
     metric_names = ['pass@1', 'pass@1']
-    dataset_names_list = [make_graph.code_dataset_names, make_graph.code_dataset_names]
+    dataset_names_list = [code_dataset_names, code_dataset_names]
     datas = [results.code_ret_recall_gpt_n_1, results.code_ret_recall_llama_n_1]
     for model_name, metric_name, dataset_names, data in zip(model_names, metric_names, dataset_names_list, datas):
         for dataset_name in dataset_names:
-            perf_list = [data[dataset_name][ret_recall][metric_name] for ret_recall in make_graph.ret_recalls]
+            perf_list = [data[dataset_name][ret_recall][metric_name] for ret_recall in ret_recalls]
             # perf_list = make_graph.ret_recalls
-            syntax_error_percent_list = [data[dataset_name][ret_recall]['semantic_error_percent'] for ret_recall in make_graph.ret_recalls]
+            syntax_error_percent_list = [data[dataset_name][ret_recall]['semantic_error_percent'] for ret_recall in ret_recalls]
             p_score, _ = pearsonr(perf_list, syntax_error_percent_list)
             p_score_dict[model_name][dataset_name] = round(p_score,3)
     print('p_score of syntax error percent and performance, retrieval recall analysis: \n', p_score_dict)
