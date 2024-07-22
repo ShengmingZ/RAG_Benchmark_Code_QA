@@ -200,6 +200,10 @@ def eval_vs_eval(dataset, eval_datas1, eval_datas2):
             else: eval_records1[key] = False
             if 'passed' in eval_records2[key]: eval_records2[key] = True
             else: eval_records2[key] = False
+    elif dataset == 'NQ' or dataset == 'TriviaQA' or dataset == 'hotpotQA':
+        for key in eval_records1.keys():
+            eval_records1[key] = eval_records1[key]['has_answer']
+            eval_records2[key] = eval_records2[key]['has_answer']
 
 
     evals1, evals2 = [], []
@@ -224,12 +228,14 @@ def eval_vs_eval(dataset, eval_datas1, eval_datas2):
     hamming_dist = hamming(evals1, evals2)
     hamming_dist_wo_false = hamming(evals1_wo_false, evals2_wo_false)
 
-    print('data1 True. data2 True', data1_true_data2_true_count / len(eval_records1))
-    print('data1 True, data2 False', data1_true_data2_false_count / len(eval_records1))
-    print('data1 False, data2 True', data1_false_data2_true_count / len(eval_records1))
-    print('data1 False, data2 False', data1_false_data2_false_count / len(eval_records1))
-    print('hamming dist: ', hamming_dist)
-    print('hamming dist without both False: ', hamming_dist_wo_false)
+    # print('data1 True. data2 True', data1_true_data2_true_count / len(eval_records1))
+    # print('data1 True, data2 False', data1_true_data2_false_count / len(eval_records1))
+    # print('data1 False, data2 True', data1_false_data2_true_count / len(eval_records1))
+    # print('data1 False, data2 False', data1_false_data2_false_count / len(eval_records1))
+    # print('hamming dist: ', hamming_dist)
+    # print('hamming dist without both False: ', hamming_dist_wo_false)
+
+    return hamming_dist
 
 
 
@@ -282,34 +288,50 @@ def calc_pearson_r():
     dataset_names = ['NQ', 'TriviaQA', 'hotpotQA', 'conala', 'DS1000', 'pandas_numpy_eval']
     qa_dataset_names, code_dataset_names = dataset_names[:3], dataset_names[3:]
     ret_recalls = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
+    ret_doc_types = ['oracle', 'distracting', 'random', 'irrelevant_diff', 'irrelevant_dummy']
 
-    """perplexity vs performance retrieval recall analysis """
+    # """perplexity vs performance retrieval recall analysis """
     # model_names = ['gpt', 'llama', 'gpt', 'llama']
     # metric_names = ['recall', 'recall', 'pass@1', 'pass@1']
-    # dataset_names_list = [make_graph.qa_dataset_names, make_graph.qa_dataset_names, make_graph.code_dataset_names, make_graph.code_dataset_names]
+    # dataset_names_list = [qa_dataset_names, qa_dataset_names, code_dataset_names, code_dataset_names]
     # datas = [results.qa_ret_recall_gpt_n_1, results.qa_ret_recall_llama_n_1, results.code_ret_recall_gpt_n_1, results.code_ret_recall_llama_n_1]
     # for model_name, metric_name, dataset_names, data in zip(model_names, metric_names, dataset_names_list, datas):
     #     for dataset_name in dataset_names:
-    #         perf_list = [data[dataset_name][ret_recall][metric_name] for ret_recall in make_graph.ret_recalls]
-    #         perplexity_list = [data[dataset_name][ret_recall]['perplexity'] for ret_recall in make_graph.ret_recalls]
+    #         # perf_list = [data[dataset_name][ret_recall][metric_name] for ret_recall in ret_recalls]
+    #         perf_list = ret_recalls
+    #         perplexity_list = [data[dataset_name][ret_recall]['perplexity'] for ret_recall in ret_recalls]
     #         p_score, _ = pearsonr(perf_list, perplexity_list)
-    #         p_score_dict[model_name][dataset_name] = p_score
+    #         p_score_dict[model_name][dataset_name] = round(p_score, 3)
     # print('p_score of perplexity and performance, retrieval recall analysis', p_score_dict)
 
 
-    """syntax error vs performance for retrieval recall analysis"""
-    model_names = ['gpt', 'llama']
-    metric_names = ['pass@1', 'pass@1']
-    dataset_names_list = [code_dataset_names, code_dataset_names]
-    datas = [results.code_ret_recall_gpt_n_1, results.code_ret_recall_llama_n_1]
+    """perplexity vs performance retrieval doc type analysis"""
+    model_names = ['gpt', 'llama', 'gpt', 'llama']
+    metric_names = ['recall', 'recall', 'pass@1', 'pass@1']
+    dataset_names_list = [qa_dataset_names, qa_dataset_names, code_dataset_names, code_dataset_names]
+    datas = [results.qa_ret_doc_type_gpt_n_1, results.qa_ret_doc_type_llama_n_1, results.code_ret_doc_type_gpt_n_1, results.code_ret_doc_type_llama_n_1]
     for model_name, metric_name, dataset_names, data in zip(model_names, metric_names, dataset_names_list, datas):
         for dataset_name in dataset_names:
-            perf_list = [data[dataset_name][ret_recall][metric_name] for ret_recall in ret_recalls]
-            # perf_list = make_graph.ret_recalls
-            syntax_error_percent_list = [data[dataset_name][ret_recall]['semantic_error_percent'] for ret_recall in ret_recalls]
-            p_score, _ = pearsonr(perf_list, syntax_error_percent_list)
-            p_score_dict[model_name][dataset_name] = round(p_score,3)
-    print('p_score of syntax error percent and performance, retrieval recall analysis: \n', p_score_dict)
+            perf_list = [data[dataset_name][doc_type][metric_name] for doc_type in ret_doc_types]
+            perplexity_list = [data[dataset_name][doc_type]['perplexity'] for doc_type in ret_doc_types]
+            p_score, _ = pearsonr(perf_list, perplexity_list)
+            p_score_dict[model_name][dataset_name] = round(p_score, 3)
+    print('p_score of perplexity and performance, retrieval doc type analysis', p_score_dict)
+
+
+    # """syntax error vs performance for retrieval recall analysis"""
+    # model_names = ['gpt', 'llama']
+    # metric_names = ['pass@1', 'pass@1']
+    # dataset_names_list = [code_dataset_names, code_dataset_names]
+    # datas = [results.code_ret_recall_gpt_n_1, results.code_ret_recall_llama_n_1]
+    # for model_name, metric_name, dataset_names, data in zip(model_names, metric_names, dataset_names_list, datas):
+    #     for dataset_name in dataset_names:
+    #         perf_list = [data[dataset_name][ret_recall][metric_name] for ret_recall in ret_recalls]
+    #         # perf_list = ret_recalls
+    #         syntax_error_percent_list = [data[dataset_name][ret_recall]['semantic_error_percent'] for ret_recall in ret_recalls]
+    #         p_score, _ = pearsonr(perf_list, syntax_error_percent_list)
+    #         p_score_dict[model_name][dataset_name] = round(p_score,3)
+    # print('p_score of syntax error percent and performance, retrieval recall analysis: \n', p_score_dict)
 
 
     return p_score_dict
@@ -318,23 +340,35 @@ def calc_pearson_r():
 if __name__ == '__main__':
     calc_pearson_r()
 
-    """
-    in_program_call = ('--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset conala --retriever openai-embedding '
-                       '--analysis_type retrieval_recall --n 1 --ret_acc 1.0')
-    args = generate_config(in_program_call)
-    eval_file = args.result_save_file.replace('.json', '_eval.json')
-    eval_datas = json.load(open(eval_file))
 
-    in_program_call = ('--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset conala --retriever openai-embedding '
-                       '--analysis_type retrieval_doc_type --n 1 --ret_doc_type none')
-    args = generate_config(in_program_call)
-    eval_file = args.result_save_file.replace('.json', '_eval.json')
-    eval_datas2 = json.load(open(eval_file))
+    # evals1 = ['oracle']*3
+    # evals2 = ['random', 'irrelevant_diff', 'irrelevant_dummy']
+    # # evals1 = ['random', 'random', 'irrelevant_diff']
+    # # evals2 = ['irrelevant_diff', 'irrelevant_dummy', 'irrelevant_dummy']
+    # # evals1 = ['none']*3
+    # # evals2 = ['random', 'irrelevant_diff', 'irrelevant_dummy']
+    # mean_dist = 0
+    # for eval1, eval2 in zip(evals1, evals2):
+    #     in_program_call = ('--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset pandas_numpy_eval --retriever openai-embedding '
+    #                        f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type {eval1}')
+    #     args = generate_config(in_program_call)
+    #     eval_file = args.result_save_file.replace('.json', '_eval.json')
+    #     eval_datas = json.load(open(eval_file))
+    #
+    #     in_program_call = ('--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset pandas_numpy_eval --retriever openai-embedding '
+    #                        f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type {eval2}')
+    #     args = generate_config(in_program_call)
+    #     eval_file = args.result_save_file.replace('.json', '_eval.json')
+    #     eval_datas2 = json.load(open(eval_file))
+    #
+    #     # ret_eval_vs_eval(eval_datas)
+    #
+    #     hamming_dist = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
+    #     mean_dist += hamming_dist
+    #     print(f"{eval1} {eval2} {round(hamming_dist,3)}")
+    #
+    # print('mean hamming distance: ', round(mean_dist/len(evals1),3))
 
-    ret_eval_vs_eval(eval_datas)
-
-    eval_vs_eval(args.dataset, eval_datas, eval_datas2)
-    """
 
 
     # for ret_acc in [1.0, 0.8, 0.6, 0.4, 0.2, 0]:
