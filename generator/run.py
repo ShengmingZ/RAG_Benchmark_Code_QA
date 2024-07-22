@@ -41,8 +41,10 @@ if args.analysis_type == "retrieval_recall":
             batch_cmd = batch_cmd + cmd + ' ; '
 
     if args.action == 'eval_pred':
-        print('run following cmd:')
-        print(batch_cmd)
+        for cmd in cmds:
+            proc = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            (output, error) = proc.communicate()
+            print(cmd, '\n', output.decode().split('\n')[-2:])
     else:
         subprocess.check_output(batch_cmd, shell=True)
         print(f'done {args.action} for retrieval recall analysis, {args.model} {args.dataset}')
