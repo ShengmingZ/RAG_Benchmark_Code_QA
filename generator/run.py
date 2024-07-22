@@ -76,7 +76,11 @@ elif args.analysis_type == "retrieval_doc_type":
         for cmd in cmds:
             proc = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             (output, error) = proc.communicate()
-            print(cmd, '\n', output.decode().split('\n')[-2])
+            output_lines = output.decode().split('\n')
+            if output_lines[-1] == '':
+                print(cmd, '\n', output_lines[-2])
+            else:
+                print(cmd, '\n', output_lines[-1])
     else:
         subprocess.check_output(batch_cmd, shell=True)
         print(f'done {args.action} for ret_doc_type analysis, {args.model} {args.dataset}')
@@ -120,7 +124,11 @@ elif args.analysis_type.startswith("retrieval_doc_selection"):
         for cmd in cmds:
             proc = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             (output, error) = proc.communicate()
-            print(cmd, '\n', output.decode().split('\n')[-2])
+            output_lines = output.decode().split('\n')
+            if output_lines[-1] == '':
+                print(cmd, '\n', output_lines[-2])
+            else:
+                print(cmd, '\n', output_lines[-1])
     else:
         print(batch_cmd)
         subprocess.check_output(batch_cmd, shell=True)
@@ -152,7 +160,11 @@ elif args.analysis_type.startswith('prompt_length'):
         for cmd in cmds:
             proc = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             (output, error) = proc.communicate()
-            print(cmd, '\n', output.decode().split('\n')[-2])
+            output_lines = output.decode().split('\n')
+            if output_lines[-1] == '':
+                print(cmd, '\n', output_lines[-2])
+            else:
+                print(cmd, '\n', output_lines[-1])
     else:
         subprocess.check_output(batch_cmd, shell=True)
         print(f'done {args.action} for prompt length analysis, {args.model} {args.dataset}')
