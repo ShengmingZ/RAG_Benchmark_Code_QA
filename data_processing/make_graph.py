@@ -10,25 +10,38 @@ top_ks = [1, 3, 5, 10, 20, 50, 100]
 ret_recalls = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
 # ret_doc_types = ["oracle", "retrieved", "distracting", "random", "irrelevant_dummy", "irrelevant_diff", "none"]
 ret_doc_types = ["oracle", "distracting", "random", "irrelevant_dummy", "irrelevant_diff"]
+qa_gpt_doc_selection_types = ['top_1', 'top_20', 'top_40', 'top_60', 'top_80']
+qa_llama_doc_selection_types = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
+code_gpt_doc_selection_types = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
+code_llama_doc_selection_types = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
 
 
 def make_doc_selection_topk_analysis():
     graph_name = 'select_topk_analysis.pdf'
     qa_gpt_perf_datas = []
-    qa_gpt_doc_selection_types = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20', 'top_25', 'top_30']
+
     for dataset_name in qa_dataset_names:
         qa_gpt_perf_datas.append(
-            [results.qa_ret_doc_selection_gpt_n_1[dataset_name][doc_selection_type]['recall'] for doc_selection_type in qa_gpt_doc_selection_types])
+            [results.qa_ret_doc_selection_topk_gpt_n_1[dataset_name][doc_selection_type]['recall'] for doc_selection_type in qa_gpt_doc_selection_types])
     code_gpt_perf_datas = []
-    code_gpt_doc_selection_types = ['top_1', 'top_3', 'top_5', 'top_7', 'top_9']
     for dataset_name in code_dataset_names:
         code_gpt_perf_datas.append(
-            [results.code_ret_doc_selection_gpt_n_1[dataset_name][doc_selection_type]['pass@1'] for doc_selection_type in code_gpt_doc_selection_types])
+            [results.code_ret_doc_selection_topk_gpt_n_1[dataset_name][doc_selection_type]['pass@1'] for doc_selection_type in code_gpt_doc_selection_types])
     qa_llama_perf_datas = []
-    qa_llama_doc_selection_types = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
     for dataset_name in qa_dataset_names:
         qa_llama_perf_datas.append(
-            [results.qa_ret_doc_selection_llama_n_1[dataset_name][doc_selection_type]['recall'] for doc_selection_type in qa_llama_doc_selection_types])
+            [results.qa_ret_doc_selection_topk_llama_n_1[dataset_name][doc_selection_type]['recall'] for doc_selection_type in qa_llama_doc_selection_types])
+    code_llama_perf_datas = []
+    for dataset_name in code_dataset_names:
+        code_llama_perf_datas.append(
+            [results.code_ret_doc_selection_topk_llama_n_1[dataset_name][doc_selection_type]['pass@1'] for doc_selection_type in code_llama_doc_selection_types])
+    qa_dataset_names.append('avg')
+    code_dataset_names.append('avg')
+    qa_gpt_perf_datas.append(sum(qa_gpt_perf_datas) / len(qa_gpt_perf_datas))
+    qa_llama_perf_datas.append(sum(qa_llama_perf_datas) / len(qa_llama_perf_datas))
+    code_gpt_perf_datas.append(sum(code_gpt_perf_datas) / len(code_gpt_perf_datas))
+    code_llama_perf_datas.append(sum(code_llama_perf_datas) / len(code_llama_perf_datas))
+
     plt.style.use('ggplot')
     fig, ((ax2, ax1), (ax4, ax3)) = plt.subplots(2, 2, figsize=(12, 12))
     # ax1: code llama

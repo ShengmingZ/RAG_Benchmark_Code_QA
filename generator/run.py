@@ -44,7 +44,9 @@ if args.analysis_type == "retrieval_recall":
         for cmd in cmds:
             proc = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             (output, error) = proc.communicate()
-            print(cmd, '\n', output.decode().split('\n')[-2])
+            output_lines = output.decode().split('\n')
+            if output_lines[-1] == '': print(cmd, '\n', output_lines[-2])
+            else: print(cmd, '\n', output_lines[-1])
     else:
         subprocess.check_output(batch_cmd, shell=True)
         print(f'done {args.action} for retrieval recall analysis, {args.model} {args.dataset}')
