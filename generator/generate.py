@@ -89,6 +89,7 @@ class Generator:
             ret_doc_keys_list, prompts, pl_list = gene_prompts_for_pl_analysis(pl_analysis=self.pl_analysis,
                                                                                oracle_list=self.oracle_list,
                                                                                qs_list=self.qs_list,
+                                                                               ret_results=self.ret_results,
                                                                                model=self.model,
                                                                                dataset=self.dataset,
                                                                                doc_max_length=self.doc_max_length)
