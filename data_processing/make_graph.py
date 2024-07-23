@@ -16,6 +16,65 @@ code_gpt_doc_selection_types = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
 code_llama_doc_selection_types = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
 
 
+def make_doc_selection_topk_syntax_semantic_error():
+    graph_name = 'select_topk_syntax_error.pdf'
+    llama_syntax_errors = []
+    gpt_syntax_errors = []
+    llama_semantic_errors = []
+    gpt_semantic_errors = []
+    for dataset_name in code_dataset_names:
+        llama_syntax_errors.append(
+            [results.code_ret_doc_selection_topk_llama_n_1[dataset_name][doc_selection_type]['syntax_error_percent'] for doc_selection_type in code_llama_doc_selection_types])
+        gpt_syntax_errors.append(
+            [results.code_ret_doc_selection_topk_gpt_n_1[dataset_name][doc_selection_type]['syntax_error_percent'] for doc_selection_type in code_gpt_doc_selection_types])
+        llama_semantic_errors.append(
+            [results.code_ret_doc_selection_topk_llama_n_1[dataset_name][doc_selection_type]['semantic_error_percent'] for doc_selection_type in code_llama_doc_selection_types])
+        gpt_semantic_errors.append(
+            [results.code_ret_doc_selection_topk_gpt_n_1[dataset_name][doc_selection_type]['semantic_error_percent'] for doc_selection_type in code_gpt_doc_selection_types])
+
+    def get_avg_data(perf_datas, doc_selection_types, dataset_names):
+        avg_perf_datas = [0] * len(doc_selection_types)
+        for data in perf_datas:
+            avg_perf_datas = [a + b for a, b in zip(avg_perf_datas, data)]
+        avg_perf_datas = [item / len(dataset_names) for item in avg_perf_datas]
+        return avg_perf_datas
+
+    datas_list = [llama_syntax_errors, gpt_syntax_errors, llama_semantic_errors, gpt_semantic_errors]
+    topk_list = [code_llama_doc_selection_types, code_gpt_doc_selection_types, code_llama_doc_selection_types, code_gpt_doc_selection_types]
+    for datas, topk in zip(datas_list, topk_list):
+        datas.append(get_avg_data(datas, topk, code_dataset_names))
+    qa_dataset_names.append('avg syntax error')
+    code_dataset_names.append('avg semantic error')
+
+    plt.style.use('ggplot')
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(12, 4))
+    colors1 = plt.cm.viridis(np.linspace(0, 0.9, len(code_dataset_names)))
+    colors2 = plt.cm.plasma(np.linspace(0, 0.9, len(code_dataset_names)))
+
+    axs = [ax1, ax2, ax3, ax4]
+    error_datas_list = [llama_syntax_errors, gpt_syntax_errors, llama_semantic_errors, gpt_semantic_errors]
+    topk_list = [code_llama_doc_selection_types, code_gpt_doc_selection_types, code_llama_doc_selection_types, code_gpt_doc_selection_types]
+    for ax_idx, (ax, datas) in enumerate(zip(axs, error_datas_list)):
+        dataset_names = code_dataset_names
+        for idx, dataset_name in enumerate(dataset_names):
+            ax.plot(topk_list[ax_idx], datas[idx], marker='o', linestyle='-', label=dataset_name, color=colors1[idx])
+        ax.set_ylabel('error percentage')
+        ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        if ax_idx == 0:
+            ax.set_title('syntax error, llama2-13b', fontsize=10)
+        elif ax_idx == 1:
+            ax.set_title('syntax error, gpt-3.5', fontsize=10)
+        elif ax_idx == 2:
+            ax.set_title('semantic error, llama2-13b', fontsize=10)
+        else:
+            ax.set_title('syntax error, gpt-3.5', fontsize=10)
+
+    ax3_handles, ax3_labels = ax3.get_legend_handles_labels()
+    handles, labels = ax3_handles, ax3_labels
+    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=10, bbox_to_anchor=(0.5, -0.1))
+    plt.savefig('graph/' + graph_name, bbox_inches='tight')
+    plt.show()
+
 def make_doc_selection_topk_analysis():
     graph_name = 'select_topk_analysis.pdf'
     qa_gpt_perf_datas = []
@@ -35,61 +94,53 @@ def make_doc_selection_topk_analysis():
     for dataset_name in code_dataset_names:
         code_llama_perf_datas.append(
             [results.code_ret_doc_selection_topk_llama_n_1[dataset_name][doc_selection_type]['pass@1'] for doc_selection_type in code_llama_doc_selection_types])
-    qa_dataset_names.append('avg')
-    code_dataset_names.append('avg')
-    qa_gpt_perf_datas.append(sum(qa_gpt_perf_datas) / len(qa_gpt_perf_datas))
-    qa_llama_perf_datas.append(sum(qa_llama_perf_datas) / len(qa_llama_perf_datas))
-    code_gpt_perf_datas.append(sum(code_gpt_perf_datas) / len(code_gpt_perf_datas))
-    code_llama_perf_datas.append(sum(code_llama_perf_datas) / len(code_llama_perf_datas))
+
+    def get_avg_data(perf_datas, doc_selection_types, dataset_names):
+        avg_perf_datas = [0]*len(doc_selection_types)
+        for data in perf_datas:
+            avg_perf_datas = [a + b for a, b in zip(avg_perf_datas, data)]
+        avg_perf_datas = [item/len(dataset_names) for item in avg_perf_datas]
+        return avg_perf_datas
+
+    qa_gpt_perf_datas.append(get_avg_data(qa_gpt_perf_datas, qa_gpt_doc_selection_types, qa_dataset_names))
+    qa_llama_perf_datas.append(get_avg_data(qa_llama_perf_datas, qa_llama_doc_selection_types, qa_dataset_names))
+    code_gpt_perf_datas.append(get_avg_data(code_gpt_perf_datas, code_gpt_doc_selection_types, code_dataset_names))
+    code_llama_perf_datas.append(get_avg_data(code_llama_perf_datas, code_llama_doc_selection_types, code_dataset_names))
+    qa_dataset_names.append('qa avg')
+    code_dataset_names.append('code avg')
 
     plt.style.use('ggplot')
-    fig, ((ax2, ax1), (ax4, ax3)) = plt.subplots(2, 2, figsize=(12, 12))
-    # ax1: code llama
-    ax1.set_title('Doc Selection: llama2-13b Code performance')
-    # ax2: qa llama
-    bar_width = 0.8 / len(qa_llama_perf_datas)
-    x = len(qa_llama_doc_selection_types)
-    doc_type_index = np.arange(x)
-    colors = plt.cm.viridis(np.linspace(0, 0.5, len(qa_llama_perf_datas)))
-    for idx, perf_data in enumerate(qa_llama_perf_datas):
-        ax2.bar(doc_type_index+idx*bar_width, perf_data, width=bar_width, label=qa_dataset_names[idx], color=colors[idx])
-    # ax2.set_xlabel('top k documents')
-    ax2.set_ylabel('Recall')
-    ax2.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
-    ax2.set_xticks(doc_type_index+bar_width*(x/2-0.5))  # set place of xticks
-    ax2.set_xticklabels(qa_llama_doc_selection_types, rotation=45, ha='right')
-    ax2.set_title('Doc Selection: llama2-13b QA performance')
-    # ax3: code gpt
-    bar_width = 0.8 / len(code_gpt_perf_datas)
-    x = len(code_gpt_doc_selection_types)
-    doc_type_index = np.arange(x)
-    colors = plt.cm.plasma(np.linspace(0.5, 1, len(code_gpt_perf_datas)))
-    for idx, perf_data in enumerate(code_gpt_perf_datas):
-        ax3.bar(doc_type_index + idx * bar_width, perf_data, width=bar_width, label=qa_dataset_names[idx], color=colors[idx])
-    # ax3.set_xlabel('top k documents')
-    ax3.set_ylabel('pass@1')
-    ax3.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
-    ax3.set_xticks(doc_type_index + bar_width * (x / 2 - 0.5))  # set place of xticks
-    ax3.set_xticklabels(code_gpt_doc_selection_types, rotation=45, ha='right')
-    ax3.set_title('Doc Selection: gpt-3.5 Code performance')
-    # ax4: qa gpt
-    bar_width = 0.8 / len(qa_gpt_perf_datas)
-    x = len(qa_gpt_doc_selection_types)
-    doc_type_index = np.arange(x)
-    colors = plt.cm.viridis(np.linspace(0, 0.5, len(qa_gpt_perf_datas)))
-    for idx, perf_data in enumerate(qa_gpt_perf_datas):
-        ax4.bar(doc_type_index + idx * bar_width, perf_data, width=bar_width, label=qa_dataset_names[idx], color=colors[idx])
-    # ax4.set_xlabel('top k documents')
-    ax4.set_ylabel('Recall')
-    ax4.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
-    ax4.set_xticks(doc_type_index + bar_width * (x / 2 - 0.5))  # set place of xticks
-    ax4.set_xticklabels(qa_gpt_doc_selection_types, rotation=45, ha='right')
-    ax4.set_title('Doc Selection: gpt-3.5 QA performance')
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(12, 4))
+    colors1 = plt.cm.viridis(np.linspace(0, 0.9, len(qa_dataset_names)))
+    colors2 = plt.cm.plasma(np.linspace(0, 0.9, len(code_dataset_names)))
+
+    axs = [ax1, ax2, ax3, ax4]
+    perf_datas_list = [code_llama_perf_datas, qa_llama_perf_datas, code_gpt_perf_datas, qa_gpt_perf_datas]
+    topk_list = [code_llama_doc_selection_types, qa_llama_doc_selection_types, code_gpt_doc_selection_types, qa_gpt_doc_selection_types]
+    for ax_idx, (ax, perf_datas) in enumerate(zip(axs, perf_datas_list)):
+        if ax_idx%2 == 0:
+            dataset_names = code_dataset_names
+            colors = colors1
+        else:
+            dataset_names = qa_dataset_names
+            colors = colors2
+        for idx, dataset_name in enumerate(dataset_names):
+            ax.plot(topk_list[ax_idx], perf_datas[idx], marker='o', linestyle='-', label=dataset_name, color=colors[idx])
+        ax.set_ylabel('Performance')
+        ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        if ax_idx == 0:
+            ax.set_title('Code Datasets, llama2-13b', fontsize=10)
+        elif ax_idx == 1:
+            ax.set_title('QA Datasets, llama2-13b', fontsize=10)
+        elif ax_idx == 2:
+            ax.set_title('Code Datasets, gpt-3.5', fontsize=10)
+        else:
+            ax.set_title('QA Datasets, gpt-3.5', fontsize=10)
 
     ax3_handles, ax3_labels = ax3.get_legend_handles_labels()
     ax4_handles, ax4_labels = ax4.get_legend_handles_labels()
     handles, labels = ax3_handles + ax4_handles, ax3_labels + ax4_labels
-    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=10, bbox_to_anchor=(0.5, 0.02))
+    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=10, bbox_to_anchor=(0.5, -0.1))
     plt.savefig('graph/' + graph_name, bbox_inches='tight')
     plt.show()
 
@@ -437,8 +488,10 @@ if __name__ == '__main__':
 
     # make_ret_doc_type_analysis()
 
-    # make_doc_selection_analysis()
+    # make_doc_selection_topk_analysis()
 
     # make_qa_code_retriever_perf()
 
-    make_ret_doc_type_perplexity()
+    # make_ret_doc_type_perplexity()
+
+    make_doc_selection_topk_syntax_semantic_error()

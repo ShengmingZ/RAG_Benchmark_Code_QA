@@ -130,14 +130,13 @@ elif args.analysis_type.startswith("retrieval_doc_selection"):
             else:
                 print(cmd, '\n', output_lines[-1])
     else:
-        print(batch_cmd)
         subprocess.check_output(batch_cmd, shell=True)
         print(f'done {args.action} for retrieval doc selection analysis, {args.model} {args.dataset}')
 
 
 elif args.analysis_type.startswith('prompt_length'):
     target_pl = int(args.analysis_type.rsplit('_', 1)[1])
-    pl_analysis_list = [f'oracle_{target_pl}', f'random_{target_pl}', f'irrelevant_diff_{target_pl}', f'irrelevant_dummy_{target_pl}']
+    pl_analysis_list = [f'oracle_{target_pl}', f'distracting_{target_pl}', f'retrieved_{target_pl}', f'random_{target_pl}', f'irrelevant_diff_{target_pl}', f'irrelevant_dummy_{target_pl}']
     args.analysis_type = args.analysis_type.rsplit('_', 1)[0]
     cmds = []
     if args.action == 'gene_responses' and args.batch is True and 'gpt' in args.model:  # use batch, run simo
