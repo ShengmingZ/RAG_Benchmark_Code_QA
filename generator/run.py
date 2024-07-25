@@ -9,7 +9,8 @@ def config():
     parser.add_argument('--dataset', type=str, choices=['conala', 'DS1000', 'pandas_numpy_eval', 'NQ', 'TriviaQA', 'hotpotQA'])
     parser.add_argument('--retriever', type=str, choices=['best', 'BM25', 'contriever', 'miniLM', 'openai-embedding'])
     parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection_topk', 'retrieval_doc_selection_pl',
-                                                              'prompt_length_500', 'prompt_length_1000', 'prompt_length_1500', 'prompt_length_2000', 'prompt_length_4000', 'prompt_length_6000', 'prompt_length_8000'])
+                                                              'prompt_length_500', 'prompt_length_1000', 'prompt_length_1500', 'prompt_length_2000', 'prompt_length_4000', 'prompt_length_6000', 'prompt_length_8000',
+                                                              'prompt_length_extra_500', 'prompt_length_extra_1000', 'prompt_length_extra_1500', 'prompt_length_extra_2000', 'prompt_length_extra_4000'])
     parser.add_argument('--action', type=str, choices=['gene_prompts', 'gene_responses', 'eval_pred'])
     parser.add_argument('--n', type=int)
     parser.add_argument('--batch', action='store_true')
