@@ -159,7 +159,7 @@ elif args.analysis_type.startswith('prompt_length'):
         for pl_analysis in pl_analysis_list:
             if target_pl == 0:
                 pl_analysis = pl_analysis.rsplit('_', 1)[0]
-                cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature}'
+                cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} '
                        f'--dataset {args.dataset} --retriever {args.retriever} --analysis_type retrieval_doc_type --n {args.n} --ret_doc_type {pl_analysis}')
             else:
                 cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} '
