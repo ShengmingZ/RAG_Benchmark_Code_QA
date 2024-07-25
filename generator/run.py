@@ -137,22 +137,34 @@ elif args.analysis_type.startswith("retrieval_doc_selection"):
 
 elif args.analysis_type.startswith('prompt_length'):
     target_pl = int(args.analysis_type.rsplit('_', 1)[1])
-    if 'prompt_length_extra' in args.analysis_type: pl_analysis_list = [f'ellipsis_{target_pl}', f'ellipsis_pretend_{target_pl}', f'self_generate_0']
-    else: pl_analysis_list = [f'oracle_{target_pl}', f'retrieved_{target_pl}', f'random_{target_pl}', f'irrelevant_diff_{target_pl}', f'irrelevant_dummy_{target_pl}']
+    # if 'prompt_length_extra' in args.analysis_type: pl_analysis_list = [f'ellipsis_{target_pl}', f'ellipsis_pretend_{target_pl}', f'self_generate_0']
+    # else: pl_analysis_list = [f'oracle_{target_pl}', f'retrieved_{target_pl}', f'random_{target_pl}', f'irrelevant_diff_{target_pl}', f'irrelevant_dummy_{target_pl}']
+    pl_analysis_list = [f'oracle_{target_pl}', f'retrieved_{target_pl}', f'retrieved_top_{target_pl}', f'none_{target_pl}',
+                        f'random_{target_pl}', f'irrelevant_diff_{target_pl}', f'irrelevant_dummy_{target_pl}', f'ellipsis_{target_pl}']
     args.analysis_type = 'prompt_length'
     cmds = []
     if args.action == 'gene_responses' and args.batch is True and 'gpt' in args.model:  # use batch, run simo
         for pl_analysis in pl_analysis_list:
-            cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} --batch '
-                   f'--dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --pl_analysis {pl_analysis}')
+            if target_pl == 0:
+                pl_analysis = pl_analysis.rsplit('_', 1)[0]
+                cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} --batch '
+                       f'--dataset {args.dataset} --retriever {args.retriever} --analysis_type retrieval_doc_type --n {args.n} --ret_doc_type {pl_analysis}')
+            else:
+                cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} --batch '
+                       f'--dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --pl_analysis {pl_analysis}')
             cmds.append(cmd)
         batch_cmd = ''
         for cmd in cmds:
             batch_cmd = batch_cmd + cmd + ' & '
     else:
         for pl_analysis in pl_analysis_list:
-            cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} '
-                   f'--dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --pl_analysis {pl_analysis}')
+            if target_pl == 0:
+                pl_analysis = pl_analysis.rsplit('_', 1)[0]
+                cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature}'
+                       f'--dataset {args.dataset} --retriever {args.retriever} --analysis_type retrieval_doc_type --n {args.n} --ret_doc_type {pl_analysis}')
+            else:
+                cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} '
+                       f'--dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --pl_analysis {pl_analysis}')
             cmds.append(cmd)
         batch_cmd = ''
         for cmd in cmds:

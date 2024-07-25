@@ -1,6 +1,6 @@
 import json
 import ast
-from scipy.stats import pearsonr
+from scipy.stats import pearsonr, wilcoxon
 import numpy as np
 import sys, platform
 from scipy.spatial.distance import hamming
@@ -357,14 +357,33 @@ def calc_pearson_r():
     return p_score_dict
 
 
+def wilcoxon_test(dataset, eval_datas1, eval_datas2):
+    eval_records1 = eval_datas1['eval_records']
+    eval_records2 = eval_datas2['eval_records']
+
+    preds1, preds2 = [], []
+    if dataset == 'NQ' or dataset == 'TriviaQA' or dataset == 'hotpotQA':
+        for key in eval_records1.keys():
+            preds1.append(eval_records1[key]['recall'])
+            preds2.append(eval_records2[key]['recall'])
+    else:
+        ...
+
+    _, p_value = wilcoxon(preds1, preds2)
+
+    print('p-value: ', p_value)
+
+
+
+
 if __name__ == '__main__':
     # datasets = ['NQ', 'TriviaQA', 'hotpotQA']
     # for dataset in datasets:
-    in_program_call = (
-        f'--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
-        f'--analysis_type prompt_length --n 1 --pl_analysis random_4000')
-    args = generate_config(in_program_call)
-    count_if_llm_refuse_to_answer(args)
+    # in_program_call = (
+    #     f'--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
+    #     f'--analysis_type prompt_length --n 1 --pl_analysis random_4000')
+    # args = generate_config(in_program_call)
+    # count_if_llm_refuse_to_answer(args)
 
 
     # calc_pearson_r()
@@ -398,6 +417,21 @@ if __name__ == '__main__':
     #
     # print('mean hamming distance: ', round(mean_dist/len(evals1),3))
 
+
+    in_program_call = (
+        '--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
+                           f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type oracle')
+    args = generate_config(in_program_call)
+    eval_file = args.result_save_file.replace('.json', '_eval.json')
+    eval_datas = json.load(open(eval_file))
+
+    in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
+                       f'--analysis_type prompt_length --n 1 --pl_analysis oracle_4000')
+    args = generate_config(in_program_call)
+    eval_file = args.result_save_file.replace('.json', '_eval.json')
+    eval_datas2 = json.load(open(eval_file))
+
+    wilcoxon_test(args.dataset, eval_datas, eval_datas2)
 
 
     # for ret_acc in [1.0, 0.8, 0.6, 0.4, 0.2, 0]:
