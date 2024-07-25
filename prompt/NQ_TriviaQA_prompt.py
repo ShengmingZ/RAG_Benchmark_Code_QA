@@ -16,7 +16,7 @@ You should only output the exact answer, and the answer should starts with <answ
 
 SYS_PROMPT_SELF_GENE = """You are a helpful assistant. Given a question starts with `## Question`, 
 your should first use your own knowledge to generate some documents that are helpful to answer the question, the documents should start with <Documents> and end with </Documents>,  
-then use these documents to answer the question, the answer should start with <answer> and ends with </answer>
+then use these documents to answer the question, the exact answer should start with <answer> and ends with </answer>
 """
 
 

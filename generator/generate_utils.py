@@ -808,10 +808,10 @@ if __name__ == "__main__":
     """test control prompt length"""
     in_program_call = None
     # in_program_call = '--model llama2-13b-chat --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type pl_1000'
-    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis self_gene_0'  # random
+    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type prompt_length --pl_analysis oracle_500'  # random
     args = generate_config(in_program_call)
-    loader = NQTriviaQAUtils(dataset='NQ')
-    # loader = ConalaLoader()
+    # loader = NQTriviaQAUtils(dataset='NQ')
+    loader = ConalaLoader()
     # loader = HotpotQAUtils()
     qs_list = loader.load_qs_list()[:10]
     oracle_list = loader.load_oracle_list()[:10]

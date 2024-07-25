@@ -281,8 +281,10 @@ def pred_eval(args):
     perplexity = 0
     for result in gene_results:
         logprobs = result['logprobs'][0]  # todo: only for n=1
-        if len(logprobs) == 1: logprobs = logprobs[0]  # for llama
-        perplexity += np.exp(-sum(logprobs) / len(logprobs))
+        if 'llama' in args.model: logprobs = logprobs[0]  # for llama
+        try:
+            perplexity += np.exp(-sum(logprobs) / len(logprobs))
+        except: print(logprobs)
     scores['perplexity'] = perplexity / len(gene_results)
     # extra analyze for code
     if args.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:

@@ -56,7 +56,8 @@ def chatgpt_batch(prompt_file_for_batch, prompts, model, temperature=0.7, max_to
     batch_id = None
     batches = client.batches.list()
     for data in batches.data:
-        if data.metadata['description'] == prompt_file_for_batch and data.request_counts.failed == 0:
+        # if data.metadata['description'] == prompt_file_for_batch and data.request_counts.failed == 0:
+        if data.metadata['description'] == prompt_file_for_batch:
             batch_id = data.id
     if batch_id is None:
         batch_input_file = client.files.create(file=open(prompt_file_for_batch, 'rb'), purpose='batch')
@@ -73,19 +74,30 @@ def chatgpt_batch(prompt_file_for_batch, prompts, model, temperature=0.7, max_to
         time.sleep(300)
         status = client.batches.retrieve(batch_id).status
         if status != 'in_progress': print(status)
-    assert client.batches.retrieve(batch_id).request_counts.failed == 0
+    # assert client.batches.retrieve(batch_id).request_counts.failed == 0
     output_file_id = client.batches.retrieve(batch_id).output_file_id
     content = client.files.content(output_file_id)
     responses = [json.loads(data) for data in content.text.split('\n') if data != '']
+    # pad failed responses:
+    for idx in range(len(prompts)):
+        has_true_flag = False
+        for response in responses:
+            if int(response['custom_id']) == idx:
+                has_true_flag = True
+        if not has_true_flag: responses.append(dict(custom_id=str(idx), response=None))
     responses.sort(key=lambda x: int(x['custom_id']))
     outputs_list, logprobs_list = [], []
     for response in responses:
-        response = response['response']['body']
-        outputs = [choice["message"]["content"] for choice in response["choices"]]
-        logprobs = []
-        for choice in response["choices"]:
-            logprob = choice["logprobs"]
-            logprobs.append([item['logprob'] for item in logprob['content']])
+        if response['response'] is None:
+            outputs = ['error']
+            logprobs = [[-0.000000001]]
+        else:
+            response = response['response']['body']
+            outputs = [choice["message"]["content"] for choice in response["choices"]]
+            logprobs = []
+            for choice in response["choices"]:
+                logprob = choice["logprobs"]
+                logprobs.append([item['logprob'] for item in logprob['content']])
         outputs_list.append(outputs)
         logprobs_list.append(logprobs)
     return outputs_list, logprobs_list

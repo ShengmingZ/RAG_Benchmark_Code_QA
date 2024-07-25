@@ -715,7 +715,7 @@ qa_pl_analysis_gpt_n_1 = {
             'pl_4000': {'em': 0.159, 'f1': 0.265, 'prec': 0.258, 'recall': 0.367, 'prompt_length': 3987.259}
         },
         'ellipsis': {
-
+            'pl_500': {'em': 0.239, 'f1': 0.371, 'prec': 0.366, 'recall': 0.489, 'prompt_length': 490.941, 'perplexity': 1.073}
         },   # pad potential doc with ellipsis
         'ellipsis_and_pretend': {
 
@@ -726,9 +726,7 @@ qa_pl_analysis_gpt_n_1 = {
         'self_pad': {
 
         },   # pad none with ellipsis
-        'self_generate': {
-
-        },   # let llm generate documents, and then answer the question
+        'self_generate': {'em': 0.007, 'f1': 0.177, 'prec': 0.11, 'recall': 0.648, 'prompt_length': 88.483, 'perplexity': 1.129},   # let llm generate documents, and then answer the question
         # todo: need more exps, keep same semantic, add prompt lengths (need to pay attention to the position of the retrieved docs)
         # todo: is the random information itself can do this or the prompt length is the key?
         # todo: more prompt length can help LLM revoke its own knowledge, use pretend and ...

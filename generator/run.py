@@ -137,7 +137,7 @@ elif args.analysis_type.startswith("retrieval_doc_selection"):
 
 elif args.analysis_type.startswith('prompt_length'):
     target_pl = int(args.analysis_type.rsplit('_', 1)[1])
-    if 'prompt_length_extra' in args.analysis_type: pl_analysis_list = [f'ellipsis_{target_pl}', f'ellipsis_pretend_{target_pl}', f'self_pad_{target_pl}', f'self_generate_0']
+    if 'prompt_length_extra' in args.analysis_type: pl_analysis_list = [f'ellipsis_{target_pl}', f'ellipsis_pretend_{target_pl}', f'self_generate_0']
     else: pl_analysis_list = [f'oracle_{target_pl}', f'retrieved_{target_pl}', f'random_{target_pl}', f'irrelevant_diff_{target_pl}', f'irrelevant_dummy_{target_pl}']
     args.analysis_type = 'prompt_length'
     cmds = []
