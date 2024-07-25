@@ -275,6 +275,26 @@ def ret_eval_vs_eval(eval_datas):
     print('ret eval False, eval False percent', ret_eval_false_eval_false_count / len(qs_list))
 
 
+
+def count_if_llm_refuse_to_answer(args):
+    gene_results = json.load(open(args.result_save_file))
+    refuse_answer_count = 0
+    if args.dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+        for result in gene_results:
+            output = result['outputs'][0]
+            if '<answer>' not in output:
+                refuse_answer_count += 1
+                print(output)
+    else:
+        for result in gene_results:
+            output = result['outputs'][0]
+            if '<code>' not in output:
+                refuse_answer_count += 1
+                print(output)
+    print(refuse_answer_count)
+    print(refuse_answer_count / len(gene_results))
+
+
 def analyze_results_for_code(dataset, eval_datas):
     ret_consistency = calc_retrieval_consistency(eval_datas)
     syntax_error = count_syntax_error(dataset, eval_datas)
@@ -338,7 +358,16 @@ def calc_pearson_r():
 
 
 if __name__ == '__main__':
-    calc_pearson_r()
+    # datasets = ['NQ', 'TriviaQA', 'hotpotQA']
+    # for dataset in datasets:
+    in_program_call = (
+        f'--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
+        f'--analysis_type prompt_length --n 1 --pl_analysis random_4000')
+    args = generate_config(in_program_call)
+    count_if_llm_refuse_to_answer(args)
+
+
+    # calc_pearson_r()
 
 
     # evals1 = ['oracle']*3

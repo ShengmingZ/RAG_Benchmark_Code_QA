@@ -161,16 +161,19 @@ def get_irrelevant_docs(irrelevant_type, oracle_docs, model, dataset):
     :param dataset:
     :return:
     """
-    assert irrelevant_type in ['dummy', 'diff']
+    assert irrelevant_type in ['dummy', 'diff', 'ellipsis']
     doc_lengths = get_docs_tokens(oracle_docs, model)   # get doc lengths
 
-    if irrelevant_type == 'dummy':
-        dummy_string = 'The wiggly fluff went plop while the jibber-jabber bumbled and tumbled. Fizzle-flop danced around the wibbly-wobbly doodle, and snicker-snack bounced happily. Doodle-doo twirled and swirled in the zigzag zoom, and snuggle-bug snuggled close. Wobble-wobble wandered through the dilly-dally, giggling and jiggling all the while. Squiggle-squabble and waddle-waddle wobbled along, playing in the silly-sally world of random wozzle. The snickety-snack skipped and hopped, while the flibber-jabber giggled and squiggled. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Bloop bloop bloop, gloopy gloopy gloopy. Wobble wobble wobble, zigzag zigzag zigzag. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quibble quibble quibble, jibber jabber jibber. Nulla facilisi. Snick snick snick, jibble jibble jibble.'
+    if irrelevant_type == 'dummy' or irrelevant_type == 'ellipsis':
+        if irrelevant_type == 'dummy':
+            dummy_string = 'The wiggly fluff went plop while the jibber-jabber bumbled and tumbled. Fizzle-flop danced around the wibbly-wobbly doodle, and snicker-snack bounced happily. Doodle-doo twirled and swirled in the zigzag zoom, and snuggle-bug snuggled close. Wobble-wobble wandered through the dilly-dally, giggling and jiggling all the while. Squiggle-squabble and waddle-waddle wobbled along, playing in the silly-sally world of random wozzle. The snickety-snack skipped and hopped, while the flibber-jabber giggled and squiggled. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Bloop bloop bloop, gloopy gloopy gloopy. Wobble wobble wobble, zigzag zigzag zigzag. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quibble quibble quibble, jibber jabber jibber. Nulla facilisi. Snick snick snick, jibble jibble jibble.'
+        else:
+            dummy_string = '................................................................................................................................................'
         dummy_length = get_docs_tokens(docs=[dummy_string], model=model)[0]
         perturbed_docs = []
         for doc_length in doc_lengths:
-            perturbed_doc = dummy_string * (int(doc_length/dummy_length))
-            perturbed_doc += truncate_docs(docs=[dummy_string], model=model, max_length=doc_length-int(doc_length/dummy_length)*dummy_length)[0]
+            perturbed_doc = dummy_string * (int(doc_length/dummy_length)) * 2
+            perturbed_doc = truncate_docs(docs=[perturbed_doc], model=model, max_length=doc_length)[0]
             perturbed_docs.append(perturbed_doc)
     else:
         if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: loader = WikiCorpusLoader(prepare_random_docs=True)
@@ -427,8 +430,7 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, ret_results,
     except:
         raise ValueError('not supported pl_analysis type {}'.format(pl_analysis))
 
-    target_doc_keys_list, prompts = [], []
-    if pl_analysis.startswith('oracle'):
+    def get_oracle_docs(dataset, oracle_list):
         # get oracle docs
         if dataset == 'NQ' or dataset == 'TriviaQA':
             for idx, oracle in enumerate(oracle_list):
@@ -438,6 +440,11 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, ret_results,
             oracle_docs_list = WikiCorpusLoader().get_docs(oracle_doc_keys_list, dataset, num_procs=8)
         else:
             oracle_docs_list = [PythonDocsLoader().get_docs(oracle_docs) for oracle_docs in oracle_doc_keys_list]
+        return oracle_doc_keys_list, oracle_docs_list
+
+    target_doc_keys_list, prompts = [], []
+    if pl_analysis.startswith('oracle'):
+        oracle_doc_keys_list, oracle_docs_list = get_oracle_docs(dataset=dataset, oracle_list=oracle_list)
         start_time = time.time()
         # repeat oracle docs until the target prompt length
         generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
@@ -513,29 +520,40 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, ret_results,
             prompts.append(prompt)
         print('time cost: ', time.time() - start_time)
 
-    elif pl_analysis.startswith('irrelevant'):
+    elif pl_analysis.startswith('irrelevant') or pl_analysis.startswith('ellipsis'):
         # get oracle docs, and use get_irrelevant docs to control the same prompt length
-        if dataset == 'NQ' or dataset == 'TriviaQA':
-            for idx, oracle in enumerate(oracle_list):
-                oracle_list[idx]['oracle_docs'] = [oracle_list[idx]['oracle_doc']]
-        oracle_doc_keys_list = [oracle['oracle_docs'] for oracle in oracle_list]
-        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
-            oracle_docs_list = WikiCorpusLoader().get_docs(oracle_doc_keys_list, dataset, num_procs=8)
-        else:
-            oracle_docs_list = [PythonDocsLoader().get_docs(oracle_docs) for oracle_docs in oracle_doc_keys_list]
-        start_time = time.time()
-        generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
+        oracle_doc_keys_list, oracle_docs_list = get_oracle_docs(dataset=dataset, oracle_list=oracle_list)
+        if 'pretend' in pl_analysis: generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='pretend')
+        else: generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
+        if 'ellipsis' in pl_analysis: irrelevant_type = 'ellipsis'
+        else: irrelevant_type = pl_analysis.split('_')[1]
         for qs, oracle_docs, oracle_doc_keys in zip(qs_list, oracle_docs_list, oracle_doc_keys_list):
             if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: oracle_docs = truncate_docs(oracle_docs, model=model, max_length=doc_max_length)
             repeated_oracle_docs, repeated_oracle_doc_keys = oracle_docs * 100, oracle_doc_keys * 100
-            doc_keys, docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl,
-                                                             docs=repeated_oracle_docs,
-                                                             doc_keys=repeated_oracle_doc_keys, model=model,
-                                                             question=qs['question'], generate_func=generate_func)
-            irrelevant_docs = get_irrelevant_docs(irrelevant_type=pl_analysis.split('_')[1], oracle_docs=docs, model=model, dataset=dataset)
+            doc_keys, docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl, docs=repeated_oracle_docs,
+                                                             doc_keys=repeated_oracle_doc_keys, model=model, question=qs['question'], generate_func=generate_func)
+            irrelevant_docs = get_irrelevant_docs(irrelevant_type=irrelevant_type, oracle_docs=docs, model=model, dataset=dataset)
             prompt = generate_func(irrelevant_docs, qs['question'], model)
             prompts.append(prompt)
-        print('time cost: ', time.time() - start_time)
+
+    elif pl_analysis.startswith('self_pad'):
+        generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='self_pad')
+        ellipses = '.........................................................................................................'
+        ellipses_length = get_docs_tokens([ellipses], model)[0]
+        for qs in qs_list:
+            original_prompt = generate_func('', qs['question'], model)
+            original_pl = get_docs_tokens([original_prompt] if 'llama' in model else [original_prompt[0]+original_prompt[1]], model)[0]
+            target_ellipses = ellipses * (int(target_pl / ellipses_length)) * 2     # pad ellipses
+            target_ellipses = truncate_docs(docs=[target_ellipses], model=model, max_length=target_pl-original_pl)[0]
+            prompt = generate_func(target_ellipses, qs['question'], model)
+            prompts.append(prompt)
+
+    elif pl_analysis == 'self_gene':
+        generate_func = _get_generate_func(dataset=dataset, no_ret_flag=True, prompt_type='self_gene')
+        for qs in qs_list:
+            prompt = generate_func(qs['question'], model)
+            prompts.append(prompt)
+
     else:
         raise ValueError('not supported prompt length analysis {}'.format(pl_analysis))
     pl_list = approximate_token(prompts, model)
@@ -692,6 +710,8 @@ def _get_generate_func(dataset, no_ret_flag, prompt_type):
         if dataset in ['NQ', 'TriviaQA']:
             if prompt_type == '0shot':
                 generate_func = NQ_TriviaQA_prompt.prompt_0shot_no_ret
+            elif prompt_type == 'self_gene':
+                generate_func = NQ_TriviaQA_prompt.prompt_self_gene
             else:
                 raise ValueError(f'Invalid prompt type: {prompt_type} for dataset {dataset}')
         elif dataset == 'conala':
@@ -720,6 +740,10 @@ def _get_generate_func(dataset, no_ret_flag, prompt_type):
         if dataset == 'NQ' or dataset == 'TriviaQA':
             if prompt_type == '0shot':
                 generate_func = NQ_TriviaQA_prompt.prompt_0shot
+            elif prompt_type == 'pretend':
+                generate_func = NQ_TriviaQA_prompt.prompt_pretend
+            elif prompt_type == 'self_pad':
+                generate_func = NQ_TriviaQA_prompt.prompt_self_pad
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         elif dataset == 'conala':
@@ -784,7 +808,7 @@ if __name__ == "__main__":
     """test control prompt length"""
     in_program_call = None
     # in_program_call = '--model llama2-13b-chat --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type pl_1000'
-    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis retrieved_2000'  # random
+    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis self_pad_2000'  # random
     args = generate_config(in_program_call)
     loader = NQTriviaQAUtils(dataset='NQ')
     # loader = ConalaLoader()
@@ -795,6 +819,7 @@ if __name__ == "__main__":
     # ret_doc_keys_list, prompts, pl_list = gene_prompts_by_prompt_length(ret_results=ret_results, doc_selection_type=args.doc_selection_type, qs_list=qs_list, dataset=args.dataset, model=args.model, doc_max_length=args.doc_max_length)
     doc_keys_list, prompts, pl_list = gene_prompts_for_pl_analysis(pl_analysis=args.pl_analysis, oracle_list=oracle_list, qs_list=qs_list, ret_results=ret_results,
                                                                    model=args.model, dataset=args.dataset, doc_max_length=args.doc_max_length)
+    print(prompts[0][0])
     print(prompts[0][1])
     print(prompts[1][1])
     # print(doc_keys_list)
