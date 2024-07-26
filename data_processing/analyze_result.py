@@ -309,7 +309,10 @@ def calc_pearson_r():
     qa_dataset_names, code_dataset_names = dataset_names[:3], dataset_names[3:]
     ret_recalls = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
     ret_doc_types = ['oracle', 'distracting', 'random', 'irrelevant_diff', 'irrelevant_dummy']
-    doc_selection_topks =
+    qa_gpt_topks = ['top_1', 'top_20', 'top_40', 'top_60', 'top_80']
+    qa_llama_topks = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
+    code_gpt_topks = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
+    code_llama_topks = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
 
     # """perplexity vs performance retrieval recall analysis """
     # model_names = ['gpt', 'llama', 'gpt', 'llama']
@@ -360,10 +363,12 @@ def calc_pearson_r():
     metric_names = ['recall', 'recall', 'pass@1', 'pass@1']
     dataset_names_list = [qa_dataset_names, qa_dataset_names, code_dataset_names, code_dataset_names]
     datas = [results.qa_ret_doc_selection_topk_gpt_n_1, results.qa_ret_doc_selection_topk_llama_n_1, results.code_ret_doc_selection_topk_gpt_n_1, results.code_ret_doc_selection_topk_llama_n_1]
-    for model_name, metric_name, dataset_names, data in zip(model_names, metric_names, dataset_names_list, datas):
+    topks_list = [qa_gpt_topks, qa_llama_topks, code_gpt_topks, code_llama_topks]
+    for model_name, metric_name, dataset_names, data, topks in zip(model_names, metric_names, dataset_names_list, datas, topks_list):
         for dataset_name in dataset_names:
-            perf_list = [data[dataset_name][doc_type][metric_name] for doc_type in ret_doc_types]
-            perplexity_list = [data[dataset_name][doc_type]['perplexity'] for doc_type in ret_doc_types]
+            # perf_list = [data[dataset_name][topk][metric_name] for topk in topks]
+            perf_list = [int(topk.replace('top_','')) for topk in topks]
+            perplexity_list = [data[dataset_name][topk]['perplexity'] for topk in topks]
             p_score, _ = pearsonr(perf_list, perplexity_list)
             p_score_dict[model_name][dataset_name] = round(p_score, 3)
     print('p_score of perplexity and performance, retrieval doc type analysis', p_score_dict)
@@ -402,9 +407,10 @@ if __name__ == '__main__':
     # count_if_llm_refuse_to_answer(args)
 
 
-    # calc_pearson_r()
+    calc_pearson_r()
 
 
+    """compare 2 prediction distributions"""
     # evals1 = ['oracle']*3
     # evals2 = ['random', 'irrelevant_diff', 'irrelevant_dummy']
     # # evals1 = ['random', 'random', 'irrelevant_diff']
@@ -434,22 +440,24 @@ if __name__ == '__main__':
     # print('mean hamming distance: ', round(mean_dist/len(evals1),3))
 
 
-    in_program_call = (
-        '--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
-                           f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type oracle')
-    args = generate_config(in_program_call)
-    eval_file = args.result_save_file.replace('.json', '_eval.json')
-    eval_datas = json.load(open(eval_file))
+    """wilcoxon test"""
+    # in_program_call = (
+    #     '--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
+    #                        f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type oracle')
+    # args = generate_config(in_program_call)
+    # eval_file = args.result_save_file.replace('.json', '_eval.json')
+    # eval_datas = json.load(open(eval_file))
+    #
+    # in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
+    #                    f'--analysis_type prompt_length --n 1 --pl_analysis oracle_4000')
+    # args = generate_config(in_program_call)
+    # eval_file = args.result_save_file.replace('.json', '_eval.json')
+    # eval_datas2 = json.load(open(eval_file))
+    #
+    # wilcoxon_test(args.dataset, eval_datas, eval_datas2)
 
-    in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
-                       f'--analysis_type prompt_length --n 1 --pl_analysis oracle_4000')
-    args = generate_config(in_program_call)
-    eval_file = args.result_save_file.replace('.json', '_eval.json')
-    eval_datas2 = json.load(open(eval_file))
 
-    wilcoxon_test(args.dataset, eval_datas, eval_datas2)
-
-
+    """calc syntax, semantic error"""
     # for ret_acc in [1.0, 0.8, 0.6, 0.4, 0.2, 0]:
     #     in_program_call = (
     #         '--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset pandas_numpy_eval --retriever openai-embedding '
