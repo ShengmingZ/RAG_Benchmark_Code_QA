@@ -209,13 +209,13 @@ def generate_config(in_program_call=None):
 
     parser.add_argument('--retriever', type=str, default='best', choices=['best', 'BM25', 'contriever', 'miniLM', 'openai-embedding', 'codeT5'])
 
-    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection', 'prompt_length'])
+    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection', 'prompt_length', 'prompt_method'])
     # each of the following parameter corresponds to one analysis, when choose one, the default value of the other parameters are the default value of RAG
     parser.add_argument('--ret_acc', type=float, default=1)     # top_k:len(oracle_docs), prompt_type:3shots, ret_doc_type:oracle/distracting
     parser.add_argument('--ret_doc_type', type=str, default='retrieved', choices=['oracle', 'retrieved', 'distracting', 'random', 'irrelevant_dummy', 'irrelevant_diff', 'none', 'ellipsis', 'retrieved_top'])
     parser.add_argument('--doc_selection_type', type=str, default=None)
     parser.add_argument('--doc_max_length', type=int, default=1000)
-    parser.add_argument('--prompt_type', type=str, default='0shot', choices=['3shots', '0shot', 'instruct', 'CoT'])
+    parser.add_argument('--prompt_type', type=str, default='0shot', choices=['3shot', '0shot', 'CoT'])
     parser.add_argument('--pl_analysis', type=str, default=None)
 
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
@@ -238,6 +238,8 @@ def generate_config(in_program_call=None):
                 args.result_save_file += f'{args.doc_selection_type}.json'
             elif args.analysis_type == 'prompt_length':
                 args.result_save_file += f'{args.pl_analysis}.json'
+            elif args.analysis_type == 'prompt_method':
+                args.result_save_file += f'{args.prompt_type}.json'
             else:
                 raise ValueError(f'Unknown analysis type: {args.analysis_type}')
         args.result_save_file = os.path.join(root_path, args.result_save_file)
@@ -744,6 +746,8 @@ def _get_generate_func(dataset, no_ret_flag, prompt_type):
         if dataset == 'NQ' or dataset == 'TriviaQA':
             if prompt_type == '0shot':
                 generate_func = NQ_TriviaQA_prompt.prompt_0shot
+            elif prompt_type == '3shot':
+                generate_func = NQ_TriviaQA_prompt.prompt_3shot
             # elif prompt_type == 'pretend':
             #     generate_func = NQ_TriviaQA_prompt.prompt_pretend
             # elif prompt_type == 'self_pad':

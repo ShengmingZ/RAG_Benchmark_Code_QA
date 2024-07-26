@@ -273,7 +273,7 @@ class NQTriviaQAUtils:
     #     with open(self.filtered_qs_file, 'w+') as f:
     #         json.dump(_qs_list, f, indent=2)
 
-    def sample_data(self):
+    def sample_data(self, k=2000, sampled_data_file=None):
         """
         sample 2000 queries from train set
         :return:
@@ -285,7 +285,7 @@ class NQTriviaQAUtils:
                 if record['positive_ctxs'] != []:
                     has_positive_idx_list.append(count)
                 count += 1
-        random_idx_list = random.sample(has_positive_idx_list, 2000)
+        random_idx_list = random.sample(has_positive_idx_list, k)
 
         count = 0
         data_list = []
@@ -299,10 +299,13 @@ class NQTriviaQAUtils:
                         proc_record = dict(question=record['question'], answers=record['answers'], oracle_doc=record['positive_ctxs'][0]['passage_id'])
                     data_list.append(proc_record)
                 count += 1
-        assert len(data_list) == 2000
+        assert len(data_list) == k
 
-        with open(self.sampled_data_file, 'w+') as f:
-            json.dump(data_list, f, indent=2)
+        if sampled_data_file is not None:
+            with open(sampled_data_file, 'w+') as f:
+                json.dump(data_list, f, indent=2)
+
+        return data_list
 
     def if_has_answer(self, doc, qs_id):
         oracle_list = self.load_oracle_list()
