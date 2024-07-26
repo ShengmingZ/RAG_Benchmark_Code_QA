@@ -152,6 +152,7 @@ elif args.analysis_type.startswith('prompt_length'):
                 cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} --batch '
                        f'--dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --pl_analysis {pl_analysis}')
             if 'ellipsis' or 'none' in pl_analysis: cmd = cmd.replace('--batch', '')  # for ellipsis, batch file too large
+            print(cmd)
             cmds.append(cmd)
         batch_cmd = ''
         for cmd in cmds:
