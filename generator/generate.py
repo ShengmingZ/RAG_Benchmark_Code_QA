@@ -259,12 +259,12 @@ if __name__ == '__main__':
     in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_method --prompt_type 3shot'  # random
     args = generate_config(in_program_call)
     generator = Generator(args)
-    generator.test_prompt()
+    # generator.test_prompt()
 
-    # if args.action == 'gene_prompts':
-    #     generator.save_prompts()
-    # elif args.action == 'gene_responses':
-    #     gene_results = generator.gene_response()
-    # elif args.action == 'eval_pred':
-    #     pred_eval(args)
+    if args.action == 'gene_prompts':
+        generator.save_prompts()
+    elif args.action == 'gene_responses':
+        gene_results = generator.gene_response()
+    elif args.action == 'eval_pred':
+        pred_eval(args)
 
