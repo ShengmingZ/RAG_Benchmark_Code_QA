@@ -56,8 +56,8 @@ def chatgpt_batch(prompt_file_for_batch, prompts, model, temperature=0.7, max_to
     batch_id = None
     batches = client.batches.list()
     for data in batches.data:
-        # if data.metadata['description'] == prompt_file_for_batch and data.request_counts.failed == 0:
-        if data.metadata['description'] == prompt_file_for_batch:
+        if data.metadata['description'] == prompt_file_for_batch and data.request_counts.failed == 0 and data.status == 'completed':
+        # if data.metadata['description'] == prompt_file_for_batch:
             batch_id = data.id
     if batch_id is None:
         batch_input_file = client.files.create(file=open(prompt_file_for_batch, 'rb'), purpose='batch')
