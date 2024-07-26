@@ -309,6 +309,7 @@ def calc_pearson_r():
     qa_dataset_names, code_dataset_names = dataset_names[:3], dataset_names[3:]
     ret_recalls = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
     ret_doc_types = ['oracle', 'distracting', 'random', 'irrelevant_diff', 'irrelevant_dummy']
+    doc_selection_topks =
 
     # """perplexity vs performance retrieval recall analysis """
     # model_names = ['gpt', 'llama', 'gpt', 'llama']
@@ -325,18 +326,18 @@ def calc_pearson_r():
     # print('p_score of perplexity and performance, retrieval recall analysis', p_score_dict)
 
 
-    """perplexity vs performance retrieval doc type analysis"""
-    model_names = ['gpt', 'llama', 'gpt', 'llama']
-    metric_names = ['recall', 'recall', 'pass@1', 'pass@1']
-    dataset_names_list = [qa_dataset_names, qa_dataset_names, code_dataset_names, code_dataset_names]
-    datas = [results.qa_ret_doc_type_gpt_n_1, results.qa_ret_doc_type_llama_n_1, results.code_ret_doc_type_gpt_n_1, results.code_ret_doc_type_llama_n_1]
-    for model_name, metric_name, dataset_names, data in zip(model_names, metric_names, dataset_names_list, datas):
-        for dataset_name in dataset_names:
-            perf_list = [data[dataset_name][doc_type][metric_name] for doc_type in ret_doc_types]
-            perplexity_list = [data[dataset_name][doc_type]['perplexity'] for doc_type in ret_doc_types]
-            p_score, _ = pearsonr(perf_list, perplexity_list)
-            p_score_dict[model_name][dataset_name] = round(p_score, 3)
-    print('p_score of perplexity and performance, retrieval doc type analysis', p_score_dict)
+    # """perplexity vs performance retrieval doc type analysis"""
+    # model_names = ['gpt', 'llama', 'gpt', 'llama']
+    # metric_names = ['recall', 'recall', 'pass@1', 'pass@1']
+    # dataset_names_list = [qa_dataset_names, qa_dataset_names, code_dataset_names, code_dataset_names]
+    # datas = [results.qa_ret_doc_type_gpt_n_1, results.qa_ret_doc_type_llama_n_1, results.code_ret_doc_type_gpt_n_1, results.code_ret_doc_type_llama_n_1]
+    # for model_name, metric_name, dataset_names, data in zip(model_names, metric_names, dataset_names_list, datas):
+    #     for dataset_name in dataset_names:
+    #         perf_list = [data[dataset_name][doc_type][metric_name] for doc_type in ret_doc_types]
+    #         perplexity_list = [data[dataset_name][doc_type]['perplexity'] for doc_type in ret_doc_types]
+    #         p_score, _ = pearsonr(perf_list, perplexity_list)
+    #         p_score_dict[model_name][dataset_name] = round(p_score, 3)
+    # print('p_score of perplexity and performance, retrieval doc type analysis', p_score_dict)
 
 
     # """syntax error vs performance for retrieval recall analysis"""
@@ -352,6 +353,21 @@ def calc_pearson_r():
     #         p_score, _ = pearsonr(perf_list, syntax_error_percent_list)
     #         p_score_dict[model_name][dataset_name] = round(p_score,3)
     # print('p_score of syntax error percent and performance, retrieval recall analysis: \n', p_score_dict)
+
+
+    """topk vs perplexity for retrieval doc selection analysis"""
+    model_names = ['gpt', 'llama', 'gpt', 'llama']
+    metric_names = ['recall', 'recall', 'pass@1', 'pass@1']
+    dataset_names_list = [qa_dataset_names, qa_dataset_names, code_dataset_names, code_dataset_names]
+    datas = [results.qa_ret_doc_selection_topk_gpt_n_1, results.qa_ret_doc_selection_topk_llama_n_1, results.code_ret_doc_selection_topk_gpt_n_1, results.code_ret_doc_selection_topk_llama_n_1]
+    for model_name, metric_name, dataset_names, data in zip(model_names, metric_names, dataset_names_list, datas):
+        for dataset_name in dataset_names:
+            perf_list = [data[dataset_name][doc_type][metric_name] for doc_type in ret_doc_types]
+            perplexity_list = [data[dataset_name][doc_type]['perplexity'] for doc_type in ret_doc_types]
+            p_score, _ = pearsonr(perf_list, perplexity_list)
+            p_score_dict[model_name][dataset_name] = round(p_score, 3)
+    print('p_score of perplexity and performance, retrieval doc type analysis', p_score_dict)
+
 
 
     return p_score_dict

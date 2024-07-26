@@ -208,7 +208,7 @@ class Generator:
             raise NotImplementedError(f'unknown model {self.model}')
         gene_results = list()
         for idx, (outputs, logprobs) in enumerate(zip(outputs_list, logprobs_list)):
-            if (((self.analysis_type == 'retrieval_doc_type' and ('irrelevant' in self.ret_doc_type or self.ret_doc_type == 'none')) or
+            if (((self.analysis_type == 'retrieval_doc_type' and ('irrelevant' in self.ret_doc_type or self.ret_doc_type in ['none', 'ellipsis'])) or
                 (self.analysis_type == 'prompt_length' and ('irrelevant' in self.pl_analysis or 'ellipsis' in self.pl_analysis or 'none' in self.pl_analysis or 'self' in self.pl_analysis))) or
                     (self.analysis_type == 'retrieval_doc_selection' and 'irrelevant' in self.doc_selection_type)): ret_docs = None
             else: ret_docs = ret_doc_keys_list[idx]
