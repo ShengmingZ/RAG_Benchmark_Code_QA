@@ -256,7 +256,7 @@ if __name__ == '__main__':
     # in_program_call = '--model codellama-13b-instruct --action gene_prompts --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type top_40'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis irrelevant_dummy_500'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type top_5'
-    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_method --prompt_type 3shot'  # random
+    # in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_method --prompt_type 3shot'  # random
     args = generate_config(in_program_call)
     generator = Generator(args)
     # generator.test_prompt()
