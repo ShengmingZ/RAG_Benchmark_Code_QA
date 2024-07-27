@@ -235,7 +235,7 @@ def eval_vs_eval(dataset, eval_datas1, eval_datas2):
     # print('hamming dist: ', hamming_dist)
     # print('hamming dist without both False: ', hamming_dist_wo_false)
 
-    return hamming_dist
+    return hamming_dist, data1_true_data2_false_count/len(eval_records1), data1_false_data2_true_count/len(eval_records1)
 
 
 
@@ -407,37 +407,41 @@ if __name__ == '__main__':
     # count_if_llm_refuse_to_answer(args)
 
 
-    calc_pearson_r()
+    # calc_pearson_r()
 
 
     """compare 2 prediction distributions"""
     # evals1 = ['oracle']*3
     # evals2 = ['random', 'irrelevant_diff', 'irrelevant_dummy']
-    # # evals1 = ['random', 'random', 'irrelevant_diff']
-    # # evals2 = ['irrelevant_diff', 'irrelevant_dummy', 'irrelevant_dummy']
-    # # evals1 = ['none']*3
-    # # evals2 = ['random', 'irrelevant_diff', 'irrelevant_dummy']
+    # evals1 = ['random', 'random', 'irrelevant_diff']
+    # evals2 = ['irrelevant_diff', 'irrelevant_dummy', 'irrelevant_dummy']
+    # evals1 = ['none']*3
+    # evals2 = ['random', 'irrelevant_diff', 'irrelevant_dummy']
+    # evals1 = ['top_1', 'top_5', 'top_10', 'top_15']
+    # evals2 = ['top_5', 'top_10', 'top_15', 'top_20']
+    # evals1 = ['top_1', 'top_20', 'top_40', 'top_60']
+    # evals2 = ['top_20', 'top_40', 'top_60', 'top_80']
+    evals1 = ['top_5']*5
+    evals2 = ['top_1', 'top_20', 'top_40', 'top_60', 'top_80']
+    evals2 = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
     # mean_dist = 0
-    # for eval1, eval2 in zip(evals1, evals2):
-    #     in_program_call = ('--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset pandas_numpy_eval --retriever openai-embedding '
-    #                        f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type {eval1}')
-    #     args = generate_config(in_program_call)
-    #     eval_file = args.result_save_file.replace('.json', '_eval.json')
-    #     eval_datas = json.load(open(eval_file))
-    #
-    #     in_program_call = ('--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset pandas_numpy_eval --retriever openai-embedding '
-    #                        f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type {eval2}')
-    #     args = generate_config(in_program_call)
-    #     eval_file = args.result_save_file.replace('.json', '_eval.json')
-    #     eval_datas2 = json.load(open(eval_file))
-    #
-    #     # ret_eval_vs_eval(eval_datas)
-    #
-    #     hamming_dist = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
-    #     mean_dist += hamming_dist
-    #     print(f"{eval1} {eval2} {round(hamming_dist,3)}")
-    #
-    # print('mean hamming distance: ', round(mean_dist/len(evals1),3))
+    for eval1, eval2 in zip(evals1, evals2):
+        in_program_call = ('--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset conala --retriever openai-embedding '
+                           f'--analysis_type retrieval_doc_selection --n 1 --doc_selection_type {eval1}')
+        args = generate_config(in_program_call)
+        eval_file = args.result_save_file.replace('.json', '_eval.json')
+        eval_datas = json.load(open(eval_file))
+
+        in_program_call = ('--action eval_pred --model codellama-13b-instruct --temperature 0.0 --dataset conala --retriever openai-embedding '
+                           f'--analysis_type retrieval_doc_selection --n 1 --doc_selection_type {eval2}')
+        args = generate_config(in_program_call)
+        eval_file = args.result_save_file.replace('.json', '_eval.json')
+        eval_datas2 = json.load(open(eval_file))
+
+        # ret_eval_vs_eval(eval_datas)
+
+        hamming_dist, eval1_true_eval2_false, eval2_true_eval1_false = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
+        print(f"{eval1} true {eval2} false percent: {round(eval1_true_eval2_false,3)}")
 
 
     """wilcoxon test"""

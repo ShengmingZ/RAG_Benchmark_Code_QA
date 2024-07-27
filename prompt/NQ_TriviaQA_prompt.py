@@ -119,6 +119,7 @@ what type of cell has no nucleus or membrane bound organelles
 """
 
 def prompt_3shot(ret_docs, question, model):
+    # use same samples for NQ and TriviaQA
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'

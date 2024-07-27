@@ -8,36 +8,63 @@ You should only output the exact answer, and the answer should starts with <answ
 LLAMA_SYS_PROMPT_NO_RET = """You are a helpful assistant, given a question starts with `## Question`, you should use your own knowledge to answer the question.
 You should only output the exact answer, and the answer should starts with <answer> and ends with </answer>
 """
-# original_prompt = """
-# ## Potential Documents:
-# 1: TV board Independent Filmmaker Project Minnesota. To qualify, films have to be set in the state and/or have a strong Minnesota focus. The film had its official debut at the Lagoon Theater in the Uptown neighborhood of Minneapolis on Friday, March 27, 2015. Colin Covert of the "Star Tribune" gave it 3 out of 4 stars, stating "[Coyle] has given us a well-crafted small budget indie touching some painful, funny truths." The Public Domain (film) The Public Domain is a 2015 Drama film set in Minneapolis, Minnesota. The film follows characters whose lives were impacted by the collapse of the
-# 2: weight on the bridge at the time contributed to the catastrophic failure. Help came immediately from mutual aid in the seven-county Minneapolis–Saint Paul metropolitan area and emergency response personnel, charities, and volunteers. Within a few days of the collapse, the Minnesota Department of Transportation (Mn/DOT) planned its replacement with the I-35W Saint Anthony Falls Bridge. Construction was completed rapidly, and it opened on September 18, 2008.<ref name="Mn/DOTbuild"></ref> The bridge was located in Minneapolis, Minnesota\'s largest city and connected the neighborhoods of Downtown East and Marcy-Holmes. The south abutment was northeast of the Hubert H. Humphrey Metrodome, and the north abutment
-# ## Question: How many people were killed in the collapse of the bridge featured in the drama film, The Public Domain ?
-# ## Answer: 13 people
-# ## END
-#
-#
-# ## Potential Documents:
-# 1: William Corcoran Eustis William Corcoran Eustis (July 20, 1862 - November 24, 1921) was a captain in the United States Army and the personal assistant to General John J. Pershing during World War I. He was chairman of the inauguration committee for the first inauguration of Woodrow Wilson in 1913 and started the Loudoun Hunt in 1894. He was born on July 20, 1862 in Paris to George Eustis, Jr. (1828–1872) and Louise Morris Corcoran. He was the grandson of banker and philanthropist William Wilson Corcoran. He laid the cornerstone for the Corcoran Gallery of Art on May 10, 1894,
-# 2: John J. Pershing General of the Armies John Joseph "Black Jack" Pershing (September 13, 1860 – July 15, 1948) was a senior United States Army officer. His most famous post was when he served as the commander of the American Expeditionary Forces (AEF) on the Western Front in World War I, 1917–18. Pershing rejected British and French demands that American forces be integrated with their armies, and insisted that the AEF would operate as a single unit under his command, although some American divisions fought under British command, and he also allowed all-black units to be integrated with the French
-# ## Question: Who was the personal assistant to General of the Armies John Joseph "Black Jack" Pershing during World War I?
-# ## Answer: William Corcoran Eustis
-# ## END
-#
-#
-# ## Potential Documents:
-# 1: Keanu Reeves Keanu Charles Reeves ( ; born September 2, 1964) is a Canadian actor, director, producer, and musician. He gained fame for his starring role performances in several blockbuster films, including comedies from the "Bill and Ted" franchise (1989–1991); action thrillers "Point Break" (1991), "Speed" (1994), and the "John Wick" franchise; psychological thriller "The Devil\'s Advocate" (1997); supernatural thriller "Constantine" (2005); and science fiction/action series "The Matrix" (1999–2003). He has also appeared in dramatic films such as "Dangerous Liaisons" (1988), "My Own Private Idaho" (1991), and "Little Buddha" (1993), as well as the romantic horror "Bram Stoker\'s Dracula" (1992).
-# 2: Jeff Tremaine Jeffrey James Tremaine (born September 4, 1966) is an American showrunner, filmmaker and former magazine editor. He is most closely associated with the "Jackass" franchise, having been involved since the inception of the first TV show. Tremaine is the former editor of the skating culture magazine "Big Brother" and a former art director of the influential BMX magazine "GO" as well as a former professional BMX rider. Jeff was the executive producer on the MTV reality series "Rob and Big" and now works as the executive producer of "Rob Dyrdek\'s Fantasy Factory", "Ridiculousness", "Nitro Circus", and Adult Swim\'s
-# ## Question: Which jobs do Jeff Tremaine and Keanu Reeves share?
-# ## Answer: director, producer
-# ## END
-#
-#
-# ## Potential Documents:
-# <POTENTIAL DOCUMENTS>
-# # Question: <QUESTION>
-# # Answer:
-# """
+
+
+hotpotQA_3shot_prompt = """
+## Potential documents:
+0: Danielle Prendergast (born September 8, 1990), better known by her stage name Elle Royal (formerly known as Patwa), is an independent Hip-Hop artist hailing from The Bronx, New York. Her breakthrough came in 2010 when her video "What Can I Say" went viral after WorldStarHipHop featured her as the “Female Artist of the Week”. Elle Royal later released the mixtape One Gyal Army under Patwa in 2010, followed by the singles “Jammin”, “Lights”, and “Statements” in 2015 under her current stage name, Elle Royal.
+1: WorldStarHipHop is a content-aggregating video blog. Founded in 2005, the site averages 528,726 unique visitors a day. Alexa ranks the site 342nd in site traffic in the United States and 1,212th for worldwide traffic. The site, operated by Worldstar, LLC, was founded at age 33 by Lee "Q" O' Denat, a Hollis, Queens-based hip-hop fan and Grover Cleveland High School dropout. Described by "Vibe" as a "remnant of the Geocities generation," the site regularly features public fighting caught on video, music videos and assorted content targeted to young audiences. O'Denat refers to the site as the "CNN of the ghetto." In 2012, Alexa Internet stated "Compared with all Internet users, its users are disproportionately young people and they tend to be childless, moderately educated men 18–21 who browse from school and work."
+
+## Question: 
+Elle Royal's video "What Can I Say" went viral after she was featured as “Female Artist of the Week” by a video blog founded in what year?
+
+## Answer:
+<answer>2005</answer>
+
+
+
+## Potential documents:
+0: The 2003 LSU Tigers football team represented Louisiana State University (LSU) during the 2003 NCAA Division I-A football season. Coached by Nick Saban, the LSU Tigers played their home games at Tiger Stadium in Baton Rouge, Louisiana. The Tigers compiled an 11–1 regular season record and then defeated the No. 5 Georgia Bulldogs in the SEC Championship Game, Afterward, LSU was invited to play the Oklahoma Sooners in the Sugar Bowl for the Bowl Championship Series (BCS) national title. LSU won the BCS National Championship Game, the first national football championship for LSU since 1958.
+1: The 2004 Nokia Sugar Bowl, the BCS title game for the 2003 college football season, was played on January 4, 2004 at the Louisiana Superdome in New Orleans, Louisiana. The teams were the LSU Tigers and the Oklahoma Sooners. The Tigers won the BCS National Championship, their second championship, defeating the Sooners by a score of 21-14.
+
+## Question: 
+What game did the team with an 11-1 regular season record play in for the BCS title game?
+
+## Answer:
+<answer>2004 Nokia Sugar Bowl</answer>
+
+
+
+## Potential documents:
+0: The 2011 Teen Choice Awards ceremony, hosted by Kaley Cuoco, aired live on August 7, 2011 at 8/7c on Fox. This was the first time that the ceremonies were aired live since the 2007 show.
+1: Kaley Christine Cuoco ( ; born November 30, 1985) is an American actress. After a series of supporting film and television roles in the late 1990s, she landed her breakthrough role as Bridget Hennessy on the ABC sitcom "8 Simple Rules", on which she starred from 2002 to 2005. Thereafter, Cuoco appeared as Billie Jenkins on the final season of the television series "Charmed" (2005–2006). Since 2007, she has starred as Penny on the CBS sitcom "The Big Bang Theory", for which she has received Satellite, Critics' Choice, and People's Choice Awards. Cuoco's film work includes roles in "To Be Fat like Me" (2007), "Hop" (2011) and "Authors Anonymous" (2014). She received a star on the Hollywood Walk of Fame in 2014.
+
+## Question: 
+What show does the host of The 2011 Teen Choice Awards ceremony currently star on?
+
+## Answer:
+<answer>The Big Bang Theory</answer>
+"""
+
+
+def prompt_3shot(ret_docs, question, model):
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+    user_prompt = f"""
+{hotpotQA_3shot_prompt}
+
+## Potential documents:
+{potential_docs}
+\n
+## Question: 
+{question}
+"""
+
+    prompt_template = ensemble_prompt('', user_prompt, model)
+    return prompt_template
+
+
 
 def prompt_0shot(ret_docs, question, model):
     potential_docs = ''
@@ -67,4 +94,57 @@ def prompt_0shot_no_ret(question, model):
 
 
 if __name__ == '__main__':
-    ...
+    """get random samples as few shot examples"""
+    import sys, platform
+    import random
+    system = platform.system()
+    if system == 'Darwin':
+        root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+    elif system == 'Linux':
+        root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+    sys.path.insert(0, root_path)
+    from dataset_utils.hotpotQA_utils import HotpotQAUtils
+    from dataset_utils.corpus_utils import WikiCorpusLoader
+
+    def get_few_shots(dataset, k):
+        loader = HotpotQAUtils()
+        qs_list = loader.load_qs_list()
+        question_list = [qs['question'] for qs in qs_list]
+        random.seed()
+        examples = loader.sample_dataset(k=k * 2)
+        few_shots = []
+        for example in examples:
+            if example['question'] not in question_list:
+                del example['context']
+                few_shots.append(example)
+            if len(few_shots) == k: break
+        print(few_shots)
+        doc_keys_list = []
+        for shot in few_shots:
+            doc_keys_list.append([sp[0] for sp in shot['supporting_facts']])
+        few_shots_docs = WikiCorpusLoader().get_docs(doc_keys_list, dataset)
+        for doc in few_shots_docs: print(doc)
+
+
+    # dataset = 'hotpotQA'
+    # get_few_shots(dataset, k=3)
+
+
+    few_shots = [{'_id': '5a90af865542990a9849369c', 'answer': '2005', 'question': 'Elle Royal\'s video "What Can I Say" went viral after she was featured as “Female Artist of the Week” by a video blog founded in what year?', 'supporting_facts': [['Elle Royal', 1], ['WorldStarHipHop', 1]], 'type': 'bridge', 'level': 'hard'},
+                          {'_id': '5a7499eb55429929fddd8470', 'answer': '2004 Nokia Sugar Bowl', 'question': 'What game did the team with an 11-1 regular season record play in for the BCS title game?', 'supporting_facts': [['2003 LSU Tigers football team', 2], ['2004 Sugar Bowl', 0]], 'type': 'bridge', 'level': 'hard'},
+                          {'_id': '5ab2b1e05542997061209685', 'answer': 'The Big Bang Theory', 'question': 'What show does the host of The 2011 Teen Choice Awards ceremony currently star on?', 'supporting_facts': [['2011 Teen Choice Awards', 0], ['Kaley Cuoco', 3]], 'type': 'bridge', 'level': 'hard'}]
+
+    few_shots_docs = [
+        ['Danielle Prendergast (born September 8, 1990), better known by her stage name Elle Royal (formerly known as Patwa), is an independent Hip-Hop artist hailing from The Bronx, New York. Her breakthrough came in 2010 when her video "What Can I Say" went viral after WorldStarHipHop featured her as the “Female Artist of the Week”. Elle Royal later released the mixtape One Gyal Army under Patwa in 2010, followed by the singles “Jammin”, “Lights”, and “Statements” in 2015 under her current stage name, Elle Royal.',
+         'WorldStarHipHop is a content-aggregating video blog. Founded in 2005, the site averages 528,726 unique visitors a day. Alexa ranks the site 342nd in site traffic in the United States and 1,212th for worldwide traffic. The site, operated by Worldstar, LLC, was founded at age 33 by Lee "Q" O\' Denat, a Hollis, Queens-based hip-hop fan and Grover Cleveland High School dropout. Described by "Vibe" as a "remnant of the Geocities generation," the site regularly features public fighting caught on video, music videos and assorted content targeted to young audiences. O\'Denat refers to the site as the "CNN of the ghetto." In 2012, Alexa Internet stated "Compared with all Internet users, its users are disproportionately young people and they tend to be childless, moderately educated men 18–21 who browse from school and work."'],
+        ['The 2003 LSU Tigers football team represented Louisiana State University (LSU) during the 2003 NCAA Division I-A football season. Coached by Nick Saban, the LSU Tigers played their home games at Tiger Stadium in Baton Rouge, Louisiana. The Tigers compiled an 11–1 regular season record and then defeated the No. 5 Georgia Bulldogs in the SEC Championship Game, Afterward, LSU was invited to play the Oklahoma Sooners in the Sugar Bowl for the Bowl Championship Series (BCS) national title. LSU won the BCS National Championship Game, the first national football championship for LSU since 1958.',
+         'The 2004 Nokia Sugar Bowl, the BCS title game for the 2003 college football season, was played on January 4, 2004 at the Louisiana Superdome in New Orleans, Louisiana. The teams were the LSU Tigers and the Oklahoma Sooners. The Tigers won the BCS National Championship, their second championship, defeating the Sooners by a score of 21-14.'],
+        ['The 2011 Teen Choice Awards ceremony, hosted by Kaley Cuoco, aired live on August 7, 2011 at 8/7c on Fox. This was the first time that the ceremonies were aired live since the 2007 show.',
+         'Kaley Christine Cuoco ( ; born November 30, 1985) is an American actress. After a series of supporting film and television roles in the late 1990s, she landed her breakthrough role as Bridget Hennessy on the ABC sitcom "8 Simple Rules", on which she starred from 2002 to 2005. Thereafter, Cuoco appeared as Billie Jenkins on the final season of the television series "Charmed" (2005–2006). Since 2007, she has starred as Penny on the CBS sitcom "The Big Bang Theory", for which she has received Satellite, Critics\' Choice, and People\'s Choice Awards. Cuoco\'s film work includes roles in "To Be Fat like Me" (2007), "Hop" (2011) and "Authors Anonymous" (2014). She received a star on the Hollywood Walk of Fame in 2014.']
+    ]
+
+
+    for shot, docs in zip(few_shots, few_shots_docs):
+        prompt = prompt_0shot(ret_docs=docs, question=shot['question'], model='gpt-3.5-turbo-0125')[1]
+        prompt += f'\n\n## Answer:\n<answer>{shot["answer"]}</answer>'
+        print(prompt)

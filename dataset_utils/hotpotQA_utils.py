@@ -118,21 +118,22 @@ class HotpotQAUtils:
             _qs_list.append(dict(qs_id=qs['_id'], oracle_docs=proc_sp, answer=qs['answer']))
         return _qs_list
 
-    def sample_dataset(self):
+    def sample_dataset(self, k=2000, sampled_data_file=None):
         """
         sample 2000 queries
         :return:
         """
         qs_list = json.load(open(self.qs_file, 'r'))
-        num_sampled = 2000
         problem_id_list = list(range(0, len(qs_list)))
-        sampled_id_list = random.sample(problem_id_list, num_sampled)
+        sampled_id_list = random.sample(problem_id_list, k=k)
         sampled_data = list()
         for id in sampled_id_list:
             sampled_data.append(qs_list[id])
 
-        with open(os.path.join(self.root, 'data/hotpotQA/sampled_data.json'), 'w+') as f:
-            json.dump(sampled_data, f, indent=2)
+        if sampled_data_file is not None:
+            with open(sampled_data_file, 'w+') as f:
+                json.dump(sampled_data, f, indent=2)
+        return sampled_data
 
     def get_sample(self, sample_num):
         """

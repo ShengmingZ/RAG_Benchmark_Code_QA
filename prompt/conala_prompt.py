@@ -11,9 +11,7 @@ you need to write a python program according to the description in one line.
 The program should starts with <code> and ends with </code>
 """
 
-# Todo: not finished func
-def prompt_3shots(ret_docs, question, model):
-    assert model in ['llama2-13b-chat', 'codellama-13b-instruct', 'llama3-8b', 'gpt-3.5-turbo-0125', 'gpt-4o']
+def prompt_3shot(ret_docs, question, model):
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
@@ -53,8 +51,9 @@ convert csv file 'test.csv' into two-dimensional matrix
     prompt_template = ensemble_prompt(sys_prompt=LLAMA_SYS_PROMPT,
                                       user_prompt=user_prompt,
                                       model=model,
-                                      examples=[example1, example2, example3],
-                                      answers=[answer1, answer2, answer3])
+                                      # examples=[example1, example2, example3],
+                                      # answers=[answer1, answer2, answer3]
+                                      )
 #     if model.startswith('llama2') or model.startswith('codellama'):
 #         prompt_template = f"""<s>[INST] <<SYS>> {LLAMA_SYS_PROMPT} <</SYS>>\n {example1} [/INST] {answer1}</s>\n
 # <s>[INST] {example2} [/INST] {answer2}</s>\n

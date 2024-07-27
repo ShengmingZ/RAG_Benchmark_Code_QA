@@ -772,6 +772,8 @@ def _get_generate_func(dataset, no_ret_flag, prompt_type):
         elif dataset == 'hotpotQA':
             if prompt_type == '0shot':
                 generate_func = hotpotQA_prompt.prompt_0shot
+            elif prompt_type == '3shot':
+                generate_func = hotpotQA_prompt.prompt_3shot
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         else:
