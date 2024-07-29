@@ -687,27 +687,29 @@ qa_pl_analysis_gpt_n_1 = {
             'pl_4000': {'em': 0.535, 'f1': 0.692, 'prec': 0.674, 'recall': 0.828, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 3981.055, 'perplexity': 1.027}
         },
         'oracle_pad_ellipsis': {},
-        'oracle_pad_dummy': {},
+        'oracle_pad_dummy': {
+            'oracle': {'em': 0.519, 'f1': 0.676, 'prec': 0.657, 'recall': 0.82, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 228.052, 'perplexity': 1.027},
+            'pl_2000': {'em': 0.548, 'f1': 0.695, 'prec': 0.681, 'recall': 0.815, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 1984.206, 'perplexity': 1.028},
+        },
         'oracle_pad_diff': {},
         'distracting': {
             'distracting': {'em': 0.077, 'f1': 0.189, 'prec': 0.195, 'recall': 0.257, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 225.648, 'perplexity': 1.05},
             'pl_2000': {'em': 0.067, 'f1': 0.177, 'prec': 0.184, 'recall': 0.238, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1982.787, 'perplexity': 1.048},
             'pl_4000': {},
         },
-        'retrieved': {
-            'retrieved':  {'em': 0.251, 'f1': 0.39, 'prec': 0.38, 'recall': 0.501, 'ret_recall': 0.472, 'oracle_percent': 0.472, 'oracle_rank': 1.0, 'prompt_length': 226.675, 'perplexity': 1.039},
-            'pl_500': {},
-            'pl_2000': {},
-            'pl_4000': {},
-        },
+        # 'retrieved': {
+        #     'retrieved':  {'em': 0.251, 'f1': 0.39, 'prec': 0.38, 'recall': 0.501, 'ret_recall': 0.472, 'oracle_percent': 0.472, 'oracle_rank': 1.0, 'prompt_length': 226.675, 'perplexity': 1.039},
+        #     'pl_500': {},
+        #     'pl_2000': {},
+        #     'pl_4000': {},
+        # },
         'retrieved_top10': {
             'retrieved': {'em': 0.344, 'f1': 0.489, 'prec': 0.475, 'recall': 0.623, 'ret_recall': 0.816, 'oracle_percent': 0.242, 'oracle_rank': 2.277, 'prompt_length': 1460.296, 'perplexity': 1.039},
             'pl_500': None,
             'pl_2000': {'em': 0.35, 'f1': 0.494, 'prec': 0.48, 'recall': 0.621, 'ret_recall': 0.816, 'oracle_percent': 0.268, 'oracle_rank': 2.277, 'prompt_length': 1982.521, 'perplexity': 1.037},
             'pl_4000': {},
         },  # top10 for QA, top5 for Code
-        'retrieved_pad': {},
-        'retrieved_top10_pad': {},
+        # 'retrieved_top10_pad': {},
         'random': {
             'random': {'em': 0.164, 'f1': 0.265, 'prec': 0.263, 'recall': 0.355, 'ret_recall': 0.003, 'oracle_percent': 0.003, 'oracle_rank': 1.0, 'prompt_length': 230.421, 'perplexity': 1.077},
             'pl_500': {'em': 0.149, 'f1': 0.248, 'prec': 0.242, 'recall': 0.345, 'ret_recall': 0.011, 'oracle_percent': 0.004, 'oracle_rank': 1.619, 'prompt_length': 496.366},
@@ -744,10 +746,12 @@ qa_pl_analysis_gpt_n_1 = {
             'pl_4000': {}
         },
         'none_pad_dummy': {
-            'pl_2000': {},
+            'none': {'em': 0.247, 'f1': 0.403, 'prec': 0.381, 'recall': 0.603, 'prompt_length': 64.483, 'perplexity': 1.064},
+            'pl_2000': {'em': 0.227, 'f1': 0.387, 'prec': 0.361, 'recall': 0.604, 'prompt_length': 80.207, 'perplexity': 1.064},
         },
         'none_pad_diff': {
-            'pl_2000': {}
+            'none': {'em': 0.247, 'f1': 0.403, 'prec': 0.381, 'recall': 0.603, 'prompt_length': 64.483, 'perplexity': 1.064},
+            'pl_2000': {'em': 0.232, 'f1': 0.388, 'prec': 0.361, 'recall': 0.603, 'prompt_length': 79.647, 'perplexity': 1.064}
         },
         'self_generate': {'em': 0.007, 'f1': 0.177, 'prec': 0.11, 'recall': 0.648, 'prompt_length': 88.483, 'perplexity': 1.129},   # let llm generate documents, and then answer the question
     },

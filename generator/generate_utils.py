@@ -557,15 +557,15 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, ret_results,
             original_pl = get_docs_tokens([original_prompt] if 'llama' in model else [original_prompt[0]+original_prompt[1]], model)[0]
             # target_ellipses = ellipses * (int(target_pl / ellipses_length)) * 2     # pad ellipses
             # target_ellipses = truncate_docs(docs=[target_ellipses], model=model, max_length=target_pl-original_pl)[0]
-            target_pl = target_pl - original_pl
+            target_pl_new = target_pl - original_pl
             if irrelevant_type == 'dummy' or irrelevant_type == 'ellipsis':
                 if irrelevant_type == 'dummy':
                     dummy_string = 'The wiggly fluff went plop while the jibber-jabber bumbled and tumbled. Fizzle-flop danced around the wibbly-wobbly doodle, and snicker-snack bounced happily. Doodle-doo twirled and swirled in the zigzag zoom, and snuggle-bug snuggled close. Wobble-wobble wandered through the dilly-dally, giggling and jiggling all the while. Squiggle-squabble and waddle-waddle wobbled along, playing in the silly-sally world of random wozzle. The snickety-snack skipped and hopped, while the flibber-jabber giggled and squiggled. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Bloop bloop bloop, gloopy gloopy gloopy. Wobble wobble wobble, zigzag zigzag zigzag. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quibble quibble quibble, jibber jabber jibber. Nulla facilisi. Snick snick snick, jibble jibble jibble.'
                 else:
                     dummy_string = '................................................................' * 100 + '\n'
                 dummy_length = get_docs_tokens(docs=[dummy_string], model=model)[0]
-                padded_doc = dummy_string * (int(target_pl / dummy_length) + 1) * 2
-                padded_doc = truncate_docs(docs=[padded_doc], model=model, max_length=target_pl)[0]
+                padded_doc = dummy_string * (int(target_pl_new / dummy_length) + 1) * 2
+                padded_doc = truncate_docs(docs=[padded_doc], model=model, max_length=target_pl_new)[0]
             else:
                 if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
                     loader = WikiCorpusLoader(prepare_random_docs=True)
@@ -573,12 +573,12 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, ret_results,
                     loader = PythonDocsLoader(prepare_random_docs=True)
                 padded_doc = ''
                 padded_doc_length = 0
-                while padded_doc_length < target_pl:
+                while padded_doc_length < target_pl_new:
                     diff_doc = ' '.join(loader.get_random_docs(10))
                     random_doc_length = get_docs_tokens(docs=[diff_doc], model=model)[0]
                     padded_doc += diff_doc
                     padded_doc_length += random_doc_length
-                padded_doc = truncate_docs(docs=[padded_doc], model=model, max_length=target_pl)[0]
+                padded_doc = truncate_docs(docs=[padded_doc], model=model, max_length=target_pl_new)[0]
             prompt = generate_func(qs['question'], model, pads=padded_doc)
             prompts.append(prompt)
 
@@ -846,7 +846,7 @@ if __name__ == "__main__":
     """test control prompt length"""
     in_program_call = None
     # in_program_call = '--model llama2-13b-chat --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type pl_1000'
-    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis none_pad_diff_2000'  # random
+    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis none_pad_dummy_2000'  # random
     args = generate_config(in_program_call)
     loader = NQTriviaQAUtils(dataset='NQ')
     # loader = ConalaLoader()
@@ -859,7 +859,10 @@ if __name__ == "__main__":
                                                                    model=args.model, dataset=args.dataset, doc_max_length=args.doc_max_length)
     print(prompts[0][0])
     print(prompts[0][1])
-    print(prompts[1][1])
+    prompts = ["You are a helpful assistant, given a question starts with `## Question`, you should use your own knowledge to answer the question.\nYou should only output the exact answer, and the answer should starts with <answer> and ends with </answer>\n", "\nThe wiggly fluff went plop while the jibber-jabber bumbled and tumbled. Fizzle-flop danced around the wibbly-wobbly doodle, and snicker-snack bounced happily. Doodle-doo twirled and swirled in the zigzag zoom, and snuggle-bug snuggled close. Wobble-wobble wandered through the dilly-dally, giggling and jiggling all the while. Squiggle-squabble and waddle-waddle wobbled along, playing in the silly-sally world of random wozzle. The snickety-snack skipped and hopped, while the flibber-jabber giggled and squiggled. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Bloop bloop bloop, gloopy gloopy gloopy. Wobble wobble wobble, zigzag zigzag zigzag. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quibble quibble quibble, jibber jabber jibber. Nulla facilisi. Snick snick snick, jibble jibble jibble.The wiggly fluff went plop while the jibber-jabber b\n\n## Question: \nwho played loretta lynn in coal miners daughter\n"]
+    prompts = [prompts]
+    print(get_docs_tokens([prompts[0][0] + prompts[0][1]], model=args.model))
+    # print(prompts[1][1])
     # print(doc_keys_list)
     # # true_pl_list = get_docs_tokens([prompt[0]+prompt[1] for prompt in prompts], model=args.model)
     # true_pl_list = get_docs_tokens(prompts, args.model)
