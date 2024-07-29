@@ -509,6 +509,11 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, ret_results,
             repeated_retrieved_docs, repeated_retrieved_doc_keys = retrieved_docs * 10, retrieved_doc_keys * 10
             doc_keys, docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl, docs=repeated_retrieved_docs,
                                                              doc_keys=repeated_retrieved_doc_keys, model=model, question=qs['question'], generate_func=generate_func)
+            if 'pad' in pl_analysis:    # retrieved_top_pad_ellipsis_2000
+                irrelevant_type = pl_analysis.split('_')[-2]
+                padded_docs = docs[len(retrieved_docs):]
+                irrelevant_docs = get_irrelevant_docs(irrelevant_type=irrelevant_type, oracle_docs=padded_docs, model=model, dataset=dataset)
+                prompt = generate_func(irrelevant_docs+retrieved_docs, qs['question'], model)  # add oracle in the last, near the question
             target_doc_keys_list.append(doc_keys)
             prompts.append(prompt)
 
@@ -851,7 +856,7 @@ if __name__ == "__main__":
     """test control prompt length"""
     in_program_call = None
     # in_program_call = '--model llama2-13b-chat --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type pl_1000'
-    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis distracting_pad_ellipsis_2000'  # random
+    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis retrieved_top_pad_dummy_4000'  # random
     args = generate_config(in_program_call)
     loader = NQTriviaQAUtils(dataset='NQ')
     # loader = ConalaLoader()
