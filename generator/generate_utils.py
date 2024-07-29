@@ -466,25 +466,30 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, ret_results,
             prompts.append(prompt)
         print('time cost: ', time.time() - start_time)
 
-    # elif pl_analysis.startswith('distracting'):
-    #     if dataset == 'NQ' or dataset == 'TriviaQA':
-    #         for idx, oracle in enumerate(oracle_list):
-    #             oracle_list[idx]['oracle_docs'] = [oracle_list[idx]['oracle_doc']]
-    #     distracting_doc_keys_list = []
-    #     for oracle in oracle_list:
-    #         distracting_doc_keys_list.append(get_distracting_docs(ret_result=ret_results[oracle['qs_id']], dataset=dataset, k=len(oracle['oracle_docs']), oracle_docs=oracle['oracle_docs']))
-    #     if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
-    #         distracting_docs_list = WikiCorpusLoader().get_docs(distracting_doc_keys_list, dataset, num_procs=8)
-    #     else:
-    #         distracting_docs_list = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in distracting_doc_keys_list]
-    #     generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
-    #     for qs, distracting_docs, distracting_doc_keys in zip(qs_list, distracting_docs_list, distracting_doc_keys_list):
-    #         if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: distracting_docs = truncate_docs(distracting_docs, model=model, max_length=doc_max_length)
-    #         repeated_distracting_docs, repeated_distracting_doc_keys = distracting_docs * 100, distracting_doc_keys * 100
-    #         doc_keys, docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl, docs=repeated_distracting_docs,
-    #                                                          doc_keys=repeated_distracting_doc_keys, model=model, question=qs['question'], generate_func=generate_func)
-    #         target_doc_keys_list.append(doc_keys)
-    #         prompts.append(prompt)
+    elif pl_analysis.startswith('distracting'):
+        if dataset == 'NQ' or dataset == 'TriviaQA':
+            for idx, oracle in enumerate(oracle_list):
+                oracle_list[idx]['oracle_docs'] = [oracle_list[idx]['oracle_doc']]
+        distracting_doc_keys_list = []
+        for oracle in oracle_list:
+            distracting_doc_keys_list.append(get_distracting_docs(ret_result=ret_results[oracle['qs_id']], dataset=dataset, k=len(oracle['oracle_docs']), oracle_docs=oracle['oracle_docs']))
+        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+            distracting_docs_list = WikiCorpusLoader().get_docs(distracting_doc_keys_list, dataset, num_procs=8)
+        else:
+            distracting_docs_list = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in distracting_doc_keys_list]
+        generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
+        for qs, distracting_docs, distracting_doc_keys in zip(qs_list, distracting_docs_list, distracting_doc_keys_list):
+            if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: distracting_docs = truncate_docs(distracting_docs, model=model, max_length=doc_max_length)
+            repeated_distracting_docs, repeated_distracting_doc_keys = distracting_docs * 100, distracting_doc_keys * 100
+            doc_keys, docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl, docs=repeated_distracting_docs,
+                                                             doc_keys=repeated_distracting_doc_keys, model=model, question=qs['question'], generate_func=generate_func)
+            if pl_analysis.startswith('distracting_pad'):    # oracle_pad_ellipsis_2000
+                irrelevant_type = pl_analysis.split('_')[2]
+                padded_docs = docs[len(distracting_docs):]
+                irrelevant_docs = get_irrelevant_docs(irrelevant_type=irrelevant_type, oracle_docs=padded_docs, model=model, dataset=dataset)
+                prompt = generate_func(irrelevant_docs+distracting_docs, qs['question'], model)  # add oracle in the last, near the question
+            target_doc_keys_list.append(doc_keys)
+            prompts.append(prompt)
 
     elif pl_analysis.startswith('retrieved'):
         if dataset == 'NQ' or dataset == 'TriviaQA':
@@ -846,7 +851,7 @@ if __name__ == "__main__":
     """test control prompt length"""
     in_program_call = None
     # in_program_call = '--model llama2-13b-chat --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type pl_1000'
-    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis none_pad_dummy_2000'  # random
+    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis distracting_pad_ellipsis_2000'  # random
     args = generate_config(in_program_call)
     loader = NQTriviaQAUtils(dataset='NQ')
     # loader = ConalaLoader()
@@ -859,8 +864,6 @@ if __name__ == "__main__":
                                                                    model=args.model, dataset=args.dataset, doc_max_length=args.doc_max_length)
     print(prompts[0][0])
     print(prompts[0][1])
-    prompts = ["You are a helpful assistant, given a question starts with `## Question`, you should use your own knowledge to answer the question.\nYou should only output the exact answer, and the answer should starts with <answer> and ends with </answer>\n", "\nThe wiggly fluff went plop while the jibber-jabber bumbled and tumbled. Fizzle-flop danced around the wibbly-wobbly doodle, and snicker-snack bounced happily. Doodle-doo twirled and swirled in the zigzag zoom, and snuggle-bug snuggled close. Wobble-wobble wandered through the dilly-dally, giggling and jiggling all the while. Squiggle-squabble and waddle-waddle wobbled along, playing in the silly-sally world of random wozzle. The snickety-snack skipped and hopped, while the flibber-jabber giggled and squiggled. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Bloop bloop bloop, gloopy gloopy gloopy. Wobble wobble wobble, zigzag zigzag zigzag. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quibble quibble quibble, jibber jabber jibber. Nulla facilisi. Snick snick snick, jibble jibble jibble.The wiggly fluff went plop while the jibber-jabber b\n\n## Question: \nwho played loretta lynn in coal miners daughter\n"]
-    prompts = [prompts]
     print(get_docs_tokens([prompts[0][0] + prompts[0][1]], model=args.model))
     # print(prompts[1][1])
     # print(doc_keys_list)

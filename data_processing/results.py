@@ -686,16 +686,21 @@ qa_pl_analysis_gpt_n_1 = {
             'pl_2000': {'em': 0.532, 'f1': 0.689, 'prec': 0.67, 'recall': 0.825, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 1981.419, 'perplexity': 1.026},
             'pl_4000': {'em': 0.535, 'f1': 0.692, 'prec': 0.674, 'recall': 0.828, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 3981.055, 'perplexity': 1.027}
         },
-        'oracle_pad_ellipsis': {},
+        'oracle_pad_ellipsis': {
+            'oracle': {'em': 0.519, 'f1': 0.676, 'prec': 0.657, 'recall': 0.82, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 228.052, 'perplexity': 1.027},
+            'pl_2000': {'em': 0.546, 'f1': 0.697, 'prec': 0.682, 'recall': 0.819, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 1972.479, 'perplexity': 1.026}
+        },
         'oracle_pad_dummy': {
             'oracle': {'em': 0.519, 'f1': 0.676, 'prec': 0.657, 'recall': 0.82, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 228.052, 'perplexity': 1.027},
             'pl_2000': {'em': 0.548, 'f1': 0.695, 'prec': 0.681, 'recall': 0.815, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 1984.206, 'perplexity': 1.028},
         },
-        'oracle_pad_diff': {},
+        'oracle_pad_diff': {
+            'oracle': {'em': 0.519, 'f1': 0.676, 'prec': 0.657, 'recall': 0.82, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 228.052, 'perplexity': 1.027},
+            'pl_2000': {'em': 0.551, 'f1': 0.7, 'prec': 0.688, 'recall': 0.809, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 1989.687, 'perplexity': 1.027}
+        },
         'distracting': {
             'distracting': {'em': 0.077, 'f1': 0.189, 'prec': 0.195, 'recall': 0.257, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 225.648, 'perplexity': 1.05},
             'pl_2000': {'em': 0.067, 'f1': 0.177, 'prec': 0.184, 'recall': 0.238, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1982.787, 'perplexity': 1.048},
-            'pl_4000': {},
         },
         # 'retrieved': {
         #     'retrieved':  {'em': 0.251, 'f1': 0.39, 'prec': 0.38, 'recall': 0.501, 'ret_recall': 0.472, 'oracle_percent': 0.472, 'oracle_rank': 1.0, 'prompt_length': 226.675, 'perplexity': 1.039},
@@ -707,7 +712,7 @@ qa_pl_analysis_gpt_n_1 = {
             'retrieved': {'em': 0.344, 'f1': 0.489, 'prec': 0.475, 'recall': 0.623, 'ret_recall': 0.816, 'oracle_percent': 0.242, 'oracle_rank': 2.277, 'prompt_length': 1460.296, 'perplexity': 1.039},
             'pl_500': None,
             'pl_2000': {'em': 0.35, 'f1': 0.494, 'prec': 0.48, 'recall': 0.621, 'ret_recall': 0.816, 'oracle_percent': 0.268, 'oracle_rank': 2.277, 'prompt_length': 1982.521, 'perplexity': 1.037},
-            'pl_4000': {},
+            'pl_4000': {'em': 0.34, 'f1': 0.489, 'prec': 0.474, 'recall': 0.619, 'ret_recall': 0.816, 'oracle_percent': 0.248, 'oracle_rank': 2.277, 'prompt_length': 3980.523, 'perplexity': 1.039}
         },  # top10 for QA, top5 for Code
         # 'retrieved_top10_pad': {},
         'random': {
@@ -747,11 +752,11 @@ qa_pl_analysis_gpt_n_1 = {
         },
         'none_pad_dummy': {
             'none': {'em': 0.247, 'f1': 0.403, 'prec': 0.381, 'recall': 0.603, 'prompt_length': 64.483, 'perplexity': 1.064},
-            'pl_2000': {'em': 0.227, 'f1': 0.387, 'prec': 0.361, 'recall': 0.604, 'prompt_length': 80.207, 'perplexity': 1.064},
+            'pl_2000': {'em': 0.231, 'f1': 0.381, 'prec': 0.359, 'recall': 0.568, 'prompt_length': 2000.898, 'perplexity': 1.069},
         },
         'none_pad_diff': {
             'none': {'em': 0.247, 'f1': 0.403, 'prec': 0.381, 'recall': 0.603, 'prompt_length': 64.483, 'perplexity': 1.064},
-            'pl_2000': {'em': 0.232, 'f1': 0.388, 'prec': 0.361, 'recall': 0.603, 'prompt_length': 79.647, 'perplexity': 1.064}
+            'pl_2000': {'em': 0.211, 'f1': 0.34, 'prec': 0.331, 'recall': 0.484, 'prompt_length': 2000.56, 'perplexity': 1.094}
         },
         'self_generate': {'em': 0.007, 'f1': 0.177, 'prec': 0.11, 'recall': 0.648, 'prompt_length': 88.483, 'perplexity': 1.129},   # let llm generate documents, and then answer the question
     },
