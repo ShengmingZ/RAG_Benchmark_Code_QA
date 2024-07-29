@@ -461,7 +461,6 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, ret_results,
                 irrelevant_type = pl_analysis.split('_')[2]
                 padded_docs = docs[len(oracle_docs):]
                 irrelevant_docs = get_irrelevant_docs(irrelevant_type=irrelevant_type, oracle_docs=padded_docs, model=model, dataset=dataset)
-                print(irrelevant_docs)
                 prompt = generate_func(irrelevant_docs+oracle_docs, qs['question'], model)  # add oracle in the last, near the question
             target_doc_keys_list.append(doc_keys)
             prompts.append(prompt)
