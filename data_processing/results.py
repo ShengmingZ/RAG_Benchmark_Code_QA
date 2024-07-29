@@ -715,19 +715,19 @@ qa_pl_analysis_gpt_n_1 = {
             'pl_4000': {'em': 0.34, 'f1': 0.489, 'prec': 0.474, 'recall': 0.619, 'ret_recall': 0.816, 'oracle_percent': 0.248, 'oracle_rank': 2.277, 'prompt_length': 3980.523, 'perplexity': 1.039}
         },  # top10 for QA, top5 for Code
         'retrieved_top_pad_ellipsis': {
-            'retrieved': {},
+            'retrieved': {'em': 0.344, 'f1': 0.489, 'prec': 0.475, 'recall': 0.623, 'ret_recall': 0.816, 'oracle_percent': 0.242, 'oracle_rank': 2.277, 'prompt_length': 1460.296, 'perplexity': 1.039},
             'pl_2000': {},
             'pl_4000': {},
         },
         'retrieved_top_pad_diff': {
-            'retrieved': {},
+            'retrieved': {'em': 0.344, 'f1': 0.489, 'prec': 0.475, 'recall': 0.623, 'ret_recall': 0.816, 'oracle_percent': 0.242, 'oracle_rank': 2.277, 'prompt_length': 1460.296, 'perplexity': 1.039},
             'pl_2000': {},
-            'pl_4000': {},
+            'pl_4000': {'em': 0.365, 'f1': 0.504, 'prec': 0.496, 'recall': 0.608, 'ret_recall': 0.816, 'oracle_percent': 0.248, 'oracle_rank': 2.277, 'prompt_length': 3992.205, 'perplexity': 1.045},
         },
         'retrieved_top_pad_dummy': {
-            'retrieved': {},
+            'retrieved': {'em': 0.344, 'f1': 0.489, 'prec': 0.475, 'recall': 0.623, 'ret_recall': 0.816, 'oracle_percent': 0.242, 'oracle_rank': 2.277, 'prompt_length': 1460.296, 'perplexity': 1.039},
             'pl_2000': {},
-            'pl_4000': {},
+            'pl_4000': {'em': 0.362, 'f1': 0.501, 'prec': 0.491, 'recall': 0.608, 'ret_recall': 0.816, 'oracle_percent': 0.248, 'oracle_rank': 2.277, 'prompt_length': 3984.278, 'perplexity': 1.044},
         },
         'random': {
             'random': {'em': 0.164, 'f1': 0.265, 'prec': 0.263, 'recall': 0.355, 'ret_recall': 0.003, 'oracle_percent': 0.003, 'oracle_rank': 1.0, 'prompt_length': 230.421, 'perplexity': 1.077},
@@ -735,17 +735,26 @@ qa_pl_analysis_gpt_n_1 = {
             'pl_2000': {'em': 0.19, 'f1': 0.301, 'prec': 0.303, 'recall': 0.387, 'ret_recall': 0.035, 'oracle_percent': 0.004, 'oracle_rank': 6.507, 'prompt_length': 1976.963, 'perplexity': 1.083},
             'pl_4000': {'em': 0.182, 'f1': 0.292, 'prec': 0.293, 'recall': 0.379, 'ret_recall': 0.059, 'oracle_percent': 0.003, 'oracle_rank': 12.205, 'prompt_length': 3976.886}
         },
+        'random_repeat': {
+
+        },
         'irrelevant_diff': {
             'irrelevant_diff': {'em': 0.142, 'f1': 0.2265, 'prec': 0.224, 'recall': 0.307, 'prompt_length': 228.579, 'perplexity': 1.088},
             'pl_500': {'em': 0.125, 'f1': 0.21, 'prec': 0.204, 'recall': 0.303, 'prompt_length': 489.673},
             'pl_2000': {'em': 0.161, 'f1': 0.265, 'prec': 0.261, 'recall': 0.362, 'prompt_length': 1987.573, 'perplexity': 1.094},
             'pl_4000': {'em': 0.156, 'f1': 0.258, 'prec': 0.257, 'recall': 0.35, 'prompt_length': 3999.585}
         },
+        'irrelevant_diff_repeat': {
+
+        },
         'irrelevant_dummy': {
             'irrelevant_dummy': {'em': 0.12, 'f1': 0.198, 'prec': 0.1875, 'recall': 0.288, 'prompt_length': 228.262, 'perplexity': 1.087},
             'pl_500': {'em': 0.111, 'f1': 0.197, 'prec': 0.186, 'recall': 0.296, 'prompt_length': 488.71},
             'pl_2000': {'em': 0.154, 'f1': 0.254, 'prec': 0.246, 'recall': 0.35, 'prompt_length': 1984.417, 'perplexity': 1.087},
             'pl_4000': {'em': 0.159, 'f1': 0.265, 'prec': 0.258, 'recall': 0.367, 'prompt_length': 3987.259}
+        },
+        'irrelevant_dummy_repeat': {
+
         },
         'ellipsis': {
             'ellipsis': {'em': 0.257, 'f1': 0.386, 'prec': 0.382, 'recall': 0.505, 'prompt_length': 229.344, 'perplexity': 1.071},

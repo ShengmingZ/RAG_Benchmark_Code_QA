@@ -518,14 +518,18 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, ret_results,
             prompts.append(prompt)
 
     elif pl_analysis.startswith('random'):
+        if dataset == 'NQ' or dataset == 'TriviaQA':
+            for idx, oracle in enumerate(oracle_list):
+                oracle_list[idx]['oracle_docs'] = [oracle_list[idx]['oracle_doc']]
         # get random docs
         if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
             corpus_id_list = WikiCorpusLoader().load_wiki_id(dataset)
         else:
             corpus_id_list = PythonDocsLoader().load_api_signs()
         random_doc_keys_list = []
-        for _ in oracle_list:
-            random_doc_keys_list.append(random.sample(corpus_id_list, 100))
+        for oracle in oracle_list:
+            if 'repeat' in pl_analysis: random_doc_keys_list.append(random.sample(corpus_id_list, k=len(oracle['oracle_docs']))*100)
+            else: random_doc_keys_list.append(random.sample(corpus_id_list, 100))
         if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
             random_docs_list = WikiCorpusLoader().get_docs(random_doc_keys_list, dataset, num_procs=8)
         else:
@@ -550,11 +554,17 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, ret_results,
         else: irrelevant_type = pl_analysis.split('_')[1]
         for qs, oracle_docs, oracle_doc_keys in zip(qs_list, oracle_docs_list, oracle_doc_keys_list):
             if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: oracle_docs = truncate_docs(oracle_docs, model=model, max_length=doc_max_length)
-            repeated_oracle_docs, repeated_oracle_doc_keys = oracle_docs * 100, oracle_doc_keys * 100
-            doc_keys, docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl, docs=repeated_oracle_docs,
-                                                             doc_keys=repeated_oracle_doc_keys, model=model, question=qs['question'], generate_func=generate_func)
-            irrelevant_docs = get_irrelevant_docs(irrelevant_type=irrelevant_type, oracle_docs=docs, model=model, dataset=dataset)
-            prompt = generate_func(irrelevant_docs, qs['question'], model)
+            if 'repeat' in pl_analysis:
+                irrelevant_docs = get_irrelevant_docs(irrelevant_type=irrelevant_type, oracle_docs=oracle_docs, model=model, dataset=dataset)
+                repeated_irrelevant_docs, doc_keys = irrelevant_docs*100, oracle_doc_keys*100
+                doc_keys, irrelevant_docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl, docs=repeated_irrelevant_docs, doc_keys=doc_keys, model=model,
+                                                                 question=qs['question'], generate_func=generate_func)
+            else:
+                repeated_oracle_docs, repeated_oracle_doc_keys = oracle_docs * 100, oracle_doc_keys * 100
+                doc_keys, docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl, docs=repeated_oracle_docs,
+                                                                 doc_keys=repeated_oracle_doc_keys, model=model, question=qs['question'], generate_func=generate_func)
+                irrelevant_docs = get_irrelevant_docs(irrelevant_type=irrelevant_type, oracle_docs=docs, model=model, dataset=dataset)
+                prompt = generate_func(irrelevant_docs, qs['question'], model)
             prompts.append(prompt)
 
     elif pl_analysis.startswith('none'):
@@ -856,7 +866,7 @@ if __name__ == "__main__":
     """test control prompt length"""
     in_program_call = None
     # in_program_call = '--model llama2-13b-chat --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type pl_1000'
-    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis retrieved_top_pad_dummy_4000'  # random
+    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis random_repeat_2000'  # random
     args = generate_config(in_program_call)
     loader = NQTriviaQAUtils(dataset='NQ')
     # loader = ConalaLoader()
