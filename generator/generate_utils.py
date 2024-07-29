@@ -172,7 +172,7 @@ def get_irrelevant_docs(irrelevant_type, oracle_docs, model, dataset):
         dummy_length = get_docs_tokens(docs=[dummy_string], model=model)[0]
         perturbed_docs = []
         for doc_length in doc_lengths:
-            perturbed_doc = dummy_string * (int(doc_length/dummy_length)) * 2
+            perturbed_doc = dummy_string * (int(doc_length/dummy_length)+1) * 2
             perturbed_doc = truncate_docs(docs=[perturbed_doc], model=model, max_length=doc_length)[0]
             perturbed_docs.append(perturbed_doc)
     else:
@@ -457,6 +457,12 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, ret_results,
             repeated_oracle_docs, repeated_oracle_doc_keys = oracle_docs * 100, oracle_doc_keys * 100
             doc_keys, docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl, docs=repeated_oracle_docs,
                                                        doc_keys=repeated_oracle_doc_keys, model=model, question=qs['question'], generate_func=generate_func)
+            if pl_analysis.startswith('oracle_pad'):    # oracle_pad_ellipsis_2000
+                irrelevant_type = pl_analysis.split('_')[2]
+                padded_docs = docs[len(oracle_docs):]
+                irrelevant_docs = get_irrelevant_docs(irrelevant_type=irrelevant_type, oracle_docs=padded_docs, model=model, dataset=dataset)
+                print(irrelevant_docs)
+                prompt = generate_func(irrelevant_docs+oracle_docs, qs['question'], model)  # add oracle in the last, near the question
             target_doc_keys_list.append(doc_keys)
             prompts.append(prompt)
         print('time cost: ', time.time() - start_time)
@@ -818,13 +824,13 @@ if __name__ == "__main__":
     """test control prompt length"""
     in_program_call = None
     # in_program_call = '--model llama2-13b-chat --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type pl_1000'
-    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis none_500'  # random
+    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis oracle_pad_ellipsis_500'  # random
     args = generate_config(in_program_call)
     loader = NQTriviaQAUtils(dataset='NQ')
     # loader = ConalaLoader()
     # loader = HotpotQAUtils()
-    qs_list = loader.load_qs_list()[:10]
-    oracle_list = loader.load_oracle_list()[:10]
+    qs_list = loader.load_qs_list()[:1]
+    oracle_list = loader.load_oracle_list()[:1]
     ret_results = get_ret_results(dataset=args.dataset, retriever='openai-embedding')
     # ret_doc_keys_list, prompts, pl_list = gene_prompts_by_prompt_length(ret_results=ret_results, doc_selection_type=args.doc_selection_type, qs_list=qs_list, dataset=args.dataset, model=args.model, doc_max_length=args.doc_max_length)
     doc_keys_list, prompts, pl_list = gene_prompts_for_pl_analysis(pl_analysis=args.pl_analysis, oracle_list=oracle_list, qs_list=qs_list, ret_results=ret_results,
