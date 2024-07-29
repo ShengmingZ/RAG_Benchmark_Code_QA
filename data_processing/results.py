@@ -688,11 +688,12 @@ qa_pl_analysis_gpt_n_1 = {
         },
         'oracle_pad_ellipsis': {},
         'oracle_pad_dummy': {},
-        # 'distracting': {
-        #     'distracting': {'em': 0.077, 'f1': 0.189, 'prec': 0.195, 'recall': 0.257, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 225.648, 'perplexity': 1.05},
-        #     'pl_2000': {'em': 0.067, 'f1': 0.177, 'prec': 0.184, 'recall': 0.238, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1982.787, 'perplexity': 1.048},
-        #     'pl_4000': {},
-        # },
+        'oracle_pad_diff': {},
+        'distracting': {
+            'distracting': {'em': 0.077, 'f1': 0.189, 'prec': 0.195, 'recall': 0.257, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 225.648, 'perplexity': 1.05},
+            'pl_2000': {'em': 0.067, 'f1': 0.177, 'prec': 0.184, 'recall': 0.238, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1982.787, 'perplexity': 1.048},
+            'pl_4000': {},
+        },
         'retrieved': {
             'retrieved':  {'em': 0.251, 'f1': 0.39, 'prec': 0.38, 'recall': 0.501, 'ret_recall': 0.472, 'oracle_percent': 0.472, 'oracle_rank': 1.0, 'prompt_length': 226.675, 'perplexity': 1.039},
             'pl_500': {},
