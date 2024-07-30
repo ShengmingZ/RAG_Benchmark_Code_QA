@@ -703,14 +703,16 @@ qa_pl_analysis_gpt_n_1 = {
             'pl_2000': {'em': 0.067, 'f1': 0.177, 'prec': 0.184, 'recall': 0.238, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1982.787, 'perplexity': 1.048},
         },
         'distracting_pad_ellipsis': {
-
+            'distracting': {'em': 0.077, 'f1': 0.189, 'prec': 0.195, 'recall': 0.257, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 225.648, 'perplexity': 1.05},
+            'pl_2000': {'em': 0.069, 'f1': 0.172, 'prec': 0.178, 'recall': 0.232, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1973.545, 'perplexity': 1.05}
         },
         'distracting_pad_dummy': {
             'distracting': {'em': 0.077, 'f1': 0.189, 'prec': 0.195, 'recall': 0.257, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 225.648, 'perplexity': 1.05},
             'pl_2000': {'em': 0.065, 'f1': 0.171, 'prec': 0.182, 'recall': 0.218, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1985.434, 'perplexity': 1.051}
         },
         'distracting_pad_diff': {
-
+            'distracting': {'em': 0.077, 'f1': 0.189, 'prec': 0.195, 'recall': 0.257, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 225.648, 'perplexity': 1.05},
+            'pl_2000': {'em': 0.068, 'f1': 0.175, 'prec': 0.187, 'recall': 0.221, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1991.075, 'perplexity': 1.049}
         },
         # 'retrieved': {
         #     'retrieved':  {'em': 0.251, 'f1': 0.39, 'prec': 0.38, 'recall': 0.501, 'ret_recall': 0.472, 'oracle_percent': 0.472, 'oracle_rank': 1.0, 'prompt_length': 226.675, 'perplexity': 1.039},
@@ -746,7 +748,8 @@ qa_pl_analysis_gpt_n_1 = {
             'pl_4000': {'em': 0.182, 'f1': 0.292, 'prec': 0.293, 'recall': 0.379, 'ret_recall': 0.059, 'oracle_percent': 0.003, 'oracle_rank': 12.205, 'prompt_length': 3976.886}
         },
         'random_repeat': {
-
+            'random': {'em': 0.164, 'f1': 0.265, 'prec': 0.263, 'recall': 0.355, 'ret_recall': 0.003, 'oracle_percent': 0.003, 'oracle_rank': 1.0, 'prompt_length': 230.421, 'perplexity': 1.077},
+            'pl_2000': {'em': 0.167, 'f1': 0.269, 'prec': 0.266, 'recall': 0.358, 'ret_recall': 0.003, 'oracle_percent': 0.003, 'oracle_rank': 1.0, 'prompt_length': 1979.194, 'perplexity': 1.076}
         },
         'irrelevant_diff': {
             'irrelevant_diff': {'em': 0.142, 'f1': 0.2265, 'prec': 0.224, 'recall': 0.307, 'prompt_length': 228.579, 'perplexity': 1.088},
