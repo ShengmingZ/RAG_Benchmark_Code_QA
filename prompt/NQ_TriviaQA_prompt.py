@@ -60,16 +60,16 @@ def prompt_self_gene_2(question, model):
     return prompt_template
 
 
-def prompt_self_pad(ellipses, question, model):
-    user_prompt = f"""
-{ellipses}
-
-## Question: 
-{question}
-"""
-    sys_prompt = LLAMA_SYS_PROMPT_NO_RET
-    prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
-    return prompt_template
+# def prompt_self_pad(ellipses, question, model):
+#     user_prompt = f"""
+# {ellipses}
+#
+# ## Question:
+# {question}
+# """
+#     sys_prompt = LLAMA_SYS_PROMPT_NO_RET
+#     prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
+#     return prompt_template
 
 
 def prompt_0shot(ret_docs, question, model):
@@ -99,33 +99,35 @@ def prompt_0shot_no_ret(question, model, pads=''):
     return prompt_template
 
 
-NQ_3shot_examples = ["""
+NQ_3shot_prompt = """
 ## Potential documents:
 0: of the 2nd Texas Mounted Rifles under Lieutenant Colonel John R. Baylor was sent to occupy the series of forts along the western Texas frontier which had been abandoned by the Union Army. Baylor's orders from the Department of Texas commander, Colonel Earl Van Dorn, allowed him to advance into New Mexico in order to attack the Union forts along the Rio Grande if he thought the situation called for such measures. Convinced that the Union force at Fort Fillmore would soon attack, Baylor decided to take the initiative and launch an attack of his own. Leaving during the night
 
 ## Question: 
 who led the confederate force that captured fort fillmore
-""",
 
-"""
+<answer>Lieutenant Colonel John R. Baylor</answer>
+
+
 ## Potential documents:
 0: in the city and the sun shines on LA.' I didn't like the way it sounded at the time. And so I just had it sitting back in the corner. Then life changed my plans once again, and I was now facing joining Journey. I love San Francisco, the bay, and the whole thing. 'The bay' fit so nice, 'When the lights go down in the city and the sun shines on the bay.' It was one of those early-morning-going-across-the-bridge things, when the sun was coming up and the lights were going down. It was perfect."" Released as a single
 
 ## Question: 
 who sings when the lights go down in the city
-""",
 
-"""
+<answer>Journey</answer>
+
+
 ## Potential documents:
 0: Prokaryote A prokaryote is usually a unicellular organism, sometimes a multi-cellular organism, that lacks a membrane-bound nucleus, mitochondria, or any other membrane-bound organelle. The word ""prokaryote"" comes from the Greek πρό (""pro"") ""before"" and κάρυον (""karyon"") ""nut or kernel"". Prokaryotes are divided into two domains, Archaea and Bacteria. In contrast, species with nuclei and organelles are placed in the third domain, Eukaryota. Prokaryotes reproduce without fusion of gametes. The first living organisms are thought to have been prokaryotes. In the prokaryotes, all the intracellular water-soluble components (proteins, DNA and metabolites) are located together in the cytoplasm enclosed by the cell
 
 ## Question: 
 what type of cell has no nucleus or membrane bound organelles
+
+<answer>prokaryote</answer>
 """
-]
 
-
-NQ_3shot_answers = ["""<answer>Lieutenant Colonel John R. Baylor</answer>""", """<answer>Journey</answer>""", """<answer>prokaryote</answer>"""]
+# NQ_3shot_answers = ["""<answer>Lieutenant Colonel John R. Baylor</answer>""", """<answer>Journey</answer>""", """<answer>prokaryote</answer>"""]
 
 
 def prompt_3shot(ret_docs, question, model):
@@ -134,6 +136,8 @@ def prompt_3shot(ret_docs, question, model):
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
     user_prompt = f"""
+{NQ_3shot_prompt}
+
 ## Potential documents:
 {potential_docs}
 
@@ -144,8 +148,8 @@ def prompt_3shot(ret_docs, question, model):
     prompt_template = ensemble_prompt(sys_prompt='',
                                       user_prompt=user_prompt,
                                       model=model,
-                                      examples=NQ_3shot_examples,
-                                      answers=NQ_3shot_answers
+                                      # examples=NQ_3shot_examples,
+                                      # answers=NQ_3shot_answers
                                       )
     return prompt_template
 

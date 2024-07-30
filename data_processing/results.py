@@ -650,6 +650,27 @@ code_pl_analysis_gpt_n_1 = {
             'pl_4000': {'pass@1': 0.357, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.589, 'prompt_length': 3917.75},
             'pl_8000': {'pass@1': 0.321, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.589, 'prompt_length': 7127.048}
         },
+        'oracle_pad_ellipsis': {
+
+        },
+        'oracle_pad_dummy': {
+
+        },
+        'oracle_pad_diff': {
+
+        },
+        'distracting': {
+
+        },
+        'distracting_pad_ellipsis': {
+
+        },
+        'distracting_pad_dummy': {},
+        'distracting_pad_diff': {},
+        'retrieved_top': {},
+        'retrieved_top_pad_ellipsis': {},
+        'retrieved_top_pad_diff': {},
+        'retrieved_top_pad_dummy': {},
         'random': {
             'random': {'pass@1': 0.262, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 402.667, 'perplexity': 1.061, 'retrieval_consistency': 0.024, 'syntax_error_percent': 0.262, 'semantic_error_percent': 0.381},
             'pl_500': {'pass@1': 0.321, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 491.19},
@@ -657,6 +678,7 @@ code_pl_analysis_gpt_n_1 = {
             'pl_4000': {'pass@1': 0.345, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 3990.845},
             'pl_8000': {'pass@1': 0.333, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 7983.607}
         },
+        'random_repeat': {},
         'irrelevant_diff': {
             'irrelevant_diff': {'pass@1': 0.321, 'prompt_length': 814.833, 'perplexity': 1.047, 'syntax_error_percent': 0.369, 'semantic_error_percent': 0.405},
             'pl_500': {'pass@1': 0.274, 'prompt_length': 511.476},
@@ -664,12 +686,25 @@ code_pl_analysis_gpt_n_1 = {
             'pl_4000': {'pass@1': 0.333, 'prompt_length': 3966.048},
             'pl_8000': {'pass@1': 0.345, 'prompt_length': 7197.583}
         },
+        'irrelevant_diff_repeat': {},
         'irrelevant_dummy': {
             'irrelevant_dummy': {'pass@1': 0.286, 'prompt_length': 814.321, 'perplexity': 1.048, 'syntax_error_percent': 0.381, 'semantic_error_percent': 0.417},
             'pl_500': {'pass@1': 0.274, 'prompt_length': 512.143},
             'pl_2000': {'pass@1': 0.345, 'prompt_length': 2037.429},
             'pl_4000': {'pass@1': 0.286, 'prompt_length': 3967.869},
             'pl_8000': {'pass@1': 0.321, 'prompt_length': 7195.548}
+        },
+        'ellipsis': {
+
+        },
+        'none_pad_ellipsis': {
+
+        },
+        'none_pad_dummy': {
+
+        },
+        'none_pad_diff': {
+
         }
     }
 }

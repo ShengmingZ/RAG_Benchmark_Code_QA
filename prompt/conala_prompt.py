@@ -107,8 +107,9 @@ def prompt_0shot(ret_docs, question, model):
     return prompt_template
 
 
-def prompt_0shot_no_ret(question, model):
+def prompt_0shot_no_ret(question, model, pads=''):
     user_prompt = f"""
+{pads}\n
 ## Description: 
 {question}
 """

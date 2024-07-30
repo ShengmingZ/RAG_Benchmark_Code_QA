@@ -136,10 +136,12 @@ elif args.analysis_type.startswith("retrieval_doc_selection"):
 
 elif args.analysis_type.startswith('prompt_length'):
     target_pl = int(args.analysis_type.rsplit('_', 1)[1])
-    # if 'prompt_length_extra' in args.analysis_type: pl_analysis_list = [f'ellipsis_{target_pl}', f'ellipsis_pretend_{target_pl}', f'self_generate_0']
-    # else: pl_analysis_list = [f'oracle_{target_pl}', f'retrieved_{target_pl}', f'random_{target_pl}', f'irrelevant_diff_{target_pl}', f'irrelevant_dummy_{target_pl}']
-    pl_analysis_list = [f'oracle_{target_pl}', f'retrieved_{target_pl}', f'retrieved_top_{target_pl}', f'none_{target_pl}',
-                        f'random_{target_pl}', f'irrelevant_diff_{target_pl}', f'irrelevant_dummy_{target_pl}', f'ellipsis_{target_pl}']
+    pl_analysis_list = [f'oracle_{target_pl}', f'oracle_pad_ellipsis_{target_pl}', f'oracle_pad_dummy_{target_pl}', f'oracle_pad_diff_{target_pl}',
+                        f'distracting_{target_pl}', f'distracting_pad_ellipsis_{target_pl}', f'distracting_pad_dummy_{target_pl}', f'distracting_pad_diff_{target_pl}',
+                        f'retrieved_top_{target_pl}', f'retrieved_top_pad_ellipsis_{target_pl}', f'retrieved_top_pad_diff_{target_pl}', f'retrieved_top_pad_dummy_{target_pl}',
+                        f'random_{target_pl}', f'irrelevant_diff_{target_pl}', f'irrelevant_dummy_{target_pl}', f'ellipsis_{target_pl}'
+                        f'random_repeat_{target_pl}', f'irrelevant_diff_repeat_{target_pl}',
+                        f'none_pad_ellipsis_{target_pl}', f'none_pad_dummy_{target_pl}', f'none_pad_diff_{target_pl}']
     args.analysis_type = 'prompt_length'
     cmds = []
     if args.action == 'gene_responses' and args.batch is True and 'gpt' in args.model:  # use batch, run simo
