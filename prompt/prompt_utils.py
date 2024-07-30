@@ -18,7 +18,7 @@ def get_truncated_docs(api_signs):
 
 
 def ensemble_prompt(sys_prompt, user_prompt, model, examples=None, answers=None):
-    if examples is not None: assert len(examples) == len(sys_prompt)
+    if examples is not None: assert len(examples) == len(answers)
     if model.startswith('llama2') or model.startswith('codellama'):
         if examples is None:
             prompt_template = f"""<s>[INST] <<SYS>> {sys_prompt} <</SYS>>\n{user_prompt}\n[/INST]"""
@@ -34,12 +34,13 @@ def ensemble_prompt(sys_prompt, user_prompt, model, examples=None, answers=None)
                 prompt_template += f"<|start_header_id|>user<|end_header_id|>{example}<|eot_id|>\n\n<|start_header_id|>assistant<|end_header_id>{answer}<|eot_id|>\n\n"
         prompt_template += f"<|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n\n<|start_header_id|>assistant<|end_header_id>"
     elif model.startswith('gpt'):
+        shot_prompt = ''
         if examples is not None:
             shots = ''
             for example, answer in zip(examples, answers):
                 shots += f'{example}\n{answer}\n\n'
-            user_prompt += shots
-        prompt_template = [sys_prompt, user_prompt]
+            shot_prompt += shots
+        prompt_template = [sys_prompt, shot_prompt+user_prompt]
     else:
         raise ValueError(f'Unrecognized model: {model}')
 

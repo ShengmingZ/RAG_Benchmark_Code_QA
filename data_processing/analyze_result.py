@@ -385,8 +385,8 @@ def wilcoxon_test(dataset, eval_datas1, eval_datas2):
     preds1, preds2 = [], []
     if dataset == 'NQ' or dataset == 'TriviaQA' or dataset == 'hotpotQA':
         for key in eval_records1.keys():
-            preds1.append(eval_records1[key]['recall'])
-            preds2.append(eval_records2[key]['recall'])
+            preds1.append(eval_records1[key]['f1'])
+            preds2.append(eval_records2[key]['f1'])
     else:
         ...
 
@@ -424,44 +424,44 @@ if __name__ == '__main__':
     # evals1 = ['top_5']*5
     # evals2 = ['top_1', 'top_20', 'top_40', 'top_60', 'top_80']
     # evals2 = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
-    evals1 = ['random'] * 3
-    evals2 = ['random_500', 'random_2000', 'random_4000']
-    # mean_dist = 0
-    for eval1, eval2 in zip(evals1, evals2):
-        in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
-                           f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type {eval1}')
-        args = generate_config(in_program_call)
-        eval_file = args.result_save_file.replace('.json', '_eval.json')
-        eval_datas = json.load(open(eval_file))
-
-        in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
-                           f'--analysis_type prompt_length --n 1 --pl_analysis random_2000')
-        args = generate_config(in_program_call)
-        eval_file = args.result_save_file.replace('.json', '_eval.json')
-        eval_datas2 = json.load(open(eval_file))
-
-        # ret_eval_vs_eval(eval_datas)
-
-        hamming_dist, eval1_true_eval2_false, eval1_false_eval2_true = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
-        print(f"{eval1} true {eval2} false percent: {round(eval1_true_eval2_false,3)}")
-        print(f"{eval1} false {eval2} true percent: {round(eval1_false_eval2_true, 3)}")
+    # evals1 = ['random'] * 3
+    # evals2 = ['random_500', 'random_2000', 'random_4000']
+    # # mean_dist = 0
+    # for eval1, eval2 in zip(evals1, evals2):
+    #     in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
+    #                        f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type {eval1}')
+    #     args = generate_config(in_program_call)
+    #     eval_file = args.result_save_file.replace('.json', '_eval.json')
+    #     eval_datas = json.load(open(eval_file))
+    #
+    #     in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
+    #                        f'--analysis_type prompt_length --n 1 --pl_analysis random_2000')
+    #     args = generate_config(in_program_call)
+    #     eval_file = args.result_save_file.replace('.json', '_eval.json')
+    #     eval_datas2 = json.load(open(eval_file))
+    #
+    #     # ret_eval_vs_eval(eval_datas)
+    #
+    #     hamming_dist, eval1_true_eval2_false, eval1_false_eval2_true = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
+    #     print(f"{eval1} true {eval2} false percent: {round(eval1_true_eval2_false,3)}")
+    #     print(f"{eval1} false {eval2} true percent: {round(eval1_false_eval2_true, 3)}")
 
 
     """wilcoxon test"""
-    # in_program_call = (
-    #     '--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
-    #                        f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type oracle')
-    # args = generate_config(in_program_call)
-    # eval_file = args.result_save_file.replace('.json', '_eval.json')
-    # eval_datas = json.load(open(eval_file))
-    #
-    # in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
-    #                    f'--analysis_type prompt_length --n 1 --pl_analysis oracle_4000')
-    # args = generate_config(in_program_call)
-    # eval_file = args.result_save_file.replace('.json', '_eval.json')
-    # eval_datas2 = json.load(open(eval_file))
-    #
-    # wilcoxon_test(args.dataset, eval_datas, eval_datas2)
+    in_program_call = (
+        '--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
+                           f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type oracle')
+    args = generate_config(in_program_call)
+    eval_file = args.result_save_file.replace('.json', '_eval.json')
+    eval_datas = json.load(open(eval_file))
+
+    in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
+                       f'--analysis_type prompt_length --n 1 --pl_analysis oracle_4000')
+    args = generate_config(in_program_call)
+    eval_file = args.result_save_file.replace('.json', '_eval.json')
+    eval_datas2 = json.load(open(eval_file))
+
+    wilcoxon_test(args.dataset, eval_datas, eval_datas2)
 
 
     """calc syntax, semantic error"""

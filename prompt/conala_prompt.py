@@ -51,8 +51,8 @@ convert csv file 'test.csv' into two-dimensional matrix
     prompt_template = ensemble_prompt(sys_prompt=LLAMA_SYS_PROMPT,
                                       user_prompt=user_prompt,
                                       model=model,
-                                      # examples=[example1, example2, example3],
-                                      # answers=[answer1, answer2, answer3]
+                                      examples=[example1, example2, example3],
+                                      answers=[answer1, answer2, answer3]
                                       )
 #     if model.startswith('llama2') or model.startswith('codellama'):
 #         prompt_template = f"""<s>[INST] <<SYS>> {LLAMA_SYS_PROMPT} <</SYS>>\n {example1} [/INST] {answer1}</s>\n

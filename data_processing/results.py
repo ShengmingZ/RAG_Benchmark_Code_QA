@@ -702,6 +702,16 @@ qa_pl_analysis_gpt_n_1 = {
             'distracting': {'em': 0.077, 'f1': 0.189, 'prec': 0.195, 'recall': 0.257, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 225.648, 'perplexity': 1.05},
             'pl_2000': {'em': 0.067, 'f1': 0.177, 'prec': 0.184, 'recall': 0.238, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1982.787, 'perplexity': 1.048},
         },
+        'distracting_pad_ellipsis': {
+
+        },
+        'distracting_pad_dummy': {
+            'distracting': {'em': 0.077, 'f1': 0.189, 'prec': 0.195, 'recall': 0.257, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 225.648, 'perplexity': 1.05},
+            'pl_2000': {'em': 0.065, 'f1': 0.171, 'prec': 0.182, 'recall': 0.218, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1985.434, 'perplexity': 1.051}
+        },
+        'distracting_pad_diff': {
+
+        },
         # 'retrieved': {
         #     'retrieved':  {'em': 0.251, 'f1': 0.39, 'prec': 0.38, 'recall': 0.501, 'ret_recall': 0.472, 'oracle_percent': 0.472, 'oracle_rank': 1.0, 'prompt_length': 226.675, 'perplexity': 1.039},
         #     'pl_500': {},
@@ -717,7 +727,7 @@ qa_pl_analysis_gpt_n_1 = {
         'retrieved_top_pad_ellipsis': {
             'retrieved': {'em': 0.344, 'f1': 0.489, 'prec': 0.475, 'recall': 0.623, 'ret_recall': 0.816, 'oracle_percent': 0.242, 'oracle_rank': 2.277, 'prompt_length': 1460.296, 'perplexity': 1.039},
             'pl_2000': {},
-            'pl_4000': {},
+            'pl_4000': {'em': 0.345, 'f1': 0.492, 'prec': 0.48, 'recall': 0.615, 'ret_recall': 0.816, 'oracle_percent': 0.248, 'oracle_rank': 2.277, 'prompt_length': 3967.302, 'perplexity': 1.04}
         },
         'retrieved_top_pad_diff': {
             'retrieved': {'em': 0.344, 'f1': 0.489, 'prec': 0.475, 'recall': 0.623, 'ret_recall': 0.816, 'oracle_percent': 0.242, 'oracle_rank': 2.277, 'prompt_length': 1460.296, 'perplexity': 1.039},
@@ -745,16 +755,14 @@ qa_pl_analysis_gpt_n_1 = {
             'pl_4000': {'em': 0.156, 'f1': 0.258, 'prec': 0.257, 'recall': 0.35, 'prompt_length': 3999.585}
         },
         'irrelevant_diff_repeat': {
-
+            'irrelevant_diff': {'em': 0.142, 'f1': 0.2265, 'prec': 0.224, 'recall': 0.307, 'prompt_length': 228.579, 'perplexity': 1.088},
+            'pl_2000': {'em': 0.192, 'f1': 0.299, 'prec': 0.299, 'recall': 0.391, 'prompt_length': 1981.436, 'perplexity': 1.079}
         },
         'irrelevant_dummy': {
             'irrelevant_dummy': {'em': 0.12, 'f1': 0.198, 'prec': 0.1875, 'recall': 0.288, 'prompt_length': 228.262, 'perplexity': 1.087},
             'pl_500': {'em': 0.111, 'f1': 0.197, 'prec': 0.186, 'recall': 0.296, 'prompt_length': 488.71},
             'pl_2000': {'em': 0.154, 'f1': 0.254, 'prec': 0.246, 'recall': 0.35, 'prompt_length': 1984.417, 'perplexity': 1.087},
             'pl_4000': {'em': 0.159, 'f1': 0.265, 'prec': 0.258, 'recall': 0.367, 'prompt_length': 3987.259}
-        },
-        'irrelevant_dummy_repeat': {
-
         },
         'ellipsis': {
             'ellipsis': {'em': 0.257, 'f1': 0.386, 'prec': 0.382, 'recall': 0.505, 'prompt_length': 229.344, 'perplexity': 1.071},
