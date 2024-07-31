@@ -100,8 +100,8 @@ def process_gene_results(args, outputs, code_prompt=None):
         #             pred = pred.split('```\n')[1].split('```')[0]
         #         except: ...
         #         preds.append(pred)
-        else:
-            raise NotImplementedError('Unknown model')
+        # else:
+        #     raise NotImplementedError('Unknown model')
 
 
     elif args.dataset == 'pandas_numpy_eval':
