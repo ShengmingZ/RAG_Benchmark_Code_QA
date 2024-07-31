@@ -194,7 +194,7 @@ elif args.analysis_type == 'prompt_method':     # run by dataset
     if args.action == 'gene_responses' and args.batch is True and 'gpt' in args.model:
         for dataset_name in dataset_names:
             cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} --batch '
-                   f'--dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --prompt_type {args.prompt_type}')
+                   f'--dataset {dataset_name} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --prompt_type {args.prompt_type}')
             cmds.append(cmd)
         batch_cmd = ''
         for cmd in cmds:

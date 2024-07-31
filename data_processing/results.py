@@ -740,7 +740,7 @@ qa_pl_analysis_gpt_n_1 = {
             'pl_2000': {'em': 0.551, 'f1': 0.7, 'prec': 0.688, 'recall': 0.809, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 1989.687, 'perplexity': 1.027}
         },
         'oracle_pad_reverse_diff': {
-
+            'pl_2000': {'em': 0.53, 'f1': 0.681, 'prec': 0.665, 'recall': 0.817, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 1989.949, 'perplexity': 1.028}
         },
         'distracting': {
             'distracting': {'em': 0.077, 'f1': 0.189, 'prec': 0.195, 'recall': 0.257, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 225.648, 'perplexity': 1.05},
@@ -758,12 +758,14 @@ qa_pl_analysis_gpt_n_1 = {
             'pl_2000': {'em': 0.065, 'f1': 0.171, 'prec': 0.182, 'recall': 0.218, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1985.434, 'perplexity': 1.051}
         },
         'distracting_pad_reverse_dummy': {
+            'pl_2000': {'em': 0.077, 'f1': 0.184, 'prec': 0.194, 'recall': 0.233, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1985.418, 'perplexity': 1.05}
         },
         'distracting_pad_diff': {
             'distracting': {'em': 0.077, 'f1': 0.189, 'prec': 0.195, 'recall': 0.257, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 225.648, 'perplexity': 1.05},
             'pl_2000': {'em': 0.068, 'f1': 0.175, 'prec': 0.187, 'recall': 0.221, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1991.075, 'perplexity': 1.049}
         },
         'distracting_pad_reverse_diff': {
+            'pl_2000': {'em': 0.071, 'f1': 0.177, 'prec': 0.184, 'recall': 0.233, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1991.313, 'perplexity': 1.05}
         },
         # 'retrieved': {
         #     'retrieved':  {'em': 0.251, 'f1': 0.39, 'prec': 0.38, 'recall': 0.501, 'ret_recall': 0.472, 'oracle_percent': 0.472, 'oracle_rank': 1.0, 'prompt_length': 226.675, 'perplexity': 1.039},
@@ -791,7 +793,7 @@ qa_pl_analysis_gpt_n_1 = {
             'pl_4000': {'em': 0.365, 'f1': 0.504, 'prec': 0.496, 'recall': 0.608, 'ret_recall': 0.816, 'oracle_percent': 0.248, 'oracle_rank': 2.277, 'prompt_length': 3992.205, 'perplexity': 1.045},
         },
         'retrieved_top_pad_reverse_diff': {
-
+            'pl_4000': {'em': 0.342, 'f1': 0.482, 'prec': 0.466, 'recall': 0.617, 'ret_recall': 0.816, 'oracle_percent': 0.248, 'oracle_rank': 2.277, 'prompt_length': 3992.465, 'perplexity': 1.042}
         },
         'retrieved_top_pad_dummy': {
             'retrieved': {'em': 0.344, 'f1': 0.489, 'prec': 0.475, 'recall': 0.623, 'ret_recall': 0.816, 'oracle_percent': 0.242, 'oracle_rank': 2.277, 'prompt_length': 1460.296, 'perplexity': 1.039},
@@ -799,7 +801,7 @@ qa_pl_analysis_gpt_n_1 = {
             'pl_4000': {'em': 0.362, 'f1': 0.501, 'prec': 0.491, 'recall': 0.608, 'ret_recall': 0.816, 'oracle_percent': 0.248, 'oracle_rank': 2.277, 'prompt_length': 3984.278, 'perplexity': 1.044},
         },
         'retrieved_top_pad_reverse_dummy': {
-
+            'pl_2000': {'em': 0.354, 'f1': 0.497, 'prec': 0.488, 'recall': 0.611, 'ret_recall': 0.816, 'oracle_percent': 0.248, 'oracle_rank': 2.277, 'prompt_length': 3984.262, 'perplexity': 1.039}
         },
         'random': {
             'random': {'em': 0.164, 'f1': 0.265, 'prec': 0.263, 'recall': 0.355, 'ret_recall': 0.003, 'oracle_percent': 0.003, 'oracle_rank': 1.0, 'prompt_length': 230.421, 'perplexity': 1.077},
