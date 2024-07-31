@@ -57,51 +57,51 @@ def process_gene_results(args, outputs, code_prompt=None):
             raise Exception('Unknown model')
 
     elif args.dataset == 'DS1000':
-        # if 'llama' in args.model:
-        for output in outputs:
-            # first extract code
-            if output.startswith(' '): output = output[1:]
-            pred = output
-            pred = pred.replace('```python', '```').replace('BEGIN SOLUTION', '').replace(' BEGIN SOLUTION', '')
-            try:
-                pred = pred.split('<code>')[1]
-            except: ...
-            try:
-                pred = pred.split('</code>')[0]
-            except: ...
-            try:
-                pred = pred.split('```')[1].split('```')[0]
-            except: ...
-            # then remove dup
-            prompt_lines = code_prompt.split('\n')
-            pred_lines = pred.split('\n')
-            _pred_lines = []
-            for pred_line in pred_lines:
-                if pred_line not in prompt_lines:
-                    _pred_lines.append(pred_line)
-            pred = '\n'.join(_pred_lines)
-            preds.append(pred)
-        # elif 'gpt' in args.model:
-        #     for output in outputs:
-        #         pred = output
-        #         try:
-        #             pred = pred.split('BEGIN SOLUTION')[1]
-        #         except: ...
-        #         try:
-        #             pred = pred.split('END SOLUTION')[0]
-        #         except: ...
-        #         try:
-        #             pred = pred.split('<code>')[1].split('</code>')[0]
-        #         except: ...
-        #         try:
-        #             pred = pred.split('```python\n')[1].split('```')[0]
-        #         except: ...
-        #         try:
-        #             pred = pred.split('```\n')[1].split('```')[0]
-        #         except: ...
-        #         preds.append(pred)
-        # else:
-        #     raise NotImplementedError('Unknown model')
+        if 'llama' in args.model:
+            for output in outputs:
+                # first extract code
+                if output.startswith(' '): output = output[1:]
+                pred = output
+                pred = pred.replace('```python', '```').replace('BEGIN SOLUTION', '').replace(' BEGIN SOLUTION', '')
+                try:
+                    pred = pred.split('<code>')[1]
+                except: ...
+                try:
+                    pred = pred.split('</code>')[0]
+                except: ...
+                try:
+                    pred = pred.split('```')[1].split('```')[0]
+                except: ...
+                # then remove dup
+                prompt_lines = code_prompt.split('\n')
+                pred_lines = pred.split('\n')
+                _pred_lines = []
+                for pred_line in pred_lines:
+                    if pred_line not in prompt_lines:
+                        _pred_lines.append(pred_line)
+                pred = '\n'.join(_pred_lines)
+                preds.append(pred)
+        elif 'gpt' in args.model:
+            for output in outputs:
+                pred = output
+                try:
+                    pred = pred.split('BEGIN SOLUTION')[1]
+                except: ...
+                try:
+                    pred = pred.split('END SOLUTION')[0]
+                except: ...
+                try:
+                    pred = pred.split('<code>')[1].split('</code>')[0]
+                except: ...
+                try:
+                    pred = pred.split('```python\n')[1].split('```')[0]
+                except: ...
+                try:
+                    pred = pred.split('```\n')[1].split('```')[0]
+                except: ...
+                preds.append(pred)
+        else:
+            raise NotImplementedError('Unknown model')
 
 
     elif args.dataset == 'pandas_numpy_eval':
