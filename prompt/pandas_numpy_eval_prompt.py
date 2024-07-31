@@ -26,7 +26,9 @@ def broadcasting_app(a, L, S):  # Window len = L, Stride len/stepsize = S
     nrows = ((a.size-L)//S)+1
     
 ## Completion:
-<code>    return a[S*np.arange(nrows)[:,None] + np.arange(L)]</code>
+```
+    return a[S*np.arange(nrows)[:,None] + np.arange(L)]
+```
 
 
 
@@ -46,7 +48,9 @@ df = pd.DataFrame({'A': [1, 4, 7, np.nan], 'B': [np.nan, 2, 5, np.nan], 'C': [np
 new_df =
 
 ## Completion:
-<code> df.apply(lambda x: sorted(x, key=pd.isnull)).dropna(how = 'all')"]</code>
+```
+ df.apply(lambda x: sorted(x, key=pd.isnull)).dropna(how = 'all')"]
+```
 
 
 
@@ -60,7 +64,9 @@ df = pd.DataFrame({'a': [0, 1], 'b': [5, 3]})
 df_string =
 
 ## Completion:
-<code> df.to_string(index=False)</code>
+```
+ df.to_string(index=False)
+```
 '''
 
     potential_docs = ''

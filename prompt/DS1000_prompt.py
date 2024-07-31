@@ -66,9 +66,9 @@ print(result)
 </code>
 
 ## [insert]:
-<code>
+```
 result = (~np.isclose(s1,s2)).sum()
-</code>
+```
 
 
 
@@ -100,12 +100,12 @@ print(result)
 </code>
 
 ## [insert]:
-<code>
+```
 reference code def g(x,y,z):
     return tf.gather_nd(x, [y, z])
 
 result = g(x.__copy__(),y.__copy__(),z.__copy__())
-</code>
+```
 
 
 
@@ -134,13 +134,13 @@ print(result)
 </code>
 
 ## [insert]:
-<code>
+```
 import math
 def g(df):
     return df.join(df.apply(lambda x: 1/(1+math.e**(-x))).add_prefix('sigmoid_'))
 
 result = g(df.copy())
-</code>
+```
 """
 
     potential_docs, prompt, answer = process_docs_question(ret_docs, question)

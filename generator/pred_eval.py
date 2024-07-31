@@ -41,7 +41,14 @@ def process_gene_results(args, outputs, code_prompt=None):
                 preds.append(pred)
         elif 'gpt' in args.model:
             for output in outputs:
-                pred = output.replace('<code>', '').replace('</code>', '').replace('\n', '')
+                pred = output
+                # pred = output.replace('<code>', '').replace('</code>', '').replace('\n', '')
+                try:
+                    pred = pred.split('<answer>')[1].split('</answer>')[0]
+                except: ...
+                try:
+                    pred = pred.split('```python')[1].split('```')[0]
+                except: ...
                 preds.append(pred)
         else:
             raise Exception('Unknown model')
