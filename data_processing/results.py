@@ -733,7 +733,7 @@ qa_pl_analysis_gpt_n_1 = {
             'pl_2000': {'em': 0.548, 'f1': 0.695, 'prec': 0.681, 'recall': 0.815, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 1984.206, 'perplexity': 1.028},
         },
         'oracle_pad_reverse_dummy': {
-            'pl_2000': {},
+            'pl_2000': {'em': 0.543, 'f1': 0.693, 'prec': 0.678, 'recall': 0.82, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 1984.197, 'perplexity': 1.027},
         },
         'oracle_pad_diff': {
             'oracle': {'em': 0.519, 'f1': 0.676, 'prec': 0.657, 'recall': 0.82, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 228.052, 'perplexity': 1.027},
@@ -751,7 +751,7 @@ qa_pl_analysis_gpt_n_1 = {
             'pl_2000': {'em': 0.069, 'f1': 0.172, 'prec': 0.178, 'recall': 0.232, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1973.545, 'perplexity': 1.05}
         },
         'distracting_pad_reverse_ellipsis': {
-
+            'pl_2000': {'em': 0.077, 'f1': 0.191, 'prec': 0.199, 'recall': 0.253, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1975.53, 'perplexity': 1.058}
         },
         'distracting_pad_dummy': {
             'distracting': {'em': 0.077, 'f1': 0.189, 'prec': 0.195, 'recall': 0.257, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 225.648, 'perplexity': 1.05},
@@ -783,7 +783,7 @@ qa_pl_analysis_gpt_n_1 = {
             'pl_4000': {'em': 0.345, 'f1': 0.492, 'prec': 0.48, 'recall': 0.615, 'ret_recall': 0.816, 'oracle_percent': 0.248, 'oracle_rank': 2.277, 'prompt_length': 3967.302, 'perplexity': 1.04}
         },
         'retrieved_top_pad_reverse_ellipsis': {
-
+            'pl_4000': {'em': 0.347, 'f1': 0.491, 'prec': 0.48, 'recall': 0.614, 'ret_recall': 0.816, 'oracle_percent': 0.248, 'oracle_rank': 2.277, 'prompt_length': 3969.286, 'perplexity': 1.043}
         },
         'retrieved_top_pad_diff': {
             'retrieved': {'em': 0.344, 'f1': 0.489, 'prec': 0.475, 'recall': 0.623, 'ret_recall': 0.816, 'oracle_percent': 0.242, 'oracle_rank': 2.277, 'prompt_length': 1460.296, 'perplexity': 1.039},

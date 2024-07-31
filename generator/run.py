@@ -6,10 +6,12 @@ def config():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, choices=['llama3-8b', 'llama2-13b-chat', 'codellama-13b-instruct', 'gpt-3.5-turbo-0125', 'gpt-4o'])
     parser.add_argument('--temperature', type=float)
-    parser.add_argument('--dataset', type=str, choices=['conala', 'DS1000', 'pandas_numpy_eval', 'NQ', 'TriviaQA', 'hotpotQA'])
+    parser.add_argument('--dataset', type=str, default=None, choices=['conala', 'DS1000', 'pandas_numpy_eval', 'NQ', 'TriviaQA', 'hotpotQA'])
     parser.add_argument('--retriever', type=str, choices=['best', 'BM25', 'contriever', 'miniLM', 'openai-embedding'])
-    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection_topk', 'retrieval_doc_selection_pl', 'prompt_length_0',
-                                                              'prompt_length_500', 'prompt_length_1000', 'prompt_length_1500', 'prompt_length_2000', 'prompt_length_4000', 'prompt_length_6000', 'prompt_length_8000'])
+    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection_topk', 'retrieval_doc_selection_pl',
+                                                              'prompt_length_0', 'prompt_length_500', 'prompt_length_1000', 'prompt_length_1500', 'prompt_length_2000',
+                                                              'prompt_length_4000', 'prompt_length_6000', 'prompt_length_8000', 'prompt_method'])
+    parser.add_argument('--prompt_type', type=str, default=None, choices=['3shot'])
     parser.add_argument('--action', type=str, choices=['gene_prompts', 'gene_responses', 'eval_pred'])
     parser.add_argument('--n', type=int)
     parser.add_argument('--batch', action='store_true')
@@ -184,3 +186,36 @@ elif args.analysis_type.startswith('prompt_length'):
     else:
         subprocess.check_output(batch_cmd, shell=True)
         print(f'done {args.action} for prompt length analysis, {args.model} {args.dataset}')
+
+
+elif args.analysis_type == 'prompt_method':     # run by dataset
+    dataset_names = ['NQ', 'TriviaQA', 'hotpotQA', 'conala', 'DS1000', 'pandas_numpy_eval']
+    cmds = []
+    if args.action == 'gene_responses' and args.batch is True and 'gpt' in args.model:
+        for dataset_name in dataset_names:
+            cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} --batch '
+                   f'--dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --prompt_type {args.prompt_type}')
+            cmds.append(cmd)
+        batch_cmd = ''
+        for cmd in cmds:
+            batch_cmd = batch_cmd + cmd + ' & '
+    else:
+        for dataset_name in dataset_names:
+            cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} '
+                   f'--dataset {dataset_name} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --prompt_type {args.prompt_type}')
+            cmds.append(cmd)
+        batch_cmd = ''
+        for cmd in cmds:
+            batch_cmd = batch_cmd + cmd + ' ; '
+    if args.action == 'eval_pred':
+        for cmd in cmds:
+            proc = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            (output, error) = proc.communicate()
+            output_lines = output.decode().split('\n')
+            if output_lines[-1] == '':
+                print(cmd, '\n', output_lines[-2])
+            else:
+                print(cmd, '\n', output_lines[-1])
+    else:
+        subprocess.check_output(batch_cmd, shell=True)
+        print(f'done {args.action} for prompt method analysis, {args.model} {args.prompt_type}')
