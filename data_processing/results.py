@@ -945,15 +945,15 @@ prompt_method_gpt = {
         '3shot': {'em': 0.291, 'f1': 0.401, 'prec': 0.407, 'recall': 0.482, 'ret_recall': 0.639, 'oracle_percent': 0.128, 'oracle_rank': 2.225, 'prompt_length': 1805.863, 'perplexity': 1.096},
     },
     'conala': {
-        '0shot': None,
-        '3shot': {'pass@1': 0.024, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.5, 'prompt_length': 2557.786, 'perplexity': 1.174, 'retrieval_consistency': 0.857, 'syntax_error_percent': 0.952, 'semantic_error_percent': 0.512},
+        '0shot': {'pass@1': 0.274, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.5, 'prompt_length': 484.774},
+        '3shot': {'pass@1': 0.333, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.5, 'prompt_length': 2578.786, 'perplexity': 1.04, 'retrieval_consistency': 0.726, 'syntax_error_percent': 0.238, 'semantic_error_percent': 0.357},
     },
     'DS1000': {
-        '0shot': None,
-        '3shot': {'pass@1': 0.0, 'ret_recall': 0.117, 'oracle_percent': 0.054, 'oracle_rank': 2.31, 'prompt_length': 7482.439, 'perplexity': 1.067, 'retrieval_consistency': 1.006, 'syntax_error_percent': 1.0, 'semantic_error_percent': 0.28},
+        '0shot': {'pass@1': 0.323, 'ret_recall': 0.117, 'oracle_percent': 0.054, 'oracle_rank': 2.31, 'prompt_length': 3139.516},
+        '3shot': {'pass@1': 0.268, 'ret_recall': 0.117, 'oracle_percent': 0.054, 'oracle_rank': 2.31, 'prompt_length': 7478.924, 'perplexity': 1.084, 'retrieval_consistency': 0.975, 'syntax_error_percent': 0.057, 'semantic_error_percent': 0.299}
     },
     'pandas_numpy_eval': {
-        '0shot': None,
-        '3shot': {'pass@1': 0.072, 'ret_recall': 0.222, 'oracle_percent': 0.053, 'oracle_rank': 2.068, 'prompt_length': 5760.431, 'perplexity': 1.047, 'retrieval_consistency': 0.934, 'syntax_error_percent': 0.916, 'semantic_error_percent': 0.281}
+        '0shot': {'pass@1': 0.725, 'ret_recall': 0.222, 'oracle_percent': 0.053, 'oracle_rank': 2.068, 'prompt_length': 1805.76},
+        '3shot': {'pass@1': 0.749, 'ret_recall': 0.222, 'oracle_percent': 0.053, 'oracle_rank': 2.068, 'prompt_length': 5755.431, 'perplexity': 1.053, 'retrieval_consistency': 0.874, 'syntax_error_percent': 0.024, 'semantic_error_percent': 0.287}
     },
 }
