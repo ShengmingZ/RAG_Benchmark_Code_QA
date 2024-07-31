@@ -44,10 +44,13 @@ def process_gene_results(args, outputs, code_prompt=None):
                 pred = output
                 # pred = output.replace('<code>', '').replace('</code>', '').replace('\n', '')
                 try:
-                    pred = pred.split('<answer>')[1].split('</answer>')[0]
+                    pred = pred.split('<code>')[1].split('</code>')[0]
                 except: ...
                 try:
-                    pred = pred.split('```python')[1].split('```')[0]
+                    pred = pred.split('```python\n')[1].split('```')[0]
+                except: ...
+                try:
+                    pred = pred.split('```\n')[1].split('```')[0]
                 except: ...
                 preds.append(pred)
         else:
@@ -87,7 +90,15 @@ def process_gene_results(args, outputs, code_prompt=None):
                 try:
                     pred = pred.split('END SOLUTION')[0]
                 except: ...
-                pred = pred.replace('<code>', '').replace('</code>', '')
+                try:
+                    pred = pred.split('<code>')[1].split('</code>')[0]
+                except: ...
+                try:
+                    pred = pred.split('```python\n')[1].split('```')[0]
+                except: ...
+                try:
+                    pred = pred.split('```\n')[1].split('```')[0]
+                except: ...
                 preds.append(pred)
         else:
             raise NotImplementedError('Unknown model')
@@ -144,7 +155,17 @@ def process_gene_results(args, outputs, code_prompt=None):
                 preds.append(pred)
         elif 'gpt' in args.model:   # gpt
             for output in outputs:
-                pred = output.replace('<code>\n', '').replace('<code>', '').replace('</code>', '')
+                # pred = output.replace('<code>\n', '').replace('<code>', '').replace('</code>', '')
+                pred = output
+                try:
+                    pred = pred.split('<code>')[1].split('</code>')[0]
+                except: ...
+                try:
+                    pred = pred.split('```python\n')[1].split('```')[0]
+                except: ...
+                try:
+                    pred = pred.split('```\n')[1].split('```')[0]
+                except: ...
                 # remove "df =" dup
                 prompt_lines = code_prompt.split('\n')
                 prompt_lines = [line for line in prompt_lines if line]
