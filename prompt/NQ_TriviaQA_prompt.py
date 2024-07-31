@@ -109,6 +109,7 @@ who led the confederate force that captured fort fillmore
 <answer>Lieutenant Colonel John R. Baylor</answer>
 
 
+
 ## Potential documents:
 0: in the city and the sun shines on LA.' I didn't like the way it sounded at the time. And so I just had it sitting back in the corner. Then life changed my plans once again, and I was now facing joining Journey. I love San Francisco, the bay, and the whole thing. 'The bay' fit so nice, 'When the lights go down in the city and the sun shines on the bay.' It was one of those early-morning-going-across-the-bridge things, when the sun was coming up and the lights were going down. It was perfect."" Released as a single
 
@@ -116,6 +117,7 @@ who led the confederate force that captured fort fillmore
 who sings when the lights go down in the city
 
 <answer>Journey</answer>
+
 
 
 ## Potential documents:
@@ -137,21 +139,22 @@ def prompt_3shot(ret_docs, question, model):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
     user_prompt = f"""
 {NQ_3shot_prompt}
-
+\n
 ## Potential documents:
 {potential_docs}
-
 ## Question: 
 {question}
 """
 
-    prompt_template = ensemble_prompt(sys_prompt='',
-                                      user_prompt=user_prompt,
-                                      model=model,
-                                      # examples=NQ_3shot_examples,
-                                      # answers=NQ_3shot_answers
-                                      )
-    return prompt_template
+    # prompt_template = ensemble_prompt(sys_prompt='',
+    #                                   user_prompt=user_prompt,
+    #                                   model=model,
+    #                                   # examples=NQ_3shot_examples,
+    #                                   # answers=NQ_3shot_answers
+    #                                   )
+    if 'gpt' in model: prompt = ['', user_prompt]
+    else: prompt = user_prompt
+    return prompt
 
 
 if __name__ == '__main__':

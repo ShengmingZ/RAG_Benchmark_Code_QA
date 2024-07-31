@@ -18,7 +18,6 @@ hotpotQA_3shot_prompt = """
 ## Question: 
 Elle Royal's video "What Can I Say" went viral after she was featured as “Female Artist of the Week” by a video blog founded in what year?
 
-## Answer:
 <answer>2005</answer>
 
 
@@ -30,7 +29,6 @@ Elle Royal's video "What Can I Say" went viral after she was featured as “Fema
 ## Question: 
 What game did the team with an 11-1 regular season record play in for the BCS title game?
 
-## Answer:
 <answer>2004 Nokia Sugar Bowl</answer>
 
 
@@ -42,7 +40,6 @@ What game did the team with an 11-1 regular season record play in for the BCS ti
 ## Question: 
 What show does the host of The 2011 Teen Choice Awards ceremony currently star on?
 
-## Answer:
 <answer>The Big Bang Theory</answer>
 """
 
@@ -53,16 +50,17 @@ def prompt_3shot(ret_docs, question, model):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
     user_prompt = f"""
 {hotpotQA_3shot_prompt}
-
+\n
 ## Potential documents:
 {potential_docs}
-\n
 ## Question: 
 {question}
 """
 
-    prompt_template = ensemble_prompt('', user_prompt, model)
-    return prompt_template
+    # prompt_template = ensemble_prompt('', user_prompt, model)
+    if 'gpt' in model: prompt = ['', user_prompt]
+    else: prompt = user_prompt
+    return prompt
 
 
 

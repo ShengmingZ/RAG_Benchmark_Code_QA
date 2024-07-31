@@ -810,16 +810,22 @@ def _get_generate_func(dataset, no_ret_flag, prompt_type):
         elif dataset == 'conala':
             if prompt_type == '0shot':
                 generate_func = conala_prompt.prompt_0shot
+            elif prompt_type == '3shot':
+                generate_func = conala_prompt.prompt_3shot
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         elif dataset == 'DS1000':
             if prompt_type == '0shot':
                 generate_func = DS1000_prompt.prompt_0shot
+            elif prompt_type == '3shot':
+                generate_func = DS1000_prompt.prompt_3shot
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         elif dataset == 'pandas_numpy_eval':
             if prompt_type == '0shot':
                 generate_func = pandas_numpy_eval_prompt.prompt_0shot
+            elif prompt_type == '3shot':
+                generate_func = pandas_numpy_eval_prompt.prompt_3shot
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         elif dataset == 'hotpotQA':
