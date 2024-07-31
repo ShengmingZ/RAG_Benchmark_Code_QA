@@ -877,13 +877,13 @@ if __name__ == "__main__":
     """test control prompt length"""
     in_program_call = None
     # in_program_call = '--model llama2-13b-chat --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type pl_1000'
-    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis retrieved_top_pad_reverse_diff_4000'  # random
+    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type prompt_length --pl_analysis distracting_4000'  # random
     args = generate_config(in_program_call)
-    loader = NQTriviaQAUtils(dataset='NQ')
-    # loader = ConalaLoader()
+    # loader = NQTriviaQAUtils(dataset='NQ')
+    loader = ConalaLoader()
     # loader = HotpotQAUtils()
-    qs_list = loader.load_qs_list()[:1]
-    oracle_list = loader.load_oracle_list()[:1]
+    qs_list = loader.load_qs_list()[7:8]
+    oracle_list = loader.load_oracle_list()[7:8]
     ret_results = get_ret_results(dataset=args.dataset, retriever='openai-embedding')
     # ret_doc_keys_list, prompts, pl_list = gene_prompts_by_prompt_length(ret_results=ret_results, doc_selection_type=args.doc_selection_type, qs_list=qs_list, dataset=args.dataset, model=args.model, doc_max_length=args.doc_max_length)
     doc_keys_list, prompts, pl_list = gene_prompts_for_pl_analysis(pl_analysis=args.pl_analysis, oracle_list=oracle_list, qs_list=qs_list, ret_results=ret_results,
