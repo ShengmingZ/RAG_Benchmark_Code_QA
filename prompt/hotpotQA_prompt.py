@@ -9,6 +9,8 @@ LLAMA_SYS_PROMPT_NO_RET = """You are a helpful assistant, given a question start
 You should only output the exact answer, and the answer should starts with <answer> and ends with </answer>
 """
 
+SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last question"""
+
 
 hotpotQA_3shot_prompt = """
 ## Potential documents:
@@ -18,7 +20,8 @@ hotpotQA_3shot_prompt = """
 ## Question: 
 Elle Royal's video "What Can I Say" went viral after she was featured as “Female Artist of the Week” by a video blog founded in what year?
 
-<answer>2005</answer>
+## Answer:
+```2005```
 
 
 
@@ -29,7 +32,8 @@ Elle Royal's video "What Can I Say" went viral after she was featured as “Fema
 ## Question: 
 What game did the team with an 11-1 regular season record play in for the BCS title game?
 
-<answer>2004 Nokia Sugar Bowl</answer>
+## Answer:
+```2004 Nokia Sugar Bowl```
 
 
 
@@ -40,7 +44,8 @@ What game did the team with an 11-1 regular season record play in for the BCS ti
 ## Question: 
 What show does the host of The 2011 Teen Choice Awards ceremony currently star on?
 
-<answer>The Big Bang Theory</answer>
+## Answer:
+```The Big Bang Theory```
 """
 
 
@@ -55,11 +60,14 @@ def prompt_3shot(ret_docs, question, model):
 {potential_docs}
 ## Question: 
 {question}
+
+## Answer:
 """
 
     # prompt_template = ensemble_prompt('', user_prompt, model)
-    if 'gpt' in model: prompt = ['', user_prompt]
+    if 'gpt' in model: prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt]
     else: prompt = user_prompt
+    # prompt = ensemble_prompt(sys_prompt=SYS_PROMPT_3SHOT, user_prompt=user_prompt, model=model)
     return prompt
 
 
@@ -89,6 +97,112 @@ def prompt_0shot_no_ret(question, model, pads=''):
     sys_prompt = LLAMA_SYS_PROMPT_NO_RET
     prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
     return prompt_template
+
+
+examples_of_least_to_most = """
+## Potential documents:
+0: Danielle Prendergast (born September 8, 1990), better known by her stage name Elle Royal (formerly known as Patwa), is an independent Hip-Hop artist hailing from The Bronx, New York. Her breakthrough came in 2010 when her video "What Can I Say" went viral after WorldStarHipHop featured her as the “Female Artist of the Week”. Elle Royal later released the mixtape One Gyal Army under Patwa in 2010, followed by the singles “Jammin”, “Lights”, and “Statements” in 2015 under her current stage name, Elle Royal.
+1: WorldStarHipHop is a content-aggregating video blog. Founded in 2005, the site averages 528,726 unique visitors a day. Alexa ranks the site 342nd in site traffic in the United States and 1,212th for worldwide traffic. The site, operated by Worldstar, LLC, was founded at age 33 by Lee "Q" O' Denat, a Hollis, Queens-based hip-hop fan and Grover Cleveland High School dropout. Described by "Vibe" as a "remnant of the Geocities generation," the site regularly features public fighting caught on video, music videos and assorted content targeted to young audiences. O'Denat refers to the site as the "CNN of the ghetto." In 2012, Alexa Internet stated "Compared with all Internet users, its users are disproportionately young people and they tend to be childless, moderately educated men 18–21 who browse from school and work."
+
+## Question: 
+Elle Royal's video "What Can I Say" went viral after she was featured as “Female Artist of the Week” by a video blog founded in what year?
+
+## Question Solving:
+Step1: To answer the question "Elle Royal's video 'What Can I Say' went viral after she was featured as 'Female Artist of the Week' by a video blog founded in what year?" we can decompose it into subquestions:
+1. What is the video blog that featured Elle Royal as the "Female Artist of the Week"?
+2. When was this video blog founded?
+
+Step2: We then answer each subquestion:
+1. What is the video blog that featured Elle Royal as the "Female Artist of the Week"?
+   - According to document 0, Elle Royal's video "What Can I Say" went viral after WorldStarHipHop featured her as the “Female Artist of the Week.”
+
+2. When was this video blog founded?
+   - Document 1 states that WorldStarHipHop was founded in 2005.
+
+Step3: Solve the final question:
+Elle Royal's video "What Can I Say" went viral after she was featured as “Female Artist of the Week” by a video blog founded in what year?
+   - Based on the answers to the subquestions, the video blog WorldStarHipHop, which featured Elle Royal, was founded in 2005.
+
+Conclusion: Thus, the answer to the question is ```2005```.
+
+
+
+## Potential documents:
+0: The 2003 LSU Tigers football team represented Louisiana State University (LSU) during the 2003 NCAA Division I-A football season. Coached by Nick Saban, the LSU Tigers played their home games at Tiger Stadium in Baton Rouge, Louisiana. The Tigers compiled an 11–1 regular season record and then defeated the No. 5 Georgia Bulldogs in the SEC Championship Game, Afterward, LSU was invited to play the Oklahoma Sooners in the Sugar Bowl for the Bowl Championship Series (BCS) national title. LSU won the BCS National Championship Game, the first national football championship for LSU since 1958.
+1: The 2004 Nokia Sugar Bowl, the BCS title game for the 2003 college football season, was played on January 4, 2004 at the Louisiana Superdome in New Orleans, Louisiana. The teams were the LSU Tigers and the Oklahoma Sooners. The Tigers won the BCS National Championship, their second championship, defeating the Sooners by a score of 21-14.
+
+## Question: 
+What game did the team with an 11-1 regular season record play in for the BCS title game?
+
+## Question Solving:
+Step1: To answer the question "What game did the team with an 11-1 regular season record play in for the BCS title game?", we can decompose it into subquestions:
+1. Which team had an 11-1 regular season record?
+2. In which game did this team play for the BCS title?
+
+Step2: We then answer each subquestion:
+1. Which team had an 11-1 regular season record?
+   - According to Document 0, the 2003 LSU Tigers football team had an 11-1 regular season record.
+
+2. In which game did this team play for the BCS title?
+   - Document 1 states that the BCS title game for the 2003 college football season was the 2004 Nokia Sugar Bowl, played on January 4, 2004, where the LSU Tigers defeated the Oklahoma Sooners.
+
+Step3: solve the final question:
+What game did the team with an 11-1 regular season record play in for the BCS title game?
+   - The 2003 LSU Tigers football team, which had an 11-1 regular season record, played in the 2004 Nokia Sugar Bowl for the BCS title game.
+
+Conclusion: Thus, the answer to the question is ```the 2004 Nokia Sugar Bowl```.
+
+
+
+## Potential documents:
+0: The 2011 Teen Choice Awards ceremony, hosted by Kaley Cuoco, aired live on August 7, 2011 at 8/7c on Fox. This was the first time that the ceremonies were aired live since the 2007 show.
+1: Kaley Christine Cuoco ( ; born November 30, 1985) is an American actress. After a series of supporting film and television roles in the late 1990s, she landed her breakthrough role as Bridget Hennessy on the ABC sitcom "8 Simple Rules", on which she starred from 2002 to 2005. Thereafter, Cuoco appeared as Billie Jenkins on the final season of the television series "Charmed" (2005–2006). Since 2007, she has starred as Penny on the CBS sitcom "The Big Bang Theory", for which she has received Satellite, Critics' Choice, and People's Choice Awards. Cuoco's film work includes roles in "To Be Fat like Me" (2007), "Hop" (2011) and "Authors Anonymous" (2014). She received a star on the Hollywood Walk of Fame in 2014.
+
+## Question: 
+What show does the host of The 2011 Teen Choice Awards ceremony currently star on?
+
+## Question Solving:
+Step1: To answer the question "What show does the host of The 2011 Teen Choice Awards ceremony currently star on," we can decompose it into subquestions:
+1. Who was the host of The 2011 Teen Choice Awards ceremony?
+2. What show is the host currently starring on?
+
+Step2: We then answer each subquestion:
+1. Who was the host of The 2011 Teen Choice Awards ceremony?
+   - According to the document, the host of The 2011 Teen Choice Awards ceremony was Kaley Cuoco.
+
+2. What show is the host currently starring on?
+   - The document mentions that Kaley Cuoco has starred on the CBS sitcom "The Big Bang Theory" since 2007.
+
+Step3: solve the final question:
+What show does the host of The 2011 Teen Choice Awards ceremony currently star on?
+   - Based on the information from the subquestions, the show that the host of The 2011 Teen Choice Awards ceremony, Kaley Cuoco, currently stars on is "The Big Bang Theory."
+
+Conclusion: Therefore, the answer to the question is ```The Big Bang Theory```.
+"""
+
+
+def prompt_least_to_most(ret_docs, question, model):
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+    user_prompt = f"""
+{examples_of_least_to_most}
+\n
+## Potential documents:
+{potential_docs}
+## Question: 
+{question}
+
+## Question Solving:
+"""
+
+    # prompt_template = ensemble_prompt('', user_prompt, model)
+    if 'gpt' in model:
+        prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt]
+    else:
+        prompt = user_prompt
+    # prompt = ensemble_prompt(sys_prompt=SYS_PROMPT_LEAST_TO_MOST, user_prompt=user_prompt, model=model)
+    return prompt
 
 
 

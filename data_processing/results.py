@@ -660,6 +660,7 @@ code_pl_analysis_gpt_n_1 = {
             'pl_4000': {'pass@1': 0.381, 'ret_recall': 28.985, 'oracle_percent': 1.0, 'oracle_rank': 1.589, 'prompt_length': 3971.976, 'perplexity': 1.034, 'retrieval_consistency': 25.833, 'syntax_error_percent': 0.214, 'semantic_error_percent': 0.226}
         },
         'distracting': {
+            'distracting': {'pass@1': 0.226, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 178.619, 'perplexity': 1.046, 'retrieval_consistency': 0.452, 'syntax_error_percent': 0.286, 'semantic_error_percent': 0.44},
             'pl_4000': {'pass@1': 0.274, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 2970.179, 'perplexity': 1.041, 'retrieval_consistency': 21.857, 'syntax_error_percent': 0.298, 'semantic_error_percent': 0.417}
         },
         'distracting_pad_ellipsis': {
@@ -672,6 +673,7 @@ code_pl_analysis_gpt_n_1 = {
             'pl_4000': {'pass@1': 0.226, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 2976.464, 'perplexity': 1.053, 'retrieval_consistency': 28.976, 'syntax_error_percent': 0.298, 'semantic_error_percent': 0.405}
         },
         'retrieved_top': {
+            'retrieved_top': {'pass@1': 0.274, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.5, 'prompt_length': 484.774},
             'pl_4000': {'pass@1': 0.298, 'ret_recall': 1.264, 'oracle_percent': 0.025, 'oracle_rank': 2.5, 'prompt_length': 4001.869, 'perplexity': 1.046, 'retrieval_consistency': 26.095, 'syntax_error_percent': 0.202, 'semantic_error_percent': 0.357}
         },
         'retrieved_top_pad_ellipsis': {

@@ -24,6 +24,8 @@ You can generate whatever you want at first, then generate the exact answer of t
 the exact answer should start with <answer> and ends with </answer>
 """
 
+SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last question"""
+
 
 def prompt_pretend(ret_docs, question, model):
     potential_docs = ''
@@ -106,7 +108,8 @@ NQ_3shot_prompt = """
 ## Question: 
 who led the confederate force that captured fort fillmore
 
-<answer>Lieutenant Colonel John R. Baylor</answer>
+## Answer:
+```Lieutenant Colonel John R. Baylor```
 
 
 
@@ -116,7 +119,8 @@ who led the confederate force that captured fort fillmore
 ## Question: 
 who sings when the lights go down in the city
 
-<answer>Journey</answer>
+## Answer:
+```Journey```
 
 
 
@@ -126,7 +130,8 @@ who sings when the lights go down in the city
 ## Question: 
 what type of cell has no nucleus or membrane bound organelles
 
-<answer>prokaryote</answer>
+## Answer:
+```prokaryote```
 """
 
 # NQ_3shot_answers = ["""<answer>Lieutenant Colonel John R. Baylor</answer>""", """<answer>Journey</answer>""", """<answer>prokaryote</answer>"""]
@@ -144,6 +149,8 @@ def prompt_3shot(ret_docs, question, model):
 {potential_docs}
 ## Question: 
 {question}
+
+# Answer:
 """
 
     # prompt_template = ensemble_prompt(sys_prompt='',
@@ -152,7 +159,7 @@ def prompt_3shot(ret_docs, question, model):
     #                                   # examples=NQ_3shot_examples,
     #                                   # answers=NQ_3shot_answers
     #                                   )
-    if 'gpt' in model: prompt = ['', user_prompt]
+    if 'gpt' in model: prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt]
     else: prompt = user_prompt
     return prompt
 
@@ -165,12 +172,23 @@ def prompt_least_to_most(ret_docs, question, model):
 ## Question: 
 who led the confederate force that captured fort fillmore
 
-## Answer:
-to answer the question, we first break down into subquestions: 1. What force captured fort fillmore? 2. who commanded this force?
-then we answer each subquestions: 
-    1. What force captured fort fillmore?
-    
-Therefore, the answer to the question is <Lieutenant Colonel John R. Baylor>
+## Question Solving:
+Step1: To answer the question "who led the confederate force that captured Fort Fillmore" using a decomposition approach, we can break it down into subquestions:
+1. What was the confederate force that captured Fort Fillmore?
+2. Who led this confederate force?
+
+Step2: We then answer each subquestion:
+1. What was the confederate force that captured Fort Fillmore?
+   - According to the document, there was a force called the 2nd Texas Mounted Rifles under Lieutenant Colonel John R. Baylor that was involved in actions against Union forts.
+
+2. Who led this confederate force?
+   - The document specifies that Lieutenant Colonel John R. Baylor led the 2nd Texas Mounted Rifles. It also mentions that Baylor decided to take the initiative and launch an attack of his own, implying his leadership in the operations against Union forts along the Rio Grande.
+
+Step3: solve the final question:
+Who led the confederate force that captured Fort Fillmore?
+   - Based on the information from the document, it is inferred that the Confederate force that captured Fort Fillmore was under the leadership of Lieutenant Colonel John R. Baylor.
+
+Conclusion: Thus, the answer to the question is ```Lieutenant Colonel John R. Baylor```.
 
 
 
@@ -180,7 +198,23 @@ Therefore, the answer to the question is <Lieutenant Colonel John R. Baylor>
 ## Question: 
 who sings when the lights go down in the city
 
-<answer>Journey</answer>
+## Question Solving:
+Step1: To answer the question "who sings when the lights go down in the city," we can decompose it into subquestions:
+1. What is the title of the song mentioned in the document?
+2. Who is associated with the creation or performance of this song?
+
+Step2: We then answer each subquestion:
+1. What is the title of the song mentioned in the document?
+   - The document includes the phrase, "'When the lights go down in the city and the sun shines on the bay,'" suggesting that "When the lights go down in the city" is a part of the song's title. Therefore, the answer to this subquestion is that the title (or significant part of the title) of the song is "When the lights go down in the city."
+
+2. Who is associated with the creation or performance of this song?
+   - According to the document, the speaker was facing joining Journey and refers to the song in this context. Therefore, we can infer that the band Journey is associated with the performance of the song.
+
+Step3: solve the final question:
+Who sings "When the lights go down in the city"?
+   - Based on the answers to the subquestions, the song "When the lights go down in the city" is performed by Journey.
+
+Conclusion: Thus, the answer to the question is ```Journey```.
 
 
 
@@ -190,8 +224,47 @@ who sings when the lights go down in the city
 ## Question: 
 what type of cell has no nucleus or membrane bound organelles
 
-<answer>prokaryote</answer>
+## Question Solving:
+Step1: To answer the question "what type of cell has no nucleus or membrane bound organelles," we can decompose it into subquestions:
+1. What type of cell has no nucleus?
+2. What type of cell lacks membrane-bound organelles?
+
+Step2: We then answer each subquestion:
+1. What type of cell has no nucleus?
+   - According to the document, a prokaryote is a type of cell that lacks a membrane-bound nucleus. Therefore, the answer to this subquestion is a prokaryote.
+
+2. What type of cell lacks membrane-bound organelles?
+   - The document states that prokaryotes lack mitochondria or any other membrane-bound organelle. Therefore, the answer to this subquestion is again, a prokaryote.
+
+Step3: solve the final question:
+What type of cell has no nucleus or membrane-bound organelles?
+   - Based on the answers to the subquestions, a prokaryote is a type of cell that has no nucleus or membrane-bound organelles.
+   
+Conclusion: Thus, the answer to the question is ```prokaryote```.
 """
+
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+    user_prompt = f"""
+{examples_prompt}
+\n
+## Potential documents:
+{potential_docs}
+## Question: 
+{question}
+
+## Question Solving
+"""
+
+
+    if 'gpt' in model:
+        prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt]
+    else:
+        prompt = user_prompt
+    # prompt = ensemble_prompt(sys_prompt=SYS_PROMPT_LEAST_TO_MOST, user_prompt=user_prompt, model=model)
+    return prompt
+
 
 
 if __name__ == '__main__':
