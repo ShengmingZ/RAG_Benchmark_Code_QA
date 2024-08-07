@@ -200,15 +200,15 @@ class Generator:
                                             input_tokens=input_tokens_list[idx],
                                             output_tokens=output_tokens_list[idx],
                                             retrieve_times=retrieve_times_list[idx])) + '\n')
-            gene_results = list()   # save results
-            for idx, (output, logprobs) in enumerate(zip(output_list, logprobs_list)):
-                gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'],
-                                         question=self.qs_list[idx]['question'],
-                                         ret_docs=ret_doc_keys_list[idx],
-                                         outputs=[output],
-                                         logprobs=logprobs,
-                                         ))
-            save_results_to_files(self.result_save_file, gene_results, overwrite=True)
+            # gene_results = list()   # save results
+            # for idx, (output, logprobs) in enumerate(zip(output_list, logprobs_list)):
+            #     gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'],
+            #                              question=self.qs_list[idx]['question'],
+            #                              ret_docs=ret_doc_keys_list[idx],
+            #                              outputs=[output],
+            #                              logprobs=logprobs,
+            #                              ))
+            # save_results_to_files(self.result_save_file, gene_results, overwrite=True)
 
         else:
             # prepare for prompts
