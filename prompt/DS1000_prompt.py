@@ -17,7 +17,6 @@ you should only output the uncompleted part of the code solution, and the output
 # """
 
 def process_docs_question(ret_docs, question):
-    print(ret_docs)
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'

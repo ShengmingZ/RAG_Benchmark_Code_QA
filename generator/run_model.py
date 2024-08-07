@@ -224,12 +224,12 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
         if retrieve_times >= max_iter or len(ret_doc_keys) >= max_docs:
             return True
         else:
+            output_first_sent = output.split('.')[0] + '.'
             if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:   # for qa, split first sentence
-                output_first_sent = output_this_round.split('.')[0] + '.'
-                if 'the answer is' in output_first_sent or output_first_sent.count('```') > 1:
+                if 'the answer is' in output_first_sent or '```' in output_first_sent:
                     return True
             else:   # for code, '.' might appear in generated code
-                if ('<code>' in output and '</code>' in output) or (output.count('```') > 1):
+                if '<code>' in output_first_sent or '```' in output_first_sent:
                     return True
         return False
 
