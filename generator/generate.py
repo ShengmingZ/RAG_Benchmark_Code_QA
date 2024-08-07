@@ -12,7 +12,7 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from generator.run_model import chatgpt, llama, chatgpt_batch, run_model_for_ir_cot
+from generator.run_model import chatgpt, llama, chatgpt_batch, run_model_for_ir_cot, run_model_for_flare
 from prompt import conala_prompt
 from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
@@ -193,7 +193,7 @@ class Generator:
             elif self.prompt_type == 'flare':
                 self.qs_list = self.qs_list[1:2]
                 output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, queries_list = (
-                    run_model_for_ir_cot(questions=[qs['question'] for qs in self.qs_list], model=self.model, dataset=self.dataset,
+                    run_model_for_flare(questions=[qs['question'] for qs in self.qs_list], model=self.model, dataset=self.dataset,
                                          temperature=self.temperature, max_tokens=self.max_tokens, n=self.n, stop=self.stop))
             with open(self.prompt_save_file, 'w+') as f:    # save prompts
                 for idx in range(len(prompts_list)):
