@@ -221,7 +221,7 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
 
 
     def if_stop(dataset, output, retrieve_times, ret_doc_keys): # test if interleaved retrieve should stop
-        if retrieve_times >= max_iter or ret_doc_keys >= max_docs:
+        if retrieve_times >= max_iter or len(ret_doc_keys) >= max_docs:
             return True
         else:
             if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:   # for qa, split first sentence
