@@ -2,6 +2,7 @@ import os, json
 import time
 import faiss, h5py
 import openai
+from collections import OrderedDict
 import backoff
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import transformers
@@ -15,10 +16,11 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from generator.generate_utils import get_docs_tokens, _get_generate_func
+from generator.generate_utils import get_docs_tokens, _get_generate_func, truncate_docs
 from retriever.dense_retriever import retrieve
 from retriever.dense_encoder import DenseRetrievalEncoder
 from retriever.retriever_utils import retriever_config
+from dataset_utils.corpus_utils import WikiCorpusLoader, PythonDocsLoader
 
 openai.api_key = os.getenv("OPENAI_API_KEY", "")
 client = openai.OpenAI(api_key=openai.api_key)
@@ -182,12 +184,20 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature
 
 
 def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=500, n=1, stop=None):
-    max_iter, max_docs = 8, 15
+    # some hyperparameters
+    max_iter = 8
+    max_docs = 15 if dataset in ['NQ', 'TriviaQA', 'hotpotQA'] else 10
     k = 4 if dataset in ['NQ', 'TriviaQA', 'hotpotQA'] else 2
-    assert n==1
+    assert n == 1
     generate_func = _get_generate_func(dataset, no_ret_flag=False, prompt_type='cot')
 
-    # construct retriever
+    # prepare for faiss search
+    if dataset == 'hotpotQA':
+        doc_id_list = WikiCorpusLoader().load_wiki_id(dataset)
+    elif dataset == 'NQ' or dataset == 'TriviaQA':
+        doc_id_list = WikiCorpusLoader().load_wiki_id(dataset)
+    elif dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
+        doc_id_list = PythonDocsLoader().load_api_signs()
     ret_args = retriever_config(f'--dataset {dataset} --retriever openai-embedding')
     encoder = DenseRetrievalEncoder(ret_args)
     if dataset in ['NQ', 'TriviaQA']:
@@ -209,43 +219,76 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
         indexer = faiss.IndexFlatIP(doc_embed.shape[1])
         indexer.add(doc_embed)
 
-    def if_stop(dataset, output):
-        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
-            if 'the answer is' in output or output.count('```') > 1:
-                return True
+
+    def if_stop(dataset, output, retrieve_times, ret_doc_keys): # test if interleaved retrieve should stop
+        if retrieve_times >= max_iter or ret_doc_keys >= max_docs:
+            return True
         else:
-            if 'the code is' in output or ('<code>' in output and '</code>' in output):
-                return True
+            if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+                if 'the answer is' in output or output.count('```') > 1:
+                    return True
+            else:
+                if 'the code is' in output or ('<code>' in output and '</code>' in output):
+                    return True
         return False
 
-    output_list, logprobs_list = [], []
-    total_outputs_tokens_list, retrieve_times = [], []  # record efficiency
-    for question in questions:
-        existing_output, existing_logprobs = '', []
-        total_output_tokens = 0
-        for i in range(1, max_iter+1):
-            # retrieve docs
-            embedding = encoder.encode(dataset=[question] if existing_output == '' else [existing_output], save_file=None)
-            D, I = indexer.search(embedding, k)
-            ret_docs = ...
-            # ensemble prompts
-            prompt = generate_func(ret_docs, question+existing_output, model)
-            # run models
-            if 'gpt' in model:
-                [[output]], [[logprobs]] = chatgpt(prompts=[prompt], model=model, temperature=temperature, max_tokens=max_tokens, n=n, stop=stop)
-            else:
-                [[output]], [[logprobs]] = llama(prompts=[prompt], model_name=model, max_new_tokens=max_tokens, temperature=temperature, n=n, stop=stop)
-            total_output_tokens += get_docs_tokens(docs=[output], model=model)[0]   # count output tokens of each generation
-            output = output.split('.')[0] + '.'  # only take first sentence
-            existing_logprobs.extend(logprobs[:get_docs_tokens(docs=[output], model=model)[0]])    # take approximate logprobs of first sentence
-            existing_output += output
-            if if_stop(dataset, output):
-                output_list.append(existing_output)
-                logprobs_list.append(existing_logprobs)
-                total_outputs_tokens_list.append(total_output_tokens)
-                retrieve_times.append(i)
+    output_list = ['']*len(questions)
+    logprobs_list = [[]]*len(questions)
+    ret_doc_keys_list = [[]]*len(questions)
+    ret_docs_list = [[]]*len(questions)
+    prompts_list = [[]]*len(questions)
+    output_tokens_list = [[]]*len(questions)
+    input_tokens_list = [[]]*len(questions)
+    retrieve_times_list = [0]*len(questions)
+    stop_list = [False] * len(questions)
 
+    while False in stop_list:
+        # first do retrieving for all non-stop samples, update ret_doc_keys_list
+        new_ret_doc_keys_list = []
+        for idx, stop_flag in enumerate(stop_list):
+            if not stop_flag:
+                embedding = encoder.encode(dataset=[questions[idx]] if output_list[idx] == '' else [output_list[idx]], save_file=None)
+                _, [retrieved_index] = indexer.search(embedding.astype(np.float32), k)
+                ret_doc_keys = [doc_id_list[x] for x in retrieved_index]
+                new_ret_doc_keys = [item for item in ret_doc_keys if item not in ret_doc_keys_list[idx]][:max_docs-len(ret_doc_keys_list[idx])]
+                ret_doc_keys_list[idx].extend(new_ret_doc_keys)
+                new_ret_doc_keys_list.append(new_ret_doc_keys)
+                retrieve_times_list[idx] += 1
+        # get ret_docs, update ret_docs_list
+        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+            new_ret_docs_list = WikiCorpusLoader().get_docs(new_ret_doc_keys_list, dataset, num_procs=8)
+        else:
+            new_ret_docs_list = [truncate_docs(docs=PythonDocsLoader().get_docs(oracle_docs), model=model) for oracle_docs in new_ret_doc_keys_list]
+        for idx, new_ret_docs in enumerate(new_ret_docs_list):
+            ret_docs_list[idx].extend(new_ret_docs)
 
+        # ensemble prompts
+        # prompts = [None]*len(questions)
+        for idx, stop_flag in enumerate(stop_list):
+            if not stop_flag:
+                prompts_list[idx].append(generate_func(ret_docs_list[idx], questions[idx]+output_list[idx], model))
+                input_tokens_list[idx].append(get_docs_tokens(docs=[prompts_list[idx][-1]], model=model)[0])
+
+        # run models
+        for idx, stop_flag in enumerate(stop_list):
+            if not stop_flag:
+                if 'gpt' in model:
+                    [[output_this_round]], [[logprobs_this_round]] = chatgpt(prompts=[prompts_list[idx][-1]], model=model, temperature=temperature, max_tokens=max_tokens, n=n, stop=stop)
+                else:
+                    [[output_this_round]], [[logprobs_this_round]] = llama(prompts=[prompts_list[idx][-1]], model_name=model, max_new_tokens=max_tokens, temperature=temperature, n=n, stop=stop)
+                output_tokens_list[idx].append(get_docs_tokens(docs=[output_this_round], model=model)[0])   # count output tokens of each generation
+
+                # check if retrieve should stop, update stop_list, output_list, logprobs_list
+                output_first_sent = output_this_round.split('.')[0] + '.'
+                if if_stop(dataset, output_first_sent, retrieve_times_list[idx], ret_docs_list[idx]):
+                    output_list[idx] += ' ' + output_this_round
+                    logprobs_list[idx].extend(logprobs_this_round)
+                    stop_list[idx] = True
+                else:
+                    output_list[idx] += ' ' + output_first_sent
+                    logprobs_list[idx].extend(logprobs_this_round[:get_docs_tokens([output_first_sent], model=model)[0]])
+
+    return output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list
 
 
 if __name__ == "__main__":

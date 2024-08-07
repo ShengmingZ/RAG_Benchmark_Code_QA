@@ -16,7 +16,7 @@ elif system == 'Linux':
 sys.path.insert(0, root_path)
 
 from retriever.dense_encoder import DenseRetrievalEncoder
-from retriever_utils import retriever_config, ret_eval
+from retriever.retriever_utils import retriever_config, ret_eval
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.DS1000_utils import DS1000Loader
 from dataset_utils.hotpotQA_utils import HotpotQAUtils

@@ -172,13 +172,13 @@ class DenseRetrievalEncoder:
 
             @backoff.on_exception(backoff.expo, openai.OpenAIError)
             def openai_encode(model_name, texts):
-                return openai.Embedding.create(model=model_name, input=texts)
+                return client.embeddings.create(model=model_name, input=texts)
 
-
+            client = openai.OpenAI()
             for i in tqdm(range(0, len(dataset), self.batch_size), total=int(len(dataset) / self.batch_size)):
                 batch = dataset[i:i + self.batch_size]
                 response = openai_encode(model_name=self.model_name, texts=batch)
-                embeds = [data["embedding"] for data in response['data']]
+                embeds = [data.embedding for data in response.data]
                 all_embeddings.append(embeds)
 
             all_embeddings = np.concatenate(all_embeddings, axis=0)
