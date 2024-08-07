@@ -303,6 +303,10 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
 
                 # check if each new sent needs retrieve, update stop_list, output_list, logprobs_list
                 sents, sents_logprobs = split_sents_and_logprobs(output_tokens_this_round, logprobs_this_round) # split output and logprobs to each sentences
+                if retrieve_times_list[idx] > 1:    # 1 means first retrieval using question, after that, each retrieval would make sure at least one more sentence is generated
+                    output_list[idx] += sents[0]; logprobs_list[idx].extend(sents_logprobs[0])
+                    if_retrieve_list[idx] = False
+                    sents = sents[1:]; sents_logprobs = sents_logprobs[1:]
                 for sent, logprobs in zip(sents, sents_logprobs):   # for each sentence, if need retrieve, deprecate sentences behind, query retriever
                     ret_flag, new_query = if_retrieve(sent, logprobs)
                     if ret_flag:
@@ -310,8 +314,7 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
                         queries_list[idx].append(new_query)
                         break
                     else:
-                        output_list[idx] += sent
-                        logprobs_list[idx].extend(logprobs)
+                        output_list[idx] += sent; logprobs_list[idx].extend(logprobs)
                         if_retrieve_list[idx] = False
                     print('processed output: ', output_list[idx])
 
