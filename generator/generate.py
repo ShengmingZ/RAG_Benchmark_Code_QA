@@ -248,7 +248,7 @@ class Generator:
                                          logprobs=logprobs
                                          ))
             save_results_to_files(self.result_save_file, gene_results, overwrite=True)
-        return gene_results
+        # return gene_results
 
 
 
