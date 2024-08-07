@@ -48,6 +48,7 @@ class Generator:
         self.prompt_type = args.prompt_type
         self.pl_analysis = args.pl_analysis
         self.doc_max_length = args.doc_max_length
+        if self.prompt_type == 'self-consistency': assert self.n == 10 and self.temperature == 1    # use temperature=1 and sample 10 times when using self-consistency
         # load docs
         if self.dataset == 'conala':
             self.dataset_loader = ConalaLoader()
@@ -257,15 +258,15 @@ if __name__ == '__main__':
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis irrelevant_dummy_500'
     # in_program_call = '--model llama2-13b-chat --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type top_5'
     # todo: no sys prompt for all code, may use sys prompt for (qa, gpt), to avoid model not answer
-    # in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset hotpotQA --retriever openai-embedding --analysis_type prompt_method --prompt_type least_to_most'  # random
+    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset NQ --retriever openai-embedding --analysis_type prompt_method --prompt_type cot'  # random
     args = generate_config(in_program_call)
     generator = Generator(args)
-    # generator.test_prompt()
+    generator.test_prompt()
 
-    if args.action == 'gene_prompts':
-        generator.save_prompts()
-    elif args.action == 'gene_responses':
-        gene_results = generator.gene_response()
-    elif args.action == 'eval_pred':
-        pred_eval(args)
+    # if args.action == 'gene_prompts':
+    #     generator.save_prompts()
+    # elif args.action == 'gene_responses':
+    #     gene_results = generator.gene_response()
+    # elif args.action == 'eval_pred':
+    #     pred_eval(args)
 

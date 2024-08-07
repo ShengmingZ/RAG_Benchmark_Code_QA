@@ -215,7 +215,7 @@ def generate_config(in_program_call=None):
     parser.add_argument('--ret_doc_type', type=str, default='retrieved', choices=['oracle', 'retrieved', 'distracting', 'random', 'irrelevant_dummy', 'irrelevant_diff', 'none', 'ellipsis', 'retrieved_top'])
     parser.add_argument('--doc_selection_type', type=str, default=None)
     parser.add_argument('--doc_max_length', type=int, default=1000)
-    parser.add_argument('--prompt_type', type=str, default='0shot', choices=['3shot', '0shot', 'CoT', 'least_to_most'])
+    parser.add_argument('--prompt_type', type=str, default='0shot', choices=['3shot', '0shot', 'cot', 'least_to_most', 'plan_and_solve', 'self-consistency', 'IR-cot'])
     parser.add_argument('--pl_analysis', type=str, default=None)
 
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))
@@ -807,6 +807,10 @@ def _get_generate_func(dataset, no_ret_flag, prompt_type):
             #     generate_func = NQ_TriviaQA_prompt.prompt_self_pad
             elif prompt_type == 'least_to_most':
                 generate_func = NQ_TriviaQA_prompt.prompt_least_to_most
+            elif prompt_type == 'plan_and_solve':
+                generate_func = NQ_TriviaQA_prompt.prompt_plan_and_solve
+            elif prompt_type == 'cot' or prompt_type == 'self-consistency':
+                generate_func = NQ_TriviaQA_prompt.prompt_cot
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         elif dataset == 'conala':
@@ -816,6 +820,10 @@ def _get_generate_func(dataset, no_ret_flag, prompt_type):
                 generate_func = conala_prompt.prompt_3shot
             elif prompt_type == 'least_to_most':
                 generate_func = conala_prompt.prompt_least_to_most
+            elif prompt_type == 'plan_and_solve':
+                generate_func = conala_prompt.prompt_plan_and_solve
+            elif prompt_type == 'cot' or prompt_type == 'self-consistency':
+                generate_func = conala_prompt.prompt_cot
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         elif dataset == 'DS1000':
@@ -825,6 +833,10 @@ def _get_generate_func(dataset, no_ret_flag, prompt_type):
                 generate_func = DS1000_prompt.prompt_3shot
             elif prompt_type == 'least_to_most':
                 generate_func = DS1000_prompt.prompt_least_to_most
+            elif prompt_type == 'plan_and_solve':
+                generate_func = DS1000_prompt.prompt_plan_and_solve
+            elif prompt_type == 'cot' or prompt_type == 'self-consistency':
+                generate_func = DS1000_prompt.prompt_cot
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         elif dataset == 'pandas_numpy_eval':
@@ -834,6 +846,10 @@ def _get_generate_func(dataset, no_ret_flag, prompt_type):
                 generate_func = pandas_numpy_eval_prompt.prompt_3shot
             elif prompt_type == 'least_to_most':
                 generate_func = pandas_numpy_eval_prompt.prompt_least_to_most
+            elif prompt_type == 'plan_and_solve':
+                generate_func = pandas_numpy_eval_prompt.prompt_plan_and_solve
+            elif prompt_type == 'cot' or prompt_type == 'self-consistency':
+                generate_func = pandas_numpy_eval_prompt.prompt_cot
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         elif dataset == 'hotpotQA':
@@ -843,6 +859,10 @@ def _get_generate_func(dataset, no_ret_flag, prompt_type):
                 generate_func = hotpotQA_prompt.prompt_3shot
             elif prompt_type == 'least_to_most':
                 generate_func = hotpotQA_prompt.prompt_least_to_most
+            elif prompt_type == 'plan_and_solve':
+                generate_func = hotpotQA_prompt.prompt_plan_and_solve
+            elif prompt_type == 'cot' or prompt_type == 'self-consistency':
+                generate_func = hotpotQA_prompt.prompt_cot
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         else:

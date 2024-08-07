@@ -151,10 +151,6 @@ class DenseRetrievalEncoder:
 
             all_embeddings = np.concatenate(all_embeddings, axis=0)
             print(f"done embedding: {all_embeddings.shape}")
-            if not os.path.exists(os.path.dirname(save_file)):
-                os.makedirs(os.path.dirname(save_file))
-            np.save(save_file, all_embeddings)
-            return
 
         if 'text-embedding' in self.model_name:
             OPENAI_TOKENIZER = "cl100k_base"
@@ -174,7 +170,7 @@ class DenseRetrievalEncoder:
             #         print("embedding error")
             #     all_embeddings.append(np.array(embeds))
 
-            @backoff.on_exception(backoff.expo, openai.error.OpenAIError)
+            @backoff.on_exception(backoff.expo, openai.OpenAIError)
             def openai_encode(model_name, texts):
                 return openai.Embedding.create(model=model_name, input=texts)
 
@@ -187,10 +183,7 @@ class DenseRetrievalEncoder:
 
             all_embeddings = np.concatenate(all_embeddings, axis=0)
             print(f"done embedding: {all_embeddings.shape}")
-            if not os.path.exists(os.path.dirname(save_file)):
-                os.makedirs(os.path.dirname(save_file))
-            np.save(save_file, all_embeddings)
-            return
+
 
         if 'contriever' in self.model_name:
             with torch.no_grad():
@@ -203,10 +196,6 @@ class DenseRetrievalEncoder:
 
                 all_embeddings = np.concatenate(all_embeddings, axis=0)
                 print(f"done embedding: {all_embeddings.shape}")
-                if not os.path.exists(os.path.dirname(save_file)):
-                    os.makedirs(os.path.dirname(save_file))
-                np.save(save_file, all_embeddings)
-                return
 
 
         with torch.no_grad():
@@ -245,9 +234,12 @@ class DenseRetrievalEncoder:
             all_embeddings = np.concatenate(all_embeddings, axis=0)
             print(f"done embedding: {all_embeddings.shape}")
 
+
+        if save_file is not None:
             if not os.path.exists(os.path.dirname(save_file)):
                 os.makedirs(os.path.dirname(save_file))
             np.save(save_file, all_embeddings)
+        return all_embeddings
 
 
     # todo: training

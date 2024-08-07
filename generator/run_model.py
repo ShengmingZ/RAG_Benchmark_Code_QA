@@ -1,6 +1,6 @@
 import os, json
 import time
-
+import faiss, h5py
 import openai
 import backoff
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -8,6 +8,17 @@ import transformers
 import torch
 import numpy as np
 from tqdm import tqdm
+import platform, sys
+system = platform.system()
+if system == 'Darwin':
+    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+elif system == 'Linux':
+    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+sys.path.insert(0, root_path)
+from generator.generate_utils import get_docs_tokens, _get_generate_func
+from retriever.dense_retriever import retrieve
+from retriever.dense_encoder import DenseRetrievalEncoder
+from retriever.retriever_utils import retriever_config
 
 openai.api_key = os.getenv("OPENAI_API_KEY", "")
 client = openai.OpenAI(api_key=openai.api_key)
@@ -168,6 +179,72 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature
         logprobs_list.append(logprobs)
 
     return texts_list, logprobs_list
+
+
+def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=500, n=1, stop=None):
+    max_iter, max_docs = 8, 15
+    k = 4 if dataset in ['NQ', 'TriviaQA', 'hotpotQA'] else 2
+    assert n==1
+    generate_func = _get_generate_func(dataset, no_ret_flag=False, prompt_type='cot')
+
+    # construct retriever
+    ret_args = retriever_config(f'--dataset {dataset} --retriever openai-embedding')
+    encoder = DenseRetrievalEncoder(ret_args)
+    if dataset in ['NQ', 'TriviaQA']:
+        def yield_batches_from_hdf5(file_path, dataset_name='wiki_embedding', batch_size=1024):
+            with h5py.File(file_path, 'r') as f:
+                dataset = f[dataset_name]
+                total_size = dataset.shape[0]
+                for start in range(0, total_size, batch_size):
+                    end = min(start + batch_size, total_size)
+                    yield dataset[start:end]
+
+        doc_embed_file = ret_args.corpus_embed_file + '.npy'
+        example_embed = next(yield_batches_from_hdf5(doc_embed_file))
+        indexer = faiss.IndexFlatIP(example_embed.shape[1])
+        for batch in yield_batches_from_hdf5(doc_embed_file):
+            indexer.add(batch.astype(np.float32))
+    else:
+        doc_embed = np.load(ret_args.corpus_embed_file + '.npy').astype(np.float32)
+        indexer = faiss.IndexFlatIP(doc_embed.shape[1])
+        indexer.add(doc_embed)
+
+    def if_stop(dataset, output):
+        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+            if 'the answer is' in output or output.count('```') > 1:
+                return True
+        else:
+            if 'the code is' in output or ('<code>' in output and '</code>' in output):
+                return True
+        return False
+
+    output_list, logprobs_list = [], []
+    total_outputs_tokens_list, retrieve_times = [], []  # record efficiency
+    for question in questions:
+        existing_output, existing_logprobs = '', []
+        total_output_tokens = 0
+        for i in range(1, max_iter+1):
+            # retrieve docs
+            embedding = encoder.encode(dataset=[question] if existing_output == '' else [existing_output], save_file=None)
+            D, I = indexer.search(embedding, k)
+            ret_docs = ...
+            # ensemble prompts
+            prompt = generate_func(ret_docs, question+existing_output, model)
+            # run models
+            if 'gpt' in model:
+                [[output]], [[logprobs]] = chatgpt(prompts=[prompt], model=model, temperature=temperature, max_tokens=max_tokens, n=n, stop=stop)
+            else:
+                [[output]], [[logprobs]] = llama(prompts=[prompt], model_name=model, max_new_tokens=max_tokens, temperature=temperature, n=n, stop=stop)
+            total_output_tokens += get_docs_tokens(docs=[output], model=model)[0]   # count output tokens of each generation
+            output = output.split('.')[0] + '.'  # only take first sentence
+            existing_logprobs.extend(logprobs[:get_docs_tokens(docs=[output], model=model)[0]])    # take approximate logprobs of first sentence
+            existing_output += output
+            if if_stop(dataset, output):
+                output_list.append(existing_output)
+                logprobs_list.append(existing_logprobs)
+                total_outputs_tokens_list.append(total_output_tokens)
+                retrieve_times.append(i)
+
 
 
 
