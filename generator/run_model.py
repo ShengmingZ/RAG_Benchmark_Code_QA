@@ -246,7 +246,7 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
     def split_sents_and_logprobs(output_tokens, logprobs):
         sents, sents_logprobs = [], []
         sent, logprobs = '', []
-        for token, logprob in (output_tokens, logprobs):
+        for token, logprob in zip(output_tokens, logprobs):
             sent += token; logprobs.append(logprob)
             if token == '.':
                 sents.append(sent); sents_logprobs.append(logprobs)
