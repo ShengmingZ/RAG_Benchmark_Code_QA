@@ -245,14 +245,14 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
 
     def split_sents_and_logprobs(output_tokens, logprobs):
         sents, sents_logprobs = [], []
-        sent, logprobs = '', []
+        sent, sent_logprobs = '', []
         for token, logprob in zip(output_tokens, logprobs):
-            sent += token; logprobs.append(logprob)
+            sent += token; sent_logprobs.append(logprob)
             if token == '.':
-                sents.append(sent); sents_logprobs.append(logprobs)
-                sent, logprobs = '', []
+                sents.append(sent); sents_logprobs.append(sent_logprobs)
+                sent, sent_logprobs = '', []
         if sent != '':
-            sents.append(sent); sents_logprobs.append(logprobs)
+            sents.append(sent); sents_logprobs.append(sent_logprobs)
         return sents, sents_logprobs
 
     output_list = [''] * len(questions)
@@ -303,8 +303,8 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
 
                 # check if each new sent needs retrieve, update stop_list, output_list, logprobs_list
                 sents, sents_logprobs = split_sents_and_logprobs(output_tokens_this_round, logprobs_this_round) # split output and logprobs to each sentences
-                print(sents)
-                print(sents_logprobs)
+                print(output_tokens_this_round)
+                # print(sents_logprobs)
                 if retrieve_times_list[idx] > 1:    # 1 means first retrieval using question, after that, each retrieval would make sure at least one more sentence is generated
                     output_list[idx] += sents[0]; logprobs_list[idx].extend(sents_logprobs[0])
                     if_retrieve_list[idx] = False
