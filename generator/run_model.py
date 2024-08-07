@@ -224,11 +224,12 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
         if retrieve_times >= max_iter or ret_doc_keys >= max_docs:
             return True
         else:
-            if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
-                if 'the answer is' in output or output.count('```') > 1:
+            if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:   # for qa, split first sentence
+                output_first_sent = output_this_round.split('.')[0] + '.'
+                if 'the answer is' in output_first_sent or output_first_sent.count('```') > 1:
                     return True
-            else:
-                if 'the code is' in output or ('<code>' in output and '</code>' in output):
+            else:   # for code, '.' might appear in generated code
+                if ('<code>' in output and '</code>' in output) or (output.count('```') > 1):
                     return True
         return False
 
@@ -254,11 +255,12 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                 ret_doc_keys_list[idx].extend(new_ret_doc_keys)
                 new_ret_doc_keys_list.append(new_ret_doc_keys)
                 retrieve_times_list[idx] += 1
+                print(f'{retrieve_times_list[idx]}th retrieve result: ', ret_doc_keys)
         # get ret_docs, update ret_docs_list
         if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
             new_ret_docs_list = WikiCorpusLoader().get_docs(new_ret_doc_keys_list, dataset, num_procs=8)
         else:
-            new_ret_docs_list = [truncate_docs(docs=PythonDocsLoader().get_docs(oracle_docs), model=model) for oracle_docs in new_ret_doc_keys_list]
+            new_ret_docs_list = [truncate_docs(docs=PythonDocsLoader().get_docs(oracle_docs), model=model, max_length=1000) for oracle_docs in new_ret_doc_keys_list]
         for idx, new_ret_docs in enumerate(new_ret_docs_list):
             ret_docs_list[idx].extend(new_ret_docs)
 
@@ -277,16 +279,18 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                 else:
                     [[output_this_round]], [[logprobs_this_round]] = llama(prompts=[prompts_list[idx][-1]], model_name=model, max_new_tokens=max_tokens, temperature=temperature, n=n, stop=stop)
                 output_tokens_list[idx].append(get_docs_tokens(docs=[output_this_round], model=model)[0])   # count output tokens of each generation
+                print(f'{retrieve_times_list[idx]}th generate output: ', output_this_round)
 
                 # check if retrieve should stop, update stop_list, output_list, logprobs_list
-                output_first_sent = output_this_round.split('.')[0] + '.'
-                if if_stop(dataset, output_first_sent, retrieve_times_list[idx], ret_docs_list[idx]):
+                if if_stop(dataset, output_this_round, retrieve_times_list[idx], ret_docs_list[idx]):
                     output_list[idx] += ' ' + output_this_round
                     logprobs_list[idx].extend(logprobs_this_round)
                     stop_list[idx] = True
                 else:
+                    output_first_sent = output_this_round.split('.')[0] + '.'
                     output_list[idx] += ' ' + output_first_sent
                     logprobs_list[idx].extend(logprobs_this_round[:get_docs_tokens([output_first_sent], model=model)[0]])
+                print('processed output: ', output_list[idx])
 
     return output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list
 
