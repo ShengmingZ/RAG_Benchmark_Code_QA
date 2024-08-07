@@ -152,7 +152,7 @@ class DenseRetrievalEncoder:
             all_embeddings = np.concatenate(all_embeddings, axis=0)
             print(f"done embedding: {all_embeddings.shape}")
 
-        if 'text-embedding' in self.model_name:
+        elif 'text-embedding' in self.model_name:
             OPENAI_TOKENIZER = "cl100k_base"
             OPENAI_MAX_TOKENS = 1000
             encoding = tiktoken.get_encoding(OPENAI_TOKENIZER)
@@ -185,7 +185,7 @@ class DenseRetrievalEncoder:
             print(f"done embedding: {all_embeddings.shape}")
 
 
-        if 'contriever' in self.model_name:
+        elif 'contriever' in self.model_name:
             with torch.no_grad():
                 all_embeddings = []
                 for i in tqdm(range(0, len(dataset), self.batch_size)):
@@ -198,41 +198,42 @@ class DenseRetrievalEncoder:
                 print(f"done embedding: {all_embeddings.shape}")
 
 
-        with torch.no_grad():
-            all_embeddings = []
-            for i in tqdm(range(0, len(dataset), self.batch_size)):
-                batch = dataset[i:i + self.batch_size]
+        else:
+            with torch.no_grad():
+                all_embeddings = []
+                for i in tqdm(range(0, len(dataset), self.batch_size)):
+                    batch = dataset[i:i + self.batch_size]
 
-                # tokenize
-                sent_features = self.tokenizer(batch, add_special_tokens=True, max_length=self.tokenizer.model_max_length, truncation=True)
-                arr = sent_features['input_ids']
+                    # tokenize
+                    sent_features = self.tokenizer(batch, add_special_tokens=True, max_length=self.tokenizer.model_max_length, truncation=True)
+                    arr = sent_features['input_ids']
 
-                # pad batch
-                lens = torch.LongTensor([len(a) for a in arr])
-                max_len = lens.max().item()
-                padded = torch.ones(len(arr), max_len, dtype=torch.long) * self.tokenizer.pad_token_id
-                mask = torch.zeros(len(arr), max_len, dtype=torch.long)
-                for i, a in enumerate(arr):
-                    padded[i, : lens[i]] = torch.tensor(a, dtype=torch.long)
-                    mask[i, : lens[i]] = 1
+                    # pad batch
+                    lens = torch.LongTensor([len(a) for a in arr])
+                    max_len = lens.max().item()
+                    padded = torch.ones(len(arr), max_len, dtype=torch.long) * self.tokenizer.pad_token_id
+                    mask = torch.zeros(len(arr), max_len, dtype=torch.long)
+                    for i, a in enumerate(arr):
+                        padded[i, : lens[i]] = torch.tensor(a, dtype=torch.long)
+                        mask[i, : lens[i]] = 1
 
-                # get embedding
-                input_ids, attention_mask, lengths = padded.to(self.device), mask.to(self.device), lens.to(self.device)
-                output = self.model(input_ids, attention_mask=attention_mask, output_hidden_states=False)
-                if 't5' in self.model_name:
-                    emb = output['last_hidden_state']
-                elif 'roberta' in self.model_name:
-                    emb = output.last_hidden_state
+                    # get embedding
+                    input_ids, attention_mask, lengths = padded.to(self.device), mask.to(self.device), lens.to(self.device)
+                    output = self.model(input_ids, attention_mask=attention_mask, output_hidden_states=False)
+                    if 't5' in self.model_name:
+                        emb = output['last_hidden_state']
+                    elif 'roberta' in self.model_name:
+                        emb = output.last_hidden_state
 
-                # pooling token embedding to get sentence embedding
-                emb.masked_fill_(~attention_mask.bool().unsqueeze(-1), 0)
-                emb = emb.sum(dim=1) / lengths.unsqueeze(-1)
-                # if self.normalize_embed:
-                #     emb = emb / emb.norm(dim=1, keepdim=True)
-                all_embeddings.append(emb.cpu())
+                    # pooling token embedding to get sentence embedding
+                    emb.masked_fill_(~attention_mask.bool().unsqueeze(-1), 0)
+                    emb = emb.sum(dim=1) / lengths.unsqueeze(-1)
+                    # if self.normalize_embed:
+                    #     emb = emb / emb.norm(dim=1, keepdim=True)
+                    all_embeddings.append(emb.cpu())
 
-            all_embeddings = np.concatenate(all_embeddings, axis=0)
-            print(f"done embedding: {all_embeddings.shape}")
+                all_embeddings = np.concatenate(all_embeddings, axis=0)
+                print(f"done embedding: {all_embeddings.shape}")
 
 
         if save_file is not None:
