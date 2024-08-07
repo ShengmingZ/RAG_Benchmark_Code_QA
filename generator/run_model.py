@@ -31,8 +31,8 @@ def completions_with_backoff(**kwargs):
     return client.chat.completions.create(**kwargs)
 
 
-def chatgpt(prompts, model, temperature=0.7, max_tokens=500, n=1, stop=None):
-    outputs_list, logprobs_list = list(), list()
+def chatgpt(prompts, model, temperature=0.7, max_tokens=500, n=1, stop=None, return_tokens=False):
+    outputs_list, logprobs_list, output_tokens_list = list(), list(), list()
     for prompt in tqdm(prompts, total=len(prompts)):
         sys_prompt, user_prompt = prompt
         messages = [{"role": "system", "content": sys_prompt}, {"role": "user", "content": user_prompt}]
@@ -43,7 +43,12 @@ def chatgpt(prompts, model, temperature=0.7, max_tokens=500, n=1, stop=None):
             logprobs.append([item.logprob for item in choice.logprobs.content])
         outputs_list.append(outputs)
         logprobs_list.append(logprobs)
+        output_tokens = []
+        for choice in response.choices:
+            output_tokens.append([item.token for item in choice.logprobs.content])
+        output_tokens_list.append(output_tokens)
 
+    if return_tokens: return outputs_list, logprobs_list, output_tokens_list
     return outputs_list, logprobs_list
 
 
@@ -117,7 +122,7 @@ def chatgpt_batch(prompt_file_for_batch, prompts, model, temperature=0.7, max_to
 
 
 
-def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature=0.6, n=1, stop=None):
+def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature=0.6, n=1, stop=None, return_tokens=False):
     """
     :param prompts:
     :param model_name:
@@ -142,12 +147,12 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature
         scores = outputs.scores
         probs = torch.stack(scores, dim=1).float().softmax(-1).cpu()
         log_probs = np.log(torch.gather(probs, 2, gen_sequences[:, :, None]).squeeze(-1))
-        return [tokenizer.decode(i) for i in gen_sequences][0], log_probs
+        return [tokenizer.decode(i) for i in gen_sequences][0], log_probs, [tokenizer.decode(id) for id in gen_sequences[0]]
 
-    texts_list, logprobs_list = [], []
+    texts_list, logprobs_list, texts_tokens_list = [], [], []
     for prompt in tqdm(prompts, total=len(prompts)):
         input_ids = tokenizer(prompt, return_tensors="pt")['input_ids'].to("cuda")
-        texts, logprobs = [], []
+        texts, logprobs, texts_tokens = [], [], []
         for _ in range(n):
             # try:
             if temperature == 0:
@@ -170,27 +175,23 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature
                     do_sample=True,
                     pad_token_id=tokenizer.eos_token_id
                 )
-            text, logprob = process_naive_output(input_ids.shape[-1], outputs, tokenizer)
+            text, logprob, text_tokens = process_naive_output(input_ids.shape[-1], outputs, tokenizer)
             # except:
             #     # use llama api
             #     raise Exception('out of GPU memory')
             texts.append(text)
             logprobs.append(logprob.tolist())
+            texts_tokens.append(text_tokens)
         del input_ids, outputs
         texts_list.append(texts)
         logprobs_list.append(logprobs)
+        texts_tokens_list.append(texts_tokens)
 
+    if return_tokens is True: return texts_list, logprobs_list, texts_tokens_list
     return texts_list, logprobs_list
 
 
-def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=500, n=1, stop=None):
-    # some hyperparameters
-    max_iter = 8
-    max_docs = 15 if dataset in ['NQ', 'TriviaQA', 'hotpotQA'] else 10
-    k = 4 if dataset in ['NQ', 'TriviaQA', 'hotpotQA'] else 2
-    assert n == 1
-    generate_func = _get_generate_func(dataset, no_ret_flag=False, prompt_type='cot')
-
+def prepare_faiss_search(dataset):
     # prepare for faiss search
     if dataset == 'hotpotQA':
         doc_id_list = WikiCorpusLoader().load_wiki_id(dataset)
@@ -218,18 +219,126 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
         doc_embed = np.load(ret_args.corpus_embed_file + '.npy').astype(np.float32)
         indexer = faiss.IndexFlatIP(doc_embed.shape[1])
         indexer.add(doc_embed)
+    return indexer, encoder, doc_id_list
 
+
+def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500, n=1, stop=None):
+    k = 10 if dataset in ['NQ', 'TriviaQA', 'hotpotQA'] else 5
+    assert n == 1
+    theta, beta = 0.8, 0.4
+    generate_func = _get_generate_func(dataset, no_ret_flag=False, prompt_type='cot')
+
+    indexer, encoder, doc_id_list = prepare_faiss_search(dataset)
+
+    def if_retrieve(output_tokens, logprobs):
+        import math
+        assert len(output_tokens) == len(logprobs)
+        probs = [math.exp(logprob) for logprob in logprobs]
+        ret_flag = False
+        query = ''
+        for idx, prob in enumerate(probs):
+            if prob < theta:
+                ret_flag = True
+                if prob > beta:     # mask token if prob < beta
+                    query += output_tokens[idx]
+        return ret_flag, query
+
+    def split_sents_and_logprobs(output_tokens, logprobs):
+        sents, sents_logprobs = [], []
+        sent, logprobs = '', []
+        for token, logprob in (output_tokens, logprobs):
+            sent += token; logprobs.append(logprob)
+            if token == '.':
+                sents.append(sent); sents_logprobs.append(logprobs)
+                sent, logprobs = '', []
+        if sent != '':
+            sents.append(sent); sents_logprobs.append(logprobs)
+        return sents, sents_logprobs
+
+    output_list = [''] * len(questions)
+    logprobs_list = [[]] * len(questions)
+    ret_doc_keys_list = [[]] * len(questions)
+    prompts_list = [[]] * len(questions)
+    output_tokens_list = [[]] * len(questions)
+    input_tokens_list = [[]] * len(questions)
+    retrieve_times_list = [0] * len(questions)
+    if_retrieve_list = [True] * len(questions)
+    queries_list = [[question] for question in questions]
+
+    while True in if_retrieve_list:
+        # first do retrieving for all non-stop samples, update ret_doc_keys_list
+        cur_ret_doc_keys_list = []
+        for idx, ret_flag in enumerate(if_retrieve_list):
+            if ret_flag:
+                embedding = encoder.encode(dataset=[queries_list[idx][-1]], save_file=None)  # store query for retriever in queries list
+                _, [retrieved_index] = indexer.search(embedding.astype(np.float32), k)
+                ret_doc_keys = [doc_id_list[x] for x in retrieved_index]
+                cur_ret_doc_keys_list.append(ret_doc_keys)
+                ret_doc_keys_list[idx].append(ret_doc_keys)     # record doc keys in each retrieve
+                retrieve_times_list[idx] += 1
+                print(f'{retrieve_times_list[idx]}th retrieve result: ', ret_doc_keys)
+        # get ret_docs, update ret_docs_list
+        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+            ret_docs_list = WikiCorpusLoader().get_docs(cur_ret_doc_keys_list, dataset, num_procs=8)
+        else:
+            ret_docs_list = [truncate_docs(docs=PythonDocsLoader().get_docs(oracle_docs), model=model, max_length=1000) for oracle_docs in cur_ret_doc_keys_list]
+
+        # ensemble prompts
+        for idx, ret_flag in enumerate(if_retrieve_list):
+            if ret_flag:
+                prompts_list[idx].append(generate_func(ret_docs_list[idx], questions[idx]+output_list[idx], model))
+                input_tokens_list[idx].append(get_docs_tokens(docs=[prompts_list[idx][-1]], model=model)[0])
+
+        # run models
+        for idx, ret_flag in enumerate(if_retrieve_list):
+            if ret_flag:
+                if 'gpt' in model:
+                    [[output_this_round]], [[logprobs_this_round]], [[output_tokens_this_round]] = (
+                        chatgpt(prompts=[prompts_list[idx][-1]], model=model, temperature=temperature, max_tokens=max_tokens, n=n, stop=stop, return_tokens=True))
+                else:
+                    [[output_this_round]], [[logprobs_this_round]], [[output_tokens_this_round]] = (
+                        llama(prompts=[prompts_list[idx][-1]], model_name=model, max_new_tokens=max_tokens, temperature=temperature, n=n, stop=stop, return_tokens=True))
+                output_tokens_list[idx].append(len(output_tokens_this_round))  # count output tokens of each generation
+                print(f'{retrieve_times_list[idx]}th generate output: ', output_this_round)
+
+                # check if each new sent needs retrieve, update stop_list, output_list, logprobs_list
+                sents, sents_logprobs = split_sents_and_logprobs(output_tokens_this_round, logprobs_this_round) # split output and logprobs to each sentences
+                for sent, logprobs in zip(sents, sents_logprobs):   # for each sentence, if need retrieve, deprecate sentences behind, query retriever
+                    ret_flag, new_query = if_retrieve(sent, logprobs)
+                    if ret_flag:
+                        if_retrieve_list[idx] = True
+                        queries_list[idx].append(new_query)
+                        break
+                    else:
+                        output_list[idx] += sent
+                        logprobs_list[idx].extend(logprobs)
+                        if_retrieve_list[idx] = False
+                    print('processed output: ', output_list[idx])
+
+    return output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, queries_list
+
+
+
+
+def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=500, n=1, stop=None):
+    # some hyperparameters
+    max_iter = 8
+    max_docs = 15 if dataset in ['NQ', 'TriviaQA', 'hotpotQA'] else 10
+    k = 4 if dataset in ['NQ', 'TriviaQA', 'hotpotQA'] else 2
+    assert n == 1
+    generate_func = _get_generate_func(dataset, no_ret_flag=False, prompt_type='cot')
+
+    indexer, encoder, doc_id_list = prepare_faiss_search(dataset)
 
     def if_stop(dataset, output, retrieve_times, ret_doc_keys): # test if interleaved retrieve should stop
         if retrieve_times >= max_iter or len(ret_doc_keys) >= max_docs:
             return True
         else:
-            output_first_sent = output.split('.')[0] + '.'
             if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:   # for qa, split first sentence
-                if 'the answer is' in output_first_sent or '```' in output_first_sent:
+                if 'the answer is' in output or '```' in output:
                     return True
-            else:   # for code, '.' might appear in generated code
-                if '<code>' in output_first_sent or '```' in output_first_sent:
+            else:
+                if '<code>' in output or '```' in output:
                     return True
         return False
 
@@ -248,7 +357,7 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
         new_ret_doc_keys_list = []
         for idx, stop_flag in enumerate(stop_list):
             if not stop_flag:
-                embedding = encoder.encode(dataset=[questions[idx]] if output_list[idx] == '' else [output_list[idx]], save_file=None)
+                embedding = encoder.encode(dataset=[questions[idx]] if output_list[idx] == '' else [output_list[idx].split('. ')[-1]], save_file=None)  # use qs or last gene sent to ret
                 _, [retrieved_index] = indexer.search(embedding.astype(np.float32), k)
                 ret_doc_keys = [doc_id_list[x] for x in retrieved_index]
                 new_ret_doc_keys = [item for item in ret_doc_keys if item not in ret_doc_keys_list[idx]][:max_docs-len(ret_doc_keys_list[idx])]
@@ -275,21 +384,28 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
         for idx, stop_flag in enumerate(stop_list):
             if not stop_flag:
                 if 'gpt' in model:
-                    [[output_this_round]], [[logprobs_this_round]] = chatgpt(prompts=[prompts_list[idx][-1]], model=model, temperature=temperature, max_tokens=max_tokens, n=n, stop=stop)
+                    [[output_this_round]], [[logprobs_this_round]], [[output_tokens_this_round]] = (
+                        chatgpt(prompts=[prompts_list[idx][-1]], model=model, temperature=temperature, max_tokens=max_tokens, n=n, stop=stop, return_tokens=True))
                 else:
-                    [[output_this_round]], [[logprobs_this_round]] = llama(prompts=[prompts_list[idx][-1]], model_name=model, max_new_tokens=max_tokens, temperature=temperature, n=n, stop=stop)
-                output_tokens_list[idx].append(get_docs_tokens(docs=[output_this_round], model=model)[0])   # count output tokens of each generation
+                    [[output_this_round]], [[logprobs_this_round]], [[output_tokens_this_round]] = (
+                        llama(prompts=[prompts_list[idx][-1]], model_name=model, max_new_tokens=max_tokens, temperature=temperature, n=n, stop=stop, return_tokens=True))
+                output_tokens_list[idx].append(len(output_tokens_this_round))   # count output tokens of each generation
                 print(f'{retrieve_times_list[idx]}th generate output: ', output_this_round)
 
                 # check if retrieve should stop, update stop_list, output_list, logprobs_list
-                if if_stop(dataset, output_this_round, retrieve_times_list[idx], ret_docs_list[idx]):
-                    output_list[idx] += ' ' + output_this_round
+                output_first_sent, logprobs_first_sent = '', []
+                assert len(output_tokens_this_round) == len(logprobs_this_round)
+                for token, logprob in zip(output_tokens_this_round, logprobs_this_round):
+                    output_first_sent += token
+                    logprobs_first_sent.append(logprob)
+                    if token == '.': break
+                if if_stop(dataset, output_first_sent, retrieve_times_list[idx], ret_docs_list[idx]):
+                    output_list[idx] += output_this_round
                     logprobs_list[idx].extend(logprobs_this_round)
                     stop_list[idx] = True
                 else:
-                    output_first_sent = output_this_round.split('.')[0] + '.'
-                    output_list[idx] += ' ' + output_first_sent
-                    logprobs_list[idx].extend(logprobs_this_round[:get_docs_tokens([output_first_sent], model=model)[0]])
+                    output_list[idx] += output_first_sent
+                    logprobs_list[idx].extend(logprobs_first_sent)
                 print('processed output: ', output_list[idx])
 
     return output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list
