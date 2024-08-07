@@ -191,24 +191,27 @@ class Generator:
                 output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list = (
                     run_model_for_ir_cot(questions=[qs['question'] for qs in self.qs_list], model=self.model, dataset=self.dataset,
                                          temperature=self.temperature, max_tokens=self.max_tokens, n=self.n, stop=self.stop))
-            else:
-                ...
+            elif self.prompt_type == 'flare':
+                output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, queries_list = (
+                    run_model_for_ir_cot(questions=[qs['question'] for qs in self.qs_list], model=self.model, dataset=self.dataset,
+                                         temperature=self.temperature, max_tokens=self.max_tokens, n=self.n, stop=self.stop))
             with open(self.prompt_save_file, 'w+') as f:    # save prompts
                 for idx in range(len(prompts_list)):
                     f.write(json.dumps(dict(ret_doc_keys=ret_doc_keys_list[idx],
                                             prompts=prompts_list[idx],
                                             input_tokens=input_tokens_list[idx],
                                             output_tokens=output_tokens_list[idx],
-                                            retrieve_times=retrieve_times_list[idx])) + '\n')
-            gene_results = list()   # save results
-            for idx, (output, logprobs) in enumerate(zip(output_list, logprobs_list)):
-                gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'],
-                                         question=self.qs_list[idx]['question'],
-                                         ret_docs=ret_doc_keys_list[idx],
-                                         outputs=[output],
-                                         logprobs=logprobs,
-                                         ))
-            save_results_to_files(self.result_save_file, gene_results, overwrite=True)
+                                            retrieve_times=retrieve_times_list[idx],
+                                            queries=queries_list[idx])) + '\n')
+            # gene_results = list()   # save results
+            # for idx, (output, logprobs) in enumerate(zip(output_list, logprobs_list)):
+            #     gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'],
+            #                              question=self.qs_list[idx]['question'],
+            #                              ret_docs=ret_doc_keys_list[idx],
+            #                              outputs=[output],
+            #                              logprobs=logprobs,
+            #                              ))
+            # save_results_to_files(self.result_save_file, gene_results, overwrite=True)
 
         else:
             # prepare for prompts
