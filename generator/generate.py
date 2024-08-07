@@ -200,15 +200,15 @@ class Generator:
                                             input_tokens=input_tokens_list[idx],
                                             output_tokens=output_tokens_list[idx],
                                             retrieve_times=retrieve_times_list[idx])) + '\n')
-            # gene_results = list()   # save results
-            # for idx, (output, logprobs) in enumerate(zip(output_list, logprobs_list)):
-            #     gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'],
-            #                              question=self.qs_list[idx]['question'],
-            #                              ret_docs=ret_doc_keys_list[idx],
-            #                              outputs=[output],
-            #                              logprobs=logprobs,
-            #                              ))
-            # save_results_to_files(self.result_save_file, gene_results, overwrite=True)
+            gene_results = list()   # save results
+            for idx, (output, logprobs) in enumerate(zip(output_list, logprobs_list)):
+                gene_results.append(dict(qs_id=self.qs_list[idx]['qs_id'],
+                                         question=self.qs_list[idx]['question'],
+                                         ret_docs=ret_doc_keys_list[idx],
+                                         outputs=[output],
+                                         logprobs=logprobs,
+                                         ))
+            save_results_to_files(self.result_save_file, gene_results, overwrite=True)
 
         else:
             # prepare for prompts
@@ -270,7 +270,7 @@ if __name__ == '__main__':
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis irrelevant_dummy_500'
     # in_program_call = '--model llama2-13b-chat --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type top_5'
     # todo: no sys prompt for all code, may use sys prompt for (qa, gpt), to avoid model not answer
-    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset DS1000 --retriever openai-embedding --analysis_type prompt_method --prompt_type ir-cot --action gene_responses'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset DS1000 --retriever openai-embedding --analysis_type prompt_method --prompt_type ir-cot --action gene_responses'
     args = generate_config(in_program_call)
     generator = Generator(args)
     # generator.test_prompt()
