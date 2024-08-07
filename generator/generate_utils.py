@@ -129,6 +129,7 @@ def get_docs_tokens(docs, model):
         import tiktoken
         encoding = tiktoken.encoding_for_model(model)
         for doc in docs:
+            if isinstance(doc, list): doc = doc[0] + doc[1] # sys prompt + user prompt
             encoded_doc = encoding.encode(doc)
             docs_tokens.append(len(encoded_doc))
     elif model.startswith('llama') or model.startswith('codellama'):
