@@ -312,11 +312,11 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
                     if ret_flag:
                         if_retrieve_list[idx] = True
                         queries_list[idx].append(new_query)
+                        print('new query: ', new_query)
                         break
                     else:
                         output_list[idx] += sent; logprobs_list[idx].extend(logprobs)
                         if_retrieve_list[idx] = False
-                    print('processed output: ', output_list[idx])
 
     return output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, queries_list
 
