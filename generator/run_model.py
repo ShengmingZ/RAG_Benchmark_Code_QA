@@ -246,9 +246,13 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
         sent, sent_tokens, sent_logprobs = '', [], []
         for token, logprob in zip(output_tokens, logprobs):
             sent += token; sent_logprobs.append(logprob); sent_tokens.append(token)
-            if token == '.':
+            if token == '.':    # if get ., record sentence
                 sents.append(sent); sents_logprobs.append(sent_logprobs); sents_tokens.append(sent_tokens)
                 sent, sent_tokens, sent_logprobs = '', [], []
+            if sent.count('```') > 2 or ('<code' in sent and '</code>' in sent):     # if get answer, record sentence and end
+                sents.append(sent); sents_logprobs.append(sent_logprobs); sents_tokens.append(sent_tokens)
+                sent, sent_tokens, sent_logprobs = '', [], []
+                break
         if sent != '':
             sents.append(sent); sents_logprobs.append(sent_logprobs); sents_tokens.append(sent_tokens)
         return sents, sents_tokens, sents_logprobs
@@ -306,6 +310,7 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
                     output_list[idx] += sents[0]; logprobs_list[idx].extend(sents_logprobs[0])
                     if_retrieve_list[idx] = False
                     sents = sents[1:]; sents_tokens = sents_tokens[1:]; sents_logprobs = sents_logprobs[1:]
+                # todo: 1.add if stop after model output the answer, avoid further generating 2. split code as an independent sentence (if <code> and </code> in sentence, then end)
                 for sent, sent_tokens, sent_logprobs in zip(sents, sents_tokens, sents_logprobs):   # for each sentence, if need retrieve, deprecate sentences behind, query retriever
                     ret_flag, new_query = if_retrieve(sent_tokens, sent_logprobs)
                     print(ret_flag, new_query)
