@@ -303,6 +303,8 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
 
                 # check if each new sent needs retrieve, update stop_list, output_list, logprobs_list
                 sents, sents_tokens, sents_logprobs = split_sents_and_logprobs(output_tokens_this_round, logprobs_this_round) # split output and logprobs to each sentences
+                print(sents_tokens)
+                print(sents_logprobs)
                 if retrieve_times_list[idx] > 1:    # 1 means first retrieval using question, after that, each retrieval would make sure at least one more sentence is generated
                     output_list[idx] += sents[0]; logprobs_list[idx].extend(sents_logprobs[0])
                     if_retrieve_list[idx] = False
