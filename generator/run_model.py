@@ -237,10 +237,8 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
         ret_flag = False
         query = ''
         for idx, prob in enumerate(probs):
-            if prob < theta:
-                ret_flag = True
-                if prob > beta:     # mask token if prob < beta
-                    query += output_tokens[idx]
+            if prob < theta: ret_flag = True
+            if prob > beta: query += output_tokens[idx]    # mask token if prob < beta
         return ret_flag, query
 
     def split_sents_and_logprobs(output_tokens, logprobs):

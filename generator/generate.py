@@ -187,6 +187,7 @@ class Generator:
 
         if self.prompt_type == 'ir-cot' or self.prompt_type == 'flare':     # multi retrieval framework
             if self.prompt_type == 'ir-cot':
+                self.qs_list = self.qs_list[1:2]
                 output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list = (
                     run_model_for_ir_cot(questions=[qs['question'] for qs in self.qs_list], model=self.model, dataset=self.dataset,
                                          temperature=self.temperature, max_tokens=self.max_tokens, n=self.n, stop=self.stop))
@@ -273,7 +274,7 @@ if __name__ == '__main__':
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis irrelevant_dummy_500'
     # in_program_call = '--model llama2-13b-chat --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type top_5'
     # todo: no sys prompt for all code, may use sys prompt for (qa, gpt), to avoid model not answer
-    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset DS1000 --retriever openai-embedding --analysis_type prompt_method --prompt_type flare --action gene_responses'
+    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset DS1000 --retriever openai-embedding --analysis_type prompt_method --prompt_type ir-cot --action gene_responses'
     args = generate_config(in_program_call)
     generator = Generator(args)
     # generator.test_prompt()
