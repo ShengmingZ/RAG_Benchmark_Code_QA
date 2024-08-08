@@ -318,6 +318,7 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
                     else:
                         output_list[idx] += sent; logprobs_list[idx].extend(sent_logprobs)
                         if_retrieve_list[idx] = False
+            print(f'final output in {retrieve_times_list[idx]}th: ', output_list[idx])
 
     return output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, queries_list
 
