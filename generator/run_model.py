@@ -224,8 +224,8 @@ def prepare_faiss_search(dataset):
 
 def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500, n=1, stop=None):
     k = 10 if dataset in ['NQ', 'TriviaQA', 'hotpotQA'] else 5
-    assert n == 1
     theta, beta = 0.8, 0.4
+    assert n == 1
     generate_func = _get_generate_func(dataset, no_ret_flag=False, prompt_type='cot')
 
     indexer, encoder, doc_id_list = prepare_faiss_search(dataset)
