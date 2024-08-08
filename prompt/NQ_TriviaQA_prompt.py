@@ -356,6 +356,25 @@ def prompt_cot(ret_docs, question, model):
     return prompt
 
 
+# def prompt_ape():
+#     import sys, platform
+#     import random
+#     system = platform.system()
+#     if system == 'Darwin':
+#         root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+#     elif system == 'Linux':
+#         root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+#     sys.path.insert(0, root_path)
+#     from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
+#     from dataset_utils.corpus_utils import WikiCorpusLoader
+#     loader = NQTriviaQAUtils('NQ')
+#     qs_list = loader.load_qs_list()
+#     oracle_list = loader.load_oracle_list()
+#     indices = random.sample(range(len(qs_list)), 30)
+#     demo_qs_list = indices
+
+
+
 if __name__ == '__main__':
     """get random samples as few shot examples"""
     import sys, platform
@@ -393,9 +412,6 @@ if __name__ == '__main__':
                          'Prokaryote A prokaryote is usually a unicellular organism, sometimes a multi-cellular organism, that lacks a membrane-bound nucleus, mitochondria, or any other membrane-bound organelle. The word ""prokaryote"" comes from the Greek πρό (""pro"") ""before"" and κάρυον (""karyon"") ""nut or kernel"". Prokaryotes are divided into two domains, Archaea and Bacteria. In contrast, species with nuclei and organelles are placed in the third domain, Eukaryota. Prokaryotes reproduce without fusion of gametes. The first living organisms are thought to have been prokaryotes. In the prokaryotes, all the intracellular water-soluble components (proteins, DNA and metabolites) are located together in the cytoplasm enclosed by the cell']
     for idx in range(len(NQ_few_shots)): NQ_few_shots[idx]['answer'] = NQ_few_shots[idx]['answers'][0]
 
-    # dataset = 'TriviaQA'
-    # get_few_shots(dataset, k=3)
-
     TriviaQA_few_shots = [{'question': 'In which 70s musical did Paul Michael Glaser star?', 'answers': ['Fiddler on a Roof', 'Fiddler on the roof', 'Sprintze', 'Fiddler On the Roof', '2 life', 'Fiddler On The Roof', 'The Fiddler on the Roof', 'Fiddler on the Roof', 'Fiddler on the reoof', 'Anatevka'], 'oracle_doc': '4412859'},
                           {'question': 'Who succeeded General Joseph Johnston as the Commander of the Army of Northern Virginia?', 'answers': ['Anne Hill Carter', 'Robert Edward Lee', 'R.E. Lee', 'Lee, Robert Edward', 'Col. Robert E. Lee', 'Gen. Robert E. Lee', 'General Robert E. Lee', 'Robert E. Lee (Confederate general)', 'R E Lee', 'R. E. Lee', 'R.e. lee', 'Robert E. Lee', 'Robert E Lee'], 'oracle_doc': '1916548'},
                           {'question': 'Which of the Canary Islands has the nickname ‘windy island’?', 'answers': ['Fuertaventura', 'Fuerteventura Island', 'Fuerteventura', 'Fuerteventura, Spain', 'Fuerta fentura', 'Fuertoventura'], 'oracle_doc': '14586688'}]
@@ -406,10 +422,13 @@ if __name__ == '__main__':
     TriviaQA_few_shots[0]['answer'] = TriviaQA_few_shots[0]['answers'][-2]
     TriviaQA_few_shots[0]['answer'] = TriviaQA_few_shots[0]['answers'][2]
 
-    dataset = 'NQ'
-    if dataset == 'NQ': few_shots, few_shots_docs = NQ_few_shots, NQ_few_shots_docs
-    else: few_shots, few_shots_docs = TriviaQA_few_shots, TriviaQA_few_shots_docs
-    for shot, doc in zip(few_shots, few_shots_docs):
-        prompt = prompt_0shot(ret_docs=[doc], question=shot['question'], model='gpt-3.5-turbo-0125')[1]
-        prompt += f'\n\n## Answer:\n<answer>{shot["answer"]}</answer>'
-        print(prompt)
+    # dataset = 'NQ'
+    # get_few_shots(dataset, k=30)
+    #
+    # dataset = 'NQ'
+    # if dataset == 'NQ': few_shots, few_shots_docs = NQ_few_shots, NQ_few_shots_docs
+    # else: few_shots, few_shots_docs = TriviaQA_few_shots, TriviaQA_few_shots_docs
+    # for shot, doc in zip(few_shots, few_shots_docs):
+    #     prompt = prompt_0shot(ret_docs=[doc], question=shot['question'], model='gpt-3.5-turbo-0125')[1]
+    #     prompt += f'\n\n## Answer:\n<answer>{shot["answer"]}</answer>'
+    #     print(prompt)

@@ -216,7 +216,7 @@ def generate_config(in_program_call=None):
     parser.add_argument('--ret_doc_type', type=str, default='retrieved', choices=['oracle', 'retrieved', 'distracting', 'random', 'irrelevant_dummy', 'irrelevant_diff', 'none', 'ellipsis', 'retrieved_top'])
     parser.add_argument('--doc_selection_type', type=str, default=None)
     parser.add_argument('--doc_max_length', type=int, default=1000)
-    parser.add_argument('--prompt_type', type=str, default='0shot', choices=['3shot', '0shot', 'cot', 'least_to_most', 'plan_and_solve', 'self-consistency', 'ir-cot', 'flare'])
+    parser.add_argument('--prompt_type', type=str, default='0shot', choices=['3shot', '0shot', 'cot', 'least_to_most', 'plan_and_solve', 'self-consistency', 'ir-cot', 'flare', 'self-refine', 'CoN', 'APE'])
     parser.add_argument('--pl_analysis', type=str, default=None)
 
     args = parser.parse_args() if in_program_call is None else parser.parse_args(shlex.split(in_program_call))

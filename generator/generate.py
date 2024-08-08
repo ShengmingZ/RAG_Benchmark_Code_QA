@@ -282,7 +282,7 @@ if __name__ == '__main__':
     if args.action == 'gene_prompts':
         generator.save_prompts()
     elif args.action == 'gene_responses':
-        gene_results = generator.gene_response()
+        generator.gene_response()
     elif args.action == 'eval_pred':
         pred_eval(args)
 
