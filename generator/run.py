@@ -11,7 +11,7 @@ def config():
     parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection_topk', 'retrieval_doc_selection_pl',
                                                               'prompt_length_0', 'prompt_length_500', 'prompt_length_1000', 'prompt_length_1500', 'prompt_length_2000',
                                                               'prompt_length_4000', 'prompt_length_6000', 'prompt_length_8000', 'prompt_method'])
-    parser.add_argument('--prompt_type', type=str, default=None, choices=['3shot'])
+    parser.add_argument('--prompt_type', type=str, default=None, choices=['3shot', 'cot', 'self-consistency'])
     parser.add_argument('--action', type=str, choices=['gene_prompts', 'gene_responses', 'eval_pred'])
     parser.add_argument('--n', type=int)
     parser.add_argument('--batch', action='store_true')
@@ -201,6 +201,9 @@ elif args.analysis_type == 'prompt_method':     # run by dataset
             batch_cmd = batch_cmd + cmd + ' & '
     else:
         for dataset_name in dataset_names:
+            if 'llama' in args.model:
+                if dataset_name in ['NQ', 'TriviaQA', 'hotpotQA']: args.model = 'llama2-13b-chat'
+                else: args.model = 'codellama-13b-instruct'
             cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} '
                    f'--dataset {dataset_name} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --prompt_type {args.prompt_type}')
             cmds.append(cmd)
