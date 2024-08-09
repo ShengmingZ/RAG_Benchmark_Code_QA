@@ -10,7 +10,7 @@ top_ks = [1, 3, 5, 10, 20, 50, 100]
 ret_recalls = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
 # ret_doc_types = ["oracle", "retrieved", "distracting", "random", "irrelevant_dummy", "irrelevant_diff", "none"]
 ret_doc_types = ["oracle", "distracting", "random", "irrelevant_dummy", "irrelevant_diff"]
-qa_gpt_doc_selection_types = ['top_1', 'top_20', 'top_40', 'top_60', 'top_80']
+qa_gpt_doc_selection_types = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20', 'top_40', 'top_60', 'top_80']
 qa_llama_doc_selection_types = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
 code_gpt_doc_selection_types = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
 code_llama_doc_selection_types = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
@@ -47,7 +47,7 @@ def make_doc_selection_topk_syntax_semantic_error():
     code_dataset_names.append('avg semantic error')
 
     plt.style.use('ggplot')
-    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(12, 4))
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(18, 4))
     colors1 = plt.cm.viridis(np.linspace(0, 0.9, len(code_dataset_names)))
     colors2 = plt.cm.plasma(np.linspace(0, 0.9, len(code_dataset_names)))
 
@@ -110,7 +110,7 @@ def make_doc_selection_topk_analysis():
     code_dataset_names.append('code avg')
 
     plt.style.use('ggplot')
-    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(12, 4))
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(24, 4))
     colors1 = plt.cm.viridis(np.linspace(0, 0.9, len(qa_dataset_names)))
     colors2 = plt.cm.plasma(np.linspace(0, 0.9, len(code_dataset_names)))
 
@@ -127,7 +127,9 @@ def make_doc_selection_topk_analysis():
         for idx, dataset_name in enumerate(dataset_names):
             ax.plot(topk_list[ax_idx], perf_datas[idx], marker='o', linestyle='-', label=dataset_name, color=colors[idx])
         ax.set_ylabel('Performance')
-        ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        if ax_idx in [1,3]: ax.set_yticks([0.4, 0.6, 0.8, 1.0])
+        elif ax_idx == 0: ax.set_yticks([0, 0.2, 0.4, 0.6])
+        elif ax_idx == 2: ax.set_yticks([0.2, 0.4, 0.6, 0.8])
         if ax_idx == 0:
             ax.set_title('Code Datasets, llama2-13b', fontsize=10)
         elif ax_idx == 1:
@@ -218,17 +220,18 @@ def make_ret_doc_type_perplexity():
 
 def make_ret_doc_type_analysis():
     graph_name = 'ret_doc_type_analysis.pdf'
+    metric = 'f1'
     gpt_perf_datas = []
     for dataset_name in qa_dataset_names:
         gpt_perf_datas.append(
-            [results.qa_ret_doc_type_gpt_n_1[dataset_name][ret_doc_type]['recall'] for ret_doc_type in ret_doc_types])
+            [results.qa_ret_doc_type_gpt_n_1[dataset_name][ret_doc_type][metric] for ret_doc_type in ret_doc_types])
     for dataset_name in code_dataset_names:
         gpt_perf_datas.append(
             [results.code_ret_doc_type_gpt_n_1[dataset_name][ret_doc_type]['pass@1'] for ret_doc_type in ret_doc_types])
     llama_perf_datas = []
     for dataset_name in qa_dataset_names:
         llama_perf_datas.append(
-            [results.qa_ret_doc_type_llama_n_1[dataset_name][ret_doc_type]['recall'] for ret_doc_type in ret_doc_types])
+            [results.qa_ret_doc_type_llama_n_1[dataset_name][ret_doc_type][metric] for ret_doc_type in ret_doc_types])
     for dataset_name in code_dataset_names:
         llama_perf_datas.append(
             [results.code_ret_doc_type_llama_n_1[dataset_name][ret_doc_type]['pass@1'] for ret_doc_type in ret_doc_types])
@@ -280,7 +283,7 @@ def make_ret_doc_type_analysis():
     for idx, ax in enumerate(axs):
         ax.bar(range(len(qa_gpt_perf_datas[idx])), qa_gpt_perf_datas[idx], label=ret_doc_types, color=colors1)
         ax.set_xlabel(qa_dataset_names[idx])
-        ax.set_ylabel('Recall')
+        ax.set_ylabel(metric)
         ax.set_yticks(yticks_list[idx])
         ax.set_ylim(yticks_list[idx][0], yticks_list[idx][-1])
     axs = [ax4, ax5, ax6]
@@ -296,7 +299,7 @@ def make_ret_doc_type_analysis():
     for idx, ax in enumerate(axs):
         ax.bar(range(len(qa_llama_perf_datas[idx])), qa_llama_perf_datas[idx], label=ret_doc_types, color=colors1)
         ax.set_xlabel(qa_dataset_names[idx])
-        ax.set_ylabel('Recall')
+        ax.set_ylabel(metric)
         ax.set_yticks(yticks_list[idx])
         ax.set_ylim(yticks_list[idx][0], yticks_list[idx][-1])
     axs = [ax10, ax11, ax12]
@@ -318,23 +321,24 @@ def make_ret_doc_type_analysis():
 
 def make_ret_recall_analysis():
     graph_name = 'ret_recall_analysis.pdf'
+    metric = 'f1'
     gpt_perf_datas = []
     for dataset_name in qa_dataset_names:
         gpt_perf_datas.append(
-            [results.qa_ret_recall_gpt_n_1[dataset_name][ret_recall]['recall'] for ret_recall in ret_recalls])
+            [results.qa_ret_recall_gpt_n_1[dataset_name][ret_recall][metric] for ret_recall in ret_recalls])
     for dataset_name in code_dataset_names:
         gpt_perf_datas.append(
             [results.code_ret_recall_gpt_n_1[dataset_name][ret_recall]['pass@1'] for ret_recall in ret_recalls])
     llama_perf_datas = []
     for dataset_name in qa_dataset_names:
         llama_perf_datas.append(
-            [results.qa_ret_recall_llama_n_1[dataset_name][ret_recall]['recall'] for ret_recall in ret_recalls])
+            [results.qa_ret_recall_llama_n_1[dataset_name][ret_recall][metric] for ret_recall in ret_recalls])
     for dataset_name in code_dataset_names:
         llama_perf_datas.append(
             [results.code_ret_recall_llama_n_1[dataset_name][ret_recall]['pass@1'] for ret_recall in ret_recalls])
-    gpt_perf_none = [results.qa_ret_doc_type_gpt_n_1[dataset_name]['none']['recall'] for dataset_name in qa_dataset_names]
+    gpt_perf_none = [results.qa_ret_doc_type_gpt_n_1[dataset_name]['none'][metric] for dataset_name in qa_dataset_names]
     gpt_perf_none.extend([results.code_ret_doc_type_gpt_n_1[dataset_name]['none']['pass@1'] for dataset_name in code_dataset_names])
-    llama_perf_none = [results.qa_ret_doc_type_llama_n_1[dataset_name]['none']['recall'] for dataset_name in qa_dataset_names]
+    llama_perf_none = [results.qa_ret_doc_type_llama_n_1[dataset_name]['none'][metric] for dataset_name in qa_dataset_names]
     llama_perf_none.extend([results.code_ret_doc_type_llama_n_1[dataset_name]['none']['pass@1'] for dataset_name in code_dataset_names])
     x = range(len(gpt_perf_datas[0]))
     plt.style.use('ggplot')
@@ -343,7 +347,7 @@ def make_ret_recall_analysis():
         line, = ax1.plot(x, perf_data, marker='o', linestyle='-', label=dataset_name)
         ax1.axhline(y=llama_perf_none[idx], color=line.get_color(), linestyle='--', label='no ret')  # plot none result
     ax1.set_xlabel('retrieval recall')
-    ax1.set_ylabel('performance')
+    ax1.set_ylabel(f'{metric} / pass@1')
     ax1.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     ax1.set_xticks(x, ret_recalls)
     ax1.set_title('Retrieval Recall: llama2-13b performance')
@@ -351,7 +355,7 @@ def make_ret_recall_analysis():
         line, = ax2.plot(x, perf_data, marker='o', linestyle='-', label=dataset_name)
         ax2.axhline(y=gpt_perf_none[idx], color=line.get_color(), linestyle='--', label='no ret')   # plot none result
     ax2.set_xlabel('retrieval recall')
-    ax2.set_ylabel('performance')
+    ax2.set_ylabel(f'{metric} / pass@1')
     ax2.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     ax2.set_xticks(x, ret_recalls)
     ax2.set_title('Retrieval Recall: gpt-3.5 performance')
@@ -499,6 +503,6 @@ if __name__ == '__main__':
 
     # make_qa_code_retriever_perf()
 
-    make_ret_doc_type_perplexity()
+    # make_ret_doc_type_perplexity()
 
-    # make_doc_selection_topk_syntax_semantic_error()
+    make_doc_selection_topk_syntax_semantic_error()

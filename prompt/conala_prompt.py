@@ -80,7 +80,7 @@ numpy.loadtxt('test.csv', delimiter=',')
 """
 
     if 'gpt' in model:
-        prompt = ['Your task is to generate a one line python code according to the Code Description', user_prompt]
+        prompt = ['', user_prompt]
     else:
         prompt = user_prompt
     return prompt

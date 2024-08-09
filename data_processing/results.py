@@ -64,12 +64,14 @@ retriever_perf_llama = {
     },
     'TriviaQA': {
         'BM25': {'em': 0.1915, 'f1': 0.366, 'prec': 0.297, 'recall': 0.842},
+        'BM25-5': {'em': 0.135, 'f1': 0.317, 'prec': 0.245, 'recall': 0.814, 'ret_recall': 0.786, 'oracle_percent': 0.435, 'oracle_rank': 1.556, 'prompt_length': 955.889, 'perplexity': 1.062},
         'miniLM': {'em': 0.1745, 'f1': 0.3471259913860253, 'prec': 0.27950000384825197, 'recall': 0.8294466450216446},
         'openai-embedding': {'em': 0.202, 'f1': 0.37776666224593414, 'prec': 0.30937274681893795, 'recall': 0.8608916666666661},
         'contriever': {'em': 0.141, 'f1': 0.32077085408830275, 'prec': 0.2508410955069186, 'recall': 0.8228712301587301}
     },
     'hotpotQA': {
         'BM25': {'em': 0.0505, 'f1': 0.174, 'prec': 0.131, 'recall': 0.533},
+        'BM25-5': {'em': 0.087, 'f1': 0.208, 'prec': 0.17, 'recall': 0.489, 'ret_recall': 0.47, 'oracle_percent': 0.188, 'oracle_rank': 1.761, 'prompt_length': 557.407, 'perplexity': 1.062},
         'miniLM': {'em': 0.0505, 'f1': 0.15961374764570338, 'prec': 0.12033470411281898, 'recall': 0.4730590326340328},
         'openai-embedding': {'em': 0.046, 'f1': 0.1689016592149802, 'prec': 0.12540486085884342, 'recall': 0.5360708832833833},
         'contriever': {'em': 0.034, 'f1': 0.1464155973383291, 'prec': 0.10548973484569028, 'recall': 0.4808009157509159}
@@ -98,18 +100,21 @@ retriever_perf_llama = {
 retriever_perf_gpt = {
     'NQ': {
         'BM25': {'em': 0.254, 'f1': 0.38, 'prec': 0.372, 'recall': 0.479},
+        'BM25-5': {'em': 0.227, 'f1': 0.34, 'prec': 0.334, 'recall': 0.434, 'ret_recall': 0.47, 'oracle_percent': 0.176, 'oracle_rank': 2.017, 'prompt_length': 782.45, 'perplexity': 1.045},
         'miniLM': {'em': 0.319, 'f1': 0.45539919755019664, 'prec': 0.43953505825638856, 'recall': 0.5902750000000003},
         'openai-embedding': {'em': 0.344, 'f1': 0.489, 'prec': 0.475, 'recall': 0.623, 'ret_recall': 0.816, 'oracle_percent': 0.242, 'oracle_rank': 2.277, 'prompt_length': 1460.296, 'perplexity': 1.039},
         'contriever': {'em': 0.267, 'f1': 0.39120396494624526, 'prec': 0.38556238871240267, 'recall': 0.4977666666666666}
     },
     'TriviaQA': {
         'BM25': {'em': 0.6305, 'f1': 0.717, 'prec': 0.693, 'recall': 0.803},
+        'BM25-5': {'em': 0.608, 'f1': 0.691, 'prec': 0.668, 'recall': 0.777, 'ret_recall': 0.786, 'oracle_percent': 0.435, 'oracle_rank': 1.556, 'prompt_length': 805.601, 'perplexity': 1.025},
         'miniLM': {'em': 0.646, 'f1': 0.7243253494273003, 'prec': 0.7028446331778762, 'recall': 0.8075787878787877},
         'openai-embedding': {'em': 0.6705, 'f1': 0.7523535426367305, 'prec': 0.7286757299584995, 'recall': 0.8371984848484849},
         'contriever': {'em': 0.633, 'f1': 0.7104561200428963, 'prec': 0.6893711013373296, 'recall': 0.7928833333333333}
     },
     'hotpotQA': {
         'BM25': {'em': 0.2905, 'f1': 0.414, 'prec': 0.419, 'recall': 0.464},
+        'BM25-5': {'em': 0.274, 'f1': 0.393, 'prec': 0.399, 'recall': 0.441, 'ret_recall': 0.47, 'oracle_percent': 0.188, 'oracle_rank': 1.761, 'prompt_length': 458.979, 'perplexity': 1.036},
         'miniLM': {'em': 0.241, 'f1': 0.3584158256474385, 'prec': 0.36329800027556275, 'recall': 0.4102590298590299},
         'openai-embedding': {'em': 0.295, 'f1': 0.42051786332163515, 'prec': 0.42574595857381387, 'recall': 0.47493446275946294},
         'contriever': {'em': 0.263, 'f1': 0.380517603212683, 'prec': 0.3865593114832381, 'recall': 0.43119434731934764}
