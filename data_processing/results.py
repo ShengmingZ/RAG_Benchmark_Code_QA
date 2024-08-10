@@ -942,18 +942,22 @@ prompt_method_gpt = {
     'NQ': {
         '0shot': {'em': 0.344, 'f1': 0.489, 'prec': 0.475, 'recall': 0.623, 'ret_recall': 0.816, 'oracle_percent': 0.242, 'oracle_rank': 2.277, 'prompt_length': 1460.296, 'perplexity': 1.039},
         '3shot': {'em': 0.29, 'f1': 0.426, 'prec': 0.41, 'recall': 0.57, 'ret_recall': 0.816, 'oracle_percent': 0.242, 'oracle_rank': 2.277, 'prompt_length': 1919.292, 'perplexity': 1.088},   # cannot answer becomes more
+        'cot': {'em': 0.0, 'f1': 0.102, 'prec': 0.058, 'recall': 0.662, 'ret_recall': 0.816, 'oracle_percent': 0.242, 'oracle_rank': 2.277, 'prompt_length': 2066.291, 'perplexity': 1.142}
     },
     'TriviaQA': {
         '0shot': {'em': 0.671, 'f1': 0.752, 'prec': 0.729, 'recall': 0.837},
         '3shot': {'em': 0.499, 'f1': 0.595, 'prec': 0.56, 'recall': 0.799, 'ret_recall': 0.917, 'oracle_percent': 0.443, 'oracle_rank': 1.8, 'prompt_length': 1959.313, 'perplexity': 1.088},
+        'cot': {'em': 0.0, 'f1': 0.13, 'prec': 0.075, 'recall': 0.87, 'ret_recall': 0.917, 'oracle_percent': 0.443, 'oracle_rank': 1.8, 'prompt_length': 2106.314, 'perplexity': 1.156}
     },
     'hotpotQA': {
         '0shot': {'em': 0.295, 'f1': 0.421, 'prec': 0.426, 'recall': 0.475},
         '3shot': {'em': 0.291, 'f1': 0.401, 'prec': 0.407, 'recall': 0.482, 'ret_recall': 0.639, 'oracle_percent': 0.128, 'oracle_rank': 2.225, 'prompt_length': 1805.863, 'perplexity': 1.096},
+        'cot': {'em': 0.0, 'f1': 0.077, 'prec': 0.043, 'recall': 0.595, 'ret_recall': 0.639, 'oracle_percent': 0.128, 'oracle_rank': 2.225, 'prompt_length': 2007.836, 'perplexity': 1.148}
     },
     'conala': {
         '0shot': {'pass@1': 0.274, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.5, 'prompt_length': 484.774},
         '3shot': {'pass@1': 0.333, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.5, 'prompt_length': 2578.786, 'perplexity': 1.04, 'retrieval_consistency': 0.726, 'syntax_error_percent': 0.238, 'semantic_error_percent': 0.357},
+        'cot': {'pass@1': 0.107, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.5, 'prompt_length': 2683.786, 'perplexity': 1.101, 'retrieval_consistency': 0.881, 'syntax_error_percent': 0.631, 'semantic_error_percent': 0.298}
     },
     'DS1000': {
         '0shot': {'pass@1': 0.323, 'ret_recall': 0.117, 'oracle_percent': 0.054, 'oracle_rank': 2.31, 'prompt_length': 3139.516},

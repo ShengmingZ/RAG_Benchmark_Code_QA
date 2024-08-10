@@ -1,6 +1,5 @@
 import os, json
 import time
-import faiss, h5py
 import openai
 from collections import OrderedDict
 import backoff
@@ -192,6 +191,7 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature
 
 
 def prepare_faiss_search(dataset):
+    import faiss, h5py
     # prepare for faiss search
     if dataset == 'hotpotQA':
         doc_id_list = WikiCorpusLoader().load_wiki_id(dataset)
