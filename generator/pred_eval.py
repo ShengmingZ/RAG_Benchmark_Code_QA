@@ -181,11 +181,18 @@ def process_gene_results(args, outputs, code_prompt=None):
             raise ValueError('Unrecognized model: {}'.format(args.model))
 
     elif args.dataset == 'NQ' or args.dataset == 'TriviaQA' or args.dataset == 'hotpotQA':
-        for output in outputs:
-            try:
-                pred = output.split('<answer>')[1].split('</answer>')[0]
-            except: pred = output
-            preds.append(pred)
+        if args.prompt_type == 'cot':
+            for output in outputs:
+                try:
+                    pred = output.split('```')[1].split('```')[0]
+                except: pred = output
+                preds.append(pred)
+        else:
+            for output in outputs:
+                try:
+                    pred = output.split('<answer>')[1].split('</answer>')[0]
+                except: pred = output
+                preds.append(pred)
 
     else:
         raise Exception('Not Implemented')
@@ -193,7 +200,7 @@ def process_gene_results(args, outputs, code_prompt=None):
     return preds
 
 
-def pred_eval(args):
+def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_analysis=True, if_save=True):
     eval_save_file = args.result_save_file.replace('.json', '_eval.json')
     # if os.path.exists(eval_save_file):
     #     print('eval file exists already, {}'.format(eval_save_file))
@@ -278,15 +285,6 @@ def pred_eval(args):
     else:
         raise ValueError('Not supported dataset {}'.format(args.dataset))
 
-    # prompt length, only calc when prompt save file exists
-    # if os.path.exists(args.prompt_save_file):
-    #     total_prompt_length = 0
-    #     with open(args.prompt_save_file, 'r') as f:
-    #         for line in f:
-    #             total_prompt_length += json.loads(line)['prompt_length']
-    #     avg_prompt_length = total_prompt_length / len(gene_results)
-    #     assert isinstance(scores, dict)
-    #     scores['avg_prompt_length'] = avg_prompt_length
     ret_doc_keys_list, prompts, pl_list = [], [], []
     with open(args.prompt_save_file, 'r') as f:
         for line in f:
@@ -294,49 +292,58 @@ def pred_eval(args):
             if len(data['ret_doc_keys']) != 0: ret_doc_keys_list.append(data['ret_doc_keys'])
             prompts.append(data['prompt'])
             pl_list.append(data['prompt_length'])
-    if len(ret_doc_keys_list) != 0:
-        oracle_list = loader.load_oracle_list()
-        ret_doc_key_flags_list, avg_ret_recall, avg_oracle_percent, avg_oracle_rank = ret_eval_by_doc_keys(dataset=args.dataset, oracle_list=oracle_list, ret_doc_keys_list=ret_doc_keys_list)
-        # print('ret recall: ', avg_ret_recall)
-        # print('avg oracle doc percentage: ', avg_oracle_percent)
-        # print('avg oracle doc rank: ', avg_oracle_rank + 1)  # rank start from 1
-        # print('avg prompt length: ', sum(pl_list) / len(pl_list))
-        scores['ret_recall'] = avg_ret_recall
-        scores['oracle_percent'] = avg_oracle_percent
-        scores['oracle_rank'] = avg_oracle_rank
+
+    ret_doc_key_flags_list = None
+    if len(ret_doc_keys_list) != 0 and if_eval_retrieval is True:
+        def eval_retrieval(scores : dict):
+            oracle_list = loader.load_oracle_list()
+            ret_doc_key_flags_list, avg_ret_recall, avg_oracle_percent, avg_oracle_rank = ret_eval_by_doc_keys(dataset=args.dataset, oracle_list=oracle_list, ret_doc_keys_list=ret_doc_keys_list)
+            # print('ret recall: ', avg_ret_recall)
+            # print('avg oracle doc percentage: ', avg_oracle_percent)
+            # print('avg oracle doc rank: ', avg_oracle_rank + 1)  # rank start from 1
+            # print('avg prompt length: ', sum(pl_list) / len(pl_list))
+            scores['ret_recall'] = avg_ret_recall
+            scores['oracle_percent'] = avg_oracle_percent
+            scores['oracle_rank'] = avg_oracle_rank
+            return ret_doc_key_flags_list
+        ret_doc_key_flags_list = eval_retrieval(scores)
     scores['prompt_length'] = sum(pl_list) / len(pl_list)
+
     # calc perplexity
-    perplexity = 0
-    for result in gene_results:
-        logprobs = result['logprobs'][0]  # todo: only for n=1
-        if 'llama' in args.model: logprobs = logprobs[0]  # for llama
-        try:
-            perplexity += np.exp(-sum(logprobs) / len(logprobs))
-        except: print(logprobs)
-    scores['perplexity'] = perplexity / len(gene_results)
+    if if_calc_perplexity is True:
+        perplexity = 0
+        for result in gene_results:
+            logprobs = result['logprobs'][0]  # todo: only for n=1
+            if 'llama' in args.model: logprobs = logprobs[0]  # for llama
+            try:
+                perplexity += np.exp(-sum(logprobs) / len(logprobs))
+            except: print(logprobs)
+        scores['perplexity'] = perplexity / len(gene_results)
+
     # extra analyze for code
-    if args.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
+    if if_code_analysis is True and args.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
         eval_datas = dict(eval_records=eval_records, output_records=output_records, retrieval_records=retrieval_records, ret_eval_records=ret_doc_key_flags_list if len(ret_doc_keys_list) != 0 else [])
         retrieval_consistency, syntax_error, semantic_error = analyze_results_for_code(args.dataset, eval_datas)
         scores['retrieval_consistency'] = retrieval_consistency
         scores['syntax_error_percent'] = syntax_error
         scores['semantic_error_percent'] = semantic_error
+
     scores = {key: round(value, 3) for key, value in scores.items() if value is not None}
     print(scores)
-    with open(eval_save_file, 'w') as f:
-        json.dump(dict(scores=scores, eval_records=eval_records, output_records=output_records, retrieval_records=retrieval_records,
-                       ret_eval_records=ret_doc_key_flags_list if len(ret_doc_keys_list) != 0 else []), f, indent=2)
+    if if_save:
+        with open(eval_save_file, 'w') as f:
+            json.dump(dict(scores=scores, eval_records=eval_records, output_records=output_records, retrieval_records=retrieval_records, ret_eval_records=ret_doc_key_flags_list), f, indent=2)
 
     return scores
 
 
 if __name__ == '__main__':
     in_program_call = None
-    # in_program_call = '--model llama2-13b-chat --dataset hotpotQA --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 1'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset hotpotQA --retriever openai-embedding --analysis_type prompt_method --prompt_type cot --n 1'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset DS1000 --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_10'
     args = generate_config(in_program_call)
 
-    scores = pred_eval(args)
+    scores = pred_eval(args, if_eval_retrieval=False, if_code_analysis=True, if_calc_perplexity=True, if_save=True)
 
     """
     test process outputs for DS1000
@@ -385,7 +392,7 @@ if __name__ == '__main__':
     """
     # gene_results = json.load(open(args.result_save_file, 'r'))
     # for idx, result in enumerate(gene_results):
-    #     print(f'\n<processed code {idx}>]')
+    #     print(f'\n<processed answer {idx}>]')
     #     print([result['outputs'][0]])
     #     outputs = process_gene_results(args, result['outputs'])
     #     print([outputs[0]])
