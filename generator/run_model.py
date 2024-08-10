@@ -16,9 +16,6 @@ elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
 from generator.generate_utils import get_docs_tokens, _get_generate_func, truncate_docs
-from retriever.dense_retriever import retrieve
-from retriever.dense_encoder import DenseRetrievalEncoder
-from retriever.retriever_utils import retriever_config
 from dataset_utils.corpus_utils import WikiCorpusLoader, PythonDocsLoader
 
 openai.api_key = os.getenv("OPENAI_API_KEY", "")
@@ -192,6 +189,9 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature
 
 def prepare_faiss_search(dataset):
     import faiss, h5py
+    from retriever.dense_retriever import retrieve
+    from retriever.dense_encoder import DenseRetrievalEncoder
+    from retriever.retriever_utils import retriever_config
     # prepare for faiss search
     if dataset == 'hotpotQA':
         doc_id_list = WikiCorpusLoader().load_wiki_id(dataset)
