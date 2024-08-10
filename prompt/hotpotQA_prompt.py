@@ -136,6 +136,27 @@ def prompt_cot(ret_docs, question, model):
     return prompt
 
 
+def prompt_con(ret_docs, question, model):
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+## Question: 
+{question}
+"""
+    SYS_PROMPT_CON = """Task Description:
+1. Read the given question and potential documents to gather relevant information.
+2. Write reading notes summarizing the key points from these documents.
+3. Discuss the relevance of the given question and documents.
+4. If some passages are relevant to the given question, provide a brief answer based on the documents.
+5. If no passage is relevant, directly provide answer without considering the documents.
+6. Extract the exact answer tagged with <answer>
+"""
+    prompt = ensemble_prompt(SYS_PROMPT_CON, user_prompt, model)
+    return prompt
+
 
 def prompt_0shot(ret_docs, question, model):
     potential_docs = ''

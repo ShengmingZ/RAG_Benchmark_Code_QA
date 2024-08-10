@@ -1,3 +1,5 @@
+import os.path
+
 from prompt.prompt_utils import ensemble_prompt
 
 LLAMA_SYS_PROMPT = """You are a helpful assistant, given some potential documents starts with `## Potential documents` and a question starts with `## Question`, 
@@ -374,11 +376,34 @@ def prompt_cot(ret_docs, question, model):
 #     demo_qs_list = indices
 
 
+def prompt_con(ret_docs, question, model):
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+## Question: 
+{question}
+"""
+    SYS_PROMPT_CON = """Task Description:
+1. Read the given question and potential documents to gather relevant information.
+2. Write reading notes summarizing the key points from these documents.
+3. Discuss the relevance of the given question and documents.
+4. If some documents are relevant to the given question, provide a brief answer based on the documents.
+5. If no documents is relevant, directly provide answer without considering the documents.
+6. Extract the exact answer tagged with <answer>
+"""
+    prompt = ensemble_prompt(SYS_PROMPT_CON, user_prompt, model)
+    return prompt
+
+
 
 if __name__ == '__main__':
     """get random samples as few shot examples"""
     import sys, platform
     import random
+    import json
     system = platform.system()
     if system == 'Darwin':
         root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
@@ -387,6 +412,22 @@ if __name__ == '__main__':
     sys.path.insert(0, root_path)
     from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
     from dataset_utils.corpus_utils import WikiCorpusLoader
+
+
+    def get_examples(k=30):
+        loader = NQTriviaQAUtils('NQ')
+        examples = loader.sample_data(k)
+        questions = [item['question'] for item in examples]
+        oracle_doc_keys = [item['oracle_doc'] for item in examples]
+        oracle_docs = WikiCorpusLoader().get_docs([oracle_doc_keys], 'NQ')[0]
+        answers = [item['answers'][0] for item in examples]
+        processed_examples = list()
+        for question, oracle_doc, answer in zip(questions, oracle_docs, answers):
+            processed_examples.append(dict(prompt=prompt_0shot(ret_docs=[oracle_doc], question=question, model='gpt-3.5-turbo-0125')[1], answer=answer))
+        with open(os.path.join(root_path, 'data/NQ/examples.json'), 'w') as f:
+            json.dump(processed_examples, f, indent=2)
+
+    get_examples()
 
     def get_few_shots(dataset, k):
         loader = NQTriviaQAUtils(dataset)

@@ -86,6 +86,27 @@ numpy.loadtxt('test.csv', delimiter=',')
     return prompt
 
 
+def prompt_con(ret_docs, question, model):
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+## Question: 
+{question}
+"""
+    SYS_PROMPT_CON = """Task Description:
+1. Read the given code description and potential documents to gather relevant information.
+2. Write reading notes summarizing the key points from these documents.
+3. Discuss the relevance of the given code description and documents.
+4. If some documents are relevant to the given code description, generate a one line code tagged with ``` based on the code description and the documents.
+5. If no document is relevant, directly generate a one line code tagged with ``` without considering the documents.
+"""
+    prompt = ensemble_prompt(SYS_PROMPT_CON, user_prompt, model)
+    return prompt
+
+
 def prompt_3shot(ret_docs, question, model):
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):

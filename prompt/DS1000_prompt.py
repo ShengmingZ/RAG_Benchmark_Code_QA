@@ -174,6 +174,28 @@ def prompt_cot(ret_docs, question, model):
     return prompt
 
 
+def prompt_con(ret_docs, question, model):
+    potential_docs, prompt, answer = process_docs_question(ret_docs, question)
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+## Problem: 
+{prompt}
+
+## Unfinished Code Solution:
+{answer}
+"""
+    SYS_PROMPT_CON = """Task Description:
+1. Read the given problem and potential documents to gather relevant information.
+2. Write reading notes summarizing the key points from these documents.
+3. Discuss the relevance of the given problem and documents.
+4. If some documents are relevant to the given problem, generate insertion code for unfinished code snippet based on the problem and the documents, the code should be tagged with ```.
+5. If no document is relevant, directly generate insertion code for unfinished code snippet without considering the documents, the code should be tagged with ```.
+"""
+    prompt = ensemble_prompt(SYS_PROMPT_CON, user_prompt, model)
+    return prompt
+
+
 def prompt_3shot(ret_docs, question, model):
 
     examples_prompt = """
