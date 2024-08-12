@@ -660,8 +660,8 @@ def prompt_least_to_most(ret_docs, question, model):
 
 def prompt_plan_and_solve(ret_docs, question, model):
     plan_and_solve_prompt = """Let’s first understand the problem and devise a plan to solve the problem.
-Then, let’s carry out the plan and solve the problem step by step.
-Finally, let's show the program in [insert]"""
+Then, let’s carry out the plan, generate code based on the problem and the unfinished code snippet step by step (pay attention not to change the existing code in Unfinished Code Solution)
+"""
 
     potential_docs, prompt, answer = process_docs_question(ret_docs, question)
     user_prompt = f"""

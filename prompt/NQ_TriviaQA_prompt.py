@@ -315,9 +315,9 @@ Conclusion: Thus, the answer to the question is ```prokaryote```.
 
 
 def prompt_plan_and_solve(ret_docs, question, model):
-    plan_and_solve_prompt = """Let’s first understand the problem and devise a plan to solve the problem.
-Then, let’s carry out the plan and solve the problem step by step.
-Finally, let's output the answer, the exact answer should be tagged with <answer> and </answer>"""
+    plan_and_solve_prompt = """Let’s first understand the question and devise a plan to solve the question.
+Then, let’s carry out the plan and find the answer to the question step by step.
+Finally, let's extract and show the exact answer tagged with <answer>"""
 
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):

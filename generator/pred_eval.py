@@ -25,49 +25,52 @@ from data_processing.analyze_result import analyze_results_for_code
 def process_gene_results(args, outputs, code_prompt=None):
     preds = []
     if args.dataset == 'conala':
-        if args.prompt_type == 'cot':   # for test new prompt method use
+        if args.prompt_type == 'plan_and_solve':   # for test new prompt method use
             for output in outputs:
                 pred = output
+                pred = pred.replace('</s>', '').replace('```python', '```')
                 try: pred = pred.split('<code>')[1].split('</code>')[0]
                 except: ...
-                try: pred = pred.split('```python\n')[1].split('```')[0]
+                try: pred = pred.split('```')[1].split('```')[0]
                 except: ...
-                try: pred = pred.split('```\n')[1].split('```')[0]
+                pred_lines = [line for line in pred.split('\n') if line != '' and not line.startswith('#') and not line.startswith('    #')]
+                try:
+                    if pred_lines[-1].startswith('print'): pred = pred_lines[-2]
+                    else: pred = pred_lines[-1]
                 except: ...
-                pred_lines = [line for line in pred.split('\n') if line != '']
-                if pred_lines[-1].startswith('print'): pred = pred_lines[-2]
-                else: pred = pred_lines[-1]
                 preds.append(pred)
         else:
             for output in outputs:
                 pred = output
+                pred = pred.replace('</s>', '').replace('```python', '```')
                 try: pred = pred.split('<code>')[1].split('</code>')[0]
                 except: ...
-                try: pred = pred.split('```python\n')[1].split('```')[0]
+                try: pred = pred.split('```')[1].split('```')[0]
                 except: ...
-                try: pred = pred.split('```\n')[1].split('```')[0]
-                except: ...
-                pred_lines = [line for line in pred.split('\n') if line != '']
+                pred_lines = [line for line in pred.split('\n') if line != '' and not line.startswith('#') and not line.startswith('    #')]
                 if pred_lines[-1].startswith('print'): pred = pred_lines[-2]
                 else: pred = pred_lines[-1]
                 preds.append(pred)
 
     elif args.dataset == 'DS1000':
-        if args.prompt_type == 'cot':
+        if args.prompt_type == 'plan_and_solve':
             for output in outputs:
                 pred = output
+                pred = pred.replace('</s>', '').replace('```python', '```')
+                if args.prompt_type == 'least_to_most':
+                    try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
+                    except: ...
                 try: pred = pred.split('BEGIN SOLUTION')[1]
                 except: ...
                 try: pred = pred.split('END SOLUTION')[0]
                 except: ...
                 try: pred = pred.split('<code>')[1].split('</code>')[0]
                 except: ...
-                try: pred = pred.split('```python\n')[1].split('```')[0]
-                except: ...
-                try: pred = pred.split('```\n')[1].split('```')[0]
+                try: pred = pred.split('```')[1].split('```')[0]
                 except: ...
                 # remove dup from unfinished code
                 prompt_lines = code_prompt.split('\n')
+                print(prompt_lines)
                 pred_lines = pred.split('\n')
                 _pred_lines = []
                 for pred_line in pred_lines:
@@ -80,15 +83,17 @@ def process_gene_results(args, outputs, code_prompt=None):
         else:
             for output in outputs:
                 pred = output
+                pred = pred.replace('</s>', '').replace('```python', '```')
+                if args.prompt_type == 'least_to_most':
+                    try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
+                    except: ...
                 try: pred = pred.split('BEGIN SOLUTION')[1]
                 except: ...
                 try: pred = pred.split('END SOLUTION')[0]
                 except: ...
                 try: pred = pred.split('<code>')[1].split('</code>')[0]
                 except: ...
-                try: pred = pred.split('```python\n')[1].split('```')[0]
-                except: ...
-                try: pred = pred.split('```\n')[1].split('```')[0]
+                try: pred = pred.split('```')[1].split('```')[0]
                 except: ...
                 # then remove dup
                 prompt_lines = code_prompt.split('\n')
@@ -103,7 +108,7 @@ def process_gene_results(args, outputs, code_prompt=None):
                 preds.append(pred)
 
     elif args.dataset == 'pandas_numpy_eval':
-        if args.prompt_type == 'cot':
+        if args.prompt_type == 'plan_and_solve':
             for output in outputs:
                 # first extract code
                 if output.startswith(' '): output = output[1:]
@@ -123,10 +128,10 @@ def process_gene_results(args, outputs, code_prompt=None):
                 # clean code
                 prompt_lines = code_prompt.split('\n')
                 prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-                # print(prompt_lines)
+                print(prompt_lines)
                 pred_lines = pred.split('\n')
                 pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-                # print(pred_lines)
+                print(pred_lines)
                 # remove dup
                 _pred_lines = []
                 for pred_line in pred_lines:
@@ -196,17 +201,21 @@ def process_gene_results(args, outputs, code_prompt=None):
 
 
     elif args.dataset == 'NQ' or args.dataset == 'TriviaQA' or args.dataset == 'hotpotQA':
-        if args.prompt_type == 'cot':
+        if args.prompt_type == 'plan_and_solve':
             for output in outputs:
-                try:
-                    pred = output.split('```')[1].split('```')[0]
-                except: pred = output
+                pred = output
+                try: pred = pred.split('<answer>')[1].split('</answer>')[0]
+                except: ...
+                try: pred = pred.split('```')[1].split('```')[0]
+                except: ...
                 preds.append(pred)
         else:
             for output in outputs:
-                try:
-                    pred = output.split('<answer>')[1].split('</answer>')[0]
-                except: pred = output
+                pred = output
+                try: pred = pred.split('<answer>')[1].split('</answer>')[0]
+                except: ...
+                try: pred = pred.split('```')[1].split('```')[0]
+                except: ...
                 preds.append(pred)
 
     else:
@@ -354,7 +363,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
 
 if __name__ == '__main__':
     in_program_call = None
-    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type prompt_method --prompt_type cot --n 1'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset hotpotQA --retriever openai-embedding --analysis_type prompt_method --prompt_type plan_and_solve --n 1'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset DS1000 --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_10'
     args = generate_config(in_program_call)
 
@@ -375,6 +384,7 @@ if __name__ == '__main__':
     #     print(f'\n<processed code {idx}>]')
     #     print([result['outputs'][0]])
     #     outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
+    #     # outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'])
     #     print([outputs[0]])
 
     """

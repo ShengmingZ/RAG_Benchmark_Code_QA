@@ -319,9 +319,9 @@ def prompt_least_to_most(ret_docs, question, model):
 
 
 def prompt_plan_and_solve(ret_docs, question, model):
-    plan_and_solve_prompt = """Let’s first understand the problem and devise a plan to solve the problem.
-Then, let’s carry out the plan and solve the problem step by step.
-Finally, let's show the program, the program should be in one line and tagged with ```"""
+    plan_and_solve_prompt = """Let’s first understand the problem and devise a plan to generate code based on the code description.
+Then, let’s carry out the plan, generate code step by step.
+Finally, let's summarize the generated code into one line python code"""
 
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):

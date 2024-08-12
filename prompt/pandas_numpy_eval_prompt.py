@@ -346,9 +346,8 @@ def prompt_0shot_no_ret(question, model, pads=''):
 
 
 def prompt_plan_and_solve(ret_docs, question, model):
-    plan_and_solve_prompt = """Let’s first understand the problem and devise a plan to solve the problem.
-Then, let’s carry out the plan and solve the problem step by step.
-Finally, let's show the completed code snippet tagged with ```"""
+    plan_and_solve_prompt = """Let’s first understand the problem and devise a plan to complete the unfinished code snippet.
+Then, let’s carry out the plan, complete the code snippet step by step"""
 
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
