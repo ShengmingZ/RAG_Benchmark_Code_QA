@@ -123,10 +123,10 @@ def process_gene_results(args, outputs, code_prompt=None):
                 # clean code
                 prompt_lines = code_prompt.split('\n')
                 prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-                print(prompt_lines)
+                # print(prompt_lines)
                 pred_lines = pred.split('\n')
                 pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-                print(pred_lines)
+                # print(pred_lines)
                 # remove dup
                 _pred_lines = []
                 for pred_line in pred_lines:

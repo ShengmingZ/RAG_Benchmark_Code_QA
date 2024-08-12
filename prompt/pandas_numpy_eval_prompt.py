@@ -9,6 +9,7 @@ LLAMA_SYSTEM_PROMPT_NO_RET = """You are a senior python programmer, given a unfi
 you should only output the uncompleted part of the code snippet, and the output code should starts with <code> and ends with </code>
 """
 
+SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last problem"""
 
 def prompt_cot(ret_docs, question, model):
     examples_prompt = '''
@@ -229,7 +230,7 @@ Step 3: Generate Code to complete the given code snippet:
 ## Completion:
 """
     if 'gpt' in model:
-        prompt = ['', user_prompt]
+        prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt]
     else:
         prompt = user_prompt
     # prompt_template = ensemble_prompt(sys_prompt='', user_prompt=user_prompt, model=model)

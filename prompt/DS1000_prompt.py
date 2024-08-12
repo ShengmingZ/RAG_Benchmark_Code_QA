@@ -16,6 +16,8 @@ you should only output the uncompleted part of the code solution, and the output
 # you should only output the completed part in the code snippet, and the output code should starts with <code> and ends with </code>
 # """
 
+SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last problem"""
+
 def process_docs_question(ret_docs, question):
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
@@ -652,7 +654,7 @@ def prompt_least_to_most(ret_docs, question, model):
 """
     # sys_prompt = 'You should only generate the code in [insert]'
     # prompt = ensemble_prompt(sys_prompt, user_prompt, model)
-    prompt = ['', user_prompt] if 'gpt' in model else user_prompt
+    prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt] if 'gpt' in model else user_prompt
     return prompt
 
 

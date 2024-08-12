@@ -11,7 +11,7 @@ you need to write a python program according to the description in one line.
 The program should starts with <code> and ends with </code>
 """
 
-SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last question"""
+SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last problem"""
 
 
 
@@ -314,7 +314,7 @@ def prompt_least_to_most(ret_docs, question, model):
 """
     # sys_prompt = 'You should generate the code in one line'
     # prompt = ensemble_prompt(sys_prompt, user_prompt, model)
-    prompt = ['', user_prompt] if 'gpt' in model else user_prompt
+    prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt] if 'gpt' in model else user_prompt
     return prompt
 
 

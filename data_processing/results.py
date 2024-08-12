@@ -956,17 +956,17 @@ prompt_method_gpt = {
     },
     'conala': {
         '0shot': {'pass@1': 0.274, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.5, 'prompt_length': 484.774},
-        '3shot': {'pass@1': 0.333, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.5, 'prompt_length': 2578.786, 'perplexity': 1.04, 'retrieval_consistency': 0.726, 'syntax_error_percent': 0.238, 'semantic_error_percent': 0.357},
-        'cot': {'pass@1': 0.107, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.5, 'prompt_length': 2683.786, 'perplexity': 1.101, 'retrieval_consistency': 0.881, 'syntax_error_percent': 0.631, 'semantic_error_percent': 0.298}
+        '3shot': {'pass@1': 0.345, 'prompt_length': 2578.786, 'perplexity': 1.04, 'retrieval_consistency': 0.714, 'syntax_error_percent': 0.143, 'semantic_error_percent': 0.369},
+        'cot': {'pass@1': 0.155, 'prompt_length': 2683.786, 'perplexity': 1.101, 'retrieval_consistency': 0.786, 'syntax_error_percent': 0.488, 'semantic_error_percent': 0.369}
     },
     'DS1000': {
         '0shot': {'pass@1': 0.323, 'ret_recall': 0.117, 'oracle_percent': 0.054, 'oracle_rank': 2.31, 'prompt_length': 3139.516},
-        '3shot': {'pass@1': 0.268, 'ret_recall': 0.117, 'oracle_percent': 0.054, 'oracle_rank': 2.31, 'prompt_length': 7478.924, 'perplexity': 1.084, 'retrieval_consistency': 0.975, 'syntax_error_percent': 0.057, 'semantic_error_percent': 0.299},
-        'cot': {'pass@1': 0.337, 'ret_recall': 0.117, 'oracle_percent': 0.054, 'oracle_rank': 2.31, 'prompt_length': 7550.662, 'perplexity': 1.093, 'retrieval_consistency': 1.019, 'syntax_error_percent': 0.083, 'semantic_error_percent': 0.255}
+        '3shot': {'pass@1': 0.255, 'prompt_length': 7478.924, 'perplexity': 1.084, 'retrieval_consistency': 0.968, 'syntax_error_percent': 0.038, 'semantic_error_percent': 0.299},
+        'cot': {'pass@1': 0.343, 'prompt_length': 7550.662, 'perplexity': 1.093, 'retrieval_consistency': 1.019, 'syntax_error_percent': 0.057, 'semantic_error_percent': 0.255}
     },
     'pandas_numpy_eval': {
         '0shot': {'pass@1': 0.725, 'ret_recall': 0.222, 'oracle_percent': 0.053, 'oracle_rank': 2.068, 'prompt_length': 1805.76},
-        '3shot': {'pass@1': 0.749, 'ret_recall': 0.222, 'oracle_percent': 0.053, 'oracle_rank': 2.068, 'prompt_length': 5755.431, 'perplexity': 1.053, 'retrieval_consistency': 0.874, 'syntax_error_percent': 0.024, 'semantic_error_percent': 0.287},
-        'cot': {'pass@1': 0.479, 'ret_recall': 0.222, 'oracle_percent': 0.053, 'oracle_rank': 2.068, 'prompt_length': 5921.497, 'perplexity': 1.089, 'retrieval_consistency': 0.928, 'syntax_error_percent': 0.449, 'semantic_error_percent': 0.269}
+        '3shot': {'pass@1': 0.76, 'prompt_length': 5755.431, 'perplexity': 1.053, 'retrieval_consistency': 0.874, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.287},
+        'cot': {'pass@1': 0.754, 'prompt_length': 5921.497, 'perplexity': 1.089, 'retrieval_consistency': 0.886, 'syntax_error_percent': 0.078, 'semantic_error_percent': 0.275}
     },
 }
