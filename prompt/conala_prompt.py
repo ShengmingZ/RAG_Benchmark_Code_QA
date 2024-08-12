@@ -320,7 +320,7 @@ def prompt_least_to_most(ret_docs, question, model):
 
 def prompt_plan_and_solve(ret_docs, question, model):
     plan_and_solve_prompt = """Let’s first understand the problem and devise a plan to generate code based on the code description.
-Then, let’s carry out the plan, generate code step by step.
+Then, let’s carry out the plan, generate code step by step. (pay attention to only generate one line code)
 Finally, let's summarize the generated code into one line python code"""
 
     potential_docs = ''
