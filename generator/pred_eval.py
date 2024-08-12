@@ -29,6 +29,9 @@ def process_gene_results(args, outputs, code_prompt=None):
             for output in outputs:
                 pred = output
                 pred = pred.replace('</s>', '').replace('```python', '```')
+                if args.prompt_type == 'plan_and_solve':
+                    try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
+                    except: ...
                 try: pred = pred.split('<code>')[1].split('</code>')[0]
                 except: ...
                 try: pred = pred.split('```')[1].split('```')[0]
@@ -108,7 +111,7 @@ def process_gene_results(args, outputs, code_prompt=None):
                 preds.append(pred)
 
     elif args.dataset == 'pandas_numpy_eval':
-        if args.prompt_type == 'plan_and_solve':
+        if args.prompt_type == 'plan_and_solve' or args.prompt_type == 'least_to_most':
             for output in outputs:
                 # first extract code
                 if output.startswith(' '): output = output[1:]
@@ -139,24 +142,14 @@ def process_gene_results(args, outputs, code_prompt=None):
                     for prompt_line in prompt_lines:
                         if prompt_line.replace(' ', '') == pred_line.replace(' ', ''): is_same = True
                     if not is_same: _pred_lines.append(pred_line)
-                pred = '\n'.join(_pred_lines)
-
-                # elif prompt_lines[-1].startswith('def'):
-                #     if pred_lines[0].startswith('def'):   # duplicate def, remove
-                #         pred_lines = pred_lines[1:]
-                #     elif not pred_lines[0].startswith('    '):    # add indent
-                #         pred_lines = ['    ' + line for line in pred_lines]
-                #     pred = '\n'.join(pred_lines)
-                if pred_lines[0].startswith(prompt_lines[-1]):  # only last line dup
-                    pred_lines[0] = pred_lines[0].replace(prompt_lines[-1], '')
-                    pred = '\n'.join(pred_lines)
-                if prompt_lines[-1] != '    ' and pred_lines[0].startswith('return'): # add indent
-                    pred_lines[0] = '    ' + pred_lines[0]
-                    pred = '\n'.join(pred_lines)
+                pred_lines = _pred_lines
+                if pred_lines[0].startswith(prompt_lines[-1]): pred_lines[0] = pred_lines[0].replace(prompt_lines[-1], '') # only last line dup
+                if prompt_lines[-1] != '    ' and pred_lines[0].startswith('return'): pred_lines[0] = '    ' + pred_lines[0]  # add indent
+                pred = '\n'.join(pred_lines)
                 preds.append(pred)
         else:
             for output in outputs:
-                # first extract code
+                # extract code
                 if output.startswith(' '): output = output[1:]
                 pred = output
                 pred = pred.replace('</s>', '').replace('```python', '```')
@@ -183,22 +176,11 @@ def process_gene_results(args, outputs, code_prompt=None):
                     for prompt_line in prompt_lines:
                         if prompt_line.replace(' ', '') == pred_line.replace(' ', ''): is_same = True
                     if not is_same: _pred_lines.append(pred_line)
-                pred = '\n'.join(_pred_lines)
-
-                # elif prompt_lines[-1].startswith('def'):
-                #     if pred_lines[0].startswith('def'):   # duplicate def, remove
-                #         pred_lines = pred_lines[1:]
-                #     elif not pred_lines[0].startswith('    '):    # add indent
-                #         pred_lines = ['    ' + line for line in pred_lines]
-                #     pred = '\n'.join(pred_lines)
-                if pred_lines[0].startswith(prompt_lines[-1]):  # last line dup
-                    pred_lines[0] = pred_lines[0].replace(prompt_lines[-1], '')
-                    pred = '\n'.join(pred_lines)
-                if prompt_lines[-1] != '    ' and pred_lines[0].startswith('return'):  # add indent
-                    pred_lines[0] = '    ' + pred_lines[0]
-                    pred = '\n'.join(pred_lines)
+                pred_lines = _pred_lines
+                if pred_lines[0].startswith(prompt_lines[-1]): pred_lines[0] = pred_lines[0].replace(prompt_lines[-1], '')  # only last line dup
+                if prompt_lines[-1] != '    ' and pred_lines[0].startswith('return'): pred_lines[0] = '    ' + pred_lines[0]  # add indent
+                pred = '\n'.join(pred_lines)
                 preds.append(pred)
-
 
     elif args.dataset == 'NQ' or args.dataset == 'TriviaQA' or args.dataset == 'hotpotQA':
         if args.prompt_type == 'plan_and_solve':
@@ -363,7 +345,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
 
 if __name__ == '__main__':
     in_program_call = None
-    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset hotpotQA --retriever openai-embedding --analysis_type prompt_method --prompt_type plan_and_solve --n 1'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type prompt_method --prompt_type 3shot --n 1'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset DS1000 --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_10'
     args = generate_config(in_program_call)
 
