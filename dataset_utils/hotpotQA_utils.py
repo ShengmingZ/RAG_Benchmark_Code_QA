@@ -194,12 +194,13 @@ class HotpotQAUtils:
             assert pred['qs_id'] == oracle['qs_id']
             if has_answer([oracle['answer']], pred['output']): eval_records[pred['qs_id']]['has_answer'] = True
             else: eval_records[pred['qs_id']]['has_answer'] = False
+            # print(f"oracle: {oracle['answer']}, pred: {pred['output']}, has_answer: {eval_records[pred['qs_id']]['has_answer']}")
+            metrics['has_answer'] += 1 if eval_records[pred['qs_id']]['has_answer'] is True else 0
             em, f1, prec, recall = _update_answer(metrics, pred['output'], oracle['answer'])
             eval_records[pred['qs_id']]['em'] = em
             eval_records[pred['qs_id']]['f1'] = f1
             eval_records[pred['qs_id']]['prec'] = prec
             eval_records[pred['qs_id']]['recall'] = recall
-            eval_records[pred['qs_id']]['has_answer'] += 1 if eval_records[pred['qs_id']]['has_answer'] is True else 0
         N = len(oracle_list)
         for k in metrics.keys():
             metrics[k] /= N
