@@ -51,8 +51,10 @@ def process_gene_results(args, outputs, code_prompt=None):
                 try: pred = pred.split('```')[1].split('```')[0]
                 except: ...
                 pred_lines = [line for line in pred.split('\n') if line != '' and not line.startswith('#') and not line.startswith('    #')]
-                if pred_lines[-1].startswith('print'): pred = pred_lines[-2]
-                else: pred = pred_lines[-1]
+                try:
+                    if pred_lines[-1].startswith('print'): pred = pred_lines[-2]
+                    else: pred = pred_lines[-1]
+                except: ...
                 preds.append(pred)
 
     elif args.dataset == 'DS1000':
@@ -77,23 +79,31 @@ def process_gene_results(args, outputs, code_prompt=None):
                 pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
 
                 # remove dup from unfinished code
-                preload_variables = []
-                for prompt_line in prompt_lines:
-                    if ' = ' in prompt_line: preload_variables.extend([var.replace(' ', '') for var in prompt_line.split('=')[0].split(',')])
-                    if 'BEGIN SOLUTION' in prompt_line: break
                 _pred_lines = []
                 for pred_line in pred_lines:
                     is_same = False
-                    # the model tend to assign a value to the predefined variable, e.g.: softmax_output = load_data(), softmax_output = torch.tensor([[0.2, 0.1, 0.7], ...
-                    for var in preload_variables:
-                        if pred_line.startswith(f'{var} ='):
-                            preload_variables.remove(var)
-                            is_same = True
                     # remove dup
                     for prompt_line in prompt_lines:
                         if prompt_line.replace(' ', '') == pred_line.replace(' ', ''): is_same = True
                     if not is_same: _pred_lines.append(pred_line)
                 pred = '\n'.join(_pred_lines)
+
+                if len(pred_lines) - len(_pred_lines) >= 2:  # this indicates that model outputs full code snippet
+                    # the model tend to assign a value to the predefined variable, e.g.: softmax_output = load_data(), softmax_output = torch.tensor([[0.2, 0.1, 0.7], ...
+                    preload_variables = []
+                    for prompt_line in prompt_lines:
+                        if ' = ' in prompt_line: preload_variables.extend([var.replace(' ', '') for var in prompt_line.split('=')[0].split(',')])
+                        if 'BEGIN SOLUTION' in prompt_line: break
+                    _pred_lines = []
+                    pred_lines = pred.split('\n')
+                    for pred_line in pred_lines:
+                        is_same = False
+                        for var in preload_variables:
+                            if pred_line.startswith(f'{var} ='):
+                                preload_variables.remove(var)
+                                is_same = True
+                        if not is_same: _pred_lines.append(pred_line)
+                    pred = '\n'.join(_pred_lines)
                 preds.append(pred)
         else:
             for output in outputs:
@@ -178,8 +188,12 @@ def process_gene_results(args, outputs, code_prompt=None):
                         if prompt_line.replace(' ', '') == pred_line.replace(' ', ''): is_same = True
                     if not is_same: _pred_lines.append(pred_line)
                 pred_lines = _pred_lines
-                if pred_lines[0].startswith(prompt_lines[-1]): pred_lines[0] = pred_lines[0].replace(prompt_lines[-1], '') # only last line dup
-                if prompt_lines[-1] != '    ' and pred_lines[0].startswith('return'): pred_lines[0] = '    ' + pred_lines[0]  # add indent
+                try:
+                    if pred_lines[0].startswith(prompt_lines[-1]): pred_lines[0] = pred_lines[0].replace(prompt_lines[-1], '') # only last line dup
+                except: ...
+                try:
+                    if prompt_lines[-1] != '    ' and pred_lines[0].startswith('return'): pred_lines[0] = '    ' + pred_lines[0]  # add indent
+                except: ...
                 pred = '\n'.join(pred_lines)
                 preds.append(pred)
         else:
