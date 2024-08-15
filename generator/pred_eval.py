@@ -71,13 +71,25 @@ def process_gene_results(args, outputs, code_prompt=None):
                 except: ...
                 try: pred = pred.split('```')[1].split('```')[0]
                 except: ...
-                # remove dup from unfinished code
                 prompt_lines = code_prompt.split('\n')
-                print(prompt_lines)
+                prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
                 pred_lines = pred.split('\n')
+                pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
+
+                # remove dup from unfinished code
+                preload_variables = []
+                for prompt_line in prompt_lines:
+                    if ' = ' in prompt_line: preload_variables.extend([var.replace(' ', '') for var in prompt_line.split('=')[0].split(',')])
+                    if 'BEGIN SOLUTION' in prompt_line: break
                 _pred_lines = []
                 for pred_line in pred_lines:
                     is_same = False
+                    # the model tend to assign a value to the predefined variable, e.g.: softmax_output = load_data(), softmax_output = torch.tensor([[0.2, 0.1, 0.7], ...
+                    for var in preload_variables:
+                        if pred_line.startswith(f'{var} ='):
+                            preload_variables.remove(var)
+                            is_same = True
+                    # remove dup
                     for prompt_line in prompt_lines:
                         if prompt_line.replace(' ', '') == pred_line.replace(' ', ''): is_same = True
                     if not is_same: _pred_lines.append(pred_line)
@@ -98,16 +110,39 @@ def process_gene_results(args, outputs, code_prompt=None):
                 except: ...
                 try: pred = pred.split('```')[1].split('```')[0]
                 except: ...
-                # then remove dup
+
                 prompt_lines = code_prompt.split('\n')
+                prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
                 pred_lines = pred.split('\n')
+                pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
+                print(pred_lines)
+
                 _pred_lines = []
                 for pred_line in pred_lines:
                     is_same = False
+                    # remove dup
                     for prompt_line in prompt_lines:
                         if prompt_line.replace(' ', '') == pred_line.replace(' ', ''): is_same = True
                     if not is_same: _pred_lines.append(pred_line)
                 pred = '\n'.join(_pred_lines)
+
+                if len(pred_lines) - len(_pred_lines) >= 2:  # this indicates that model outputs full code snippet
+                    # the model tend to assign a value to the predefined variable, e.g.: softmax_output = load_data(), softmax_output = torch.tensor([[0.2, 0.1, 0.7], ...
+                    preload_variables = []
+                    for prompt_line in prompt_lines:
+                        if ' = ' in prompt_line: preload_variables.extend([var.replace(' ', '') for var in prompt_line.split('=')[0].split(',')])
+                        if 'BEGIN SOLUTION' in prompt_line: break
+                    _pred_lines = []
+                    pred_lines = pred.split('\n')
+                    for pred_line in pred_lines:
+                        is_same = False
+                        for var in preload_variables:
+                            if pred_line.startswith(f'{var} ='):
+                                preload_variables.remove(var)
+                                is_same = True
+                        if not is_same: _pred_lines.append(pred_line)
+                    pred = '\n'.join(_pred_lines)
+
                 preds.append(pred)
 
     elif args.dataset == 'pandas_numpy_eval':
@@ -167,8 +202,10 @@ def process_gene_results(args, outputs, code_prompt=None):
                 # clean code
                 prompt_lines = code_prompt.split('\n')
                 prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
+                print(prompt_lines)
                 pred_lines = pred.split('\n')
                 pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
+                print(pred_lines)
                 # remove dup
                 _pred_lines = []
                 for pred_line in pred_lines:
@@ -177,8 +214,12 @@ def process_gene_results(args, outputs, code_prompt=None):
                         if prompt_line.replace(' ', '') == pred_line.replace(' ', ''): is_same = True
                     if not is_same: _pred_lines.append(pred_line)
                 pred_lines = _pred_lines
-                if pred_lines[0].startswith(prompt_lines[-1]): pred_lines[0] = pred_lines[0].replace(prompt_lines[-1], '')  # only last line dup
-                if prompt_lines[-1] != '    ' and pred_lines[0].startswith('return'): pred_lines[0] = '    ' + pred_lines[0]  # add indent
+                try:
+                    if pred_lines[0].startswith(prompt_lines[-1]): pred_lines[0] = pred_lines[0].replace(prompt_lines[-1], '')  # only last line dup
+                except: ...
+                try:
+                    if prompt_lines[-1] != '    ' and pred_lines[0].startswith('return'): pred_lines[0] = '    ' + pred_lines[0]  # add indent
+                except: ...
                 pred = '\n'.join(pred_lines)
                 preds.append(pred)
 
@@ -345,7 +386,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
 
 if __name__ == '__main__':
     in_program_call = None
-    # in_program_call = '--model llama2-13b-chat --dataset hotpotQA --retriever BM25 --analysis_type retrieval_doc_selection --doc_selection_type top_5 --n 1'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset pandas_numpy_eval --retriever BM25 --analysis_type retrieval_doc_selection --doc_selection_type top_5 --n 1'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset DS1000 --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_10'
     args = generate_config(in_program_call)
 
@@ -364,7 +405,8 @@ if __name__ == '__main__':
     #     [lib, problema_id] = qs_id.split('_')
     #     data = ds1000[lib][int(problema_id)]
     #     print(f'\n<processed code {idx}>]')
-    #     print([result['outputs'][0]])
+    #     # print([result['outputs'][0]])
+    #     print(qs_list[idx]['question'].split('\nA:')[1])
     #     outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
     #     # outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'])
     #     print([outputs[0]])
@@ -388,7 +430,7 @@ if __name__ == '__main__':
     """
     # gene_results = json.load(open(args.result_save_file, 'r'))
     # for idx, result in enumerate(gene_results):
-    #     print(f'<processed code {idx}>]\n')
+    #     print(f'\n<processed code {idx}>]')
     #     print([result['outputs'][0]])
     #     outputs = process_gene_results(args, result['outputs'])
     #     print([outputs[0]])

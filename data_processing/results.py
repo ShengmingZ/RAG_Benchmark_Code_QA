@@ -114,7 +114,7 @@ retriever_perf_gpt = {
     },
     'hotpotQA': {
         # 'BM25': {'em': 0.2905, 'f1': 0.414, 'prec': 0.419, 'recall': 0.464},
-        'BM25-5': {'em': 0.274, 'f1': 0.393, 'prec': 0.399, 'recall': 0.441, 'ret_recall': 0.47, 'oracle_percent': 0.188, 'oracle_rank': 1.761, 'prompt_length': 458.979, 'perplexity': 1.036},
+        'BM25-5': {'em': 0.274, 'f1': 0.393, 'prec': 0.399, 'recall': 0.441, 'has_answer': 0.384, 'ret_recall': 0.47, 'oracle_percent': 0.188, 'oracle_rank': 1.761, 'prompt_length': 458.979, 'perplexity': 1.036},
         # 'miniLM': {'em': 0.241, 'f1': 0.3584158256474385, 'prec': 0.36329800027556275, 'recall': 0.4102590298590299},
         # 'openai-embedding': {'em': 0.295, 'f1': 0.42051786332163515, 'prec': 0.42574595857381387, 'recall': 0.47493446275946294},
         # 'contriever': {'em': 0.263, 'f1': 0.380517603212683, 'prec': 0.3865593114832381, 'recall': 0.43119434731934764}
