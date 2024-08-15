@@ -187,7 +187,7 @@ class HotpotQAUtils:
         :param oracle_list:
         :return:
         """
-        metrics = {'em': 0, 'f1': 0, 'prec': 0, 'recall': 0}
+        metrics = {'em': 0, 'f1': 0, 'prec': 0, 'recall': 0, 'has_answer': 0}
         eval_records = dict()
         for pred, oracle in zip(pred_list, oracle_list):
             eval_records[pred['qs_id']] = dict()
@@ -199,6 +199,7 @@ class HotpotQAUtils:
             eval_records[pred['qs_id']]['f1'] = f1
             eval_records[pred['qs_id']]['prec'] = prec
             eval_records[pred['qs_id']]['recall'] = recall
+            eval_records[pred['qs_id']]['has_answer'] += 1 if eval_records[pred['qs_id']]['has_answer'] is True else 0
         N = len(oracle_list)
         for k in metrics.keys():
             metrics[k] /= N

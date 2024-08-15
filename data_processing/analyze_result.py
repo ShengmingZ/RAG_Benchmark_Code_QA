@@ -395,9 +395,36 @@ def wilcoxon_test(dataset, eval_datas1, eval_datas2):
     print('p-value: ', p_value)
 
 
+# def has_answer(dataset, eval_datas):
+#     assert dataset == 'NQ' or dataset == 'TriviaQA' or dataset == 'hotpotQA'
+#     eval_records = eval_datas['eval_records']
+#     for key in eval_records.keys():
+#         eval_records[key] = eval_records[key]['has_answer']
+#
+#     for eval_records in eval_records.values():
+
+
 
 
 if __name__ == '__main__':
+    """count has answer"""
+    # in_program_call = (
+    #     '--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
+    #                        f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type oracle')
+    # args = generate_config(in_program_call)
+    # eval_file = args.result_save_file.replace('.json', '_eval.json')
+    # eval_datas = json.load(open(eval_file))
+    #
+    # in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
+    #                    f'--analysis_type prompt_length --n 1 --pl_analysis oracle_4000')
+    # args = generate_config(in_program_call)
+    # eval_file = args.result_save_file.replace('.json', '_eval.json')
+    # eval_datas2 = json.load(open(eval_file))
+    #
+    # wilcoxon_test(args.dataset, eval_datas, eval_datas2)
+
+
+
     # datasets = ['NQ', 'TriviaQA', 'hotpotQA']
     # for dataset in datasets:
     # in_program_call = (
@@ -448,20 +475,20 @@ if __name__ == '__main__':
 
 
     """wilcoxon test"""
-    in_program_call = (
-        '--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
-                           f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type oracle')
-    args = generate_config(in_program_call)
-    eval_file = args.result_save_file.replace('.json', '_eval.json')
-    eval_datas = json.load(open(eval_file))
-
-    in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
-                       f'--analysis_type prompt_length --n 1 --pl_analysis oracle_4000')
-    args = generate_config(in_program_call)
-    eval_file = args.result_save_file.replace('.json', '_eval.json')
-    eval_datas2 = json.load(open(eval_file))
-
-    wilcoxon_test(args.dataset, eval_datas, eval_datas2)
+    # in_program_call = (
+    #     '--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
+    #                        f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type oracle')
+    # args = generate_config(in_program_call)
+    # eval_file = args.result_save_file.replace('.json', '_eval.json')
+    # eval_datas = json.load(open(eval_file))
+    #
+    # in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
+    #                    f'--analysis_type prompt_length --n 1 --pl_analysis oracle_4000')
+    # args = generate_config(in_program_call)
+    # eval_file = args.result_save_file.replace('.json', '_eval.json')
+    # eval_datas2 = json.load(open(eval_file))
+    #
+    # wilcoxon_test(args.dataset, eval_datas, eval_datas2)
 
 
     """calc syntax, semantic error"""
