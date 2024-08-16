@@ -245,6 +245,9 @@ def process_gene_results(args, outputs, code_prompt=None):
                 try:
                     if 'def' in code_prompt and prompt_lines[-1] != '    ' and not pred_lines[0].startswith('    '): pred_lines = ['    '+line for line in pred_lines]
                 except: ...
+                if 'def' in code_prompt and 'return' not in pred:
+                    var = pred_lines[-1].split('=')[0].replace(' ','')
+                    pred_lines.append(f'    return {var}')
                 pred = '\n'.join(pred_lines)
                 preds.append(pred)
 

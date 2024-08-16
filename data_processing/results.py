@@ -235,7 +235,7 @@ code_ret_doc_type_llama_n_1 = {
         "random": {'pass@1': 0.214, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 449.75, 'perplexity': 1.131, 'retrieval_consistency': 0.024, 'syntax_error_percent': 0.262, 'semantic_error_percent': 0.405},
         "irrelevant_dummy": {'pass@1': 0.226, 'prompt_length': 912.119, 'perplexity': 1.11, 'syntax_error_percent': 0.262, 'semantic_error_percent': 0.357},
         "irrelevant_diff": {'pass@1': 0.19, 'prompt_length': 912.119, 'perplexity': 1.123, 'syntax_error_percent': 0.298, 'semantic_error_percent': 0.393},
-        "none": {'pass@1': 0.226, 'prompt_length': 92.714, 'perplexity': 1.137, 'syntax_error_percent': 0.31, 'semantic_error_percent': 0.417},
+        "none": {'pass@1': 0.226, 'prompt_length': 92.714, 'perplexity': 1.137, 'syntax_error_percent': 0.298, 'semantic_error_percent': 0.417},
     },
     "DS1000": {
         "oracle": {'pass@1': 0.173, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 2.159, 'prompt_length': 2270.185, 'perplexity': 1.143, 'retrieval_consistency': 1.21, 'syntax_error_percent': 0.115, 'semantic_error_percent': 0.191},
@@ -244,7 +244,7 @@ code_ret_doc_type_llama_n_1 = {
         "random": {'pass@1': 0.093, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1067.21, 'perplexity': 1.161, 'retrieval_consistency': 0.07, 'syntax_error_percent': 0.115, 'semantic_error_percent': 0.427},
         "irrelevant_dummy": {'pass@1': 0.119, 'prompt_length': 2409.949, 'perplexity': 1.156, 'syntax_error_percent': 0.038, 'semantic_error_percent': 0.446},
         "irrelevant_diff": {'pass@1': 0.138, 'prompt_length': 2409.949, 'perplexity': 1.154, 'syntax_error_percent': 0.07, 'semantic_error_percent': 0.395},
-        "none": {'pass@1': 0.166, 'prompt_length': 514.739, 'perplexity': 1.15, 'syntax_error_percent': 0.038, 'semantic_error_percent': 0.42},
+        "none": {'pass@1': 0.166, 'prompt_length': 514.739, 'perplexity': 1.15, 'syntax_error_percent': 0.032, 'semantic_error_percent': 0.401},
     },
     "pandas_numpy_eval": {
         "oracle": {'pass@1': 0.557, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.427, 'prompt_length': 1223.281, 'perplexity': 1.124, 'retrieval_consistency': 0.964, 'syntax_error_percent': 0.012, 'semantic_error_percent': 0.198},
@@ -274,7 +274,7 @@ code_ret_doc_type_gpt_n_1 = {
         "random": {'pass@1': 0.33, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 939.217, 'perplexity': 1.038, 'retrieval_consistency': 0.0, 'syntax_error_percent': 0.019, 'semantic_error_percent': 0.395},
         "irrelevant_dummy": {'pass@1': 0.342, 'prompt_length': 2192.28, 'perplexity': 1.037, 'syntax_error_percent': 0.025, 'semantic_error_percent': 0.344},
         "irrelevant_diff": {'pass@1': 0.383, 'prompt_length': 2193.631, 'perplexity': 1.039, 'syntax_error_percent': 0.013, 'semantic_error_percent': 0.312},
-        "none": {'pass@1': 0.36, 'prompt_length': 413.535, 'perplexity': 1.044, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.318},
+        "none": {'pass@1': 0.367, 'prompt_length': 413.535, 'perplexity': 1.044, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.312},
     },
     "pandas_numpy_eval": {
         "oracle": {'pass@1': 0.79, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.427, 'prompt_length': 1164.731, 'perplexity': 1.026, 'retrieval_consistency': 1.114, 'syntax_error_percent': 0.018, 'semantic_error_percent': 0.126},
@@ -283,7 +283,7 @@ code_ret_doc_type_gpt_n_1 = {
         "random": {'pass@1': 0.754, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 449.988, 'perplexity': 1.032, 'retrieval_consistency': 0.006, 'syntax_error_percent': 0.012, 'semantic_error_percent': 0.275},
         "irrelevant_dummy": {'pass@1': 0.766, 'prompt_length': 1190.766, 'perplexity': 1.026, 'syntax_error_percent': 0.036, 'semantic_error_percent': 0.287},
         "irrelevant_diff": {'pass@1': 0.784, 'prompt_length': 1191.898, 'perplexity': 1.026, 'syntax_error_percent': 0.03, 'semantic_error_percent': 0.287},
-        "none": {'pass@1': 0.778, 'prompt_length': 142.186, 'perplexity': 1.028, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.281}
+        "none": {'pass@1': 0.784, 'prompt_length': 142.186, 'perplexity': 1.028, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.281}
     }
 }
 

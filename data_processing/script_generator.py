@@ -38,7 +38,7 @@ if file == 'generate.py':
     #     else: script += script_temp + ';
     for dataset in datasets:
         script = (f"python generator/{file} --action {action} --model {model} --temperature 0 --n {n} --dataset {dataset} "
-                  f"--retriever {retriever} --analysis_type {analysis_type} --ret_doc_type none")
+                  f"--retriever {retriever} --analysis_type {analysis_type} --doc_selection_type top_5")
         print(script)
 elif file == 'run.py':
     script = (f"python generator/{file} --action {action} --model {model} --temperature 0 --n 1 --dataset {dataset} "
