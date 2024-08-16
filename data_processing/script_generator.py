@@ -14,7 +14,7 @@ if model == models[2]: datasets = qa_datasets
 elif model == models[1]: datasets = code_datasets
 
 retrievers = ['BM25', 'miniLM', 'openai-embedding', 'codeT5']
-retriever = retrievers[2]
+retriever = retrievers[0]
 
 analysis_types = ['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection']
 analysis_type = analysis_types[1]

@@ -84,7 +84,7 @@ retriever_perf_llama = {
         # 'codeT5': {'pass@1': 0.238, 'ret_recall': 0.147, 'oracle_percent': 0.038, 'oracle_rank': 2.125, 'prompt_length': 1232.524, 'perplexity': 1.121, 'retrieval_consistency': 1.083, 'syntax_error_percent': 0.179, 'semantic_error_percent': 0.429},
     },
     'DS1000': {
-        'BM25': {'pass@1': 0.084, 'prompt_length': 4851.369, 'perplexity': 1.136, 'retrieval_consistency': 0.484, 'syntax_error_percent': 0.121, 'semantic_error_percent': 0.452},
+        'BM25': {'pass@1': 0.084, 'prompt_length': 4851.369, 'perplexity': 1.136, 'retrieval_consistency': 0.503, 'syntax_error_percent': 0.121, 'semantic_error_percent': 0.439},
         # 'miniLM': {'pass@1': 0.06, 'ret_recall': 0.109, 'oracle_percent': 0.042, 'oracle_rank': 2.121, 'prompt_length': 2582.197, 'perplexity': 1.143, 'retrieval_consistency': 1.541, 'syntax_error_percent': 0.14, 'semantic_error_percent': 0.427},
         'openai-embedding': {'pass@1': 0.088, 'prompt_length': 3275.248, 'perplexity': 1.138, 'retrieval_consistency': 1.223, 'syntax_error_percent': 0.134, 'semantic_error_percent': 0.414},
         # 'codeT5': {'pass@1': 0.102, 'ret_recall': 0.024, 'oracle_percent': 0.006, 'oracle_rank': 2.6, 'prompt_length': 4172.554, 'perplexity': 1.137, 'retrieval_consistency': 0.459, 'syntax_error_percent': 0.127, 'semantic_error_percent': 0.414},
@@ -253,7 +253,7 @@ code_ret_doc_type_llama_n_1 = {
         "random": {'pass@1': 0.515, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 512.156, 'perplexity': 1.124, 'retrieval_consistency': 0.006, 'syntax_error_percent': 0.018, 'semantic_error_percent': 0.311},
         "irrelevant_dummy": {'pass@1': 0.533, 'prompt_length': 1318.581, 'perplexity': 1.134, 'syntax_error_percent': 0.012, 'semantic_error_percent': 0.323},
         "irrelevant_diff": {'pass@1': 0.641, 'prompt_length': 1318.581, 'perplexity': 1.11, 'syntax_error_percent': 0.06, 'semantic_error_percent': 0.287},
-        "none": {'pass@1': 0.563, 'prompt_length': 187.036, 'perplexity': 1.098, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.347},
+        "none": {'pass@1': 0.605, 'prompt_length': 187.036, 'perplexity': 1.098, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.347},
     }
 }
 
