@@ -78,22 +78,26 @@ def process_gene_results(args, outputs, code_prompt=None):
                 pred_lines = pred.split('\n')
                 pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
 
-                # remove dup from unfinished code
+                preload_variables = []
+                for prompt_line in prompt_lines:
+                    if ' = ' in prompt_line: preload_variables.extend([var.replace(' ', '') for var in prompt_line.split('=')[0].split(',')])
+                    if 'BEGIN SOLUTION' in prompt_line: break
+
+                # if model output full code snippet, need to remove duplicated ones
+                # and sometimes LLM would change the definition of preload variables e.g.: softmax_output = load_data() -> softmax_output = torch.tensor([[0.2, 0.1, 0.7], ...
                 _pred_lines = []
                 for pred_line in pred_lines:
                     is_same = False
                     # remove dup
                     for prompt_line in prompt_lines:
-                        if prompt_line.replace(' ', '') == pred_line.replace(' ', ''): is_same = True
+                        if prompt_line.replace(' ', '') == pred_line.replace(' ', ''):
+                            for var in preload_variables:
+                                if var in prompt_line.split('=')[0]: preload_variables.remove(var)  # if not change the defi...
+                            is_same = True
                     if not is_same: _pred_lines.append(pred_line)
                 pred = '\n'.join(_pred_lines)
-
-                if len(pred_lines) - len(_pred_lines) >= 2:  # this indicates that model outputs full code snippet
-                    # the model tend to assign a value to the predefined variable, e.g.: softmax_output = load_data(), softmax_output = torch.tensor([[0.2, 0.1, 0.7], ...
-                    preload_variables = []
-                    for prompt_line in prompt_lines:
-                        if ' = ' in prompt_line: preload_variables.extend([var.replace(' ', '') for var in prompt_line.split('=')[0].split(',')])
-                        if 'BEGIN SOLUTION' in prompt_line: break
+                # if model have output full code snippet and change the definition of preload variables
+                if len(pred_lines) - len(_pred_lines) >= 2 and len(preload_variables) > 0:
                     _pred_lines = []
                     pred_lines = pred.split('\n')
                     for pred_line in pred_lines:
@@ -123,25 +127,30 @@ def process_gene_results(args, outputs, code_prompt=None):
 
                 prompt_lines = code_prompt.split('\n')
                 prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
+                print(prompt_lines)
                 pred_lines = pred.split('\n')
                 pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
                 print(pred_lines)
 
+                preload_variables = []
+                for prompt_line in prompt_lines:
+                    if ' = ' in prompt_line: preload_variables.extend([var.replace(' ', '') for var in prompt_line.split('=')[0].split(',')])
+                    if 'BEGIN SOLUTION' in prompt_line: break
+                # if model output full code snippet, need to remove duplicated ones
+                # and sometimes LLM would change the definition of preload variables e.g.: softmax_output = load_data() -> softmax_output = torch.tensor([[0.2, 0.1, 0.7], ...
                 _pred_lines = []
                 for pred_line in pred_lines:
                     is_same = False
                     # remove dup
                     for prompt_line in prompt_lines:
-                        if prompt_line.replace(' ', '') == pred_line.replace(' ', ''): is_same = True
+                        if prompt_line.replace(' ', '') == pred_line.replace(' ', ''):
+                            for var in preload_variables:
+                                if var in prompt_line.split('=')[0]: preload_variables.remove(var)  # if not change the defi...
+                            is_same = True
                     if not is_same: _pred_lines.append(pred_line)
                 pred = '\n'.join(_pred_lines)
-
-                if len(pred_lines) - len(_pred_lines) >= 2:  # this indicates that model outputs full code snippet
-                    # the model tend to assign a value to the predefined variable, e.g.: softmax_output = load_data(), softmax_output = torch.tensor([[0.2, 0.1, 0.7], ...
-                    preload_variables = []
-                    for prompt_line in prompt_lines:
-                        if ' = ' in prompt_line: preload_variables.extend([var.replace(' ', '') for var in prompt_line.split('=')[0].split(',')])
-                        if 'BEGIN SOLUTION' in prompt_line: break
+                # if model have output full code snippet and change the definition of preload variables
+                if len(pred_lines) - len(_pred_lines) >= 2 and len(preload_variables) > 0:
                     _pred_lines = []
                     pred_lines = pred.split('\n')
                     for pred_line in pred_lines:
@@ -152,7 +161,6 @@ def process_gene_results(args, outputs, code_prompt=None):
                                 is_same = True
                         if not is_same: _pred_lines.append(pred_line)
                     pred = '\n'.join(_pred_lines)
-
                 preds.append(pred)
 
     elif args.dataset == 'pandas_numpy_eval':
@@ -233,6 +241,9 @@ def process_gene_results(args, outputs, code_prompt=None):
                 except: ...
                 try:
                     if prompt_lines[-1] != '    ' and pred_lines[0].startswith('return'): pred_lines[0] = '    ' + pred_lines[0]  # add indent
+                except: ...
+                try:
+                    if 'def' in code_prompt and prompt_lines[-1] != '    ' and not pred_lines[0].startswith('    '): pred_lines = ['    '+line for line in pred_lines]
                 except: ...
                 pred = '\n'.join(pred_lines)
                 preds.append(pred)
@@ -400,7 +411,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
 
 if __name__ == '__main__':
     in_program_call = None
-    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset pandas_numpy_eval --retriever BM25 --analysis_type retrieval_doc_selection --doc_selection_type top_5 --n 1'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type none --n 1'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset DS1000 --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_10'
     args = generate_config(in_program_call)
 
@@ -420,7 +431,7 @@ if __name__ == '__main__':
     #     data = ds1000[lib][int(problema_id)]
     #     print(f'\n<processed code {idx}>]')
     #     # print([result['outputs'][0]])
-    #     print(qs_list[idx]['question'].split('\nA:')[1])
+    #     # print(qs_list[idx]['question'].split('\nA:')[1])
     #     outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
     #     # outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'])
     #     print([outputs[0]])

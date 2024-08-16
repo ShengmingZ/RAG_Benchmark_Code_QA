@@ -121,21 +121,21 @@ retriever_perf_gpt = {
         # 'contriever': {'em': 0.263, 'f1': 0.380517603212683, 'prec': 0.3865593114832381, 'recall': 0.43119434731934764}
     },
     'conala': {
-        'BM25': {'pass@1': 0.357, 'ret_recall': 0.083, 'oracle_percent': 0.019, 'oracle_rank': 2.75, 'prompt_length': 2958.607},
+        'BM25': {'pass@1': 0.369, 'prompt_length': 2958.607, 'perplexity': 1.044, 'retrieval_consistency': 0.667, 'syntax_error_percent': 0.143, 'semantic_error_percent': 0.381},
         # 'miniLM': {'pass@1': 0.298, 'ret_recall': 0.111, 'oracle_percent': 0.029, 'oracle_rank': 2.417, 'prompt_length': 663.631},
-        'openai-embedding': {'pass@1': 0.274, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.5, 'prompt_length': 484.774},
+        'openai-embedding': {'pass@1': 0.274, 'prompt_length': 484.774, 'perplexity': 1.046, 'retrieval_consistency': 0.81, 'syntax_error_percent': 0.202, 'semantic_error_percent': 0.405},
         # 'codeT5': {'pass@1': 0.345, 'ret_recall': 0.147, 'oracle_percent': 0.038, 'oracle_rank': 2.125, 'prompt_length': 1151.321}
     },
     'DS1000': {
-        'BM25': {'pass@1': 0.322, 'ret_recall': 0.071, 'oracle_percent': 0.029, 'oracle_rank': 2.043, 'prompt_length': 4806.331},
+        'BM25': {'pass@1': 0.346, 'prompt_length': 4806.331, 'perplexity': 1.041, 'retrieval_consistency': 0.312, 'syntax_error_percent': 0.0, 'semantic_error_percent': 0.363},
         # 'miniLM': {'pass@1': 0.276, 'ret_recall': 0.109, 'oracle_percent': 0.042, 'oracle_rank': 2.121, 'prompt_length': 2360.783},
-        'openai-embedding': {'pass@1': 0.323, 'ret_recall': 0.117, 'oracle_percent': 0.054, 'oracle_rank': 2.31, 'prompt_length': 3139.516},
+        'openai-embedding': {'pass@1': 0.346, 'prompt_length': 4806.331, 'perplexity': 1.041, 'retrieval_consistency': 0.312, 'syntax_error_percent': 0.0, 'semantic_error_percent': 0.363},
         # 'codeT5': {'pass@1': 0.306, 'ret_recall': 0.024, 'oracle_percent': 0.006, 'oracle_rank': 2.6, 'prompt_length': 3971.35}
     },
     'pandas_numpy_eval': {
-        'BM25': {'pass@1': 0.778, 'ret_recall': 0.131, 'oracle_percent': 0.031, 'oracle_rank': 2.846, 'prompt_length': 3831.647},
+        'BM25': {'pass@1': 0.784, 'prompt_length': 3831.647, 'perplexity': 1.038, 'retrieval_consistency': 0.246, 'syntax_error_percent': 0.012, 'semantic_error_percent': 0.263},
         # 'miniLM': {'pass@1': 0.725, 'ret_recall': 0.18, 'oracle_percent': 0.046, 'oracle_rank': 2.684, 'prompt_length': 1478.94},
-        'openai-embedding': {'pass@1': 0.725, 'ret_recall': 0.222, 'oracle_percent': 0.053, 'oracle_rank': 2.068, 'prompt_length': 1805.76},
+        'openai-embedding': {'pass@1': 0.725, 'prompt_length': 1805.76, 'perplexity': 1.037, 'retrieval_consistency': 0.928, 'syntax_error_percent': 0.012, 'semantic_error_percent': 0.287},
         # 'codeT5': {'pass@1': 0.772, 'ret_recall': 0.048, 'oracle_percent': 0.012, 'oracle_rank': 3.5, 'prompt_length': 1962.892}
     }
 }
@@ -265,7 +265,7 @@ code_ret_doc_type_gpt_n_1 = {
         "random": {'pass@1': 0.262, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 402.667, 'perplexity': 1.061, 'retrieval_consistency': 0.024, 'syntax_error_percent': 0.262, 'semantic_error_percent': 0.381},
         "irrelevant_dummy": {'pass@1': 0.286, 'prompt_length': 814.321, 'perplexity': 1.048, 'syntax_error_percent': 0.381, 'semantic_error_percent': 0.417},
         "irrelevant_diff": {'pass@1': 0.321, 'prompt_length': 814.833, 'perplexity': 1.047, 'syntax_error_percent': 0.369, 'semantic_error_percent': 0.405},
-        "none": {'pass@1': 0.214, 'prompt_length': 66.369, 'perplexity': 1.046, 'syntax_error_percent': 0.452, 'semantic_error_percent': 0.381}
+        "none": {'pass@1': 0.226, 'prompt_length': 66.369, 'perplexity': 1.046, 'syntax_error_percent': 0.417, 'semantic_error_percent': 0.393}
     },
     "DS1000": {
         "oracle": {'pass@1': 0.34, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 2.159, 'prompt_length': 2172.236, 'perplexity': 1.033, 'retrieval_consistency': 1.287, 'syntax_error_percent': 0.019, 'semantic_error_percent': 0.191},
@@ -274,7 +274,7 @@ code_ret_doc_type_gpt_n_1 = {
         "random": {'pass@1': 0.33, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 939.217, 'perplexity': 1.038, 'retrieval_consistency': 0.0, 'syntax_error_percent': 0.019, 'semantic_error_percent': 0.395},
         "irrelevant_dummy": {'pass@1': 0.342, 'prompt_length': 2192.28, 'perplexity': 1.037, 'syntax_error_percent': 0.025, 'semantic_error_percent': 0.344},
         "irrelevant_diff": {'pass@1': 0.383, 'prompt_length': 2193.631, 'perplexity': 1.039, 'syntax_error_percent': 0.013, 'semantic_error_percent': 0.312},
-        "none": {'pass@1': 0.326, 'prompt_length': 413.535, 'perplexity': 1.044, 'syntax_error_percent': 0.0, 'semantic_error_percent': 0.312},
+        "none": {'pass@1': 0.36, 'prompt_length': 413.535, 'perplexity': 1.044, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.318},
     },
     "pandas_numpy_eval": {
         "oracle": {'pass@1': 0.79, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.427, 'prompt_length': 1164.731, 'perplexity': 1.026, 'retrieval_consistency': 1.114, 'syntax_error_percent': 0.018, 'semantic_error_percent': 0.126},
@@ -351,7 +351,7 @@ qa_ret_doc_type_llama_n_1 = {
         "random": {'em': 0.002, 'f1': 0.073, 'prec': 0.046, 'recall': 0.281, 'ret_recall': 0.003, 'oracle_percent': 0.003, 'oracle_rank': 1.0, 'prompt_length': 284.834, 'perplexity': 1.11},
         "irrelevant_dummy": {'em': 0.005, 'f1': 0.08, 'prec': 0.052, 'recall': 0.268, 'prompt_length': 283.926, 'perplexity': 1.105},
         "irrelevant_diff": {'em': 0.003, 'f1': 0.105, 'prec': 0.065, 'recall': 0.379, 'prompt_length': 283.923, 'perplexity': 1.12},
-        "none": {'em': 0.013, 'f1': 0.121, 'prec': 0.078, 'recall': 0.509, 'prompt_length': 89.734, 'perplexity': 1.087},
+        "none": {'em': 0.013, 'f1': 0.121, 'prec': 0.078, 'recall': 0.509, 'has_answer': 0.401, 'prompt_length': 89.734, 'perplexity': 1.087},
     },
     "TriviaQA": {
         "oracle": {'em': 0.358, 'f1': 0.523, 'prec': 0.461, 'recall': 0.904, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.0, 'prompt_length': 295.269, 'perplexity': 1.062},
@@ -381,7 +381,7 @@ qa_ret_doc_type_gpt_n_1 = {
         "random": {'em': 0.164, 'f1': 0.265, 'prec': 0.263, 'recall': 0.355, 'ret_recall': 0.003, 'oracle_percent': 0.003, 'oracle_rank': 1.0, 'prompt_length': 230.421, 'perplexity': 1.077},
         "irrelevant_dummy": {'em': 0.12, 'f1': 0.198, 'prec': 0.188, 'recall': 0.288, 'prompt_length': 228.262, 'perplexity': 1.087},
         "irrelevant_diff": {'em': 0.142, 'f1': 0.227, 'prec': 0.224, 'recall': 0.307, 'prompt_length': 228.579, 'perplexity': 1.088},
-        "none": {'em': 0.247, 'f1': 0.403, 'prec': 0.381, 'recall': 0.603, 'prompt_length': 64.483, 'perplexity': 1.064},
+        "none": {'em': 0.247, 'f1': 0.403, 'prec': 0.381, 'recall': 0.603, 'has_answer': 0.496, 'prompt_length': 64.483, 'perplexity': 1.064},
         "ellipsis": {'em': 0.257, 'f1': 0.386, 'prec': 0.382, 'recall': 0.505, 'prompt_length': 229.344, 'perplexity': 1.071},
     },
     "TriviaQA": {
@@ -391,7 +391,7 @@ qa_ret_doc_type_gpt_n_1 = {
         "random": {'em': 0.65, 'f1': 0.716, 'prec': 0.697, 'recall': 0.791, 'ret_recall': 0.006, 'oracle_percent': 0.006, 'oracle_rank': 1.0, 'prompt_length': 237.699, 'perplexity': 1.04},
         "irrelevant_dummy": {'em': 0.645, 'f1': 0.714, 'prec': 0.693, 'recall': 0.807, 'prompt_length': 237.794, 'perplexity': 1.042},
         "irrelevant_diff": {'em': 0.666, 'f1': 0.728, 'prec': 0.712, 'recall': 0.797, 'prompt_length': 238.488, 'perplexity': 1.043},
-        "none": {'em': 0.706, 'f1': 0.773, 'prec': 0.748, 'recall': 0.878, 'prompt_length': 71.761, 'perplexity': 1.029},
+        "none": {'em': 0.706, 'f1': 0.773, 'prec': 0.748, 'recall': 0.878, 'has_answer': 0.862, 'prompt_length': 71.761, 'perplexity': 1.029},
     },
     "hotpotQA": {
         "oracle": {'em': 0.521, 'f1': 0.688, 'prec': 0.702, 'recall': 0.745, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.5, 'prompt_length': 300.921, 'perplexity': 1.021},
@@ -400,7 +400,7 @@ qa_ret_doc_type_gpt_n_1 = {
         "random": {'em': 0.175, 'f1': 0.26, 'prec': 0.262, 'recall': 0.301, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 231.194, 'perplexity': 1.08},
         "irrelevant_dummy": {'em': 0.183, 'f1': 0.263, 'prec': 0.267, 'recall': 0.311, 'prompt_length': 303.166, 'perplexity': 1.087},
         "irrelevant_diff": {'em': 0.196, 'f1': 0.276, 'prec': 0.285, 'recall': 0.31, 'prompt_length': 304.324, 'perplexity': 1.091},
-        "none": {'em': 0.202, 'f1': 0.333, 'prec': 0.336, 'recall': 0.391, 'prompt_length': 73.689, 'perplexity': 1.084},
+        "none": {'em': 0.202, 'f1': 0.333, 'prec': 0.336, 'recall': 0.391, 'has_answer': 0.324, 'prompt_length': 73.689, 'perplexity': 1.084},
     }
 }
 
