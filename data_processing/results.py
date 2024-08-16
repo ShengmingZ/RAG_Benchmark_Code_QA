@@ -80,19 +80,19 @@ retriever_perf_llama = {
     'conala': {
         'BM25': {'pass@1': 0.19, 'prompt_length': 2999.786, 'perplexity': 1.132, 'retrieval_consistency': 0.548, 'syntax_error_percent': 0.226, 'semantic_error_percent': 0.5},
         # 'miniLM': {'pass@1': 0.214, 'ret_recall': 0.111, 'oracle_percent': 0.029, 'oracle_rank': 2.417, 'prompt_length': 732.595, 'perplexity': 1.13, 'retrieval_consistency': 1.25, 'syntax_error_percent': 0.179, 'semantic_error_percent': 0.488},
-        'openai-embedding': {'pass@1': 0.226, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.5, 'prompt_length': 542.631, 'perplexity': 1.129, 'retrieval_consistency': 0.738, 'syntax_error_percent': 0.238, 'semantic_error_percent': 0.44},
+        'openai-embedding': {'pass@1': 0.167, 'prompt_length': 222.083, 'perplexity': 1.131, 'retrieval_consistency': 0.44, 'syntax_error_percent': 0.202, 'semantic_error_percent': 0.464},
         # 'codeT5': {'pass@1': 0.238, 'ret_recall': 0.147, 'oracle_percent': 0.038, 'oracle_rank': 2.125, 'prompt_length': 1232.524, 'perplexity': 1.121, 'retrieval_consistency': 1.083, 'syntax_error_percent': 0.179, 'semantic_error_percent': 0.429},
     },
     'DS1000': {
         'BM25': {'pass@1': 0.084, 'prompt_length': 4851.369, 'perplexity': 1.136, 'retrieval_consistency': 0.503, 'syntax_error_percent': 0.121, 'semantic_error_percent': 0.439},
         # 'miniLM': {'pass@1': 0.06, 'ret_recall': 0.109, 'oracle_percent': 0.042, 'oracle_rank': 2.121, 'prompt_length': 2582.197, 'perplexity': 1.143, 'retrieval_consistency': 1.541, 'syntax_error_percent': 0.14, 'semantic_error_percent': 0.427},
-        'openai-embedding': {'pass@1': 0.088, 'prompt_length': 3275.248, 'perplexity': 1.138, 'retrieval_consistency': 1.223, 'syntax_error_percent': 0.134, 'semantic_error_percent': 0.414},
+        'openai-embedding': {'pass@1': 0.113, 'prompt_length': 2072.707, 'perplexity': 1.151, 'retrieval_consistency': 0.86, 'syntax_error_percent': 0.115, 'semantic_error_percent': 0.395},
         # 'codeT5': {'pass@1': 0.102, 'ret_recall': 0.024, 'oracle_percent': 0.006, 'oracle_rank': 2.6, 'prompt_length': 4172.554, 'perplexity': 1.137, 'retrieval_consistency': 0.459, 'syntax_error_percent': 0.127, 'semantic_error_percent': 0.414},
     },
     'pandas_numpy_eval': {
-        'BM25': {'pass@1': 0.611, 'prompt_length': 3984.994, 'perplexity': 1.136, 'retrieval_consistency': 0.234, 'syntax_error_percent': 0.06, 'semantic_error_percent': 0.305},
+        'BM25': {'pass@1': 0.629, 'prompt_length': 3984.994, 'perplexity': 1.136, 'retrieval_consistency': 0.234, 'syntax_error_percent': 0.06, 'semantic_error_percent': 0.305},
         # 'miniLM': {'pass@1': 0.521, 'ret_recall': 0.18, 'oracle_percent': 0.046, 'oracle_rank': 2.684, 'prompt_length': 1640.132, 'perplexity': 1.136, 'retrieval_consistency': 1.192, 'syntax_error_percent': 0.054, 'semantic_error_percent': 0.317},
-        'openai-embedding': {'pass@1': 0.497, 'prompt_length': 1935.874, 'perplexity': 1.135, 'retrieval_consistency': 0.964, 'syntax_error_percent': 0.114, 'semantic_error_percent': 0.323}
+        'openai-embedding': {'pass@1': 0.497, 'prompt_length': 736.036, 'perplexity': 1.131, 'retrieval_consistency': 0.467, 'syntax_error_percent': 0.072, 'semantic_error_percent': 0.353}
         # 'codeT5': {'pass@1': 0.515, 'ret_recall': 0.048, 'oracle_percent': 0.012, 'oracle_rank': 3.5, 'prompt_length': 2107.778, 'perplexity': 1.139, 'retrieval_consistency': 0.719, 'syntax_error_percent': 0.09, 'semantic_error_percent': 0.341},
     }
 }
@@ -121,21 +121,21 @@ retriever_perf_gpt = {
         # 'contriever': {'em': 0.263, 'f1': 0.380517603212683, 'prec': 0.3865593114832381, 'recall': 0.43119434731934764}
     },
     'conala': {
-        'BM25': {'pass@1': 0.369, 'prompt_length': 2958.607, 'perplexity': 1.044, 'retrieval_consistency': 0.667, 'syntax_error_percent': 0.143, 'semantic_error_percent': 0.381},
+        'BM25': {'pass@1': 0.357, 'prompt_length': 2958.607, 'perplexity': 1.044, 'retrieval_consistency': 0.667, 'syntax_error_percent': 0.143, 'semantic_error_percent': 0.381},
         # 'miniLM': {'pass@1': 0.298, 'ret_recall': 0.111, 'oracle_percent': 0.029, 'oracle_rank': 2.417, 'prompt_length': 663.631},
-        'openai-embedding': {'pass@1': 0.274, 'prompt_length': 484.774, 'perplexity': 1.046, 'retrieval_consistency': 0.81, 'syntax_error_percent': 0.202, 'semantic_error_percent': 0.405},
+        'openai-embedding': {'pass@1': 0.214, 'prompt_length': 183.19, 'perplexity': 1.046, 'retrieval_consistency': 0.452, 'syntax_error_percent': 0.286, 'semantic_error_percent': 0.476},
         # 'codeT5': {'pass@1': 0.345, 'ret_recall': 0.147, 'oracle_percent': 0.038, 'oracle_rank': 2.125, 'prompt_length': 1151.321}
     },
     'DS1000': {
-        'BM25': {'pass@1': 0.346, 'prompt_length': 4806.331, 'perplexity': 1.041, 'retrieval_consistency': 0.312, 'syntax_error_percent': 0.0, 'semantic_error_percent': 0.363},
+        'BM25': {'pass@1': 0.353, 'prompt_length': 4806.331, 'perplexity': 1.041, 'retrieval_consistency': 0.312, 'syntax_error_percent': 0.0, 'semantic_error_percent': 0.363},
         # 'miniLM': {'pass@1': 0.276, 'ret_recall': 0.109, 'oracle_percent': 0.042, 'oracle_rank': 2.121, 'prompt_length': 2360.783},
-        'openai-embedding': {'pass@1': 0.346, 'prompt_length': 4806.331, 'perplexity': 1.041, 'retrieval_consistency': 0.312, 'syntax_error_percent': 0.0, 'semantic_error_percent': 0.363},
+        'openai-embedding': {'pass@1': 0.268, 'prompt_length': 1951.268, 'perplexity': 1.041, 'retrieval_consistency': 0.605, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.395},
         # 'codeT5': {'pass@1': 0.306, 'ret_recall': 0.024, 'oracle_percent': 0.006, 'oracle_rank': 2.6, 'prompt_length': 3971.35}
     },
     'pandas_numpy_eval': {
-        'BM25': {'pass@1': 0.784, 'prompt_length': 3831.647, 'perplexity': 1.038, 'retrieval_consistency': 0.246, 'syntax_error_percent': 0.012, 'semantic_error_percent': 0.263},
+        'BM25': {'pass@1': 0.778, 'prompt_length': 3831.647, 'perplexity': 1.038, 'retrieval_consistency': 0.246, 'syntax_error_percent': 0.012, 'semantic_error_percent': 0.263},
         # 'miniLM': {'pass@1': 0.725, 'ret_recall': 0.18, 'oracle_percent': 0.046, 'oracle_rank': 2.684, 'prompt_length': 1478.94},
-        'openai-embedding': {'pass@1': 0.725, 'prompt_length': 1805.76, 'perplexity': 1.037, 'retrieval_consistency': 0.928, 'syntax_error_percent': 0.012, 'semantic_error_percent': 0.287},
+        'openai-embedding': {'pass@1': 0.653, 'prompt_length': 664.689, 'perplexity': 1.037, 'retrieval_consistency': 0.449, 'syntax_error_percent': 0.036, 'semantic_error_percent': 0.341},
         # 'codeT5': {'pass@1': 0.772, 'ret_recall': 0.048, 'oracle_percent': 0.012, 'oracle_rank': 3.5, 'prompt_length': 1962.892}
     }
 }
