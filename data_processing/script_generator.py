@@ -5,7 +5,7 @@ actions = ['gene_prompts', 'gene_responses', 'eval_pred']
 action = actions[2]
 
 models = ['gpt-3.5-turbo-0125', 'codellama-13b-instruct', 'llama2-13b-chat']
-model = models[0]
+model = models[1]
 
 datasets = ['conala', 'DS1000', 'pandas_numpy_eval', 'NQ', 'TriviaQA', 'hotpotQA']
 qa_datasets = datasets[3:]
@@ -17,7 +17,7 @@ retrievers = ['BM25', 'miniLM', 'openai-embedding', 'codeT5']
 retriever = retrievers[2]
 
 analysis_types = ['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection']
-analysis_type = analysis_types[1]
+analysis_type = analysis_types[2]
 # analysis_type_paras = ['ret_acc', 'ret_doc_type', 'doc_selection_type']
 # analysis_type_para = analysis_type_paras[1]
 

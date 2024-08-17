@@ -444,19 +444,24 @@ def make_qa_code_ret_recall():
     for retrieval_acc_data, retriever_name in zip(qa_retrieval_acc_datas, retriever_names):
         if retrieval_acc_data: ax1.plot(x, retrieval_acc_data, marker='o', linestyle='-', label=retriever_name)
         else: ax1.plot([], [], marker='o', linestyle='-', label=retriever_name)
-    ax1.set_xlabel('top k')
-    ax1.set_ylabel('Recall')
+    ax1.set_xlabel('top k', fontsize=16)
+    ax1.set_ylabel('Retrieval Recall', fontsize=16)
     ax1.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+    ax1.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=16)
     ax1.set_xticks(x, top_ks)
-    ax1.set_title('Avg Retrieval Recall of QA Datasets')
+    # ax1.set_xticks(top_ks)
+    ax1.set_xticklabels(top_ks, fontsize=16)
+    ax1.set_title('Avg Retrieval Recall of QA Datasets', fontsize=16)
     for retrieval_acc_data, retriever_name in zip(code_retrieval_acc_datas, retriever_names):
         if retrieval_acc_data: ax2.plot(x, retrieval_acc_data, marker='o', linestyle='-', label=retriever_name)
         else: ax2.plot([], [], marker='o', linestyle='-', label=retriever_name)
-    ax2.set_xlabel('top k')
-    ax2.set_ylabel('Recall')
+    ax2.set_xlabel('top k', fontsize=16)
+    ax2.set_ylabel('Retrieval Recall', fontsize=16)
     ax2.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+    ax2.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=16)
     ax2.set_xticks(x, top_ks)
-    ax2.set_title('Avg Retrieval Recall of Code Datasets')
+    ax2.set_xticklabels(top_ks, fontsize=16)
+    ax2.set_title('Avg Retrieval Recall of Code Datasets', fontsize=16)
 
     handles, labels = ax1.get_legend_handles_labels()
     fig.legend(handles, labels, loc='lower center', ncol=5, fontsize=10, bbox_to_anchor=(0.5, -0.05))
@@ -493,7 +498,7 @@ def make_avg_ret_recall():
 if __name__ == '__main__':
     # make_avg_ret_recall()
 
-    # make_qa_code_ret_recall()
+    make_qa_code_ret_recall()
 
     # make_ret_recall_analysis()
 
@@ -505,4 +510,4 @@ if __name__ == '__main__':
 
     # make_ret_doc_type_perplexity()
 
-    make_doc_selection_topk_syntax_semantic_error()
+    # make_doc_selection_topk_syntax_semantic_error()

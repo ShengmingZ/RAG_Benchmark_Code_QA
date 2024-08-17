@@ -40,7 +40,7 @@ def process_gene_results(args, outputs, code_prompt=None):
                 try:
                     if pred_lines[-1].startswith('print'): pred = pred_lines[-2]
                     else: pred = pred_lines[-1]
-                except: ...
+                except: pred = pred_lines[-1]
                 preds.append(pred)
         else:
             for output in outputs:
