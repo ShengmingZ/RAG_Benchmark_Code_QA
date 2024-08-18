@@ -138,14 +138,14 @@ def process_gene_results(args, outputs, code_prompt=None):
                     if 'BEGIN SOLUTION' in prompt_line: break
                 # if model output full code snippet, need to remove duplicated ones
                 # and sometimes LLM would change the definition of preload variables e.g.: softmax_output = load_data() -> softmax_output = torch.tensor([[0.2, 0.1, 0.7], ...
+                # first remove dup
                 _pred_lines = []
                 for pred_line in pred_lines:
                     is_same = False
-                    # remove dup
                     for prompt_line in prompt_lines:
                         if prompt_line.replace(' ', '') == pred_line.replace(' ', ''):
                             for var in preload_variables:
-                                if var in prompt_line.split('=')[0]: preload_variables.remove(var)  # if not change the defi...
+                                if ' = ' in prompt_line and var in prompt_line.split('=')[0]: preload_variables.remove(var)  # if not change the defi...
                             is_same = True
                     if not is_same: _pred_lines.append(pred_line)
                 pred = '\n'.join(_pred_lines)
@@ -184,6 +184,7 @@ def process_gene_results(args, outputs, code_prompt=None):
                 # clean code
                 prompt_lines = code_prompt.split('\n')
                 prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
+                code_prompt = '\n'.join(prompt_lines)
                 print(prompt_lines)
                 pred_lines = pred.split('\n')
                 pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
@@ -224,6 +225,7 @@ def process_gene_results(args, outputs, code_prompt=None):
                 # clean code
                 prompt_lines = code_prompt.split('\n')
                 prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
+                code_prompt = '\n'.join(prompt_lines)
                 print(prompt_lines)
                 pred_lines = pred.split('\n')
                 pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
@@ -416,7 +418,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
 
 if __name__ == '__main__':
     in_program_call = None
-    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type none --n 1'
+    # in_program_call = '--model codellama-13b-instruct --dataset DS1000 --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type random --n 1'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset DS1000 --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_10'
     args = generate_config(in_program_call)
 

@@ -1,5 +1,5 @@
 files = ['run.py', 'generate.py', 'transfer']
-file = files[1]
+file = files[2]
 
 actions = ['gene_prompts', 'gene_responses', 'eval_pred']
 action = actions[2]
@@ -44,7 +44,8 @@ elif file == 'run.py':
     script = (f"python generator/{file} --action {action} --model {model} --temperature 0 --n 1 --dataset {dataset} "
               f"--retriever {retriever} --analysis_type {analysis_type}")
 elif file == 'transfer':
-    script = (f"scp -P 10389 zhaoshengming@129.128.209.149:~/Code_RAG_Benchmark/data/{dataset}/results/model_{model}_retriever_BM25.json "
-              f"data/{dataset}/results")
-
+    for dataset in datasets:
+        script = (f"scp -P 10389 zhaoshengming@129.128.209.149:~/Code_RAG_Benchmark/data/{dataset}/results/model_{model}_n_1_retrieval_doc_type_random.json "
+                  f"data/{dataset}/results")
+        print(script)
 
