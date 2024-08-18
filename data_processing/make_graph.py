@@ -4,7 +4,9 @@ import numpy as np
 
 
 dataset_names = ['NQ', 'TriviaQA', 'hotpotQA', 'conala', 'DS1000', 'pandas_numpy_eval']
+auth_dataset_names = ['NQ', 'TriviaQA', 'HotpotQA', 'CoNaLa', 'DS1000', 'PNE']
 qa_dataset_names, code_dataset_names = dataset_names[:3], dataset_names[3:]
+auth_qa_dataset_names, auth_code_dataset_names = auth_dataset_names[:3], auth_dataset_names[3:]
 retriever_names = ['BM25', 'miniLM', 'openai-embedding', 'contriever', 'codeT5']
 top_ks = [1, 3, 5, 10, 20, 50, 100]
 ret_recalls = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
@@ -220,7 +222,7 @@ def make_ret_doc_type_perplexity():
 
 def make_ret_doc_type_analysis():
     graph_name = 'ret_doc_type_analysis.pdf'
-    metric = 'f1'
+    metric = 'has_answer'
     gpt_perf_datas = []
     for dataset_name in qa_dataset_names:
         gpt_perf_datas.append(
@@ -270,9 +272,9 @@ def make_ret_doc_type_analysis():
 
     plt.style.use('ggplot')
     fig, ((ax1, ax2, ax3, ax4, ax5, ax6), (ax7, ax8, ax9, ax10, ax11, ax12)) = plt.subplots(2, 6, figsize=(24, 6))  # ax1: qa, ax2: code
-    fig.suptitle('retrieval document type analysis', fontsize=16)
-    fig.text(0.5, 0, '(2). performance of llama2-13b on six datasets', ha='center', va='center', fontsize=14)
-    fig.text(0.5, 0.45, '(1). performance of gpt-3.5 on six datasets', ha='center', va='center', fontsize=14)
+    # fig.suptitle('retrieval document type analysis', fontsize=16)
+    fig.text(0.5, 0.03, '(2). performance of llama2-13b on six datasets', ha='center', va='center', fontsize=16)
+    fig.text(0.5, 0.48, '(1). performance of gpt-3.5 on six datasets', ha='center', va='center', fontsize=16)
     fig.subplots_adjust(hspace=0.4, wspace=0.2)
     x = len(ret_doc_types)
     doc_type_index = np.arange(x)
@@ -282,39 +284,51 @@ def make_ret_doc_type_analysis():
     yticks_list = [[0,1], [0,1], [0,1]]
     for idx, ax in enumerate(axs):
         ax.bar(range(len(qa_gpt_perf_datas[idx])), qa_gpt_perf_datas[idx], label=ret_doc_types, color=colors1)
-        ax.set_xlabel(qa_dataset_names[idx])
-        ax.set_ylabel(metric)
+        ax.set_xlabel(auth_qa_dataset_names[idx], fontsize=16)
+        ax.set_xticks([])
+        ax.set_ylabel(metric, fontsize=16)
         ax.set_yticks(yticks_list[idx])
+        ax.set_yticklabels(yticks_list[idx], fontsize=16)
+        ax.yaxis.set_label_coords(-0.05, 0.5)
         ax.set_ylim(yticks_list[idx][0], yticks_list[idx][-1])
     axs = [ax4, ax5, ax6]
     yticks_list = [[0, 0.4], [0, 0.4], [0.4, 0.8]]
     for idx, ax in enumerate(axs):
         ax.bar(range(len(code_gpt_perf_datas[idx])), code_gpt_perf_datas[idx], label=ret_doc_types, color=colors1)
-        ax.set_xlabel(code_dataset_names[idx])
-        ax.set_ylabel('pass@1')
+        ax.set_xlabel(auth_code_dataset_names[idx], fontsize=16)
+        ax.set_xticks([])
+        ax.set_ylabel('pass@1', fontsize=16)
         ax.set_yticks(yticks_list[idx])
+        ax.set_yticklabels(yticks_list[idx], fontsize=16)
+        ax.yaxis.set_label_coords(-0.05, 0.5)
         ax.set_ylim(yticks_list[idx][0], yticks_list[idx][-1])
     axs = [ax7, ax8, ax9]
     yticks_list = [[0, 1], [0, 1], [0, 1]]
     for idx, ax in enumerate(axs):
         ax.bar(range(len(qa_llama_perf_datas[idx])), qa_llama_perf_datas[idx], label=ret_doc_types, color=colors1)
-        ax.set_xlabel(qa_dataset_names[idx])
-        ax.set_ylabel(metric)
+        ax.set_xlabel(auth_qa_dataset_names[idx], fontsize=16)
+        ax.set_xticks([])
+        ax.set_ylabel(metric, fontsize=16)
         ax.set_yticks(yticks_list[idx])
+        ax.set_yticklabels(yticks_list[idx], fontsize=16)
+        ax.yaxis.set_label_coords(-0.05, 0.5)
         ax.set_ylim(yticks_list[idx][0], yticks_list[idx][-1])
     axs = [ax10, ax11, ax12]
     yticks_list = [[0, 0.4], [0, 0.4], [0.4, 0.8]]
     for idx, ax in enumerate(axs):
         ax.bar(range(len(code_llama_perf_datas[idx])), code_llama_perf_datas[idx], label=ret_doc_types, color=colors1)
-        ax.set_xlabel(code_dataset_names[idx])
-        ax.set_ylabel('pass@1')
+        ax.set_xlabel(auth_code_dataset_names[idx], fontsize=16)
+        ax.set_xticks([])
+        ax.set_ylabel('pass@1', fontsize=16)
         ax.set_yticks(yticks_list[idx])
+        ax.set_yticklabels(yticks_list[idx], fontsize=16)
+        ax.yaxis.set_label_coords(-0.05, 0.5)
         ax.set_ylim(yticks_list[idx][0], yticks_list[idx][-1])
 
     handles, labels = ax1.get_legend_handles_labels()
     # ax2_handles, ax2_labels = ax2.get_legend_handles_labels()
     # handles, labels = ax1_handles + ax2_handles, ax1_labels + ax2_labels
-    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=10, bbox_to_anchor=(0.5, -0.1))
+    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=16, bbox_to_anchor=(0.5, -0.08))
     plt.savefig('graph/' + graph_name, bbox_inches='tight')
     plt.show()
 
@@ -445,26 +459,26 @@ def make_qa_code_ret_recall():
         if retrieval_acc_data: ax1.plot(x, retrieval_acc_data, marker='o', linestyle='-', label=retriever_name)
         else: ax1.plot([], [], marker='o', linestyle='-', label=retriever_name)
     ax1.set_xlabel('top k', fontsize=16)
-    ax1.set_ylabel('Retrieval Recall', fontsize=16)
+    # ax1.set_ylabel('Retrieval Recall', fontsize=16)
     ax1.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     ax1.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=16)
     ax1.set_xticks(x, top_ks)
     # ax1.set_xticks(top_ks)
     ax1.set_xticklabels(top_ks, fontsize=16)
-    ax1.set_title('Avg Retrieval Recall of QA Datasets', fontsize=16)
+    ax1.set_title('Avg Retrieval Recall on QA Datasets', fontsize=16)
     for retrieval_acc_data, retriever_name in zip(code_retrieval_acc_datas, retriever_names):
         if retrieval_acc_data: ax2.plot(x, retrieval_acc_data, marker='o', linestyle='-', label=retriever_name)
         else: ax2.plot([], [], marker='o', linestyle='-', label=retriever_name)
     ax2.set_xlabel('top k', fontsize=16)
-    ax2.set_ylabel('Retrieval Recall', fontsize=16)
+    # ax2.set_ylabel('Retrieval Recall', fontsize=16)
     ax2.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     ax2.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=16)
     ax2.set_xticks(x, top_ks)
     ax2.set_xticklabels(top_ks, fontsize=16)
-    ax2.set_title('Avg Retrieval Recall of Code Datasets', fontsize=16)
+    ax2.set_title('Avg Retrieval Recall on Code Datasets', fontsize=16)
 
     handles, labels = ax1.get_legend_handles_labels()
-    fig.legend(handles, labels, loc='lower center', ncol=5, fontsize=10, bbox_to_anchor=(0.5, -0.05))
+    fig.legend(handles, labels, loc='lower center', ncol=5, fontsize=16, bbox_to_anchor=(0.5, -0.08))
     plt.savefig('graph/' + graph_name, bbox_inches='tight')
     plt.show()
 

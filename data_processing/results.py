@@ -229,31 +229,31 @@ code_ret_recall_gpt_n_1 = {
 
 code_ret_doc_type_llama_n_1 = {
     "conala": {
-        "oracle": {'pass@1': 0.298, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.589, 'prompt_length': 853.226, 'perplexity': 1.119, 'retrieval_consistency': 1.0, 'syntax_error_percent': 0.143, 'semantic_error_percent': 0.19},
+        "oracle": {'pass@1': 0.298, 'prompt_length': 853.226, 'perplexity': 1.119, 'retrieval_consistency': 1.0, 'syntax_error_percent': 0.143, 'semantic_error_percent': 0.19},
         # "retrieved": {'pass@1': 0.16666666666666666},
-        "distracting": {'pass@1': 0.167, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 217.095, 'perplexity': 1.131, 'retrieval_consistency': 0.429, 'syntax_error_percent': 0.214, 'semantic_error_percent': 0.464},
-        "random": {'pass@1': 0.214, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 449.75, 'perplexity': 1.131, 'retrieval_consistency': 0.024, 'syntax_error_percent': 0.262, 'semantic_error_percent': 0.405},
-        "irrelevant_dummy": {'pass@1': 0.226, 'prompt_length': 912.119, 'perplexity': 1.11, 'syntax_error_percent': 0.262, 'semantic_error_percent': 0.357},
-        "irrelevant_diff": {'pass@1': 0.19, 'prompt_length': 912.119, 'perplexity': 1.123, 'syntax_error_percent': 0.298, 'semantic_error_percent': 0.393},
+        "distracting": {'pass@1': 0.167, 'prompt_length': 217.095, 'perplexity': 1.131, 'retrieval_consistency': 0.429, 'syntax_error_percent': 0.202, 'semantic_error_percent': 0.464},
+        "random": {'pass@1': 0.238, 'prompt_length': 449.75, 'perplexity': 1.131, 'retrieval_consistency': 0.024, 'syntax_error_percent': 0.226, 'semantic_error_percent': 0.429},
+        "irrelevant_dummy": {'pass@1': 0.25, 'prompt_length': 912.119, 'perplexity': 1.11, 'syntax_error_percent': 0.238, 'semantic_error_percent': 0.369},
+        "irrelevant_diff": {'pass@1': 0.19, 'prompt_length': 912.119, 'perplexity': 1.123, 'syntax_error_percent': 0.286, 'semantic_error_percent': 0.417},
         "none": {'pass@1': 0.226, 'prompt_length': 92.714, 'perplexity': 1.137, 'syntax_error_percent': 0.298, 'semantic_error_percent': 0.417},
     },
     "DS1000": {
-        "oracle": {'pass@1': 0.173, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 2.159, 'prompt_length': 2270.185, 'perplexity': 1.143, 'retrieval_consistency': 1.21, 'syntax_error_percent': 0.115, 'semantic_error_percent': 0.191},
+        "oracle": {'pass@1': 0.199, 'prompt_length': 2270.185, 'perplexity': 1.143, 'retrieval_consistency': 1.204, 'syntax_error_percent': 0.102, 'semantic_error_percent': 0.191},
         # "retrieved": {'pass@1': 0.08371569950517317},
-        "distracting": {'pass@1': 0.097, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 2024.369, 'perplexity': 1.153, 'retrieval_consistency': 0.758, 'syntax_error_percent': 0.115, 'semantic_error_percent': 0.42},
-        "random": {'pass@1': 0.093, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1067.21, 'perplexity': 1.161, 'retrieval_consistency': 0.07, 'syntax_error_percent': 0.115, 'semantic_error_percent': 0.427},
-        "irrelevant_dummy": {'pass@1': 0.119, 'prompt_length': 2409.949, 'perplexity': 1.156, 'syntax_error_percent': 0.038, 'semantic_error_percent': 0.446},
-        "irrelevant_diff": {'pass@1': 0.138, 'prompt_length': 2409.949, 'perplexity': 1.154, 'syntax_error_percent': 0.07, 'semantic_error_percent': 0.395},
+        "distracting": {'pass@1': 0.123, 'prompt_length': 2024.369, 'perplexity': 1.153, 'retrieval_consistency': 0.764, 'syntax_error_percent': 0.115, 'semantic_error_percent': 0.414},
+        "random": {'pass@1': 0.116, 'prompt_length': 1067.21, 'perplexity': 1.161, 'retrieval_consistency': 0.07, 'syntax_error_percent': 0.108, 'semantic_error_percent': 0.427},
+        "irrelevant_dummy": {'pass@1': 0.155, 'prompt_length': 2409.949, 'perplexity': 1.156, 'syntax_error_percent': 0.045, 'semantic_error_percent': 0.395},
+        "irrelevant_diff": {'pass@1': 0.158, 'prompt_length': 2409.949, 'perplexity': 1.154, 'syntax_error_percent': 0.07, 'semantic_error_percent': 0.369},
         "none": {'pass@1': 0.166, 'prompt_length': 514.739, 'perplexity': 1.15, 'syntax_error_percent': 0.032, 'semantic_error_percent': 0.401},
     },
     "pandas_numpy_eval": {
-        "oracle": {'pass@1': 0.557, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.427, 'prompt_length': 1223.281, 'perplexity': 1.124, 'retrieval_consistency': 0.964, 'syntax_error_percent': 0.012, 'semantic_error_percent': 0.198},
+        "oracle": {'pass@1': 0.599, 'prompt_length': 1223.281, 'perplexity': 1.124, 'retrieval_consistency': 0.964, 'syntax_error_percent': 0.054, 'semantic_error_percent': 0.198},
         # "retrieved": {'pass@1': 0.38922155688622756},
-        "distracting": {'pass@1': 0.383, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 691.868, 'perplexity': 1.132, 'retrieval_consistency': 0.407, 'syntax_error_percent': 0.03, 'semantic_error_percent': 0.353},
-        "random": {'pass@1': 0.515, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 512.156, 'perplexity': 1.124, 'retrieval_consistency': 0.006, 'syntax_error_percent': 0.018, 'semantic_error_percent': 0.311},
-        "irrelevant_dummy": {'pass@1': 0.533, 'prompt_length': 1318.581, 'perplexity': 1.134, 'syntax_error_percent': 0.012, 'semantic_error_percent': 0.323},
-        "irrelevant_diff": {'pass@1': 0.641, 'prompt_length': 1318.581, 'perplexity': 1.11, 'syntax_error_percent': 0.06, 'semantic_error_percent': 0.287},
-        "none": {'pass@1': 0.605, 'prompt_length': 187.036, 'perplexity': 1.098, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.347},
+        "distracting": {'pass@1': 0.491, 'prompt_length': 691.868, 'perplexity': 1.132, 'retrieval_consistency': 0.395, 'syntax_error_percent': 0.078, 'semantic_error_percent': 0.359},
+        "random": {'pass@1': 0.617, 'prompt_length': 512.156, 'perplexity': 1.124, 'retrieval_consistency': 0.006, 'syntax_error_percent': 0.108, 'semantic_error_percent': 0.311},
+        "irrelevant_dummy": {'pass@1': 0.617, 'prompt_length': 1318.581, 'perplexity': 1.134, 'syntax_error_percent': 0.078, 'semantic_error_percent': 0.323},
+        "irrelevant_diff": {'pass@1': 0.671, 'prompt_length': 1318.581, 'perplexity': 1.11, 'syntax_error_percent': 0.036, 'semantic_error_percent': 0.287},
+        "none": {'pass@1': 0.617, 'prompt_length': 187.036, 'perplexity': 1.098, 'syntax_error_percent': 0.09, 'semantic_error_percent': 0.347},
     }
 }
 
@@ -263,27 +263,27 @@ code_ret_doc_type_gpt_n_1 = {
         # "retrieved": {'pass@1': 0.21428571428571427},
         "distracting": {'pass@1': 0.226, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 178.619, 'perplexity': 1.046, 'retrieval_consistency': 0.452, 'syntax_error_percent': 0.286, 'semantic_error_percent': 0.452},
         "random": {'pass@1': 0.262, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 402.667, 'perplexity': 1.061, 'retrieval_consistency': 0.024, 'syntax_error_percent': 0.226, 'semantic_error_percent': 0.381},
-        "irrelevant_dummy": {'pass@1': 0.321, 'prompt_length': 814.321, 'perplexity': 1.048, 'syntax_error_percent': 0.321, 'semantic_error_percent': 0.417},
+        "irrelevant_dummy": {'pass@1': 0.31, 'prompt_length': 814.321, 'perplexity': 1.048, 'syntax_error_percent': 0.321, 'semantic_error_percent': 0.417},
         "irrelevant_diff": {'pass@1': 0.333, 'prompt_length': 814.833, 'perplexity': 1.047, 'syntax_error_percent': 0.321, 'semantic_error_percent': 0.429},
         "none": {'pass@1': 0.226, 'prompt_length': 66.369, 'perplexity': 1.046, 'syntax_error_percent': 0.417, 'semantic_error_percent': 0.393}
     },
     "DS1000": {
-        "oracle": {'pass@1': 0.34, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 2.159, 'prompt_length': 2172.236, 'perplexity': 1.033, 'retrieval_consistency': 1.287, 'syntax_error_percent': 0.019, 'semantic_error_percent': 0.191},
+        "oracle": {'pass@1': 0.356, 'prompt_length': 2172.236, 'perplexity': 1.033, 'retrieval_consistency': 1.287, 'syntax_error_percent': 0.0, 'semantic_error_percent': 0.191},
         # "retrieved": {'pass@1': 0.25234407087954},
-        "distracting": {'pass@1': 0.26, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1898.764, 'perplexity': 1.037, 'retrieval_consistency': 0.58, 'syntax_error_percent': 0.025, 'semantic_error_percent': 0.357},
-        "random": {'pass@1': 0.33, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 939.217, 'perplexity': 1.038, 'retrieval_consistency': 0.0, 'syntax_error_percent': 0.019, 'semantic_error_percent': 0.395},
-        "irrelevant_dummy": {'pass@1': 0.342, 'prompt_length': 2192.28, 'perplexity': 1.037, 'syntax_error_percent': 0.025, 'semantic_error_percent': 0.344},
-        "irrelevant_diff": {'pass@1': 0.383, 'prompt_length': 2193.631, 'perplexity': 1.039, 'syntax_error_percent': 0.013, 'semantic_error_percent': 0.312},
+        "distracting": {'pass@1': 0.264, 'prompt_length': 1898.764, 'perplexity': 1.037, 'retrieval_consistency': 0.573, 'syntax_error_percent': 0.019, 'semantic_error_percent': 0.363},
+        "random": {'pass@1': 0.351, 'prompt_length': 939.217, 'perplexity': 1.038, 'retrieval_consistency': 0.0, 'syntax_error_percent': 0.019, 'semantic_error_percent': 0.401},
+        "irrelevant_dummy": {'pass@1': 0.356, 'prompt_length': 2192.28, 'perplexity': 1.037, 'syntax_error_percent': 0.019, 'semantic_error_percent': 0.344},
+        "irrelevant_diff": {'pass@1': 0.399, 'prompt_length': 2193.631, 'perplexity': 1.039, 'syntax_error_percent': 0.019, 'semantic_error_percent': 0.318},
         "none": {'pass@1': 0.367, 'prompt_length': 413.535, 'perplexity': 1.044, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.312},
     },
     "pandas_numpy_eval": {
-        "oracle": {'pass@1': 0.79, 'ret_recall': 1.0, 'oracle_percent': 1.0, 'oracle_rank': 1.427, 'prompt_length': 1164.731, 'perplexity': 1.026, 'retrieval_consistency': 1.114, 'syntax_error_percent': 0.018, 'semantic_error_percent': 0.126},
+        "oracle": {'pass@1': 0.784, 'prompt_length': 1164.731, 'perplexity': 1.026, 'retrieval_consistency': 1.114, 'syntax_error_percent': 0.036, 'semantic_error_percent': 0.126},
         # "retrieved": {'pass@1': 0.6586826347305389},
-        "distracting": {'pass@1': 0.659, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 619.629, 'perplexity': 1.037, 'retrieval_consistency': 0.365, 'syntax_error_percent': 0.012, 'semantic_error_percent': 0.347},
-        "random": {'pass@1': 0.754, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 449.988, 'perplexity': 1.032, 'retrieval_consistency': 0.006, 'syntax_error_percent': 0.012, 'semantic_error_percent': 0.275},
-        "irrelevant_dummy": {'pass@1': 0.766, 'prompt_length': 1190.766, 'perplexity': 1.026, 'syntax_error_percent': 0.036, 'semantic_error_percent': 0.287},
-        "irrelevant_diff": {'pass@1': 0.784, 'prompt_length': 1191.898, 'perplexity': 1.026, 'syntax_error_percent': 0.03, 'semantic_error_percent': 0.287},
-        "none": {'pass@1': 0.784, 'prompt_length': 142.186, 'perplexity': 1.028, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.281}
+        "distracting": {'pass@1': 0.653, 'prompt_length': 619.629, 'perplexity': 1.037, 'retrieval_consistency': 0.365, 'syntax_error_percent': 0.024, 'semantic_error_percent': 0.347},
+        "random": {'pass@1': 0.754, 'prompt_length': 449.988, 'perplexity': 1.032, 'retrieval_consistency': 0.006, 'syntax_error_percent': 0.018, 'semantic_error_percent': 0.275},
+        "irrelevant_dummy": {'pass@1': 0.772, 'prompt_length': 1190.766, 'perplexity': 1.026, 'syntax_error_percent': 0.03, 'semantic_error_percent': 0.293},
+        "irrelevant_diff": {'pass@1': 0.79, 'prompt_length': 1191.898, 'perplexity': 1.026, 'syntax_error_percent': 0.024, 'semantic_error_percent': 0.293},
+        "none": {'pass@1': 0.79, 'prompt_length': 142.186, 'perplexity': 1.028, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.281}
     }
 }
 
