@@ -127,10 +127,10 @@ def process_gene_results(args, outputs, code_prompt=None):
 
                 prompt_lines = code_prompt.split('\n')
                 prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-                print(prompt_lines)
+                # print(prompt_lines)
                 pred_lines = pred.split('\n')
                 pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-                print(pred_lines)
+                # print(pred_lines)
 
                 preload_variables = []
                 for prompt_line in prompt_lines:
@@ -418,7 +418,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
 
 if __name__ == '__main__':
     in_program_call = None
-    # in_program_call = '--model codellama-13b-instruct --dataset DS1000 --retriever openai-embedding --analysis_type retrieval_doc_type --ret_doc_type random --n 1'
+    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset DS1000 --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 0.6 --n 1'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset DS1000 --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_10'
     args = generate_config(in_program_call)
 

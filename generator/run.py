@@ -141,7 +141,7 @@ elif args.analysis_type.startswith('prompt_length'):
     pl_analysis_list = [f'oracle_{target_pl}', f'oracle_pad_ellipsis_{target_pl}', f'oracle_pad_dummy_{target_pl}', f'oracle_pad_diff_{target_pl}',
                         f'distracting_{target_pl}', f'distracting_pad_ellipsis_{target_pl}', f'distracting_pad_dummy_{target_pl}', f'distracting_pad_diff_{target_pl}',
                         f'retrieved_top_{target_pl}', f'retrieved_top_pad_ellipsis_{target_pl}', f'retrieved_top_pad_diff_{target_pl}', f'retrieved_top_pad_dummy_{target_pl}',
-                        f'random_{target_pl}', f'irrelevant_diff_{target_pl}', f'irrelevant_dummy_{target_pl}', f'ellipsis_{target_pl}'
+                        f'random_{target_pl}', f'irrelevant_diff_{target_pl}', f'irrelevant_dummy_{target_pl}', f'ellipsis_{target_pl}',
                         f'random_repeat_{target_pl}', f'irrelevant_diff_repeat_{target_pl}',
                         f'none_pad_ellipsis_{target_pl}', f'none_pad_dummy_{target_pl}', f'none_pad_diff_{target_pl}']
     args.analysis_type = 'prompt_length'
