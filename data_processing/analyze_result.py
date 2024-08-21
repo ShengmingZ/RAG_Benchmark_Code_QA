@@ -453,25 +453,27 @@ if __name__ == '__main__':
     # evals2 = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
     # evals1 = ['random'] * 3
     # evals2 = ['random_500', 'random_2000', 'random_4000']
-    # # mean_dist = 0
+    datasets = ['NQ', 'TriviaQA', 'hotpotQA', 'conala', 'DS1000', 'pandas_numpy_eval']
+    for dataset in datasets:
     # for eval1, eval2 in zip(evals1, evals2):
-    #     in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
-    #                        f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type {eval1}')
-    #     args = generate_config(in_program_call)
-    #     eval_file = args.result_save_file.replace('.json', '_eval.json')
-    #     eval_datas = json.load(open(eval_file))
-    #
-    #     in_program_call = ('--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
-    #                        f'--analysis_type prompt_length --n 1 --pl_analysis random_2000')
-    #     args = generate_config(in_program_call)
-    #     eval_file = args.result_save_file.replace('.json', '_eval.json')
-    #     eval_datas2 = json.load(open(eval_file))
-    #
-    #     # ret_eval_vs_eval(eval_datas)
-    #
-    #     hamming_dist, eval1_true_eval2_false, eval1_false_eval2_true = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
-    #     print(f"{eval1} true {eval2} false percent: {round(eval1_true_eval2_false,3)}")
-    #     print(f"{eval1} false {eval2} true percent: {round(eval1_false_eval2_true, 3)}")
+        in_program_call = (f'--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
+                           f'--analysis_type retrieval_recall --n 1 --ret_acc 1.0')
+        args = generate_config(in_program_call)
+        eval_file = args.result_save_file.replace('.json', '_eval.json')
+        eval_datas = json.load(open(eval_file)) # RAG
+
+        in_program_call = (f'--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
+                           f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type none')
+        args = generate_config(in_program_call)
+        eval_file = args.result_save_file.replace('.json', '_eval.json')
+        eval_datas2 = json.load(open(eval_file))    # single LLM
+
+        # ret_eval_vs_eval(eval_datas)
+
+        hamming_dist, eval1_true_eval2_false, eval1_false_eval2_true = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
+        print(dataset)
+        print(f"RAG true single LLM false percent: {round(eval1_true_eval2_false,3)}")
+        print(f"RAG false LLM true percent: {round(eval1_false_eval2_true, 3)}")
 
 
     """wilcoxon test"""
