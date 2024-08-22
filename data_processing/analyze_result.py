@@ -458,6 +458,7 @@ if __name__ == '__main__':
     # for eval1, eval2 in zip(evals1, evals2):
         if dataset in ['NQ', 'TriviaQA', 'hotpotQA']: model = 'llama2-13b-chat'
         else: model = 'codellama-13b-instruct'
+        model = 'gpt-3.5-turbo-0125'
         in_program_call = (f'--action eval_pred --model {model} --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
                            f'--analysis_type retrieval_recall --n 1 --ret_acc 1.0')
         args = generate_config(in_program_call)
