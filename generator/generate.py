@@ -286,5 +286,5 @@ if __name__ == '__main__':
     elif args.action == 'gene_responses':
         generator.gene_response()
     elif args.action == 'eval_pred':
-        pred_eval(args)
+        pred_eval(args, if_eval_retrieval=True, if_code_analysis=True, if_calc_perplexity=True, if_save=True)
 
