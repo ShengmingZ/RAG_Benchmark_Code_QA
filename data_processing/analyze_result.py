@@ -454,7 +454,7 @@ if __name__ == '__main__':
     datasets = ['NQ', 'TriviaQA', 'hotpotQA']
     # datasets = ['conala', 'DS1000', 'pandas_numpy_eval']
     # evals = ['top_10', 'top_15', 'top_20', 'top_40', 'top_60', 'top_80']
-    evals = ['top_10', 'top_15', 'top_20']
+    evals = ['top5', 'top_10', 'top_15', 'top_20']
     if datasets == ['NQ', 'TriviaQA', 'hotpotQA']: model = 'llama2-13b-chat'
     else: model = 'codellama-13b-instruct'
     # model = 'gpt-3.5-turbo-0125'
@@ -462,7 +462,7 @@ if __name__ == '__main__':
         print(dataset)
         for eval in evals:
             in_program_call = (f'--action eval_pred --model {model} --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
-                               f'--analysis_type retrieval_doc_selection --n 1 --doc_selection_type top_5')
+                               f'--analysis_type retrieval_doc_selection --n 1 --doc_selection_type top_1')
             args = generate_config(in_program_call)
             eval_file = args.result_save_file.replace('.json', '_eval.json')
             eval_datas = json.load(open(eval_file)) # RAG
