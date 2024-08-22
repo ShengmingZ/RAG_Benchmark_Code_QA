@@ -421,7 +421,8 @@ if __name__ == '__main__':
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset DS1000 --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 0.6 --n 1'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset DS1000 --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_10'
     args = generate_config(in_program_call)
-    scores = pred_eval(args, if_eval_retrieval=True, if_code_analysis=True, if_calc_perplexity=True, if_save=True)
+
+    # scores = pred_eval(args, if_eval_retrieval=True, if_code_analysis=True, if_calc_perplexity=True, if_save=True)
 
     """
     test process outputs for DS1000
