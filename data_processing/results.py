@@ -410,25 +410,25 @@ qa_ret_doc_type_gpt_n_1 = {
 # todo: top1 top5 top10 top15 top20 for code llama (16k) and gpt (16k)
 code_ret_doc_selection_topk_llama_n_1 = {
     'conala': {
-        'top_1': {'pass@1': 0.167, 'ret_recall': 0.004, 'oracle_percent': 0.012, 'oracle_rank': 1.0, 'prompt_length': 192.631, 'perplexity': 1.133, 'retrieval_consistency': 0.321, 'syntax_error_percent': 0.19, 'semantic_error_percent': 0.5},
-        'top_5': {'pass@1': 0.226, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.5, 'prompt_length': 542.631, 'perplexity': 1.129, 'retrieval_consistency': 0.738, 'syntax_error_percent': 0.238, 'semantic_error_percent': 0.44},
-        'top_10': {'pass@1': 0.214, 'ret_recall': 0.151, 'oracle_percent': 0.019, 'oracle_rank': 4.5, 'prompt_length': 968.214, 'perplexity': 1.131, 'retrieval_consistency': 1.19, 'syntax_error_percent': 0.238, 'semantic_error_percent': 0.452},
-        'top_15': {'pass@1': 0.19, 'ret_recall': 0.193, 'oracle_percent': 0.018, 'oracle_rank': 6.87, 'prompt_length': 1538.417, 'perplexity': 1.132, 'retrieval_consistency': 1.524, 'syntax_error_percent': 0.298, 'semantic_error_percent': 0.44},
-        'top_20': {'pass@1': 0.143, 'ret_recall': 0.211, 'oracle_percent': 0.015, 'oracle_rank': 7.68, 'prompt_length': 2045.929, 'perplexity': 1.129, 'retrieval_consistency': 1.631, 'syntax_error_percent': 0.31, 'semantic_error_percent': 0.452}
+        'top_1': {'pass@1': 0.167, 'prompt_length': 192.631, 'perplexity': 1.133, 'retrieval_consistency': 0.321, 'syntax_error_percent': 0.179, 'semantic_error_percent': 0.5},
+        'top_5': {'pass@1': 0.226, 'prompt_length': 542.631, 'perplexity': 1.129, 'retrieval_consistency': 0.738, 'syntax_error_percent': 0.226, 'semantic_error_percent': 0.44},
+        'top_10': {'pass@1': 0.214, 'prompt_length': 968.214, 'perplexity': 1.131, 'retrieval_consistency': 1.214, 'syntax_error_percent': 0.226, 'semantic_error_percent': 0.464},
+        'top_15': {'pass@1': 0.19, 'prompt_length': 1538.417, 'perplexity': 1.132, 'retrieval_consistency': 1.476, 'syntax_error_percent': 0.274, 'semantic_error_percent': 0.429},
+        'top_20': {'pass@1': 0.155, 'prompt_length': 2045.929, 'perplexity': 1.129, 'retrieval_consistency': 1.607, 'syntax_error_percent': 0.274, 'semantic_error_percent': 0.44}
     },
     'DS1000': {
-        'top_1': {'pass@1': 0.128, 'ret_recall': 0.043, 'oracle_percent': 0.108, 'oracle_rank': 1.0, 'prompt_length': 1155.414, 'perplexity': 1.155, 'retrieval_consistency': 0.401, 'syntax_error_percent': 0.096, 'semantic_error_percent': 0.414},
-        'top_5': {'pass@1': 0.069, 'ret_recall': 0.117, 'oracle_percent': 0.054, 'oracle_rank': 2.31, 'prompt_length': 3275.248, 'perplexity': 1.138, 'retrieval_consistency': 1.28, 'syntax_error_percent': 0.134, 'semantic_error_percent': 0.408},
-        'top_10': {'pass@1': 0.065, 'ret_recall': 0.181, 'oracle_percent': 0.041, 'oracle_rank': 4.262, 'prompt_length': 5470.917, 'perplexity': 1.132, 'retrieval_consistency': 1.758, 'syntax_error_percent': 0.146, 'semantic_error_percent': 0.439},
-        'top_15': {'pass@1': 0.105, 'ret_recall': 0.21, 'oracle_percent': 0.033, 'oracle_rank': 5.692, 'prompt_length': 6466.204, 'perplexity': 1.126, 'retrieval_consistency': 2.229, 'syntax_error_percent': 0.172, 'semantic_error_percent': 0.42},
-        'top_20': {'pass@1': 0.076, 'ret_recall': 0.229, 'oracle_percent': 0.027, 'oracle_rank': 6.536, 'prompt_length': 6848.389, 'perplexity': 1.124, 'retrieval_consistency': 2.777, 'syntax_error_percent': 0.217, 'semantic_error_percent': 0.42}
+        'top_1': {'pass@1': 0.149, 'prompt_length': 1155.414, 'perplexity': 1.155, 'retrieval_consistency': 0.401, 'syntax_error_percent': 0.096, 'semantic_error_percent': 0.42},
+        'top_5': {'pass@1': 0.095, 'prompt_length': 3275.248, 'perplexity': 1.138, 'retrieval_consistency': 1.255, 'syntax_error_percent': 0.134, 'semantic_error_percent': 0.401},
+        'top_10': {'pass@1': 0.092, 'prompt_length': 5470.917, 'perplexity': 1.132, 'retrieval_consistency': 1.777, 'syntax_error_percent': 0.172, 'semantic_error_percent': 0.433},
+        'top_15': {'pass@1': 0.138, 'prompt_length': 6466.204, 'perplexity': 1.126, 'retrieval_consistency': 2.172, 'syntax_error_percent': 0.197, 'semantic_error_percent': 0.433},
+        'top_20': {'pass@1': 0.089, 'prompt_length': 6848.389, 'perplexity': 1.124, 'retrieval_consistency': 2.662, 'syntax_error_percent': 0.236, 'semantic_error_percent': 0.427}
     },
     'pandas_numpy_eval': {
-        'top_1': {'pass@1': 0.431, 'ret_recall': 0.099, 'oracle_percent': 0.12, 'oracle_rank': 1.0, 'prompt_length': 573.844, 'perplexity': 1.126, 'retrieval_consistency': 0.341, 'syntax_error_percent': 0.012, 'semantic_error_percent': 0.353},
-        'top_5': {'pass@1': 0.491, 'ret_recall': 0.222, 'oracle_percent': 0.053, 'oracle_rank': 2.068, 'prompt_length': 1935.874, 'perplexity': 1.135, 'retrieval_consistency': 0.982, 'syntax_error_percent': 0.06, 'semantic_error_percent': 0.323},
-        'top_10': {'pass@1': 0.587, 'ret_recall': 0.294, 'oracle_percent': 0.036, 'oracle_rank': 3.533, 'prompt_length': 3660.982, 'perplexity': 1.144, 'retrieval_consistency': 1.389, 'syntax_error_percent': 0.09, 'semantic_error_percent': 0.335},
-        'top_15': {'pass@1': 0.611, 'ret_recall': 0.357, 'oracle_percent': 0.029, 'oracle_rank': 5.0, 'prompt_length': 5122.91, 'perplexity': 1.137, 'retrieval_consistency': 1.713, 'syntax_error_percent': 0.09, 'semantic_error_percent': 0.287},
-        'top_20': {'pass@1': 0.581, 'ret_recall': 0.395, 'oracle_percent': 0.024, 'oracle_rank': 6.213, 'prompt_length': 6155.419, 'perplexity': 1.143, 'retrieval_consistency': 1.982, 'syntax_error_percent': 0.126, 'semantic_error_percent': 0.305}
+        'top_1': {'pass@1': 0.527, 'prompt_length': 573.844, 'perplexity': 1.126, 'retrieval_consistency': 0.341, 'syntax_error_percent': 0.084, 'semantic_error_percent': 0.359},
+        'top_5': {'pass@1': 0.551, 'prompt_length': 1935.874, 'perplexity': 1.135, 'retrieval_consistency': 0.964, 'syntax_error_percent': 0.042, 'semantic_error_percent': 0.323},
+        'top_10': {'pass@1': 0.599, 'prompt_length': 3660.982, 'perplexity': 1.144, 'retrieval_consistency': 1.347, 'syntax_error_percent': 0.03, 'semantic_error_percent': 0.335},
+        'top_15': {'pass@1': 0.629, 'prompt_length': 5122.91, 'perplexity': 1.137, 'retrieval_consistency': 1.653, 'syntax_error_percent': 0.042, 'semantic_error_percent': 0.287},
+        'top_20': {'pass@1': 0.581, 'prompt_length': 6155.419, 'perplexity': 1.143, 'retrieval_consistency': 1.928, 'syntax_error_percent': 0.054, 'semantic_error_percent': 0.305}
     }
 }
 
@@ -459,25 +459,25 @@ code_ret_doc_selection_topk_llama_n_1 = {
 
 code_ret_doc_selection_topk_gpt_n_1 = {
     'conala': {
-        'top_1': {'pass@1': 0.179, 'ret_recall': 0.004, 'oracle_percent': 0.012, 'oracle_rank': 1.0, 'prompt_length': 157.976, 'perplexity': 1.049, 'retrieval_consistency': 0.381, 'syntax_error_percent': 0.369, 'semantic_error_percent': 0.44},
-        'top_5': {'pass@1': 0.274, 'ret_recall': 0.099, 'oracle_percent': 0.024, 'oracle_rank': 2.5, 'prompt_length': 484.774, 'perplexity': 1.046, 'retrieval_consistency': 0.81, 'syntax_error_percent': 0.214, 'semantic_error_percent': 0.405},
-        'top_10': {'pass@1': 0.286, 'ret_recall': 0.151, 'oracle_percent': 0.019, 'oracle_rank': 4.5, 'prompt_length': 875.19, 'perplexity': 1.043, 'retrieval_consistency': 1.333, 'syntax_error_percent': 0.25, 'semantic_error_percent': 0.381},
-        'top_15': {'pass@1': 0.25, 'ret_recall': 0.193, 'oracle_percent': 0.018, 'oracle_rank': 6.87, 'prompt_length': 1405.833, 'perplexity': 1.044, 'retrieval_consistency': 1.583, 'syntax_error_percent': 0.262, 'semantic_error_percent': 0.405},
-        'top_20': {'pass@1': 0.25, 'ret_recall': 0.211, 'oracle_percent': 0.015, 'oracle_rank': 7.68, 'prompt_length': 1897.905, 'perplexity': 1.047, 'retrieval_consistency': 1.952, 'syntax_error_percent': 0.25, 'semantic_error_percent': 0.381}
+        'top_1': {'pass@1': 0.179, 'prompt_length': 157.976, 'perplexity': 1.049, 'retrieval_consistency': 0.381, 'syntax_error_percent': 0.357, 'semantic_error_percent': 0.452},
+        'top_5': {'pass@1': 0.286, 'prompt_length': 484.774, 'perplexity': 1.046, 'retrieval_consistency': 0.81, 'syntax_error_percent': 0.202, 'semantic_error_percent': 0.405},
+        'top_10': {'pass@1': 0.286, 'prompt_length': 875.19, 'perplexity': 1.043, 'retrieval_consistency': 1.333, 'syntax_error_percent': 0.25, 'semantic_error_percent': 0.381},
+        'top_15': {'pass@1': 0.25, 'prompt_length': 1405.833, 'perplexity': 1.044, 'retrieval_consistency': 1.583, 'syntax_error_percent': 0.262, 'semantic_error_percent': 0.405},
+        'top_20': {'pass@1': 0.25, 'prompt_length': 1897.905, 'perplexity': 1.047, 'retrieval_consistency': 1.881, 'syntax_error_percent': 0.25, 'semantic_error_percent': 0.393}
     },
     'DS1000': {
-        'top_1': {'pass@1': 0.235, 'ret_recall': 0.043, 'oracle_percent': 0.108, 'oracle_rank': 1.0, 'prompt_length': 1045.637, 'perplexity': 1.044, 'retrieval_consistency': 0.376, 'syntax_error_percent': 0.019, 'semantic_error_percent': 0.42},
-        'top_5': {'pass@1': 0.323, 'ret_recall': 0.117, 'oracle_percent': 0.054, 'oracle_rank': 2.31, 'prompt_length': 3139.516, 'perplexity': 1.039, 'retrieval_consistency': 0.924, 'syntax_error_percent': 0.019, 'semantic_error_percent': 0.369},
-        'top_10': {'pass@1': 0.323, 'ret_recall': 0.181, 'oracle_percent': 0.041, 'oracle_rank': 4.262, 'prompt_length': 5508.363, 'perplexity': 1.039, 'retrieval_consistency': 1.624, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.325},
-        'top_15': {'pass@1': 0.295, 'ret_recall': 0.21, 'oracle_percent': 0.033, 'oracle_rank': 5.692, 'prompt_length': 6281.465, 'perplexity': 1.043, 'retrieval_consistency': 1.949, 'syntax_error_percent': 0.019, 'semantic_error_percent': 0.331},
-        'top_20': {'pass@1': 0.312, 'ret_recall': 0.229, 'oracle_percent': 0.027, 'oracle_rank': 6.536, 'prompt_length': 6745.025, 'perplexity': 1.047, 'retrieval_consistency': 2.197, 'syntax_error_percent': 0.025, 'semantic_error_percent': 0.293}
+        'top_1': {'pass@1': 0.238, 'prompt_length': 1045.637, 'perplexity': 1.044, 'retrieval_consistency': 0.376, 'syntax_error_percent': 0.0, 'semantic_error_percent': 0.427},
+        'top_5': {'pass@1': 0.339, 'prompt_length': 3139.516, 'perplexity': 1.039, 'retrieval_consistency': 0.911, 'syntax_error_percent': 0.0, 'semantic_error_percent': 0.369},
+        'top_10': {'pass@1': 0.362, 'prompt_length': 5508.363, 'perplexity': 1.039, 'retrieval_consistency': 1.611, 'syntax_error_percent': 0.0, 'semantic_error_percent': 0.325},
+        'top_15': {'pass@1': 0.348, 'prompt_length': 6281.465, 'perplexity': 1.043, 'retrieval_consistency': 1.885, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.338},
+        'top_20': {'pass@1': 0.342, 'prompt_length': 6745.025, 'perplexity': 1.047, 'retrieval_consistency': 2.159, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.299}
     },
     'pandas_numpy_eval': {
-        'top_1': {'pass@1': 0.629, 'ret_recall': 0.099, 'oracle_percent': 0.12, 'oracle_rank': 1.0, 'prompt_length': 507.605, 'perplexity': 1.038, 'retrieval_consistency': 0.377, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.347},
-        'top_5': {'pass@1': 0.725, 'ret_recall': 0.222, 'oracle_percent': 0.053, 'oracle_rank': 2.068, 'prompt_length': 1805.76, 'perplexity': 1.037, 'retrieval_consistency': 0.928, 'syntax_error_percent': 0.012, 'semantic_error_percent': 0.287},
-        'top_10': {'pass@1': 0.737, 'ret_recall': 0.294, 'oracle_percent': 0.036, 'oracle_rank': 3.533, 'prompt_length': 3438.928, 'perplexity': 1.039, 'retrieval_consistency': 1.353, 'syntax_error_percent': 0.018, 'semantic_error_percent': 0.281},
-        'top_15': {'pass@1': 0.701, 'ret_recall': 0.357, 'oracle_percent': 0.029, 'oracle_rank': 5.0, 'prompt_length': 4953.91, 'perplexity': 1.037, 'retrieval_consistency': 1.647, 'syntax_error_percent': 0.018, 'semantic_error_percent': 0.263},
-        'top_20': {'pass@1': 0.713, 'ret_recall': 0.395, 'oracle_percent': 0.024, 'oracle_rank': 6.213, 'prompt_length': 6499.341, 'perplexity': 1.039, 'retrieval_consistency': 1.874, 'syntax_error_percent': 0.018, 'semantic_error_percent': 0.269}
+        'top_1': {'pass@1': 0.635, 'prompt_length': 507.605, 'perplexity': 1.038, 'retrieval_consistency': 0.377, 'syntax_error_percent': 0.024, 'semantic_error_percent': 0.347},
+        'top_5': {'pass@1': 0.719, 'prompt_length': 1805.76, 'perplexity': 1.037, 'retrieval_consistency': 0.928, 'syntax_error_percent': 0.036, 'semantic_error_percent': 0.287},
+        'top_10': {'pass@1': 0.731, 'prompt_length': 3438.928, 'perplexity': 1.039, 'retrieval_consistency': 1.353, 'syntax_error_percent': 0.03, 'semantic_error_percent': 0.281},
+        'top_15': {'pass@1': 0.695, 'prompt_length': 4953.91, 'perplexity': 1.037, 'retrieval_consistency': 1.647, 'syntax_error_percent': 0.024, 'semantic_error_percent': 0.263},
+        'top_20': {'pass@1': 0.713, 'prompt_length': 6499.341, 'perplexity': 1.039, 'retrieval_consistency': 1.874, 'syntax_error_percent': 0.018, 'semantic_error_percent': 0.269}
     }
 }
 

@@ -92,7 +92,7 @@ elif args.analysis_type.startswith("retrieval_doc_selection"):
     if args.analysis_type.rsplit('_',1)[-1] == 'topk':
         if args.dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
             if 'gpt' in args.model:
-                doc_selection_type_list = ['top_1', 'top_20', 'top_40', 'top_60', 'top_80']
+                doc_selection_type_list = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20', 'top_40', 'top_60', 'top_80']
             else:
                 doc_selection_type_list = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
         else:

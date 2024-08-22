@@ -404,9 +404,22 @@ def wilcoxon_test(dataset, eval_datas1, eval_datas2):
 #     for eval_records in eval_records.values():
 
 
+def calc_avg_syntax_error():
+    result_to_be_processed = results.code_ret_recall_llama_n_1
+    syntax_errors = dict()
+    for model_name in result_to_be_processed.keys():
+        for ret_recall in result_to_be_processed[model_name].keys():
+            if ret_recall not in syntax_errors.keys(): syntax_errors[ret_recall] = 0
+            syntax_errors[ret_recall] += result_to_be_processed[model_name][ret_recall]['syntax_error_percent']
+    for ret_recall in syntax_errors.keys():
+        print(ret_recall, round(syntax_errors[ret_recall]/3, 3))
+
+
 
 
 if __name__ == '__main__':
+    calc_avg_syntax_error()
+
     """count has answer"""
     # in_program_call = (
     #     '--action eval_pred --model gpt-3.5-turbo-0125 --temperature 0.0 --dataset NQ --retriever openai-embedding '
@@ -438,45 +451,30 @@ if __name__ == '__main__':
 
 
     """compare 2 prediction distributions"""
-    # evals1 = ['oracle']*3
-    # evals2 = ['random', 'irrelevant_diff', 'irrelevant_dummy']
-    # evals1 = ['random', 'random', 'irrelevant_diff']
-    # evals2 = ['irrelevant_diff', 'irrelevant_dummy', 'irrelevant_dummy']
-    # evals1 = ['none']*3
-    # evals2 = ['random', 'irrelevant_diff', 'irrelevant_dummy']
-    # evals1 = ['top_1', 'top_5', 'top_10', 'top_15']
-    # evals2 = ['top_5', 'top_10', 'top_15', 'top_20']
-    # evals1 = ['top_1', 'top_20', 'top_40', 'top_60']
-    # evals2 = ['top_20', 'top_40', 'top_60', 'top_80']
-    # evals1 = ['top_5']*5
-    # evals2 = ['top_1', 'top_20', 'top_40', 'top_60', 'top_80']
-    # evals2 = ['top_1', 'top_5', 'top_10', 'top_15', 'top_20']
-    # evals1 = ['random'] * 3
-    # evals2 = ['random_500', 'random_2000', 'random_4000']
-    datasets = ['NQ', 'TriviaQA', 'hotpotQA', 'conala', 'DS1000', 'pandas_numpy_eval']
-    for dataset in datasets:
-    # for eval1, eval2 in zip(evals1, evals2):
-        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']: model = 'llama2-13b-chat'
-        else: model = 'codellama-13b-instruct'
-        model = 'gpt-3.5-turbo-0125'
-        in_program_call = (f'--action eval_pred --model {model} --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
-                           f'--analysis_type retrieval_recall --n 1 --ret_acc 1.0')
-        args = generate_config(in_program_call)
-        eval_file = args.result_save_file.replace('.json', '_eval.json')
-        eval_datas = json.load(open(eval_file)) # RAG
-
-        in_program_call = (f'--action eval_pred --model {model} --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
-                           f'--analysis_type retrieval_recall --n 1 --ret_acc 0.8')
-        args = generate_config(in_program_call)
-        eval_file = args.result_save_file.replace('.json', '_eval.json')
-        eval_datas2 = json.load(open(eval_file))    # single LLM
-
-        # ret_eval_vs_eval(eval_datas)
-
-        hamming_dist, eval1_true_eval2_false, eval1_false_eval2_true = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
-        print(dataset)
-        print(f"RAG true single LLM false percent: {round(eval1_true_eval2_false,3)}")
-        print(f"RAG false LLM true percent: {round(eval1_false_eval2_true, 3)}")
+    # datasets = ['NQ', 'TriviaQA', 'hotpotQA', 'conala', 'DS1000', 'pandas_numpy_eval']
+    # for dataset in datasets:
+    # # for eval1, eval2 in zip(evals1, evals2):
+    #     if dataset in ['NQ', 'TriviaQA', 'hotpotQA']: model = 'llama2-13b-chat'
+    #     else: model = 'codellama-13b-instruct'
+    #     model = 'gpt-3.5-turbo-0125'
+    #     in_program_call = (f'--action eval_pred --model {model} --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
+    #                        f'--analysis_type retrieval_recall --n 1 --ret_acc 1.0')
+    #     args = generate_config(in_program_call)
+    #     eval_file = args.result_save_file.replace('.json', '_eval.json')
+    #     eval_datas = json.load(open(eval_file)) # RAG
+    #
+    #     in_program_call = (f'--action eval_pred --model {model} --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
+    #                        f'--analysis_type retrieval_recall --n 1 --ret_acc 0.8')
+    #     args = generate_config(in_program_call)
+    #     eval_file = args.result_save_file.replace('.json', '_eval.json')
+    #     eval_datas2 = json.load(open(eval_file))    # single LLM
+    #
+    #     # ret_eval_vs_eval(eval_datas)
+    #
+    #     hamming_dist, eval1_true_eval2_false, eval1_false_eval2_true = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
+    #     print(dataset)
+    #     print(f"RAG true single LLM false percent: {round(eval1_true_eval2_false,3)}")
+    #     print(f"RAG false LLM true percent: {round(eval1_false_eval2_true, 3)}")
 
 
     """wilcoxon test"""
