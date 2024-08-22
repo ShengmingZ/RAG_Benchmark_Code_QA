@@ -457,7 +457,7 @@ if __name__ == '__main__':
     evals = ['top_10', 'top_15', 'top_20']
     if datasets == ['NQ', 'TriviaQA', 'hotpotQA']: model = 'llama2-13b-chat'
     else: model = 'codellama-13b-instruct'
-    model = 'gpt-3.5-turbo-0125'
+    # model = 'gpt-3.5-turbo-0125'
     for dataset in datasets:
         print(dataset)
         for eval in evals:
