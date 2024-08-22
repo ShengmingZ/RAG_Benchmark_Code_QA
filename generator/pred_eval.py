@@ -383,6 +383,9 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
         scores['ret_recall'] = avg_ret_recall
         scores['oracle_percent'] = avg_oracle_percent
         scores['oracle_rank'] = avg_oracle_rank
+        print('ishjdsfeuhisjocjseghijso')
+
+    # avg prompt length
     scores['prompt_length'] = sum(pl_list) / len(pl_list)
 
     # calc perplexity
