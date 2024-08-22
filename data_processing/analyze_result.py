@@ -465,7 +465,7 @@ if __name__ == '__main__':
         eval_datas = json.load(open(eval_file)) # RAG
 
         in_program_call = (f'--action eval_pred --model {model} --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
-                           f'--analysis_type retrieval_doc_type --n 1 --ret_doc_type none')
+                           f'--analysis_type retrieval_recall --n 1 --ret_acc 0.8')
         args = generate_config(in_program_call)
         eval_file = args.result_save_file.replace('.json', '_eval.json')
         eval_datas2 = json.load(open(eval_file))    # single LLM
