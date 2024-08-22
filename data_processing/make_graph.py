@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+from matplotlib import gridspec
+
 import results
 import numpy as np
 
@@ -80,22 +82,23 @@ def make_doc_selection_topk_syntax_semantic_error():
 def make_doc_selection_topk_analysis():
     graph_name = 'select_topk_analysis.pdf'
     qa_gpt_perf_datas = []
-
+    qa_metric = 'has_answer'
+    code_metric = 'pass@1'
     for dataset_name in qa_dataset_names:
         qa_gpt_perf_datas.append(
-            [results.qa_ret_doc_selection_topk_gpt_n_1[dataset_name][doc_selection_type]['recall'] for doc_selection_type in qa_gpt_doc_selection_types])
+            [results.qa_ret_doc_selection_topk_gpt_n_1[dataset_name][doc_selection_type][qa_metric] for doc_selection_type in qa_gpt_doc_selection_types])
     code_gpt_perf_datas = []
     for dataset_name in code_dataset_names:
         code_gpt_perf_datas.append(
-            [results.code_ret_doc_selection_topk_gpt_n_1[dataset_name][doc_selection_type]['pass@1'] for doc_selection_type in code_gpt_doc_selection_types])
+            [results.code_ret_doc_selection_topk_gpt_n_1[dataset_name][doc_selection_type][code_metric] for doc_selection_type in code_gpt_doc_selection_types])
     qa_llama_perf_datas = []
     for dataset_name in qa_dataset_names:
         qa_llama_perf_datas.append(
-            [results.qa_ret_doc_selection_topk_llama_n_1[dataset_name][doc_selection_type]['recall'] for doc_selection_type in qa_llama_doc_selection_types])
+            [results.qa_ret_doc_selection_topk_llama_n_1[dataset_name][doc_selection_type][qa_metric] for doc_selection_type in qa_llama_doc_selection_types])
     code_llama_perf_datas = []
     for dataset_name in code_dataset_names:
         code_llama_perf_datas.append(
-            [results.code_ret_doc_selection_topk_llama_n_1[dataset_name][doc_selection_type]['pass@1'] for doc_selection_type in code_llama_doc_selection_types])
+            [results.code_ret_doc_selection_topk_llama_n_1[dataset_name][doc_selection_type][code_metric] for doc_selection_type in code_llama_doc_selection_types])
 
     def get_avg_data(perf_datas, doc_selection_types, dataset_names):
         avg_perf_datas = [0]*len(doc_selection_types)
@@ -112,7 +115,13 @@ def make_doc_selection_topk_analysis():
     code_dataset_names.append('code avg')
 
     plt.style.use('ggplot')
-    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(24, 4))
+    fig = plt.figure(figsize=(18, 4))
+    gs = gridspec.GridSpec(1, 4, width_ratios=[1, 1, 1, 1.75])
+    # fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(24, 4))
+    ax1 = plt.subplot(gs[0])
+    ax2 = plt.subplot(gs[1])
+    ax3 = plt.subplot(gs[2])
+    ax4 = plt.subplot(gs[3])
     colors1 = plt.cm.viridis(np.linspace(0, 0.9, len(qa_dataset_names)))
     colors2 = plt.cm.plasma(np.linspace(0, 0.9, len(code_dataset_names)))
 
@@ -123,28 +132,31 @@ def make_doc_selection_topk_analysis():
         if ax_idx%2 == 0:
             dataset_names = code_dataset_names
             colors = colors1
+            metric = code_metric
         else:
             dataset_names = qa_dataset_names
             colors = colors2
+            metric = qa_metric
         for idx, dataset_name in enumerate(dataset_names):
-            ax.plot(topk_list[ax_idx], perf_datas[idx], marker='o', linestyle='-', label=dataset_name, color=colors[idx])
-        ax.set_ylabel('Performance')
-        if ax_idx in [1,3]: ax.set_yticks([0.4, 0.6, 0.8, 1.0])
-        elif ax_idx == 0: ax.set_yticks([0, 0.2, 0.4, 0.6])
+            ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker='o', linestyle='-', label=dataset_name, color=colors[idx])
+        ax.set_ylabel(metric)
+        ax.set_xlabel('top k documents', fontsize=12)
+        if ax_idx in [1,3]: ax.set_yticks([0.3, 0.5, 0.7, 0.9])
+        elif ax_idx == 0: ax.set_yticks([0.1, 0.3, 0.5, 0.7])
         elif ax_idx == 2: ax.set_yticks([0.2, 0.4, 0.6, 0.8])
         if ax_idx == 0:
-            ax.set_title('Code Datasets, llama2-13b', fontsize=10)
+            ax.set_title('(1) Code Datasets, Llama2-13B', fontsize=12)
         elif ax_idx == 1:
-            ax.set_title('QA Datasets, llama2-13b', fontsize=10)
+            ax.set_title('(2) QA Datasets, Llama2-13B', fontsize=12)
         elif ax_idx == 2:
-            ax.set_title('Code Datasets, gpt-3.5', fontsize=10)
+            ax.set_title('(3) Code Datasets, GPT-3.5', fontsize=12)
         else:
-            ax.set_title('QA Datasets, gpt-3.5', fontsize=10)
+            ax.set_title('(4) QA Datasets, GPT-3.5', fontsize=12)
 
     ax3_handles, ax3_labels = ax3.get_legend_handles_labels()
     ax4_handles, ax4_labels = ax4.get_legend_handles_labels()
     handles, labels = ax3_handles + ax4_handles, ax3_labels + ax4_labels
-    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=10, bbox_to_anchor=(0.5, -0.1))
+    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=12, bbox_to_anchor=(0.5, -0.18))
     plt.savefig('graph/' + graph_name, bbox_inches='tight')
     plt.show()
 

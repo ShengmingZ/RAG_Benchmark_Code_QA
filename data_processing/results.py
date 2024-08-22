@@ -484,25 +484,25 @@ code_ret_doc_selection_topk_gpt_n_1 = {
 
 qa_ret_doc_selection_topk_llama_n_1 = {
     'NQ': {
-        "top_1": {'em': 0.11, 'f1': 0.246, 'prec': 0.209, 'recall': 0.524, 'ret_recall': 0.472, 'oracle_percent': 0.472, 'oracle_rank': 1.0, 'prompt_length': 282.027, 'perplexity': 1.068},
-        "top_5": {'em': 0.04, 'f1': 0.19, 'prec': 0.136, 'recall': 0.64, 'ret_recall': 0.735, 'oracle_percent': 0.306, 'oracle_rank': 1.687, 'prompt_length': 921.669, 'perplexity': 1.068},
-        "top_10": {'em': 0.064, 'f1': 0.211, 'prec': 0.16, 'recall': 0.657, 'ret_recall': 0.816, 'oracle_percent': 0.242, 'oracle_rank': 2.277, 'prompt_length': 1720.924, 'perplexity': 1.076},
-        "top_15": {'em': 0.061, 'f1': 0.209, 'prec': 0.159, 'recall': 0.641, 'ret_recall': 0.847, 'oracle_percent': 0.21, 'oracle_rank': 2.666, 'prompt_length': 2527.202, 'perplexity': 1.076},
-        "top_20": {'em': 0.011, 'f1': 0.104, 'prec': 0.068, 'recall': 0.567, 'ret_recall': 0.871, 'oracle_percent': 0.19, 'oracle_rank': 3.075, 'prompt_length': 3332.663, 'perplexity': 1.083},
+        "top_1": {'em': 0.11, 'f1': 0.246, 'prec': 0.209, 'recall': 0.524, 'has_answer': 0.435, 'ret_recall': 0.472, 'oracle_percent': 0.472, 'oracle_rank': 1.0, 'prompt_length': 282.027, 'perplexity': 1.068},
+        "top_5": {'em': 0.04, 'f1': 0.19, 'prec': 0.136, 'recall': 0.64, 'has_answer': 0.544, 'ret_recall': 0.735, 'oracle_percent': 0.306, 'oracle_rank': 1.687, 'prompt_length': 921.669, 'perplexity': 1.068},
+        "top_10": {'em': 0.064, 'f1': 0.211, 'prec': 0.16, 'recall': 0.657, 'has_answer': 0.559, 'ret_recall': 0.816, 'oracle_percent': 0.242, 'oracle_rank': 2.277, 'prompt_length': 1720.924, 'perplexity': 1.076},
+        "top_15": {'em': 0.061, 'f1': 0.209, 'prec': 0.159, 'recall': 0.641, 'has_answer': 0.552, 'ret_recall': 0.847, 'oracle_percent': 0.21, 'oracle_rank': 2.666, 'prompt_length': 2527.202, 'perplexity': 1.076},
+        "top_20": {'em': 0.011, 'f1': 0.104, 'prec': 0.068, 'recall': 0.567, 'has_answer': 0.546, 'ret_recall': 0.871, 'oracle_percent': 0.19, 'oracle_rank': 3.075, 'prompt_length': 3332.663, 'perplexity': 1.083},
     },
     "TriviaQA": {
-        "top_1": {'em': 0.298, 'f1': 0.444, 'prec': 0.39, 'recall': 0.775, 'ret_recall': 0.627, 'oracle_percent': 0.627, 'oracle_rank': 1.0, 'prompt_length': 293.966, 'perplexity': 1.063},
-        "top_5": {'em': 0.146, 'f1': 0.331, 'prec': 0.259, 'recall': 0.838, 'ret_recall': 0.871, 'oracle_percent': 0.511, 'oracle_rank': 1.5, 'prompt_length': 946.482, 'perplexity': 1.06},
-        "top_10": {'em': 0.202, 'f1': 0.378, 'prec': 0.309, 'recall': 0.861, 'ret_recall': 0.917, 'oracle_percent': 0.443, 'oracle_rank': 1.8, 'prompt_length': 1759.983, 'perplexity': 1.068},
-        "top_15": {'em': 0.127, 'f1': 0.314, 'prec': 0.241, 'recall': 0.84, 'ret_recall': 0.937, 'oracle_percent': 0.401, 'oracle_rank': 2.03, 'prompt_length': 2579.584, 'perplexity': 1.073},
-        "top_20": {'em': 0.014, 'f1': 0.142, 'prec': 0.089, 'recall': 0.743, 'ret_recall': 0.952, 'oracle_percent': 0.375, 'oracle_rank': 2.271, 'prompt_length': 3398.936, 'perplexity': 1.084}
+        "top_1": {'em': 0.298, 'f1': 0.444, 'prec': 0.39, 'recall': 0.775, 'has_answer': 0.732, 'ret_recall': 0.627, 'oracle_percent': 0.627, 'oracle_rank': 1.0, 'prompt_length': 293.966, 'perplexity': 1.063},
+        "top_5": {'em': 0.146, 'f1': 0.331, 'prec': 0.259, 'recall': 0.838, 'has_answer': 0.801, 'ret_recall': 0.871, 'oracle_percent': 0.511, 'oracle_rank': 1.5, 'prompt_length': 946.482, 'perplexity': 1.06},
+        "top_10": {'em': 0.202, 'f1': 0.378, 'prec': 0.309, 'recall': 0.861, 'has_answer': 0.825, 'ret_recall': 0.917, 'oracle_percent': 0.443, 'oracle_rank': 1.8, 'prompt_length': 1759.983, 'perplexity': 1.068},
+        "top_15": {'em': 0.127, 'f1': 0.314, 'prec': 0.241, 'recall': 0.84, 'has_answer': 0.836, 'ret_recall': 0.937, 'oracle_percent': 0.401, 'oracle_rank': 2.03, 'prompt_length': 2579.584, 'perplexity': 1.073},
+        "top_20": {'em': 0.014, 'f1': 0.142, 'prec': 0.089, 'recall': 0.743, 'has_answer': 0.835, 'ret_recall': 0.952, 'oracle_percent': 0.375, 'oracle_rank': 2.271, 'prompt_length': 3398.936, 'perplexity': 1.084}
     },
     "hotpotQA": {
-        "top_1": {'em': 0.123, 'f1': 0.242, 'prec': 0.216, 'recall': 0.457, 'ret_recall': 0.351, 'oracle_percent': 0.703, 'oracle_rank': 1.0, 'prompt_length': 247.024, 'perplexity': 1.062},
-        "top_5": {'em': 0.077, 'f1': 0.199, 'prec': 0.159, 'recall': 0.521, 'ret_recall': 0.582, 'oracle_percent': 0.233, 'oracle_rank': 1.7, 'prompt_length': 656.491, 'perplexity': 1.06},
-        "top_10": {'em': 0.046, 'f1': 0.169, 'prec': 0.125, 'recall': 0.536, 'ret_recall': 0.639, 'oracle_percent': 0.128, 'oracle_rank': 2.225, 'prompt_length': 1150.41, 'perplexity': 1.06},
-        "top_15": {'em': 0.036, 'f1': 0.162, 'prec': 0.12, 'recall': 0.523, 'ret_recall': 0.666, 'oracle_percent': 0.089, 'oracle_rank': 2.665, 'prompt_length': 1648.619, 'perplexity': 1.065},
-        "top_20": {'em': 0.03, 'f1': 0.145, 'prec': 0.105, 'recall': 0.498, 'ret_recall': 0.688, 'oracle_percent': 0.069, 'oracle_rank': 3.172, 'prompt_length': 2144.122, 'perplexity': 1.069}
+        "top_1": {'em': 0.123, 'f1': 0.242, 'prec': 0.216, 'recall': 0.457, 'has_answer': 0.354, 'ret_recall': 0.351, 'oracle_percent': 0.703, 'oracle_rank': 1.0, 'prompt_length': 247.024, 'perplexity': 1.062},
+        "top_5": {'em': 0.077, 'f1': 0.199, 'prec': 0.159, 'recall': 0.521, 'has_answer': 0.415, 'ret_recall': 0.582, 'oracle_percent': 0.233, 'oracle_rank': 1.7, 'prompt_length': 656.491, 'perplexity': 1.06},
+        "top_10": {'em': 0.046, 'f1': 0.169, 'prec': 0.125, 'recall': 0.536, 'has_answer': 0.443, 'ret_recall': 0.639, 'oracle_percent': 0.128, 'oracle_rank': 2.225, 'prompt_length': 1150.41, 'perplexity': 1.06},
+        "top_15": {'em': 0.036, 'f1': 0.162, 'prec': 0.12, 'recall': 0.523, 'has_answer': 0.436, 'ret_recall': 0.666, 'oracle_percent': 0.089, 'oracle_rank': 2.665, 'prompt_length': 1648.619, 'perplexity': 1.065},
+        "top_20": {'em': 0.03, 'f1': 0.145, 'prec': 0.105, 'recall': 0.498, 'has_answer': 0.429, 'ret_recall': 0.688, 'oracle_percent': 0.069, 'oracle_rank': 3.172, 'prompt_length': 2144.122, 'perplexity': 1.069}
     }
 }
 
@@ -538,34 +538,34 @@ qa_ret_doc_selection_topk_llama_n_1 = {
 
 qa_ret_doc_selection_topk_gpt_n_1 = {
     'NQ': {
-        'top_1': {'em': 0.254, 'f1': 0.391, 'prec': 0.381, 'recall': 0.5, 'ret_recall': 0.472, 'oracle_percent': 0.472, 'oracle_rank': 1.0, 'prompt_length': 226.675, 'perplexity': 1.04},
-        "top_5": {'em': 0.327, 'f1': 0.468, 'prec': 0.454, 'recall': 0.603},
-        "top_10": {'em': 0.345, 'f1': 0.491, 'prec': 0.476, 'recall': 0.622},
-        "top_15": {'em': 0.345, 'f1': 0.492, 'prec': 0.478, 'recall': 0.624},
-        'top_20': {'em': 0.349, 'f1': 0.497, 'prec': 0.483, 'recall': 0.629, 'ret_recall': 0.871, 'oracle_percent': 0.19, 'oracle_rank': 3.075, 'prompt_length': 2833.01, 'perplexity': 1.042},
-        'top_40': {'em': 0.346, 'f1': 0.496, 'prec': 0.482, 'recall': 0.635, 'ret_recall': 0.911, 'oracle_percent': 0.147, 'oracle_rank': 4.238, 'prompt_length': 5577.404, 'perplexity': 1.048},
-        'top_60': {'em': 0.344, 'f1': 0.492, 'prec': 0.476, 'recall': 0.638, 'ret_recall': 0.932, 'oracle_percent': 0.127, 'oracle_rank': 5.244, 'prompt_length': 8323.228, 'perplexity': 1.052},
-        'top_80': {'em': 0.337, 'f1': 0.487, 'prec': 0.471, 'recall': 0.633, 'ret_recall': 0.944, 'oracle_percent': 0.114, 'oracle_rank': 6.049, 'prompt_length': 11070.615, 'perplexity': 1.06}
+        'top_1': {'em': 0.254, 'f1': 0.391, 'prec': 0.381, 'recall': 0.5, 'has_answer': 0.427, 'ret_recall': 0.472, 'oracle_percent': 0.472, 'oracle_rank': 1.0, 'prompt_length': 226.675, 'perplexity': 1.04},
+        "top_5": {'em': 0.327, 'f1': 0.468, 'prec': 0.454, 'recall': 0.603, 'has_answer': 0.525, 'prompt_length': 774.843, 'perplexity': 1.036},
+        "top_10": {'em': 0.345, 'f1': 0.491, 'prec': 0.476, 'recall': 0.622, 'has_answer': 0.543, 'prompt_length': 1460.296, 'perplexity': 1.039},
+        "top_15": {'em': 0.345, 'f1': 0.492, 'prec': 0.478, 'recall': 0.624, 'has_answer': 0.545, 'prompt_length': 2146.843, 'perplexity': 1.04},
+        'top_20': {'em': 0.349, 'f1': 0.497, 'prec': 0.483, 'recall': 0.629, 'has_answer': 0.545, 'ret_recall': 0.871, 'oracle_percent': 0.19, 'oracle_rank': 3.075, 'prompt_length': 2833.01, 'perplexity': 1.042},
+        'top_40': {'em': 0.346, 'f1': 0.496, 'prec': 0.482, 'recall': 0.635, 'has_answer': 0.549, 'ret_recall': 0.911, 'oracle_percent': 0.147, 'oracle_rank': 4.238, 'prompt_length': 5577.404, 'perplexity': 1.048},
+        'top_60': {'em': 0.344, 'f1': 0.492, 'prec': 0.476, 'recall': 0.638, 'has_answer': 0.556, 'ret_recall': 0.932, 'oracle_percent': 0.127, 'oracle_rank': 5.244, 'prompt_length': 8323.228, 'perplexity': 1.052},
+        'top_80': {'em': 0.337, 'f1': 0.487, 'prec': 0.471, 'recall': 0.633, 'has_answer': 0.547, 'ret_recall': 0.944, 'oracle_percent': 0.114, 'oracle_rank': 6.049, 'prompt_length': 11070.615, 'perplexity': 1.06}
     },
     'TriviaQA': {
-        'top_1': {'em': 0.592, 'f1': 0.679, 'prec': 0.658, 'recall': 0.767, 'ret_recall': 0.627, 'oracle_percent': 0.627, 'oracle_rank': 1.0, 'prompt_length': 236.653, 'perplexity': 1.028},
-        "top_5": {'em': 0.645, 'f1': 0.727, 'prec': 0.706, 'recall': 0.812},
-        "top_10": {'em': 0.671, 'f1': 0.752, 'prec': 0.729, 'recall': 0.837},
-        "top_15": {'em': 0.673, 'f1': 0.757, 'prec': 0.733, 'recall': 0.843},
-        'top_20': {'em': 0.677, 'f1': 0.758, 'prec': 0.735, 'recall': 0.84, 'ret_recall': 0.952, 'oracle_percent': 0.375, 'oracle_rank': 2.271, 'prompt_length': 2904.057, 'perplexity': 1.025},
-        'top_40': {'em': 0.697, 'f1': 0.774, 'prec': 0.75, 'recall': 0.857, 'ret_recall': 0.975, 'oracle_percent': 0.316, 'oracle_rank': 2.883, 'prompt_length': 5714.368, 'perplexity': 1.029},
-        'top_60': {'em': 0.7, 'f1': 0.775, 'prec': 0.752, 'recall': 0.856, 'ret_recall': 0.984, 'oracle_percent': 0.285, 'oracle_rank': 3.321, 'prompt_length': 8529.492, 'perplexity': 1.036},
-        'top_80': {'em': 0.683, 'f1': 0.763, 'prec': 0.739, 'recall': 0.855, 'ret_recall': 0.986, 'oracle_percent': 0.263, 'oracle_rank': 3.459, 'prompt_length': 11346.743, 'perplexity': 1.043}
+        'top_1': {'em': 0.592, 'f1': 0.679, 'prec': 0.658, 'recall': 0.767, 'has_answer': 0.74, 'ret_recall': 0.627, 'oracle_percent': 0.627, 'oracle_rank': 1.0, 'prompt_length': 236.653, 'perplexity': 1.028},
+        "top_5": {'em': 0.645, 'f1': 0.727, 'prec': 0.706, 'recall': 0.812, 'has_answer': 0.789, 'prompt_length': 799.074, 'perplexity': 1.023},
+        "top_10": {'em': 0.671, 'f1': 0.752, 'prec': 0.729, 'recall': 0.837, 'has_answer': 0.818, 'prompt_length': 1500.321, 'perplexity': 1.023},
+        "top_15": {'em': 0.673, 'f1': 0.757, 'prec': 0.733, 'recall': 0.843, 'has_answer': 0.824, 'prompt_length': 2201.954, 'perplexity': 1.025},
+        'top_20': {'em': 0.677, 'f1': 0.758, 'prec': 0.735, 'recall': 0.84, 'has_answer': 0.82, 'ret_recall': 0.952, 'oracle_percent': 0.375, 'oracle_rank': 2.271, 'prompt_length': 2904.057, 'perplexity': 1.025},
+        'top_40': {'em': 0.697, 'f1': 0.774, 'prec': 0.75, 'recall': 0.857, 'has_answer': 0.84, 'ret_recall': 0.975, 'oracle_percent': 0.316, 'oracle_rank': 2.883, 'prompt_length': 5714.368, 'perplexity': 1.029},
+        'top_60': {'em': 0.7, 'f1': 0.775, 'prec': 0.752, 'recall': 0.856, 'has_answer': 0.841, 'ret_recall': 0.984, 'oracle_percent': 0.285, 'oracle_rank': 3.321, 'prompt_length': 8529.492, 'perplexity': 1.036},
+        'top_80': {'em': 0.683, 'f1': 0.763, 'prec': 0.739, 'recall': 0.855, 'has_answer': 0.839, 'ret_recall': 0.986, 'oracle_percent': 0.263, 'oracle_rank': 3.459, 'prompt_length': 11346.743, 'perplexity': 1.043}
     },
     'hotpotQA': {
-        'top_1': {'em': 0.234, 'f1': 0.355, 'prec': 0.361, 'recall': 0.408, 'ret_recall': 0.351, 'oracle_percent': 0.703, 'oracle_rank': 1.0, 'prompt_length': 195.152, 'perplexity': 1.041},
-        "top_5": {'em': 0.2785, 'f1': 0.408, 'prec': 0.416, 'recall': 0.462},
-        "top_10": {'em': 0.295, 'f1': 0.421, 'prec': 0.426, 'recall': 0.475},
-        "top_15": {'em': 0.305, 'f1': 0.433, 'prec': 0.439, 'recall': 0.485},
-        'top_20': {'em': 0.305, 'f1': 0.431, 'prec': 0.439, 'recall': 0.483, 'ret_recall': 0.688, 'oracle_percent': 0.069, 'oracle_rank': 3.172, 'prompt_length': 1800.811, 'perplexity': 1.039},
-        'top_40': {'em': 0.323, 'f1': 0.453, 'prec': 0.461, 'recall': 0.506, 'ret_recall': 0.732, 'oracle_percent': 0.037, 'oracle_rank': 4.764, 'prompt_length': 3459.514, 'perplexity': 1.043},
-        'top_60': {'em': 0.311, 'f1': 0.442, 'prec': 0.45, 'recall': 0.494, 'ret_recall': 0.751, 'oracle_percent': 0.025, 'oracle_rank': 5.917, 'prompt_length': 5106.305, 'perplexity': 1.049},
-        'top_80': {'em': 0.305, 'f1': 0.441, 'prec': 0.449, 'recall': 0.495, 'ret_recall': 0.77, 'oracle_percent': 0.019, 'oracle_rank': 7.506, 'prompt_length': 6743.218, 'perplexity': 1.054}
+        'top_1': {'em': 0.234, 'f1': 0.355, 'prec': 0.361, 'recall': 0.408, 'has_answer': 0.346, 'ret_recall': 0.351, 'oracle_percent': 0.703, 'oracle_rank': 1.0, 'prompt_length': 195.152, 'perplexity': 1.041},
+        "top_5": {'em': 0.2785, 'f1': 0.408, 'prec': 0.416, 'recall': 0.462, 'has_answer': 0.407, 'prompt_length': 543.775, 'perplexity': 1.039},
+        "top_10": {'em': 0.295, 'f1': 0.421, 'prec': 0.426, 'recall': 0.475, 'has_answer': 0.423, 'prompt_length': 963.867, 'perplexity': 1.039},
+        "top_15": {'em': 0.305, 'f1': 0.433, 'prec': 0.439, 'recall': 0.485, 'has_answer': 0.428, 'prompt_length': 1383.611, 'perplexity': 1.04},
+        'top_20': {'em': 0.305, 'f1': 0.431, 'prec': 0.439, 'recall': 0.483, 'has_answer': 0.427, 'ret_recall': 0.688, 'oracle_percent': 0.069, 'oracle_rank': 3.172, 'prompt_length': 1800.811, 'perplexity': 1.039},
+        'top_40': {'em': 0.323, 'f1': 0.453, 'prec': 0.461, 'recall': 0.506, 'has_answer': 0.438, 'ret_recall': 0.732, 'oracle_percent': 0.037, 'oracle_rank': 4.764, 'prompt_length': 3459.514, 'perplexity': 1.043},
+        'top_60': {'em': 0.311, 'f1': 0.442, 'prec': 0.45, 'recall': 0.494, 'has_answer': 0.429, 'ret_recall': 0.751, 'oracle_percent': 0.025, 'oracle_rank': 5.917, 'prompt_length': 5106.305, 'perplexity': 1.049},
+        'top_80': {'em': 0.305, 'f1': 0.441, 'prec': 0.449, 'recall': 0.495, 'has_answer': 0.427, 'ret_recall': 0.77, 'oracle_percent': 0.019, 'oracle_rank': 7.506, 'prompt_length': 6743.218, 'perplexity': 1.054}
     }
 }
 
