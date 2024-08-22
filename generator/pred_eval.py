@@ -374,18 +374,15 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
 
     ret_doc_key_flags_list = None
     if len(ret_doc_keys_list) != 0 and if_eval_retrieval is True:
-        def eval_retrieval(scores : dict):
-            oracle_list = loader.load_oracle_list()
-            ret_doc_key_flags_list, avg_ret_recall, avg_oracle_percent, avg_oracle_rank = ret_eval_by_doc_keys(dataset=args.dataset, oracle_list=oracle_list, ret_doc_keys_list=ret_doc_keys_list)
-            # print('ret recall: ', avg_ret_recall)
-            # print('avg oracle doc percentage: ', avg_oracle_percent)
-            # print('avg oracle doc rank: ', avg_oracle_rank + 1)  # rank start from 1
-            # print('avg prompt length: ', sum(pl_list) / len(pl_list))
-            scores['ret_recall'] = avg_ret_recall
-            scores['oracle_percent'] = avg_oracle_percent
-            scores['oracle_rank'] = avg_oracle_rank
-            return ret_doc_key_flags_list
-        ret_doc_key_flags_list = eval_retrieval(scores)
+        oracle_list = loader.load_oracle_list()
+        ret_doc_key_flags_list, avg_ret_recall, avg_oracle_percent, avg_oracle_rank = ret_eval_by_doc_keys(dataset=args.dataset, oracle_list=oracle_list, ret_doc_keys_list=ret_doc_keys_list)
+        # print('ret recall: ', avg_ret_recall)
+        # print('avg oracle doc percentage: ', avg_oracle_percent)
+        # print('avg oracle doc rank: ', avg_oracle_rank + 1)  # rank start from 1
+        # print('avg prompt length: ', sum(pl_list) / len(pl_list))
+        scores['ret_recall'] = avg_ret_recall
+        scores['oracle_percent'] = avg_oracle_percent
+        scores['oracle_rank'] = avg_oracle_rank
     scores['prompt_length'] = sum(pl_list) / len(pl_list)
 
     # calc perplexity
