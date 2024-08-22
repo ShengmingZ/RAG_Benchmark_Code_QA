@@ -373,6 +373,8 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
             pl_list.append(data['prompt_length'])
 
     ret_doc_key_flags_list = None
+    print(if_eval_retrieval)
+    print(len(ret_doc_keys_list))
     if len(ret_doc_keys_list) != 0 and if_eval_retrieval is True:
         oracle_list = loader.load_oracle_list()
         ret_doc_key_flags_list, avg_ret_recall, avg_oracle_percent, avg_oracle_rank = ret_eval_by_doc_keys(dataset=args.dataset, oracle_list=oracle_list, ret_doc_keys_list=ret_doc_keys_list)
