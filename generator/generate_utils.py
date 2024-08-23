@@ -479,7 +479,7 @@ def get_irrelevant_doc_of_target_pl(irrelevant_type, dataset, model, target_pl):
         irrelevant_doc = ''
         irrelevant_doc_length = 0
         repeat_doc = loader.get_random_docs(1)[0]
-        # while len(repeat_doc) < 50: repeat_doc = loader.get_random_docs(1)[0]
+        while len(repeat_doc) < 50: repeat_doc = loader.get_random_docs(1)[0]
         while irrelevant_doc_length < target_pl:
             doc = ' '.join(loader.get_random_docs(10)) if 'repeat' not in irrelevant_type else repeat_doc*10
             random_doc_length = get_docs_tokens(docs=[doc], model=model)[0]

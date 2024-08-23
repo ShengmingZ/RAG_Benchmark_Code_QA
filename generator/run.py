@@ -164,7 +164,7 @@ elif args.analysis_type.startswith('prompt_length'):
     #                         f'diff_repeat_{target_pl}', f'dummy_{target_pl}', f'ellipsis_{target_pl}']
     args.analysis_type = 'prompt_length'
     cmds = []
-    if args.action == 'gene_responses' and args.batch is True and 'gpt' in args.model:  # use batch, run simo
+    if args.action == 'gene_responses' and args.batch is True and 'gpt' in args.model or args.action == 'gene_prompts':  # use batch, run simo
         for pl_analysis in pl_analysis_list:
             if str(target_pl) not in pl_analysis:
                 if pl_analysis == 'diff' or pl_analysis == 'dummy': pl_analysis = 'irrelevant_' + pl_analysis
