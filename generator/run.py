@@ -139,15 +139,15 @@ elif args.analysis_type.startswith('prompt_length'):
     target_pl = 4000
     target_type = args.analysis_type.replace('prompt_length_','')
     if target_type == 'oracle':
-        pl_analysis_list = [f'oracle', f'oracle_repeat_{target_pl}', f'oracle_pad_random_{target_pl}', f'oracle_pad_repeat_random_{target_pl}', f'oracle_pad_diff_{target_pl}', f'oracle_pad_repeat_diff_{target_pl}', f'oracle_pad_dummy_{target_pl}', f'oracle_pad_ellipsis_{target_pl}',]
+        pl_analysis_list = [f'oracle_repeat_{target_pl}', f'oracle_pad_random_{target_pl}', f'oracle_pad_repeat_random_{target_pl}', f'oracle_pad_diff_{target_pl}', f'oracle_pad_repeat_diff_{target_pl}', f'oracle_pad_dummy_{target_pl}', f'oracle_pad_ellipsis_{target_pl}',]
     elif target_type == 'distracting':
-        pl_analysis_list = [f'distracting', f'distracting_repeat_{target_pl}', f'distracting_pad_random_{target_pl}', f'distracting_pad_repeat_random_{target_pl}', f'distracting_pad_diff_{target_pl}', f'distracting_pad_repeat_diff_{target_pl}', f'distracting_pad_dummy_{target_pl}', f'distracting_pad_ellipsis_{target_pl}',]
+        pl_analysis_list = [f'distracting_repeat_{target_pl}', f'distracting_pad_random_{target_pl}', f'distracting_pad_repeat_random_{target_pl}', f'distracting_pad_diff_{target_pl}', f'distracting_pad_repeat_diff_{target_pl}', f'distracting_pad_dummy_{target_pl}', f'distracting_pad_ellipsis_{target_pl}',]
     elif target_type == 'retrieved_top':
-        pl_analysis_list = [f'retrieved_top', f'retrieved_top_repeat_{target_pl}', f'retrieved_top_pad_random_{target_pl}', f'retrieved_top_pad_repeat_random_{target_pl}', f'retrieved_top_pad_diff_{target_pl}', f'retrieved_top_pad_repeat_diff_{target_pl}', f'retrieved_top_pad_dummy_{target_pl}', f'retrieved_top_pad_ellipsis_{target_pl}',]
+        pl_analysis_list = [f'retrieved_top_repeat_{target_pl}', f'retrieved_top_pad_random_{target_pl}', f'retrieved_top_pad_repeat_random_{target_pl}', f'retrieved_top_pad_diff_{target_pl}', f'retrieved_top_pad_repeat_diff_{target_pl}', f'retrieved_top_pad_dummy_{target_pl}', f'retrieved_top_pad_ellipsis_{target_pl}',]
     elif target_type == 'none':
-        pl_analysis_list = [f'none', f'none_pad_random_{target_pl}', f'none_pad_repeat_random_{target_pl}', f'none_pad_diff_{target_pl}', f'none_pad_repeat_diff_{target_pl}', f'none_pad_dummy_{target_pl}', f'none_pad_ellipsis_{target_pl}']
+        pl_analysis_list = [f'none_pad_random_{target_pl}', f'none_pad_repeat_random_{target_pl}', f'none_pad_diff_{target_pl}', f'none_pad_repeat_diff_{target_pl}', f'none_pad_dummy_{target_pl}', f'none_pad_ellipsis_{target_pl}']
     elif target_type == 'irrelevant':
-        pl_analysis_list = [f'random', f'random_{target_pl}', f'random_repeat_{target_pl}', f'diff', f'diff_{target_pl}', f'diff_repeat_{target_pl}', f'dummy', f'dummy_{target_pl}', f'ellipsis', f'ellipsis_{target_pl}']
+        pl_analysis_list = [f'random_{target_pl}', f'random_repeat_{target_pl}', f'diff_{target_pl}', f'diff_repeat_{target_pl}', f'dummy_{target_pl}', f'ellipsis_{target_pl}']
     # if target_type == 'oracle':
     #     pl_analysis_list = [f'oracle_repeat_{target_pl}', f'oracle_pad_diff_{target_pl}', f'oracle_pad_dummy_{target_pl}', f'oracle_pad_ellipsis_{target_pl}', ]
     # elif target_type == 'distracting':
