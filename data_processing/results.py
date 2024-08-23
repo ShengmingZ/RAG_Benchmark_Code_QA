@@ -689,9 +689,9 @@ code_pl_analysis_gpt_n_1 = {
             # 'random_2000': {'pass@1': 0.321, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 1997.595},
             'random_4000': {'pass@1': 0.357, 'prompt_length': 3990.845, 'perplexity': 1.043, 'retrieval_consistency': 0.036, 'syntax_error_percent': 0.274, 'semantic_error_percent': 0.393},
             # 'random_8000': {'pass@1': 0.333, 'ret_recall': 0.0, 'oracle_percent': 0.0, 'prompt_length': 7983.607}
-            'random_repeat_4000': {'pass@1': 0.345, 'prompt_length': 3454.333, 'perplexity': 1.044, 'retrieval_consistency': 0.0, 'syntax_error_percent': 0.25, 'semantic_error_percent': 0.393},
+            'random_repeat_4000': {'pass@1': 0.357, 'prompt_length': 3454.333, 'perplexity': 1.044, 'retrieval_consistency': 0.0, 'syntax_error_percent': 0.25, 'semantic_error_percent': 0.393},
             'diff': {'pass@1': 0.333, 'prompt_length': 814.833, 'perplexity': 1.047, 'syntax_error_percent': 0.321, 'semantic_error_percent': 0.429},
-            'diff_4000': {'pass@1': 0.345, 'prompt_length': 3966.048, 'perplexity': 1.055, 'syntax_error_percent': 0.321, 'semantic_error_percent': 0.393},
+            'diff_4000': {'pass@1': 0.357, 'prompt_length': 3966.048, 'perplexity': 1.055, 'syntax_error_percent': 0.321, 'semantic_error_percent': 0.393},
             'diff_repeat_4000': {'pass@1': 0.31, 'prompt_length': 3920.881, 'perplexity': 1.048, 'syntax_error_percent': 0.393, 'semantic_error_percent': 0.393},
             'dummy': {'pass@1': 0.31, 'prompt_length': 814.321, 'perplexity': 1.048, 'syntax_error_percent': 0.321, 'semantic_error_percent': 0.417},
             'dummy_4000': {'pass@1': 0.31, 'prompt_length': 3967.869, 'perplexity': 1.047, 'syntax_error_percent': 0.31, 'semantic_error_percent': 0.405},
