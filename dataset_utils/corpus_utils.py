@@ -39,6 +39,7 @@ class PythonDocsLoader:
             random_docs = random.sample(all_docs, 5000)
             with open(self.random_docs_file, 'w') as f:
                 for doc in random_docs:
+                    doc = doc.replace('\n', '')
                     f.write(doc + '\n')
         else:
             with open(self.random_docs_file, 'r') as f:

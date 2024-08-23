@@ -244,6 +244,72 @@ def make_doc_selection_topk_perplexity():
     plt.show()
 
 
+
+def make_doc_selection_topk_ret_recall():
+    graph_name = 'select_topk_ret_recall.pdf'
+    qa_gpt_perf_datas = []
+    qa_metric = 'ret_recall'
+    code_metric = 'ret_recall'
+    for dataset_name in qa_dataset_names:
+        qa_gpt_perf_datas.append(
+            [results.qa_ret_doc_selection_topk_gpt_n_1[dataset_name][doc_selection_type][qa_metric] for doc_selection_type in qa_gpt_doc_selection_types])
+    code_gpt_perf_datas = []
+    for dataset_name in code_dataset_names:
+        code_gpt_perf_datas.append(
+            [results.code_ret_doc_selection_topk_gpt_n_1[dataset_name][doc_selection_type][code_metric] for doc_selection_type in code_gpt_doc_selection_types])
+
+    def get_avg_data(perf_datas, doc_selection_types, dataset_names):
+        avg_perf_datas = [0]*len(doc_selection_types)
+        for data in perf_datas:
+            avg_perf_datas = [a + b for a, b in zip(avg_perf_datas, data)]
+        avg_perf_datas = [item/len(dataset_names) for item in avg_perf_datas]
+        return avg_perf_datas
+
+    qa_gpt_perf_datas.append(get_avg_data(qa_gpt_perf_datas, qa_gpt_doc_selection_types, qa_dataset_names))
+    code_gpt_perf_datas.append(get_avg_data(code_gpt_perf_datas, code_gpt_doc_selection_types, code_dataset_names))
+    qa_dataset_names.append('qa avg')
+    code_dataset_names.append('code avg')
+
+    plt.style.use('ggplot')
+    fig = plt.figure(figsize=(9, 4))
+    gs = gridspec.GridSpec(1, 2, width_ratios=[1, 1.75])
+    # fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(24, 4))
+    ax1 = plt.subplot(gs[0])
+    ax2 = plt.subplot(gs[1])
+    colors1 = plt.cm.viridis(np.linspace(0, 0.9, len(qa_dataset_names)))
+    colors2 = plt.cm.plasma(np.linspace(0, 0.9, len(code_dataset_names)))
+
+    axs = [ax1, ax2]
+    perf_datas_list = [code_gpt_perf_datas, qa_gpt_perf_datas]
+    topk_list = [code_gpt_doc_selection_types, qa_gpt_doc_selection_types]
+    for ax_idx, (ax, perf_datas) in enumerate(zip(axs, perf_datas_list)):
+        if ax_idx%2 == 0:
+            dataset_names = code_dataset_names
+            colors = colors1
+            metric = code_metric
+        else:
+            dataset_names = qa_dataset_names
+            colors = colors2
+            metric = qa_metric
+        for idx, dataset_name in enumerate(dataset_names):
+            ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker='o', linestyle='-', label=dataset_name, color=colors[idx])
+        ax.set_ylabel(metric)
+        ax.set_xlabel('top k documents', fontsize=12)
+        if ax_idx == 0: ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4])
+        elif ax_idx == 1: ax.set_yticks([0.2, 0.4, 0.6, 0.8, 1.0])
+        if ax_idx == 0:
+            ax.set_title('(1) Code Datasets, Retrieval Recall', fontsize=12)
+        elif ax_idx == 1:
+            ax.set_title('(2) QA Datasets, Retrieval Recall', fontsize=12)
+
+    ax3_handles, ax3_labels = ax1.get_legend_handles_labels()
+    ax4_handles, ax4_labels = ax2.get_legend_handles_labels()
+    handles, labels = ax3_handles + ax4_handles, ax3_labels + ax4_labels
+    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=12, bbox_to_anchor=(0.5, -0.18))
+    plt.savefig('graph/' + graph_name, bbox_inches='tight')
+    plt.show()
+
+
 def make_ret_doc_type_perplexity():
     graph_name = 'ret_doc_type_perplexity.pdf'
     gpt_perf_datas = []
@@ -730,4 +796,6 @@ if __name__ == '__main__':
 
     # make_doc_selection_topk_syntax_semantic_error()
 
-    make_doc_selection_topk_perplexity()
+    # make_doc_selection_topk_perplexity()
+
+    make_doc_selection_topk_ret_recall()

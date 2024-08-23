@@ -8,9 +8,8 @@ def config():
     parser.add_argument('--temperature', type=float)
     parser.add_argument('--dataset', type=str, default=None, choices=['conala', 'DS1000', 'pandas_numpy_eval', 'NQ', 'TriviaQA', 'hotpotQA'])
     parser.add_argument('--retriever', type=str, choices=['best', 'BM25', 'contriever', 'miniLM', 'openai-embedding'])
-    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection_topk', 'retrieval_doc_selection_pl',
-                                                              'prompt_length_0', 'prompt_length_500', 'prompt_length_1000', 'prompt_length_1500', 'prompt_length_2000',
-                                                              'prompt_length_4000', 'prompt_length_6000', 'prompt_length_8000', 'prompt_method'])
+    parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection_topk', 'retrieval_doc_selection_pl', 'prompt_method',
+                                                              'prompt_length_oracle', 'prompt_length_distracting', 'prompt_length_retrieved_top', 'prompt_length_none', 'prompt_length_irrelevant'])
     parser.add_argument('--prompt_type', type=str, default=None, choices=['3shot', 'cot', 'self-consistency', 'least_to_most', 'plan_and_solve'])
     parser.add_argument('--action', type=str, choices=['gene_prompts', 'gene_responses', 'eval_pred'])
     parser.add_argument('--n', type=int)
@@ -137,26 +136,45 @@ elif args.analysis_type.startswith("retrieval_doc_selection"):
 
 
 elif args.analysis_type.startswith('prompt_length'):
-    target_pl = int(args.analysis_type.rsplit('_', 1)[1])
-    pl_analysis_list = [f'oracle_{target_pl}', f'oracle_pad_ellipsis_{target_pl}', f'oracle_pad_dummy_{target_pl}', f'oracle_pad_diff_{target_pl}',
-                        f'distracting_{target_pl}', f'distracting_pad_ellipsis_{target_pl}', f'distracting_pad_dummy_{target_pl}', f'distracting_pad_diff_{target_pl}',
-                        f'retrieved_top_{target_pl}', f'retrieved_top_pad_ellipsis_{target_pl}', f'retrieved_top_pad_diff_{target_pl}', f'retrieved_top_pad_dummy_{target_pl}',
-                        f'random_{target_pl}', f'irrelevant_diff_{target_pl}', f'irrelevant_dummy_{target_pl}', f'ellipsis_{target_pl}',
-                        f'random_repeat_{target_pl}', f'irrelevant_diff_repeat_{target_pl}',
-                        f'none_pad_ellipsis_{target_pl}', f'none_pad_dummy_{target_pl}', f'none_pad_diff_{target_pl}']
+    target_pl = 4000
+    target_type = args.analysis_type.rsplit('_',1)[-1]
+    # if target_type == 'oracle':
+    #     pl_analysis_list = [f'oracle', f'oracle_repeat_{target_pl}', f'oracle_pad_random_{target_pl}', f'oracle_pad_repeat_random_{target_pl}', f'oracle_pad_diff_{target_pl}', f'oracle_pad_repeat_diff_{target_pl}', f'oracle_pad_dummy_{target_pl}', f'oracle_pad_ellipsis_{target_pl}',]
+    # elif target_type == 'distracting':
+    #     pl_analysis_list = [f'distracting', f'distracting_repeat_{target_pl}', f'distracting_pad_random_{target_pl}', f'distracting_pad_repeat_random_{target_pl}', f'distracting_pad_diff_{target_pl}', f'distracting_pad_repeat_diff_{target_pl}', f'distracting_pad_dummy_{target_pl}', f'distracting_pad_ellipsis_{target_pl}',]
+    # elif target_type == 'retrieved_top':
+    #     pl_analysis_list = [f'retrieved_top', f'retrieved_top_repeat_{target_pl}', f'retrieved_top_pad_random_{target_pl}', f'retrieved_top_pad_repeat_random_{target_pl}', f'retrieved_top_pad_diff_{target_pl}', f'retrieved_top_pad_repeat_diff_{target_pl}', f'retrieved_top_pad_dummy_{target_pl}', f'retrieved_top_pad_ellipsis_{target_pl}',]
+    # elif target_type == 'none':
+    #     pl_analysis_list = [f'none', f'none_pad_random_{target_pl}', f'none_pad_repeat_random_{target_pl}', f'none_pad_diff_{target_pl}', f'none_pad_repeat_diff_{target_pl}', f'none_pad_dummy_{target_pl}', f'none_pad_ellipsis_{target_pl}']
+    # elif target_type == 'irrelevant':
+    #     pl_analysis_list = [f'random', f'random_{target_pl}', f'random_repeat_{target_pl}', f'diff', f'diff_{target_pl}', f'diff_repeat_{target_pl}', f'dummy', f'dummy_{target_pl}', f'ellipsis', f'ellipsis_{target_pl}']
+    if target_type == 'oracle':
+        pl_analysis_list = [f'oracle_repeat_{target_pl}', f'oracle_pad_diff_{target_pl}', f'oracle_pad_dummy_{target_pl}', f'oracle_pad_ellipsis_{target_pl}', ]
+    elif target_type == 'distracting':
+        pl_analysis_list = [f'distracting_repeat_{target_pl}', f'distracting_pad_diff_{target_pl}',
+                            f'distracting_pad_dummy_{target_pl}', f'distracting_pad_ellipsis_{target_pl}', ]
+    elif target_type == 'retrieved_top':
+        pl_analysis_list = [f'retrieved_top_repeat_{target_pl}',f'retrieved_top_pad_diff_{target_pl}',
+                            f'retrieved_top_pad_dummy_{target_pl}', f'retrieved_top_pad_ellipsis_{target_pl}', ]
+    elif target_type == 'none':
+        pl_analysis_list = [f'none_pad_diff_{target_pl}',
+                            f'none_pad_dummy_{target_pl}', f'none_pad_ellipsis_{target_pl}']
+    elif target_type == 'irrelevant':
+        pl_analysis_list = [f'random_{target_pl}', f'random_repeat_{target_pl}', f'diff_{target_pl}',
+                            f'diff_repeat_{target_pl}', f'dummy_{target_pl}', f'ellipsis_{target_pl}']
+
     args.analysis_type = 'prompt_length'
     cmds = []
     if args.action == 'gene_responses' and args.batch is True and 'gpt' in args.model:  # use batch, run simo
         for pl_analysis in pl_analysis_list:
-            if target_pl == 0:
-                pl_analysis = pl_analysis.rsplit('_', 1)[0]
+            if str(target_pl) not in pl_analysis:
+                if pl_analysis == 'diff' or pl_analysis == 'dummy': pl_analysis = 'irrelevant_' + pl_analysis
                 cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} --batch '
                        f'--dataset {args.dataset} --retriever {args.retriever} --analysis_type retrieval_doc_type --n {args.n} --ret_doc_type {pl_analysis}')
             else:
                 cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} --batch '
                        f'--dataset {args.dataset} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --pl_analysis {pl_analysis}')
-            if 'ellipsis' in pl_analysis or 'none' in pl_analysis: cmd = cmd.replace('--batch', '')  # for ellipsis, batch file too large
-            print(cmd)
+                if 'ellipsis' in pl_analysis: cmd = cmd.replace('--batch', '')  # for ellipsis, batch file too large
             cmds.append(cmd)
         batch_cmd = ''
         for cmd in cmds:
