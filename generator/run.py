@@ -137,7 +137,7 @@ elif args.analysis_type.startswith("retrieval_doc_selection"):
 
 elif args.analysis_type.startswith('prompt_length'):
     target_pl = 4000
-    target_type = args.analysis_type.rsplit('_',1)[-1]
+    target_type = args.analysis_type.replace('prompt_length_','')
     # if target_type == 'oracle':
     #     pl_analysis_list = [f'oracle', f'oracle_repeat_{target_pl}', f'oracle_pad_random_{target_pl}', f'oracle_pad_repeat_random_{target_pl}', f'oracle_pad_diff_{target_pl}', f'oracle_pad_repeat_diff_{target_pl}', f'oracle_pad_dummy_{target_pl}', f'oracle_pad_ellipsis_{target_pl}',]
     # elif target_type == 'distracting':
