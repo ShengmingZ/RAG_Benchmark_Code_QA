@@ -650,6 +650,141 @@ def gene_prompts_for_pl_analysis(pl_analysis, oracle_list, qs_list, ret_results,
     return target_doc_keys_list, prompts, pl_list
 
 
+
+def gene_prompts_for_pl_analysis_type2(pl_analysis, oracle_list, qs_list, ret_results, model, dataset, doc_max_length):
+    try:
+        target_pl = int(pl_analysis.rsplit('_', 1)[1])
+    except:
+        raise ValueError('not supported pl_analysis type {}'.format(pl_analysis))
+
+    # prepare oracle docs
+    def get_oracle_docs(dataset, oracle_list):
+        # get oracle docs
+        if dataset == 'NQ' or dataset == 'TriviaQA':
+            for idx, oracle in enumerate(oracle_list):
+                oracle_list[idx]['oracle_docs'] = [oracle_list[idx]['oracle_doc']]
+        oracle_doc_keys_list = [oracle['oracle_docs'] for oracle in oracle_list]
+        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+            oracle_docs_list = WikiCorpusLoader().get_docs(oracle_doc_keys_list, dataset, num_procs=8)
+        else:
+            oracle_docs_list = [PythonDocsLoader().get_docs(oracle_docs) for oracle_docs in oracle_doc_keys_list]
+        return oracle_doc_keys_list, oracle_docs_list
+
+    # prepare random docs
+    if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+        corpus_id_list = WikiCorpusLoader().load_wiki_id(dataset)
+    else:
+        corpus_id_list = PythonDocsLoader().load_api_signs()
+    random_doc_keys_list = []
+    for oracle in oracle_list:
+        if 'repeat' in pl_analysis: random_doc_keys_list.append(random.sample(corpus_id_list, k=len(oracle['oracle_docs']))*100)
+        else: random_doc_keys_list.append(random.sample(corpus_id_list, 100))
+    if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+        random_docs_list = WikiCorpusLoader().get_docs(random_doc_keys_list, dataset, num_procs=8)
+    else:
+        random_docs_list = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in random_doc_keys_list]
+
+    target_doc_keys_list, prompts = [], []
+    if 'pad' in pl_analysis:
+        irrelevant_type = pl_analysis.replace('type2_', '').split('_')[-2]
+        if 'repeat' in pl_analysis: irrelevant_type += '_repeat'
+        irrelevant_docs = [get_irrelevant_doc_of_target_pl(irrelevant_type, dataset, model, target_pl=500) for _ in range(int(target_pl / 500))]  # fix each irrelevant documents to be 500 tokens
+
+    if pl_analysis.startswith('oracle'):
+        oracle_doc_keys_list, oracle_docs_list = get_oracle_docs(dataset=dataset, oracle_list=oracle_list)
+        generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
+        for idx, (qs, oracle_docs, oracle_doc_keys) in enumerate(zip(qs_list, oracle_docs_list, oracle_doc_keys_list)):
+            if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: oracle_docs = truncate_docs(oracle_docs, model=model, max_length=doc_max_length)
+            if 'pad' in pl_analysis:
+                docs = irrelevant_docs
+            else:
+                repeated_oracle_docs, repeated_oracle_doc_keys = oracle_docs * 100, oracle_doc_keys * 100
+                doc_keys, docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl, docs=repeated_oracle_docs, doc_keys=repeated_oracle_doc_keys, model=model, question=qs['question'], generate_func=generate_func)
+            prompt = generate_func(docs + oracle_docs, qs['question'], model)
+            target_doc_keys_list.append(oracle_doc_keys)
+            prompts.append(prompt)
+
+    elif pl_analysis.startswith('distracting'):
+        if dataset == 'NQ' or dataset == 'TriviaQA':
+            for idx, oracle in enumerate(oracle_list): oracle_list[idx]['oracle_docs'] = [oracle_list[idx]['oracle_doc']]
+        distracting_doc_keys_list = []
+        for oracle in oracle_list:
+            distracting_doc_keys_list.append(get_distracting_docs(ret_result=ret_results[oracle['qs_id']], dataset=dataset, k=len(oracle['oracle_docs']), oracle_docs=oracle['oracle_docs']))
+        if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+            distracting_docs_list = WikiCorpusLoader().get_docs(distracting_doc_keys_list, dataset, num_procs=8)
+        else:
+            distracting_docs_list = [PythonDocsLoader().get_docs(doc_keys) for doc_keys in distracting_doc_keys_list]
+        generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
+        for idx, (qs, distracting_docs, distracting_doc_keys) in enumerate(zip(qs_list, distracting_docs_list, distracting_doc_keys_list)):
+            if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: distracting_docs = truncate_docs(distracting_docs, model=model, max_length=doc_max_length)
+            if 'pad' in pl_analysis:
+                docs = irrelevant_docs
+            else:
+                repeated_distracting_docs, repeated_distracting_doc_keys = distracting_docs * 100, distracting_doc_keys * 100
+                doc_keys, docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl, docs=repeated_distracting_docs, doc_keys=repeated_distracting_doc_keys, model=model, question=qs['question'], generate_func=generate_func)
+            prompt = generate_func(docs + distracting_docs, qs['question'], model)
+            target_doc_keys_list.append(distracting_doc_keys)
+            prompts.append(prompt)
+
+    elif pl_analysis.startswith('retrieved'):
+        if dataset == 'NQ' or dataset == 'TriviaQA':
+            for idx, oracle in enumerate(oracle_list):
+                oracle_list[idx]['oracle_docs'] = [oracle_list[idx]['oracle_doc']]
+        retrieved_docs_list = []
+        retrieved_doc_keys_list = []
+        ret_results_docs = get_docs_for_ret_results(ret_results, dataset)
+        for oracle in oracle_list:
+            if 'top' in pl_analysis: k = 10 if dataset in ['NQ', 'TriviaQA', 'hotpotQA'] else 5
+            else: k = len(oracle['oracle_docs'])
+            retrieved_docs_list.append([item['doc'] for item in ret_results_docs[oracle['qs_id']][:k]])
+            retrieved_doc_keys_list.append([item['doc_key'] for item in ret_results_docs[oracle['qs_id']][:k]])
+        generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
+        for idx, (qs, retrieved_docs, retrieved_doc_keys) in enumerate(zip(qs_list, retrieved_docs_list, retrieved_doc_keys_list)):
+            if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: retrieved_docs = truncate_docs(retrieved_docs, model=model, max_length=doc_max_length)
+            if 'pad' in pl_analysis:
+                docs = irrelevant_docs
+            else:
+                repeated_retrieved_docs, repeated_retrieved_doc_keys = retrieved_docs * 100, retrieved_doc_keys * 100
+                doc_keys, docs, prompt = get_prompt_of_target_pl(dataset=dataset, target_pl=target_pl, docs=repeated_retrieved_docs, doc_keys=repeated_retrieved_doc_keys, model=model, question=qs['question'], generate_func=generate_func)
+            prompt = generate_func(docs + retrieved_docs, qs['question'], model)
+            target_doc_keys_list.append(retrieved_doc_keys)
+            prompts.append(prompt)
+
+    elif pl_analysis.startswith('none'):
+        generate_func = _get_generate_func(dataset=dataset, no_ret_flag=True, prompt_type='0shot')
+        irrelevant_type = pl_analysis.split('_')[-2]
+        if 'repeat' in pl_analysis: irrelevant_type += '_repeat'
+        for qs in qs_list:
+            prompt = generate_func(qs['question'], model, pads='\n\n'.join(irrelevant_docs))
+            prompts.append(prompt)
+
+    # elif pl_analysis.startswith('diff') or pl_analysis.startswith('dummy') or pl_analysis.startswith('ellipsis') or pl_analysis.startswith('random'):
+    #     # first get oracle docs
+    #     oracle_doc_keys_list, oracle_docs_list = get_oracle_docs(dataset=dataset, oracle_list=oracle_list)
+    #     generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
+    #     for idx, (qs, oracle_docs, oracle_doc_keys) in enumerate(zip(qs_list, oracle_docs_list, oracle_doc_keys_list)):
+    #         if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']: oracle_docs = truncate_docs(oracle_docs, model=model, max_length=doc_max_length)
+    #         # construct irrelevant docs same as oracle docs
+    #         irrelevant_type = pl_analysis.split('_',1)[0]
+    #         padded_irrelevant_docs = get_irrelevant_docs(irrelevant_type=irrelevant_type, oracle_docs=oracle_docs, model=model, dataset=dataset, random_docs=random_docs_list[idx])
+    #         if 'repeat' in pl_analysis: irrelevant_type += '_repeat'
+    #         irrelevant_docs = [get_irrelevant_doc_of_target_pl(irrelevant_type, dataset, model, target_pl=500) for _ in range(int(target_pl / 500))]  # fix each irrelevant documents to be 500 tokens
+    #         prompt = generate_func(irrelevant_docs + padded_irrelevant_docs, qs['question'], model)
+    #         prompts.append(prompt)
+
+    elif pl_analysis.startswith('diff') or pl_analysis.startswith('dummy') or pl_analysis.startswith('ellipsis') or pl_analysis.startswith('random'):
+        generate_func = _get_generate_func(dataset=dataset, no_ret_flag=False, prompt_type='0shot')
+        irrelevant_type = pl_analysis.split('_',1)[0]
+        if 'repeat' in pl_analysis: irrelevant_type += '_repeat'
+        irrelevant_docs = [get_irrelevant_doc_of_target_pl(irrelevant_type, dataset, model, target_pl=500) for _ in range(int(target_pl / 500))]  # fix each irrelevant documents to be 500 tokens
+        for qs in qs_list:
+            prompt = generate_func(irrelevant_docs, qs['question'], model)
+            prompts.append(prompt)
+
+    pl_list = approximate_token(prompts, model)
+    return target_doc_keys_list, prompts, pl_list
+
+
 def select_by_simi_score(ret_results, doc_selection_type, oracle_list, dataset):
     try:
         top_p = float(doc_selection_type.replace('simi_score_', ''))
@@ -950,7 +1085,7 @@ if __name__ == "__main__":
     """test control prompt length"""
     in_program_call = None
     # in_program_call = '--model llama2-13b-chat --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type pl_1000'
-    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type prompt_length --pl_analysis none_pad_repeat_diff_1000'  # random
+    in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type prompt_length --pl_analysis dummy_type2_1000'  # random
     args = generate_config(in_program_call)
     # loader = NQTriviaQAUtils(dataset='NQ')
     loader = ConalaLoader()
@@ -959,12 +1094,13 @@ if __name__ == "__main__":
     oracle_list = loader.load_oracle_list()[6:8]
     ret_results = get_ret_results(dataset=args.dataset, retriever='openai-embedding')
     # ret_doc_keys_list, prompts, pl_list = gene_prompts_by_prompt_length(ret_results=ret_results, doc_selection_type=args.doc_selection_type, qs_list=qs_list, dataset=args.dataset, model=args.model, doc_max_length=args.doc_max_length)
-    doc_keys_list, prompts, pl_list = gene_prompts_for_pl_analysis(pl_analysis=args.pl_analysis, oracle_list=oracle_list, qs_list=qs_list, ret_results=ret_results,
+    doc_keys_list, prompts, pl_list = gene_prompts_for_pl_analysis_type2(pl_analysis=args.pl_analysis, oracle_list=oracle_list, qs_list=qs_list, ret_results=ret_results,
                                                                    model=args.model, dataset=args.dataset, doc_max_length=args.doc_max_length)
     # print(prompts[0][0])
     print(prompts[0][1])
     print(prompts[1][1])
     print(get_docs_tokens([prompts[0][0] + prompts[0][1]], model=args.model))
+    print(get_docs_tokens([prompts[1][0] + prompts[1][1]], model=args.model))
     # print(prompts[1][1])
     # print(doc_keys_list)
     # # true_pl_list = get_docs_tokens([prompt[0]+prompt[1] for prompt in prompts], model=args.model)

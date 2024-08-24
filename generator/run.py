@@ -9,7 +9,8 @@ def config():
     parser.add_argument('--dataset', type=str, default=None, choices=['conala', 'DS1000', 'pandas_numpy_eval', 'NQ', 'TriviaQA', 'hotpotQA'])
     parser.add_argument('--retriever', type=str, choices=['best', 'BM25', 'contriever', 'miniLM', 'openai-embedding'])
     parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection_topk', 'retrieval_doc_selection_pl', 'prompt_method',
-                                                              'prompt_length_oracle', 'prompt_length_distracting', 'prompt_length_retrieved_top', 'prompt_length_none', 'prompt_length_irrelevant'])
+                                                              'prompt_length_oracle', 'prompt_length_distracting', 'prompt_length_retrieved_top', 'prompt_length_none', 'prompt_length_irrelevant',
+                                                              'prompt_length_oracle_type2', 'prompt_length_distracting_type2', 'prompt_length_retrieved_top_type2', 'prompt_length_none_type2', 'prompt_length_irrelevant_type2'])
     parser.add_argument('--prompt_type', type=str, default=None, choices=['3shot', 'cot', 'self-consistency', 'least_to_most', 'plan_and_solve'])
     parser.add_argument('--action', type=str, choices=['gene_prompts', 'gene_responses', 'eval_pred'])
     parser.add_argument('--n', type=int)
@@ -138,30 +139,19 @@ elif args.analysis_type.startswith("retrieval_doc_selection"):
 elif args.analysis_type.startswith('prompt_length'):
     target_pl = 4000
     target_type = args.analysis_type.replace('prompt_length_','')
-    if target_type == 'oracle':
+    if target_type.startswith('oracle'):
         pl_analysis_list = [f'oracle_repeat_{target_pl}', f'oracle_pad_random_{target_pl}', f'oracle_pad_repeat_random_{target_pl}', f'oracle_pad_diff_{target_pl}', f'oracle_pad_repeat_diff_{target_pl}', f'oracle_pad_dummy_{target_pl}', f'oracle_pad_ellipsis_{target_pl}',]
-    elif target_type == 'distracting':
+    elif target_type.startswith('distracting'):
         pl_analysis_list = [f'distracting_repeat_{target_pl}', f'distracting_pad_random_{target_pl}', f'distracting_pad_repeat_random_{target_pl}', f'distracting_pad_diff_{target_pl}', f'distracting_pad_repeat_diff_{target_pl}', f'distracting_pad_dummy_{target_pl}', f'distracting_pad_ellipsis_{target_pl}',]
-    elif target_type == 'retrieved_top':
+    elif target_type.startswith('retrieved_top'):
         pl_analysis_list = [f'retrieved_top_repeat_{target_pl}', f'retrieved_top_pad_random_{target_pl}', f'retrieved_top_pad_repeat_random_{target_pl}', f'retrieved_top_pad_diff_{target_pl}', f'retrieved_top_pad_repeat_diff_{target_pl}', f'retrieved_top_pad_dummy_{target_pl}', f'retrieved_top_pad_ellipsis_{target_pl}',]
-    elif target_type == 'none':
+    elif target_type.startswith('none'):
         pl_analysis_list = [f'none_pad_random_{target_pl}', f'none_pad_repeat_random_{target_pl}', f'none_pad_diff_{target_pl}', f'none_pad_repeat_diff_{target_pl}', f'none_pad_dummy_{target_pl}', f'none_pad_ellipsis_{target_pl}']
-    elif target_type == 'irrelevant':
+    elif target_type.startswith('irrelevant'):
         pl_analysis_list = [f'random_{target_pl}', f'random_repeat_{target_pl}', f'diff_{target_pl}', f'diff_repeat_{target_pl}', f'dummy_{target_pl}', f'ellipsis_{target_pl}']
-    # if target_type == 'oracle':
-    #     pl_analysis_list = [f'oracle_repeat_{target_pl}', f'oracle_pad_diff_{target_pl}', f'oracle_pad_dummy_{target_pl}', f'oracle_pad_ellipsis_{target_pl}', ]
-    # elif target_type == 'distracting':
-    #     pl_analysis_list = [f'distracting_repeat_{target_pl}', f'distracting_pad_diff_{target_pl}',
-    #                         f'distracting_pad_dummy_{target_pl}', f'distracting_pad_ellipsis_{target_pl}', ]
-    # elif target_type == 'retrieved_top':
-    #     pl_analysis_list = [f'retrieved_top_repeat_{target_pl}',f'retrieved_top_pad_diff_{target_pl}',
-    #                         f'retrieved_top_pad_dummy_{target_pl}', f'retrieved_top_pad_ellipsis_{target_pl}', ]
-    # elif target_type == 'none':
-    #     pl_analysis_list = [f'none_pad_diff_{target_pl}',
-    #                         f'none_pad_dummy_{target_pl}', f'none_pad_ellipsis_{target_pl}']
-    # elif target_type == 'irrelevant':
-    #     pl_analysis_list = [f'random_{target_pl}', f'random_repeat_{target_pl}', f'diff_{target_pl}',
-    #                         f'diff_repeat_{target_pl}', f'dummy_{target_pl}', f'ellipsis_{target_pl}']
+
+    if 'type2' in target_type: pl_analysis_list = [item.replace(f'{target_pl}', f'type2_{target_pl}') for item in pl_analysis_list]
+
     args.analysis_type = 'prompt_length'
     cmds = []
     if args.action == 'gene_responses' and args.batch is True and 'gpt' in args.model or args.action == 'gene_prompts':  # use batch, run simo
