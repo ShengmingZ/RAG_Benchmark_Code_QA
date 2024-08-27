@@ -404,6 +404,24 @@ Finally, let's summarize the generated code into one line python code"""
 #     print(result)
 #     print(demo_fn)
 
+def prompt_RaR(ret_docs, question, model):
+    RaR_prompt = """You are a senior python programmer, given some Potential Documents and a Code Description
+Your task is to first rephrase and expand the Problem, then you should generate only one line Python statement tagged with ```"""
+
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+
+## Code Description: 
+{question}
+"""
+    sys_prompt = RaR_prompt
+    prompt = ensemble_prompt(sys_prompt, user_prompt, model)
+    # prompt = ['', user_prompt] if 'gpt' in model else user_prompt
+    return prompt
 
 
 if __name__ == '__main__':

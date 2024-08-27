@@ -202,10 +202,11 @@ elif args.analysis_type == 'prompt_method':     # run by dataset
         for dataset_name in dataset_names:
             cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} --batch '
                    f'--dataset {dataset_name} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --prompt_type {args.prompt_type}')
+            if args.prompt_type == 'RaR' and dataset_name in ['conala', 'DS1000', 'pandas_numpy_eval']: cmd += ' --max_token 1000'
             cmds.append(cmd)
         batch_cmd = ''
         for cmd in cmds:
-            batch_cmd = batch_cmd + cmd + ' & '
+            batch_cmd = batch_cmd + cmd + ' ; '
     else:
         for dataset_name in dataset_names:
             if 'llama' in args.model:
@@ -213,6 +214,7 @@ elif args.analysis_type == 'prompt_method':     # run by dataset
                 else: args.model = 'codellama-13b-instruct'
             cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} '
                    f'--dataset {dataset_name} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --prompt_type {args.prompt_type}')
+            if args.prompt_type == 'RaR' and dataset_name in ['conala', 'DS1000', 'pandas_numpy_eval']: cmd += ' --max_token 1000'
             cmds.append(cmd)
         batch_cmd = ''
         for cmd in cmds:

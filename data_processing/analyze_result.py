@@ -416,10 +416,34 @@ def calc_avg_syntax_error():
         print(ret_recall, round(syntax_errors[ret_recall]/3, 3))
 
 
+def get_avg_result_pl_analysis():
+    datasets = ['conala', 'DS1000', 'pandas_numpy_eval']
+    # dataset = datasets[0]
+    types = ['oracle', 'distracting', 'retrieved_top', 'none', 'irrelevant']
+    type = types[4]
+    print(type)
+    result = results.code_pl_analysis_gpt_n_1
+    avg_result = dict()
+    for dataset in datasets:
+        for key in result[dataset][type].keys():
+            if result[dataset][type][key] is None: continue
+            if key not in avg_result: avg_result[key] = 0
+            avg_result[key] += result[dataset][type][key]['pass@1']
+    # baseline_result = avg_result[type]/3
+    baseline_result = 0.477
+    for key in avg_result.keys():
+        avg_result[key]/=3
+        avg_result[key] = dict(avg_result=round(avg_result[key],3), avg_improve=round((avg_result[key]-baseline_result)/baseline_result, 3))
+    for key in avg_result.keys():
+        print(key, avg_result[key])
+
+
 
 
 if __name__ == '__main__':
-    calc_avg_syntax_error()
+    get_avg_result_pl_analysis()
+
+    # calc_avg_syntax_error()
 
     """count has answer"""
     # in_program_call = (

@@ -682,6 +682,26 @@ Then, let’s carry out the plan, generate code based on the problem and the unf
     return prompt
 
 
+def prompt_RaR(ret_docs, question, model):
+    RaR_prompt = """You are a senior python programmer, given some potential documents, a problem and its unfinished code solution
+Your task is to first rephrase and expand the Problem, then complete the Unfinished Code Solution without modifying its existing part"""
+
+    potential_docs, prompt, answer = process_docs_question(ret_docs, question)
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+## Problem: 
+{prompt}
+
+## Unfinished Code Solution:
+{answer}
+"""
+    sys_prompt = RaR_prompt
+    prompt = ensemble_prompt(sys_prompt, user_prompt, model)
+    # prompt = ['', user_prompt] if 'gpt' in model else user_prompt
+    return prompt
+
+
 
 if __name__ == '__main__':
     """

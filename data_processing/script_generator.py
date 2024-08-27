@@ -7,17 +7,17 @@ action = actions[2]
 models = ['gpt-3.5-turbo-0125', 'codellama-13b-instruct', 'llama2-13b-chat']
 model = models[1]
 
-datasets = ['conala', 'DS1000', 'pandas_numpy_eval', 'NQ', 'TriviaQA', 'hotpotQA']
+datasets = ['NQ', 'TriviaQA', 'hotpotQA', 'conala', 'DS1000', 'pandas_numpy_eval']
 qa_datasets = datasets[3:]
 code_datasets = datasets[:3]
-if model == models[2]: datasets = qa_datasets
-elif model == models[1]: datasets = code_datasets
+# if model == models[2]: datasets = qa_datasets
+# elif model == models[1]: datasets = code_datasets
 
 retrievers = ['BM25', 'miniLM', 'openai-embedding', 'codeT5']
 retriever = retrievers[2]
 
-analysis_types = ['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection']
-analysis_type = analysis_types[2]
+analysis_types = ['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection', 'prompt_method']
+analysis_type = analysis_types[3]
 # analysis_type_paras = ['ret_acc', 'ret_doc_type', 'doc_selection_type']
 # analysis_type_para = analysis_type_paras[1]
 
@@ -45,7 +45,13 @@ elif file == 'run.py':
               f"--retriever {retriever} --analysis_type {analysis_type}")
 elif file == 'transfer':
     for dataset in datasets:
-        script = (f"scp -P 10389 zhaoshengming@129.128.209.149:~/Code_RAG_Benchmark/data/{dataset}/results/model_{model}_n_1_retrieval_doc_type_random.json "
+        if 'llama' in model:
+            if dataset in ['NQ', 'TriviaQA', 'hotpotQA']: model = 'llama2-13b-chat'
+            else: model = 'codellama-13b-instruct'
+        script = (f"scp -P 10389 zhaoshengming@129.128.209.149:~/Code_RAG_Benchmark/data/{dataset}/results/model_{model}_n_1_{analysis_type}_3shot.json "
                   f"data/{dataset}/results")
         print(script)
+        # script = (f"scp -P 10389 zhaoshengming@129.128.209.149:~/Code_RAG_Benchmark/data/{dataset}/results/model_{model}_n_1_{analysis_type}_3shot.json "
+        #           f"data/{dataset}/results")
+        # print(script)
 

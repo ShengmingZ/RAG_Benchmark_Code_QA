@@ -142,21 +142,26 @@ class Generator:
 
         return ret_doc_keys_list, prompts, pl_list
 
-    def test_prompt(self):
+    def test_prompt(self, k=1):
         random.seed()
-        # self.oracle_list = random.sample(self.oracle_list, 1)
-        self.oracle_list = self.oracle_list[-4:-3]
+        self.oracle_list = random.sample(self.oracle_list, k)
+        # self.oracle_list = self.oracle_list
+        qs_list = []
         for qs in self.qs_list:
-            if qs['qs_id'] == self.oracle_list[0]['qs_id']:
-                self.qs_list = [qs]
-                break
+            for oracle in self.oracle_list:
+                if qs['qs_id'] == oracle['qs_id']:
+                    qs_list.append(qs)
+                    break
+        self.qs_list = qs_list
         assert len(self.qs_list) == len(self.oracle_list)
         _, prompts, _ = self.gene_prompts()
         if self.model.startswith('gpt'):
-            print(prompts[0][0])
-            print(prompts[0][1])
+            print('\n', prompts[0][0])
+            for prompt in prompts:
+                print(prompt[1])
         else:
-            print(prompts[0])
+            for prompt in prompts:
+                print(prompt)
         # print(self.oracle_list[0]['output'])
 
     def calc_prompt_tokens(self):
@@ -283,9 +288,8 @@ if __name__ == '__main__':
     # in_program_call = '--model codellama-13b-instruct --action gene_prompts --temperature 0 --n 1 --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type top_40'
     # in_program_call = '--model gpt-3.5-turbo-0125 --dataset NQ --retriever openai-embedding --analysis_type prompt_length --pl_analysis irrelevant_dummy_500'
     # in_program_call = '--model llama2-13b-chat --dataset conala --retriever openai-embedding --analysis_type retrieval_doc_selection --doc_selection_type top_5'
-    # todo: no sys prompt for all code, may use sys prompt for (qa, gpt), to avoid model not answer
     # todo: update max_tokens for different prompt methods
-    # in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset hotpotQA --retriever openai-embedding --analysis_type prompt_method --prompt_type plan_and_solve --action gene_responses'
+    # in_program_call = '--model llama2-13b-chat --temperature 0 --n 1 --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type prompt_method --prompt_type RaR'
     args = generate_config(in_program_call)
     generator = Generator(args)
     # generator.test_prompt()

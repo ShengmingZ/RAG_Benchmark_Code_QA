@@ -21,257 +21,166 @@ from retriever.retriever_utils import ret_eval_by_doc_keys
 from data_processing.analyze_result import analyze_results_for_code
 
 
+def conala_result_process(output):
+    pred = output
+    pred = pred.replace('</s>', '').replace('```python', '```')
+    if args.prompt_type == 'plan_and_solve':
+        try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
+        except: ...
+    try: pred = pred.split('Potential documents')[0]
+    except: ...
+    try: pred = pred.split('<code>')[1].split('</code>')[0]
+    except: ...
+    try: pred = pred.split('```')[1].split('```')[0]
+    except: ...
+    # only keep one code line
+    pred_lines = [line for line in pred.split('\n') if line != '' and not line.startswith('#') and not line.startswith('    #')]
+    try:
+        if pred_lines[-1].startswith('print'): pred = pred_lines[-2]
+        else: pred = pred_lines[-1]
+    except: ...
+    return pred
+
+
+def DS1000_result_process(output, code_prompt):
+    pred = output
+    pred = pred.replace('</s>', '').replace('```python', '```')
+    if args.prompt_type == 'least_to_most':
+        try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
+        except: ...
+    try: pred = pred.split('Potential documents')[0]
+    except: ...
+    try: pred = pred.split('BEGIN SOLUTION')[1]
+    except: ...
+    try: pred = pred.split('END SOLUTION')[0]
+    except: ...
+    try: pred = pred.split('```', 1)[1].split('```', 1)[0]
+    except: ...
+    try: pred = pred.split('<code>')[1].split('</code>')[0]
+    except: ...
+
+    prompt_lines = code_prompt.split('\n')
+    prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
+    print(prompt_lines)
+    pred_lines = pred.split('\n')
+    pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
+    print(pred_lines)
+
+    preload_variables = []  # get pre-defined variables in code prompt
+    for prompt_line in prompt_lines:
+        if ' = ' in prompt_line: preload_variables.extend([var.replace(' ', '') for var in prompt_line.split('=')[0].split(',')])
+        if 'BEGIN SOLUTION' in prompt_line: break
+    # if model output full code snippet, need to remove duplicated ones
+    # and sometimes LLM would change the definition of preload variables e.g.: softmax_output = load_data() -> softmax_output = torch.tensor([[0.2, 0.1, 0.7], ...
+    _pred_lines = []
+    for pred_line in pred_lines:
+        is_same = False
+        # remove dup
+        for prompt_line in prompt_lines:
+            if prompt_line.replace(' ', '') == pred_line.replace(' ', ''):
+                for var in preload_variables:
+                    if ' = ' in prompt_line and var in prompt_line.split('=')[0]: preload_variables.remove(var)  # if not change the defi...
+                is_same = True
+        if not is_same: _pred_lines.append(pred_line)
+    pred = '\n'.join(_pred_lines)
+
+    # if model have output full code snippet and change the definition of preload variables
+    if len(pred_lines) - len(_pred_lines) >= 2 and len(preload_variables) > 0:
+        _pred_lines = []
+        pred_lines = pred.split('\n')
+        for pred_line in pred_lines:
+            is_same = False
+            for var in preload_variables:
+                if pred_line.startswith(f'{var} ='):
+                    preload_variables.remove(var)
+                    is_same = True
+            if not is_same: _pred_lines.append(pred_line)
+        pred = '\n'.join(_pred_lines)
+    return pred
+
+
+def pandas_numpy_eval_result_process(output, code_prompt):
+    # first extract code
+    if output.startswith(' '): output = output[1:]
+    pred = output
+    pred = pred.replace('</s>', '').replace('```python', '```')
+    try: pred = pred.split('Potential documents')[0]
+    except: ...
+    try: pred = pred.split('<code>')[1]
+    except: ...
+    try: pred = pred.split('</code>')[0]
+    except: ...
+    try: pred = pred.split('```', 1)[1].split('```', 1)[0]
+    except: ...
+    try: pred = pred.split('# Example usage')[0]
+    except: ...
+    try: pred = pred.split('[out]')[0]
+    except: ...
+    pred = pred.replace('`', '')
+    # clean code
+    prompt_lines = code_prompt.split('\n')
+    prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
+    print(prompt_lines)
+    pred_lines = pred.split('\n')
+    pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
+    print(pred_lines)
+    # remove dup lines
+    _pred_lines = []
+    for pred_line in pred_lines:
+        is_same = False
+        for prompt_line in prompt_lines:
+            if prompt_line.replace(' ', '') == pred_line.replace(' ', ''): is_same = True
+        if not is_same: _pred_lines.append(pred_line)
+    pred_lines = _pred_lines
+    # remove partial dup in the last line
+    try:
+        if pred_lines[0].startswith(prompt_lines[-1]): pred_lines[0] = pred_lines[0].replace(prompt_lines[-1], '')
+    except: ...
+    # add indent for return
+    try:
+        if prompt_lines[-1] != '    ' and pred_lines[0].startswith('return'): pred_lines[0] = '    ' + pred_lines[0]
+    except: ...
+    # add intent for all pred lines
+    try:
+        if 'def' in code_prompt and prompt_lines[-1] != '    ' and not pred_lines[0].startswith('    '): pred_lines = ['    ' + line for line in pred_lines]
+    except: ...
+    # add return for function
+    try:
+        if 'def' in code_prompt and 'return' not in pred:
+            var = pred_lines[-1].split('=')[0].replace(' ', '')
+            pred_lines.append(f'    return {var}')
+    except: ...
+    pred = '\n'.join(pred_lines)
+    return pred
+
 
 def process_gene_results(args, outputs, code_prompt=None):
     preds = []
     if args.dataset == 'conala':
-        if args.prompt_type == 'plan_and_solve':   # for test new prompt method use
-            for output in outputs:
-                pred = output
-                pred = pred.replace('</s>', '').replace('```python', '```')
-                if args.prompt_type == 'plan_and_solve':
-                    try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
-                    except: ...
-                try: pred = pred.split('<code>')[1].split('</code>')[0]
-                except: ...
-                try: pred = pred.split('```')[1].split('```')[0]
-                except: ...
-                pred_lines = [line for line in pred.split('\n') if line != '' and not line.startswith('#') and not line.startswith('    #')]
-                try:
-                    if pred_lines[-1].startswith('print'): pred = pred_lines[-2]
-                    else: pred = pred_lines[-1]
-                except: pred = pred_lines[-1]
-                preds.append(pred)
-        else:
-            for output in outputs:
-                pred = output
-                pred = pred.replace('</s>', '').replace('```python', '```')
-                try: pred = pred.split('<code>')[1].split('</code>')[0]
-                except: ...
-                try: pred = pred.split('```')[1].split('```')[0]
-                except: ...
-                pred_lines = [line for line in pred.split('\n') if line != '' and not line.startswith('#') and not line.startswith('    #')]
-                try:
-                    if pred_lines[-1].startswith('print'): pred = pred_lines[-2]
-                    else: pred = pred_lines[-1]
-                except: ...
-                preds.append(pred)
+        for output in outputs:
+            pred = conala_result_process(output)
+            preds.append(pred)
 
     elif args.dataset == 'DS1000':
-        if args.prompt_type == 'plan_and_solve':
-            for output in outputs:
-                pred = output
-                pred = pred.replace('</s>', '').replace('```python', '```')
-                if args.prompt_type == 'least_to_most':
-                    try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
-                    except: ...
-                try: pred = pred.split('BEGIN SOLUTION')[1]
-                except: ...
-                try: pred = pred.split('END SOLUTION')[0]
-                except: ...
-                try: pred = pred.split('<code>')[1].split('</code>')[0]
-                except: ...
-                try: pred = pred.split('```')[1].split('```')[0]
-                except: ...
-                prompt_lines = code_prompt.split('\n')
-                prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-                pred_lines = pred.split('\n')
-                pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-
-                preload_variables = []
-                for prompt_line in prompt_lines:
-                    if ' = ' in prompt_line: preload_variables.extend([var.replace(' ', '') for var in prompt_line.split('=')[0].split(',')])
-                    if 'BEGIN SOLUTION' in prompt_line: break
-
-                # if model output full code snippet, need to remove duplicated ones
-                # and sometimes LLM would change the definition of preload variables e.g.: softmax_output = load_data() -> softmax_output = torch.tensor([[0.2, 0.1, 0.7], ...
-                _pred_lines = []
-                for pred_line in pred_lines:
-                    is_same = False
-                    # remove dup
-                    for prompt_line in prompt_lines:
-                        if prompt_line.replace(' ', '') == pred_line.replace(' ', ''):
-                            for var in preload_variables:
-                                if var in prompt_line.split('=')[0]: preload_variables.remove(var)  # if not change the defi...
-                            is_same = True
-                    if not is_same: _pred_lines.append(pred_line)
-                pred = '\n'.join(_pred_lines)
-                # if model have output full code snippet and change the definition of preload variables
-                if len(pred_lines) - len(_pred_lines) >= 2 and len(preload_variables) > 0:
-                    _pred_lines = []
-                    pred_lines = pred.split('\n')
-                    for pred_line in pred_lines:
-                        is_same = False
-                        for var in preload_variables:
-                            if pred_line.startswith(f'{var} ='):
-                                preload_variables.remove(var)
-                                is_same = True
-                        if not is_same: _pred_lines.append(pred_line)
-                    pred = '\n'.join(_pred_lines)
-                preds.append(pred)
-        else:
-            for output in outputs:
-                pred = output
-                pred = pred.replace('</s>', '').replace('```python', '```')
-                if args.prompt_type == 'least_to_most':
-                    try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
-                    except: ...
-                try: pred = pred.split('BEGIN SOLUTION')[1]
-                except: ...
-                try: pred = pred.split('END SOLUTION')[0]
-                except: ...
-                try: pred = pred.split('<code>')[1].split('</code>')[0]
-                except: ...
-                try: pred = pred.split('```')[1].split('```')[0]
-                except: ...
-
-                prompt_lines = code_prompt.split('\n')
-                prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-                # print(prompt_lines)
-                pred_lines = pred.split('\n')
-                pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-                # print(pred_lines)
-
-                preload_variables = []
-                for prompt_line in prompt_lines:
-                    if ' = ' in prompt_line: preload_variables.extend([var.replace(' ', '') for var in prompt_line.split('=')[0].split(',')])
-                    if 'BEGIN SOLUTION' in prompt_line: break
-                # if model output full code snippet, need to remove duplicated ones
-                # and sometimes LLM would change the definition of preload variables e.g.: softmax_output = load_data() -> softmax_output = torch.tensor([[0.2, 0.1, 0.7], ...
-                # first remove dup
-                _pred_lines = []
-                for pred_line in pred_lines:
-                    is_same = False
-                    for prompt_line in prompt_lines:
-                        if prompt_line.replace(' ', '') == pred_line.replace(' ', ''):
-                            for var in preload_variables:
-                                if ' = ' in prompt_line and var in prompt_line.split('=')[0]: preload_variables.remove(var)  # if not change the defi...
-                            is_same = True
-                    if not is_same: _pred_lines.append(pred_line)
-                pred = '\n'.join(_pred_lines)
-                # if model have output full code snippet and change the definition of preload variables
-                if len(pred_lines) - len(_pred_lines) >= 2 and len(preload_variables) > 0:
-                    _pred_lines = []
-                    pred_lines = pred.split('\n')
-                    for pred_line in pred_lines:
-                        is_same = False
-                        for var in preload_variables:
-                            if pred_line.startswith(f'{var} ='):
-                                preload_variables.remove(var)
-                                is_same = True
-                        if not is_same: _pred_lines.append(pred_line)
-                    pred = '\n'.join(_pred_lines)
-                preds.append(pred)
+        for output in outputs:
+            pred = DS1000_result_process(output, code_prompt)
+            preds.append(pred)
 
     elif args.dataset == 'pandas_numpy_eval':
-        if args.prompt_type == 'plan_and_solve' or args.prompt_type == 'least_to_most':
-            for output in outputs:
-                # first extract code
-                if output.startswith(' '): output = output[1:]
-                pred = output
-                pred = pred.replace('</s>', '').replace('```python', '```')
-                try: pred = pred.split('<code>')[1]
-                except: ...
-                try: pred = pred.split('</code>')[0]
-                except: ...
-                try: pred = pred.split('```')[1].split('```')[0]
-                except: ...
-                try: pred = pred.split('# Example usage')[0]
-                except: ...
-                try: pred = pred.split('[out]')[0]
-                except: ...
-                pred = pred.replace('`', '')
-                # clean code
-                prompt_lines = code_prompt.split('\n')
-                prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-                code_prompt = '\n'.join(prompt_lines)
-                print(prompt_lines)
-                pred_lines = pred.split('\n')
-                pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-                print(pred_lines)
-                # remove dup
-                _pred_lines = []
-                for pred_line in pred_lines:
-                    is_same = False
-                    for prompt_line in prompt_lines:
-                        if prompt_line.replace(' ', '') == pred_line.replace(' ', ''): is_same = True
-                    if not is_same: _pred_lines.append(pred_line)
-                pred_lines = _pred_lines
-                try:
-                    if pred_lines[0].startswith(prompt_lines[-1]): pred_lines[0] = pred_lines[0].replace(prompt_lines[-1], '') # only last line dup
-                except: ...
-                try:
-                    if prompt_lines[-1] != '    ' and pred_lines[0].startswith('return'): pred_lines[0] = '    ' + pred_lines[0]  # add indent
-                except: ...
-                pred = '\n'.join(pred_lines)
-                preds.append(pred)
-        else:
-            for output in outputs:
-                # extract code
-                if output.startswith(' '): output = output[1:]
-                pred = output
-                pred = pred.replace('</s>', '').replace('```python', '```')
-                try: pred = pred.split('<code>')[1]
-                except: ...
-                try: pred = pred.split('</code>')[0]
-                except: ...
-                try: pred = pred.split('```')[1].split('```')[0]
-                except: ...
-                try: pred = pred.split('# Example usage')[0]
-                except: ...
-                try: pred = pred.split('[out]')[0]
-                except: ...
-                pred = pred.replace('`', '')
-                # clean code
-                prompt_lines = code_prompt.split('\n')
-                prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-                code_prompt = '\n'.join(prompt_lines)
-                print(prompt_lines)
-                pred_lines = pred.split('\n')
-                pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-                print(pred_lines)
-                # remove dup
-                _pred_lines = []
-                for pred_line in pred_lines:
-                    is_same = False
-                    for prompt_line in prompt_lines:
-                        if prompt_line.replace(' ', '') == pred_line.replace(' ', ''): is_same = True
-                    if not is_same: _pred_lines.append(pred_line)
-                pred_lines = _pred_lines
-                try:
-                    if pred_lines[0].startswith(prompt_lines[-1]): pred_lines[0] = pred_lines[0].replace(prompt_lines[-1], '')  # only last line dup
-                except: ...
-                try:
-                    if prompt_lines[-1] != '    ' and pred_lines[0].startswith('return'): pred_lines[0] = '    ' + pred_lines[0]  # add indent
-                except: ...
-                try:
-                    if 'def' in code_prompt and prompt_lines[-1] != '    ' and not pred_lines[0].startswith('    '): pred_lines = ['    '+line for line in pred_lines]
-                except: ...
-                try:
-                    if 'def' in code_prompt and 'return' not in pred:
-                        var = pred_lines[-1].split('=')[0].replace(' ','')
-                        pred_lines.append(f'    return {var}')
-                except: ...
-                pred = '\n'.join(pred_lines)
-                preds.append(pred)
+        for output in outputs:
+            pred = pandas_numpy_eval_result_process(output, code_prompt)
+            preds.append(pred)
 
     elif args.dataset == 'NQ' or args.dataset == 'TriviaQA' or args.dataset == 'hotpotQA':
-        if args.prompt_type == 'plan_and_solve':
-            for output in outputs:
-                pred = output
-                try: pred = pred.split('<answer>')[1].split('</answer>')[0]
-                except: ...
-                try: pred = pred.split('```')[1].split('```')[0]
-                except: ...
-                preds.append(pred)
-        else:
-            for output in outputs:
-                pred = output
-                try: pred = pred.split('<answer>')[1].split('</answer>')[0]
-                except: ...
-                try: pred = pred.split('```')[1].split('```')[0]
-                except: ...
-                preds.append(pred)
+        for output in outputs:
+            pred = output
+            try: pred = pred.split('Potential documents')[0]
+            except: ...
+            try: pred = pred.split('<answer>')[1].split('</answer>')[0]
+            except: ...
+            try: pred = pred.split('```')[1].split('```')[0]
+            except: ...
+            preds.append(pred)
 
     else:
         raise Exception('Not Implemented')
@@ -418,61 +327,70 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
 
 if __name__ == '__main__':
     in_program_call = None
-    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset DS1000 --retriever openai-embedding --analysis_type retrieval_recall --ret_acc 0.6 --n 1'
-    # in_program_call = '--model gpt-3.5-turbo-0125 --dataset DS1000 --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_10'
+    in_program_call = '--model llama2-13b-chat --dataset hotpotQA --retriever openai-embedding --analysis_type prompt_method --prompt_type 3shot --n 1'
+    # in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_5'
     args = generate_config(in_program_call)
 
     # scores = pred_eval(args, if_eval_retrieval=True, if_code_analysis=True, if_calc_perplexity=True, if_save=True)
 
-    """
-    test process outputs for DS1000
-    """
-    # ds1000 = DS1000Dataset(source_dir='../data/DS1000/ds1000_data', libs='all', mode='Insertion')
-    # gene_results = json.load(open(args.result_save_file, 'r'))
-    # loader = DS1000Loader()
-    # oracle_list = loader.load_oracle_list()
-    # qs_list = loader.load_qs_list()
-    # for idx, result in enumerate(gene_results):
-    #     qs_id = result['qs_id']
-    #     [lib, problema_id] = qs_id.split('_')
-    #     data = ds1000[lib][int(problema_id)]
-    #     print(f'\n<processed code {idx}>]')
-    #     # print([result['outputs'][0]])
-    #     # print(qs_list[idx]['question'].split('\nA:')[1])
-    #     outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
-    #     # outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'])
-    #     print([outputs[0]])
+    if args.dataset == 'DS1000':
+        """
+        test process outputs for DS1000
+        """
+        ds1000 = DS1000Dataset(source_dir='../data/DS1000/ds1000_data', libs='all', mode='Insertion')
+        gene_results = json.load(open(args.result_save_file, 'r'))
+        loader = DS1000Loader()
+        oracle_list = loader.load_oracle_list()
+        qs_list = loader.load_qs_list()
+        for idx, result in enumerate(gene_results):
+            qs_id = result['qs_id']
+            [lib, problema_id] = qs_id.split('_')
+            data = ds1000[lib][int(problema_id)]
+            print(f'\n<processed code {idx}>]')
+            print([result['outputs'][0]])
+            # print([result['outputs'][0]])
+            # print(qs_list[idx]['question'].split('\nA:')[1])
+            outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
+            # outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'])
+            print([outputs[0]])
 
-    """
-    test process outputs for pandas_numpy_eval
-    """
-    # dataset = json.load(open('../data/pandas_numpy_eval/data/pandas_numpy_eval.json', 'r'))
-    # gene_results = json.load(open(args.result_save_file, 'r'))
-    # for idx, result in enumerate(gene_results):
-    #     print(f'\n<processed code {idx}>]')
-    #     # print([result['outputs'][0]])
-    #     for data in dataset:
-    #         if data['task_id'] == result['qs_id']:
-    #             code_prompt = data['prompt']
-    #     outputs = process_gene_results(args, result['outputs'], code_prompt)
-    #     print([outputs[0]])
+    elif args.dataset == 'pandas_numpy_eval':
+        """
+        test process outputs for pandas_numpy_eval
+        """
+        dataset = json.load(open('../data/pandas_numpy_eval/data/pandas_numpy_eval.json', 'r'))
+        gene_results = json.load(open(args.result_save_file, 'r'))
+        for idx, result in enumerate(gene_results):
+            print(f'\n<processed code {idx}>]')
+            print([result['outputs'][0]])
+            # print([result['outputs'][0]])
+            for data in dataset:
+                if data['task_id'] == result['qs_id']:
+                    code_prompt = data['prompt']
+            outputs = process_gene_results(args, result['outputs'], code_prompt)
+            print([outputs[0]])
 
-    """
-    test for conala
-    """
-    # gene_results = json.load(open(args.result_save_file, 'r'))
-    # for idx, result in enumerate(gene_results):
-    #     print(f'\n<processed code {idx}>]')
-    #     print([result['outputs'][0]])
-    #     outputs = process_gene_results(args, result['outputs'])
-    #     print([outputs[0]])
+    elif args.dataset == 'conala':
+        """
+        test for conala
+        """
+        gene_results = json.load(open(args.result_save_file, 'r'))
+        for idx, result in enumerate(gene_results):
+            print(f'\n<processed code {idx}>]')
+            print([result['outputs'][0]])
+            outputs = process_gene_results(args, result['outputs'])
+            print([outputs[0]])
 
-    """
-    test for NQ, TriviaQA, hotpotQA
-    """
-    # gene_results = json.load(open(args.result_save_file, 'r'))
-    # for idx, result in enumerate(gene_results):
-    #     print(f'\n<processed answer {idx}>]')
-    #     print([result['outputs'][0]])
-    #     outputs = process_gene_results(args, result['outputs'])
-    #     print([outputs[0]])
+    else:
+        """
+        test for NQ, TriviaQA, hotpotQA
+        """
+        cannot_answer_count = 0
+        gene_results = json.load(open(args.result_save_file, 'r'))
+        for idx, result in enumerate(gene_results):
+            print(f'\n<processed answer {idx}>]')
+            print([result['outputs'][0]])
+            if "I'm sorry" in result['outputs'][0]: cannot_answer_count += 1
+            outputs = process_gene_results(args, result['outputs'])
+            print([outputs[0]])
+        print(cannot_answer_count)

@@ -315,6 +315,26 @@ Finally, let's extract and show the exact answer tagged with <answer>"""
     return prompt
 
 
+def prompt_RaR(ret_docs, question, model):
+    RaR_prompt = """You are a helpful assistant, given some Potential Documents and a Question,
+Your task is to first rephrase and expand the question, then provide the answer"""
+
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+\n
+## Question: 
+{question}
+"""
+
+    sys_prompt = RaR_prompt
+    prompt = ensemble_prompt(sys_prompt, user_prompt, model)
+    # prompt = ['', user_prompt] if 'gpt' in model else user_prompt
+    return prompt
+
 
 if __name__ == '__main__':
     """get random samples as few shot examples"""
