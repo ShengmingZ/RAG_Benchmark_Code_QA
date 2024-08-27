@@ -1247,7 +1247,7 @@ prompt_method_gpt = {
     },
     'pandas_numpy_eval': {
         '0shot': {'pass@1': 0.719, 'prompt_length': 1805.76, 'perplexity': 1.037, 'retrieval_consistency': 0.928, 'syntax_error_percent': 0.042, 'semantic_error_percent': 0.287},
-        '3shot': {'pass@1': 0.766, 'prompt_length': 5755.431, 'perplexity': 1.053, 'retrieval_consistency': 0.874, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.287},
+        '3shot': {'pass@1': 0.754, 'prompt_length': 5755.431, 'perplexity': 1.053, 'retrieval_consistency': 0.874, 'syntax_error_percent': 0.006, 'semantic_error_percent': 0.287},
         'RaR': None,
         'cot': {'pass@1': 0.784, 'prompt_length': 5921.497, 'perplexity': 1.089, 'retrieval_consistency': 0.886, 'syntax_error_percent': 0.048, 'semantic_error_percent': 0.281},
         'self-consistency': None,

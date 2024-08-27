@@ -24,9 +24,9 @@ from data_processing.analyze_result import analyze_results_for_code
 def conala_result_process(output):
     pred = output
     pred = pred.replace('</s>', '').replace('```python', '```')
-    if args.prompt_type == 'plan_and_solve':
-        try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
-        except: ...
+    # if args.prompt_type == 'plan_and_solve':
+    #     try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
+    #     except: ...
     try: pred = pred.split('Potential documents')[0]
     except: ...
     try: pred = pred.split('<code>')[1].split('</code>')[0]
@@ -45,9 +45,9 @@ def conala_result_process(output):
 def DS1000_result_process(output, code_prompt):
     pred = output
     pred = pred.replace('</s>', '').replace('```python', '```')
-    if args.prompt_type == 'least_to_most':
-        try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
-        except: ...
+    # if args.prompt_type == 'least_to_most':
+    #     try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
+    #     except: ...
     try: pred = pred.split('Potential documents')[0]
     except: ...
     try: pred = pred.split('BEGIN SOLUTION')[1]
