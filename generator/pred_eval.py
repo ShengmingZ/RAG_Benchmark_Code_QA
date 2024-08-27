@@ -104,8 +104,8 @@ def pandas_numpy_eval_result_process(output, code_prompt):
     if output.startswith(' '): output = output[1:]
     pred = output
     pred = pred.replace('</s>', '').replace('```python', '```')
-    try: pred = pred.split('Potential documents')[0]
-    except: ...
+    # try: pred = pred.split('Potential documents')[0]
+    # except: ...
     try: pred = pred.split('<code>')[1]
     except: ...
     try: pred = pred.split('</code>')[0]
