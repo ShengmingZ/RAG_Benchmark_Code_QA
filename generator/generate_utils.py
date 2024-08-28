@@ -107,7 +107,7 @@ def truncate_docs(docs, model, max_length):
         elif model == 'llama3-8b':
             model = 'meta-llama/Meta-Llama-3-8B'
         access_token = "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"
-        tokenizer = AutoTokenizer.from_pretrained(model, torch_dtype=torch.float16, token=access_token)
+        tokenizer = AutoTokenizer.from_pretrained(model, torch_dtype=torch.float16, token=access_token, use_fast=False)
         truncated_docs = []
         for doc in docs:
             try:

@@ -134,7 +134,7 @@ def llama(prompts, model_name='llama2-13b-chat', max_new_tokens=100, temperature
     elif model_name == 'llama3-8b':
         model_name = 'meta-llama/Meta-Llama-3-8B'
     access_token = "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"
-    tokenizer = AutoTokenizer.from_pretrained(model_name, token=access_token)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, token=access_token, use_fast=False)
     model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16, token=access_token, device_map='auto')
     # model = model.to("cuda")
 
