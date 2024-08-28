@@ -26,7 +26,7 @@ def conala_result_process(args, output):
     pred = pred.replace('</s>', '').replace('```python', '```')
     try: pred = pred.split('Potential documents')[0]
     except: ...
-    if args.prompt_type in ['plan_and_solve', 'least_to_most']:
+    if args.prompt_type in ['least_to_most']:
         try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
         except: ...
     try: pred = pred.split('<code>')[1].split('</code>')[0]
@@ -47,7 +47,7 @@ def DS1000_result_process(args, output, code_prompt):
     pred = pred.replace('</s>', '').replace('```python', '```')
     try: pred = pred.split('Potential documents')[0]
     except: ...
-    if args.prompt_type in ['plan_and_solve', 'least_to_most']:
+    if args.prompt_type in ['least_to_most']:
         try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
         except: ...
     try: pred = pred.split('BEGIN SOLUTION')[1]
@@ -106,7 +106,7 @@ def pandas_numpy_eval_result_process(args, output, code_prompt):
     pred = pred.replace('</s>', '').replace('```python', '```')
     try: pred = pred.split('Potential documents')[0]
     except: ...
-    if args.prompt_type in ['plan_and_solve', 'least_to_most']:
+    if args.prompt_type in ['least_to_most']:
         try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
         except: ...
     try: pred = pred.split('<code>')[1]

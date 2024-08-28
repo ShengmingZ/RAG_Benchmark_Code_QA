@@ -319,9 +319,9 @@ def prompt_least_to_most(ret_docs, question, model):
 
 
 def prompt_plan_and_solve(ret_docs, question, model):
-    plan_and_solve_prompt = """Let’s first understand the problem and devise a plan to generate code based on the code description.
-Then, let’s carry out the plan, generate code step by step. (pay attention to only generate one line code)
-Finally, let's summarize the generated code into one line python code"""
+    plan_and_solve_prompt = """You are a senior Python programmer, given some Potential Documents and a Code Description,
+Your task is to first understand the description and devise a plan to generate code according to the description.
+Second, you should carry out the plan, and generate one line Python statement tagged with ```"""
 
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
@@ -332,13 +332,10 @@ Finally, let's summarize the generated code into one line python code"""
 \n
 ## Code Description: 
 {question}
-
-## Code Generation:
-{plan_and_solve_prompt}
 """
-    # sys_prompt = SYS_PROMPT_PLAN_AND_SOLVE
-    # prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
-    prompt = ['', user_prompt] if 'gpt' in model else user_prompt
+    sys_prompt = plan_and_solve_prompt
+    prompt = ensemble_prompt(sys_prompt, user_prompt, model)
+    # prompt = ['', user_prompt] if 'gpt' in model else user_prompt
     return prompt
 
 

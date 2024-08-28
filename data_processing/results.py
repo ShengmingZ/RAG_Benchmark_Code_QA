@@ -1251,7 +1251,7 @@ prompt_method_gpt = {
         'RaR': None,
         'cot': {'pass@1': 0.784, 'prompt_length': 5921.497, 'perplexity': 1.089, 'retrieval_consistency': 0.886, 'syntax_error_percent': 0.048, 'semantic_error_percent': 0.281},
         'self-consistency': None,
-        'least_to_most': {'pass@1': 0.76, 'prompt_length': 6192.856, 'perplexity': 1.094, 'retrieval_consistency': 0.88, 'syntax_error_percent': 0.03, 'semantic_error_percent': 0.263},
+        'least_to_most': {'pass@1': 0.766, 'prompt_length': 6192.856, 'perplexity': 1.094, 'retrieval_consistency': 0.88, 'syntax_error_percent': 0.024, 'semantic_error_percent': 0.263},
         'plan_and_solve': {'pass@1': 0.689, 'prompt_length': 1752.802, 'perplexity': 1.11, 'retrieval_consistency': 0.934, 'syntax_error_percent': 0.072, 'semantic_error_percent': 0.323},
         'self-refine': None,
         'con': None,

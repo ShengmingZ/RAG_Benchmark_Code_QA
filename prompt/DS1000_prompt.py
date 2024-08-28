@@ -659,11 +659,12 @@ def prompt_least_to_most(ret_docs, question, model):
 
 
 def prompt_plan_and_solve(ret_docs, question, model):
-    plan_and_solve_prompt = """Let’s first understand the problem and devise a plan to solve the problem.
-Then, let’s carry out the plan, generate code based on the problem and the unfinished code snippet step by step (pay attention not to change the existing code in Unfinished Code Solution)
+    plan_and_solve_prompt = """You are a senior Python programmer, given some Potential Documents, a Problem and its Unfinished Code Solution,
+Your task is to first understand the problem and devise a plan to complete the code Solution.
+Second, you should carry out the plan, and complete the Unfinished Code Solution tagged with ```
 """
-
     potential_docs, prompt, answer = process_docs_question(ret_docs, question)
+
     user_prompt = f"""
 ## Potential documents:
 {potential_docs}
@@ -672,13 +673,10 @@ Then, let’s carry out the plan, generate code based on the problem and the unf
 
 ## Unfinished Code Solution:
 {answer}
-
-## Code Generation for [insert]:
-{plan_and_solve_prompt}
 """
-    # sys_prompt = SYS_PROMPT_PLAN_AND_SOLVE
-    # prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
-    prompt = ['', user_prompt] if 'gpt' in model else user_prompt
+    sys_prompt = plan_and_solve_prompt
+    prompt = ensemble_prompt(sys_prompt, user_prompt, model)
+    # prompt = ['', user_prompt] if 'gpt' in model else user_prompt
     return prompt
 
 

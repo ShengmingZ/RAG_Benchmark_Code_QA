@@ -315,26 +315,40 @@ Conclusion: Thus, the answer to the question is ```prokaryote```.
 
 
 def prompt_plan_and_solve(ret_docs, question, model):
-    plan_and_solve_prompt = """Let’s first understand the question and devise a plan to solve the question.
+    gpt_plan_and_solve_prompt = """Let’s first understand the question and devise a plan to solve the question.
 Then, let’s carry out the plan and find the answer to the question step by step.
 Finally, let's extract and show the exact answer tagged with <answer>"""
+    llama_plan_and_solve_prompt = """You are a helpful assistant, given some Potential Documents and a Question,
+your task is to first understand the question and devise a plan to solve the question.
+Second, you should carry out the plan and find the answer to the question step by step.
+Finally, you should extract the exact answer tagged with <answer>"""
 
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
-    user_prompt = f"""
+
+    if 'gpt' in model:
+        user_prompt = f"""
 ## Potential documents:
 {potential_docs}
-\n
+
 ## Question: 
 {question}
 
 ## Answer:
-{plan_and_solve_prompt}
+{gpt_plan_and_solve_prompt}
 """
-    # sys_prompt = SYS_PROMPT_PLAN_AND_SOLVE
-    # prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
-    prompt = ['', user_prompt] if 'gpt' in model else user_prompt
+        prompt = ['', user_prompt] if 'gpt' in model else user_prompt
+    else:
+        user_prompt = f"""
+## Potential documents:
+{potential_docs}
+
+## Question: 
+{question}
+"""
+        sys_prompt = llama_plan_and_solve_prompt
+        prompt = ensemble_prompt(sys_prompt, user_prompt, model)
     return prompt
 
 

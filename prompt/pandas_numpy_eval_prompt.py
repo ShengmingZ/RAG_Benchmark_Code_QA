@@ -346,8 +346,9 @@ def prompt_0shot_no_ret(question, model, pads=''):
 
 
 def prompt_plan_and_solve(ret_docs, question, model):
-    plan_and_solve_prompt = """Let’s first understand the problem and devise a plan to complete the unfinished code snippet.
-Then, let’s carry out the plan, complete the code snippet step by step"""
+    plan_and_solve_prompt = """You are a senior Python programmer, given some Potential Documents and a Uncompleted Code Snippet,
+Your task is to first understand the Uncompleted Code Snippet and devise a plan to complete it.
+Then, you should carry out the plan to complete the code snippet"""
 
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
@@ -356,15 +357,12 @@ Then, let’s carry out the plan, complete the code snippet step by step"""
 ## Potential documents:
 {potential_docs}
 \n
-## Code Snippet to be completed:
+## Uncompleted Code Snippet:
 {question}
-
-## Completion:
-{plan_and_solve_prompt}
 """
-    # sys_prompt = SYS_PROMPT_PLAN_AND_SOLVE
-    # prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
-    prompt = ['', user_prompt] if 'gpt' in model else user_prompt
+    sys_prompt = plan_and_solve_prompt
+    prompt = ensemble_prompt(sys_prompt, user_prompt, model)
+    # prompt = ['', user_prompt] if 'gpt' in model else user_prompt
     return prompt
 
 
