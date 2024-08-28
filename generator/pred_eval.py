@@ -21,7 +21,7 @@ from retriever.retriever_utils import ret_eval_by_doc_keys
 from data_processing.analyze_result import analyze_results_for_code
 
 
-def conala_result_process(output):
+def conala_result_process(args, output):
     pred = output
     pred = pred.replace('</s>', '').replace('```python', '```')
     try: pred = pred.split('Potential documents')[0]
@@ -42,7 +42,7 @@ def conala_result_process(output):
     return pred
 
 
-def DS1000_result_process(output, code_prompt):
+def DS1000_result_process(args, output, code_prompt):
     pred = output
     pred = pred.replace('</s>', '').replace('```python', '```')
     try: pred = pred.split('Potential documents')[0]
@@ -99,7 +99,7 @@ def DS1000_result_process(output, code_prompt):
     return pred
 
 
-def pandas_numpy_eval_result_process(output, code_prompt):
+def pandas_numpy_eval_result_process(args, output, code_prompt):
     # first extract code
     if output.startswith(' '): output = output[1:]
     pred = output
@@ -161,17 +161,17 @@ def process_gene_results(args, outputs, code_prompt=None):
     preds = []
     if args.dataset == 'conala':
         for output in outputs:
-            pred = conala_result_process(output)
+            pred = conala_result_process(args, output)
             preds.append(pred)
 
     elif args.dataset == 'DS1000':
         for output in outputs:
-            pred = DS1000_result_process(output, code_prompt)
+            pred = DS1000_result_process(args, output, code_prompt)
             preds.append(pred)
 
     elif args.dataset == 'pandas_numpy_eval':
         for output in outputs:
-            pred = pandas_numpy_eval_result_process(output, code_prompt)
+            pred = pandas_numpy_eval_result_process(args, output, code_prompt)
             preds.append(pred)
 
     elif args.dataset == 'NQ' or args.dataset == 'TriviaQA' or args.dataset == 'hotpotQA':
