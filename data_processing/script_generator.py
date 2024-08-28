@@ -48,7 +48,7 @@ elif file == 'transfer':
         if 'llama' in model:
             if dataset in ['NQ', 'TriviaQA', 'hotpotQA']: model = 'llama2-13b-chat'
             else: model = 'codellama-13b-instruct'
-        script = (f"scp -P 10389 zhaoshengming@129.128.209.149:~/Code_RAG_Benchmark/data/{dataset}/results/model_{model}_n_1_{analysis_type}_3shot.json "
+        script = (f"scp -P 10389 zhaoshengming@129.128.209.149:~/Code_RAG_Benchmark/data/{dataset}/results/model_{model}_n_1_{analysis_type}_least_to_most.json "
                   f"data/{dataset}/results")
         print(script)
         # script = (f"scp -P 10389 zhaoshengming@129.128.209.149:~/Code_RAG_Benchmark/data/{dataset}/results/model_{model}_n_1_{analysis_type}_3shot.json "

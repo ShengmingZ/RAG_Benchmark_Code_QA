@@ -1182,7 +1182,7 @@ qa_pl_analysis_llama_n_1 = {
 prompt_method_gpt = {
     'NQ': {
         '0shot': {'em': 0.344, 'f1': 0.491, 'prec': 0.476, 'recall': 0.622, 'has_answer': 0.543, 'prompt_length': 1460.296, 'perplexity': 1.039},
-        '3shot': {'em': 0.29, 'f1': 0.426, 'prec': 0.41, 'recall': 0.57, 'has_answer': 0.492, 'prompt_length': 1919.292, 'perplexity': 1.088},   # cannot answer becomes more
+        '3shot': {'em': 0.29, 'f1': 0.426, 'prec': 0.41, 'recall': 0.57, 'has_answer': 0.492, 'prompt_length': 1919.292, 'perplexity': 1.088},   # refuse to answer: 283
         'RaR': None,
         'cot': {'em': 0.403, 'f1': 0.531, 'prec': 0.536, 'recall': 0.593, 'has_answer': 0.51, 'prompt_length': 2066.291, 'perplexity': 1.142},
         'self-consistency': None,
@@ -1195,7 +1195,7 @@ prompt_method_gpt = {
     },
     'TriviaQA': {
         '0shot': {'em': 0.67, 'f1': 0.752, 'prec': 0.729, 'recall': 0.837, 'has_answer': 0.818, 'prompt_length': 1500.321, 'perplexity': 1.023},
-        '3shot': {'em': 0.499, 'f1': 0.595, 'prec': 0.56, 'recall': 0.799, 'has_answer': 0.775, 'prompt_length': 1959.313, 'perplexity': 1.088},
+        '3shot': {'em': 0.499, 'f1': 0.595, 'prec': 0.56, 'recall': 0.799, 'has_answer': 0.775, 'prompt_length': 1959.313, 'perplexity': 1.088},    # refuse to answer: 181
         'RaR': None,
         'cot': {'em': 0.682, 'f1': 0.753, 'prec': 0.737, 'recall': 0.824, 'has_answer': 0.797, 'prompt_length': 2106.314, 'perplexity': 1.156},
         'self-consistency': None,
@@ -1208,7 +1208,7 @@ prompt_method_gpt = {
     },
     'hotpotQA': {
         '0shot': {'em': 0.295, 'f1': 0.421, 'prec': 0.426, 'recall': 0.475, 'has_answer': 0.423, 'prompt_length': 963.867, 'perplexity': 1.039},
-        '3shot': {'em': 0.291, 'f1': 0.401, 'prec': 0.407, 'recall': 0.482, 'has_answer': 0.406, 'prompt_length': 1805.863, 'perplexity': 1.096},
+        '3shot': {'em': 0.291, 'f1': 0.401, 'prec': 0.407, 'recall': 0.482, 'has_answer': 0.406, 'prompt_length': 1805.863, 'perplexity': 1.096},    # refuse to answer: 189
         'RaR': None,
         'cot': {'em': 0.334, 'f1': 0.447, 'prec': 0.464, 'recall': 0.533, 'has_answer': 0.434, 'prompt_length': 2007.836, 'perplexity': 1.148},
         'self-consistency': None,
@@ -1220,10 +1220,10 @@ prompt_method_gpt = {
         'flare': None,
     },
     'conala': {
-        '0shot': {'pass@1': 0.286, 'prompt_length': 484.774, 'perplexity': 1.046, 'retrieval_consistency': 0.81, 'syntax_error_percent': 0.202, 'semantic_error_percent': 0.405},
+        '0shot': {'pass@1': 0.274, 'prompt_length': 484.774, 'perplexity': 1.046, 'retrieval_consistency': 0.81, 'syntax_error_percent': 0.202, 'semantic_error_percent': 0.405},
         '3shot': {'pass@1': 0.345, 'prompt_length': 2578.786, 'perplexity': 1.04, 'retrieval_consistency': 0.714, 'syntax_error_percent': 0.143, 'semantic_error_percent': 0.369},
         'RaR': None,
-        'cot': {'pass@1': 0.155, 'prompt_length': 2683.786, 'perplexity': 1.101, 'retrieval_consistency': 0.786, 'syntax_error_percent': 0.488, 'semantic_error_percent': 0.369},
+        'cot': {'pass@1': 0.155, 'prompt_length': 2683.786, 'perplexity': 1.101, 'retrieval_consistency': 0.786, 'syntax_error_percent': 0.512, 'semantic_error_percent': 0.357},
         'self-consistency': None,
         'least_to_most': {'pass@1': 0.274, 'prompt_length': 3008.786, 'perplexity': 1.104, 'retrieval_consistency': 0.762, 'syntax_error_percent': 0.214, 'semantic_error_percent': 0.405},
         'plan_and_solve': None,
@@ -1234,7 +1234,7 @@ prompt_method_gpt = {
     },
     'DS1000': {
         '0shot': {'pass@1': 0.339, 'prompt_length': 3139.516, 'perplexity': 1.039, 'retrieval_consistency': 0.911, 'syntax_error_percent': 0.0, 'semantic_error_percent': 0.369},
-        '3shot': {'pass@1': 0.275, 'prompt_length': 7478.924, 'perplexity': 1.084, 'retrieval_consistency': 0.955, 'syntax_error_percent': 0.051, 'semantic_error_percent': 0.299},
+        '3shot': {'pass@1': 0.271, 'prompt_length': 7478.924, 'perplexity': 1.084, 'retrieval_consistency': 0.955, 'syntax_error_percent': 0.051, 'semantic_error_percent': 0.299},
         'RaR': None,
         'cot': {'pass@1': 0.356, 'prompt_length': 7550.662, 'perplexity': 1.093, 'retrieval_consistency': 1.019, 'syntax_error_percent': 0.057, 'semantic_error_percent': 0.255},
         'self-consistency': None,
@@ -1264,7 +1264,7 @@ prompt_method_gpt = {
 prompt_method_llama = {
     'NQ': {
         '0shot': {'em': 0.064, 'f1': 0.211, 'prec': 0.16, 'recall': 0.657, 'has_answer': 0.559, 'prompt_length': 1720.924, 'perplexity': 1.076},
-        '3shot': {'em': 0.353, 'f1': 0.491, 'prec': 0.497, 'recall': 0.538, 'has_answer': 0.448, 'prompt_length': 2241.923, 'perplexity': 1.112},   # refuse to answer: 283
+        '3shot': {'em': 0.353, 'f1': 0.491, 'prec': 0.497, 'recall': 0.538, 'has_answer': 0.448, 'prompt_length': 2241.923, 'perplexity': 1.112},
         'RaR': None,
         'cot': {'em': 0.356, 'f1': 0.493, 'prec': 0.5, 'recall': 0.537, 'has_answer': 0.456, 'prompt_length': 2397.923, 'perplexity': 1.105},
         'self-consistency': None,
@@ -1277,7 +1277,7 @@ prompt_method_llama = {
     },
     'TriviaQA': {
         '0shot': {'em': 0.202, 'f1': 0.378, 'prec': 0.309, 'recall': 0.861, 'has_answer': 0.825, 'prompt_length': 1759.983, 'perplexity': 1.068},
-        '3shot': {'em': 0.675, 'f1': 0.737, 'prec': 0.722, 'recall': 0.787, 'has_answer': 0.763, 'prompt_length': 2280.983, 'perplexity': 1.13},    # refuse to answer: 181
+        '3shot': {'em': 0.675, 'f1': 0.737, 'prec': 0.722, 'recall': 0.787, 'has_answer': 0.763, 'prompt_length': 2280.983, 'perplexity': 1.13},
         'RaR': None,
         'cot': {'em': 0.647, 'f1': 0.717, 'prec': 0.7, 'recall': 0.785, 'has_answer': 0.759, 'prompt_length': 2436.983, 'perplexity': 1.124},
         'self-consistency': None,
@@ -1290,7 +1290,7 @@ prompt_method_llama = {
     },
     'hotpotQA': {
         '0shot': {'em': 0.046, 'f1': 0.169, 'prec': 0.125, 'recall': 0.536, 'has_answer': 0.443, 'prompt_length': 1150.41, 'perplexity': 1.06},
-        '3shot': {'em': 0.308, 'f1': 0.415, 'prec': 0.432, 'recall': 0.433, 'has_answer': 0.35, 'prompt_length': 2190.41, 'perplexity': 1.088},     # refuse to answer: 189
+        '3shot': {'em': 0.308, 'f1': 0.415, 'prec': 0.432, 'recall': 0.433, 'has_answer': 0.35, 'prompt_length': 2190.41, 'perplexity': 1.088},
         'RaR': None,
         'cot': {'em': 0.324, 'f1': 0.438, 'prec': 0.456, 'recall': 0.452, 'has_answer': 0.368, 'prompt_length': 2424.41, 'perplexity': 1.098},
         'self-consistency': None,
@@ -1303,9 +1303,9 @@ prompt_method_llama = {
     },
     'conala': {
         '0shot': {'pass@1': 0.226, 'prompt_length': 542.631, 'perplexity': 1.129, 'retrieval_consistency': 0.738, 'syntax_error_percent': 0.226, 'semantic_error_percent': 0.44},
-        '3shot': None,
+        '3shot': {'pass@1': 0.155, 'prompt_length': 2905.631, 'perplexity': 1.072, 'retrieval_consistency': 0.845, 'syntax_error_percent': 0.119, 'semantic_error_percent': 0.429},
         'RaR': None,
-        'cot': None,
+        'cot': {'pass@1': 0.107, 'prompt_length': 3028.631, 'perplexity': 1.1, 'retrieval_consistency': 0.905, 'syntax_error_percent': 0.071, 'semantic_error_percent': 0.476},
         'self-consistency': None,
         'least_to_most': None,
         'plan_and_solve': None,
@@ -1316,9 +1316,9 @@ prompt_method_llama = {
     },
     'DS1000': {
         '0shot': {'pass@1': 0.095, 'prompt_length': 3275.248, 'perplexity': 1.138, 'retrieval_consistency': 1.268, 'syntax_error_percent': 0.134, 'semantic_error_percent': 0.401},
-        '3shot': None,
+        '3shot': {'pass@1': 0.219, 'prompt_length': 7672.045, 'perplexity': 1.102, 'retrieval_consistency': 0.955, 'syntax_error_percent': 0.051, 'semantic_error_percent': 0.369},
         'RaR': None,
-        'cot': None,
+        'cot': {'pass@1': 0.168, 'prompt_length': 7702.452, 'perplexity': 1.135, 'retrieval_consistency': 1.032, 'syntax_error_percent': 0.14, 'semantic_error_percent': 0.293},
         'self-consistency': None,
         'least_to_most': None,
         'plan_and_solve': None,
@@ -1328,10 +1328,10 @@ prompt_method_llama = {
         'flare': None,
     },
     'pandas_numpy_eval': {
-        '0shot': {'pass@1': 0.551, 'prompt_length': 1935.874, 'perplexity': 1.135, 'retrieval_consistency': 0.964, 'syntax_error_percent': 0.042, 'semantic_error_percent': 0.323},
-        '3shot': None,
+        '0shot': {'pass@1': 0.545, 'prompt_length': 1935.874, 'perplexity': 1.135, 'retrieval_consistency': 0.964, 'syntax_error_percent': 0.042, 'semantic_error_percent': 0.323},
+        '3shot': {'pass@1': 0.623, 'prompt_length': 6285.856, 'perplexity': 1.159, 'retrieval_consistency': 0.844, 'syntax_error_percent': 0.036, 'semantic_error_percent': 0.311},
         'RaR': None,
-        'cot': None,
+        'cot': {'pass@1': 0.497, 'prompt_length': 6466.138, 'perplexity': 1.171, 'retrieval_consistency': 0.868, 'syntax_error_percent': 0.132, 'semantic_error_percent': 0.329},
         'self-consistency': None,
         'least_to_most': None,
         'plan_and_solve': None,
