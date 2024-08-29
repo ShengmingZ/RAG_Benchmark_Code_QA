@@ -111,7 +111,7 @@ def truncate_docs(docs, model, max_length):
         truncated_docs = []
         for doc in docs:
             try:
-                tokens = tokenizer.encode(doc, max_length=max_length, truncation=True, add_special_tokens=False)
+                tokens = tokenizer.encode(doc, max_length=max_length, truncation=True, add_special_tokens=False, truncate='longest_first')
             except:
                 print([doc])
                 raise Exception('find duplicated error')
