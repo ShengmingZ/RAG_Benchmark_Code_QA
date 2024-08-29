@@ -5,7 +5,7 @@ actions = ['gene_prompts', 'gene_responses', 'eval_pred']
 action = actions[2]
 
 models = ['gpt-3.5-turbo-0125', 'codellama-13b-instruct', 'llama2-13b-chat']
-model = models[1]
+model = models[0]
 
 datasets = ['NQ', 'TriviaQA', 'hotpotQA', 'conala', 'DS1000', 'pandas_numpy_eval']
 qa_datasets = datasets[3:]
@@ -48,7 +48,7 @@ elif file == 'transfer':
         if 'llama' in model:
             if dataset in ['NQ', 'TriviaQA', 'hotpotQA']: model = 'llama2-13b-chat'
             else: model = 'codellama-13b-instruct'
-        script = (f"scp -P 10389 zhaoshengming@129.128.209.149:~/Code_RAG_Benchmark/data/{dataset}/results/model_{model}_n_1_{analysis_type}_least_to_most.json "
+        script = (f"scp -P 10389 zhaoshengming@129.128.209.149:~/Code_RAG_Benchmark/data/{dataset}/results/model_{model}_n_1_{analysis_type}_RaR.json "
                   f"data/{dataset}/results")
         print(script)
         # script = (f"scp -P 10389 zhaoshengming@129.128.209.149:~/Code_RAG_Benchmark/data/{dataset}/results/model_{model}_n_1_{analysis_type}_3shot.json "
