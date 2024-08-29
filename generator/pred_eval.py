@@ -180,6 +180,8 @@ def process_gene_results(args, outputs, code_prompt=None):
             if args.prompt_type == 'RaR':
                 try: pred = pred.split('Answer:\n')[1]
                 except: ...
+                try: pred = pred.split('the answer')[1]
+                except: ...
             try: pred = pred.split('Potential documents')[0]
             except: ...
             try: pred = pred.split('<answer>')[1].split('</answer>')[0]
@@ -333,7 +335,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
 
 if __name__ == '__main__':
     in_program_call = None
-    in_program_call = '--model gpt-3.5-turbo-0125 --dataset NQ --retriever openai-embedding --analysis_type prompt_method --prompt_type RaR --n 1'
+    in_program_call = '--model llama2-13b-chat --dataset NQ --retriever openai-embedding --analysis_type prompt_method --prompt_type RaR --n 1'
     # in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_5'
     args = generate_config(in_program_call)
 

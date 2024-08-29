@@ -5,7 +5,7 @@ actions = ['gene_prompts', 'gene_responses', 'eval_pred']
 action = actions[2]
 
 models = ['gpt-3.5-turbo-0125', 'codellama-13b-instruct', 'llama2-13b-chat']
-model = models[0]
+model = models[1]
 
 datasets = ['NQ', 'TriviaQA', 'hotpotQA', 'conala', 'DS1000', 'pandas_numpy_eval']
 qa_datasets = datasets[3:]

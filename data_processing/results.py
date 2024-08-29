@@ -1183,7 +1183,7 @@ prompt_method_gpt = {
     'NQ': {
         '0shot': {'em': 0.344, 'f1': 0.491, 'prec': 0.476, 'recall': 0.622, 'has_answer': 0.543, 'prompt_length': 1460.296, 'perplexity': 1.039},
         '3shot': {'em': 0.29, 'f1': 0.426, 'prec': 0.41, 'recall': 0.57, 'has_answer': 0.492, 'prompt_length': 1919.292, 'perplexity': 1.088},   # refuse to answer: 283
-        'RaR': {'em': 0.0, 'f1': 0.019, 'prec': 0.01, 'recall': 0.785, 'has_answer': 0.693, 'prompt_length': 1421.296, 'perplexity': 1.177},
+        'RaR': {'em': 0.0, 'f1': 0.025, 'prec': 0.013, 'recall': 0.784, 'has_answer': 0.692, 'prompt_length': 1421.296, 'perplexity': 1.177},
         'cot': {'em': 0.403, 'f1': 0.531, 'prec': 0.536, 'recall': 0.593, 'has_answer': 0.51, 'prompt_length': 2066.291, 'perplexity': 1.142},
         'self-consistency': None,
         'least_to_most': {'em': 0.367, 'f1': 0.518, 'prec': 0.51, 'recall': 0.614, 'has_answer': 0.528, 'prompt_length': 2692.291, 'perplexity': 1.105},
@@ -1196,7 +1196,7 @@ prompt_method_gpt = {
     'TriviaQA': {
         '0shot': {'em': 0.67, 'f1': 0.752, 'prec': 0.729, 'recall': 0.837, 'has_answer': 0.818, 'prompt_length': 1500.321, 'perplexity': 1.023},
         '3shot': {'em': 0.499, 'f1': 0.595, 'prec': 0.56, 'recall': 0.799, 'has_answer': 0.775, 'prompt_length': 1959.313, 'perplexity': 1.088},    # refuse to answer: 181
-        'RaR': None,
+        'RaR': {'em': 0.0, 'f1': 0.033, 'prec': 0.017, 'recall': 0.922, 'has_answer': 0.89, 'prompt_length': 1461.321, 'perplexity': 1.178},
         'cot': {'em': 0.682, 'f1': 0.753, 'prec': 0.737, 'recall': 0.824, 'has_answer': 0.797, 'prompt_length': 2106.314, 'perplexity': 1.156},
         'self-consistency': None,
         'least_to_most': {'em': 0.663, 'f1': 0.753, 'prec': 0.726, 'recall': 0.845, 'has_answer': 0.818, 'prompt_length': 2732.314, 'perplexity': 1.094},
