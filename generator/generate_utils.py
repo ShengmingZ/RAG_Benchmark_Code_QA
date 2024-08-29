@@ -107,11 +107,11 @@ def truncate_docs(docs, model, max_length):
         elif model == 'llama3-8b':
             model = 'meta-llama/Meta-Llama-3-8B'
         access_token = "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"
-        tokenizer = AutoTokenizer.from_pretrained(model, torch_dtype=torch.float16, token=access_token, use_fast=False)
+        tokenizer = AutoTokenizer.from_pretrained(model, torch_dtype=torch.float16, token=access_token, use_fast=False, model_max_length=max_length)
         truncated_docs = []
         for doc in docs:
             try:
-                tokens = tokenizer.encode(doc, max_length=max_length, truncation=True, add_special_tokens=False, truncate='longest_first')
+                tokens = tokenizer.encode(doc, max_length=max_length, truncation=True, add_special_tokens=False)
             except:
                 print([doc])
                 raise Exception('find duplicated error')
