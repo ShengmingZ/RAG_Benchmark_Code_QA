@@ -1265,7 +1265,7 @@ prompt_method_llama = {
     'NQ': {
         '0shot': {'em': 0.064, 'f1': 0.211, 'prec': 0.16, 'recall': 0.657, 'has_answer': 0.559, 'prompt_length': 1720.924, 'perplexity': 1.076},
         '3shot': {'em': 0.353, 'f1': 0.491, 'prec': 0.497, 'recall': 0.538, 'has_answer': 0.448, 'prompt_length': 2241.923, 'perplexity': 1.112},
-        'RaR': {'em': 0.0, 'f1': 0.026, 'prec': 0.013, 'recall': 0.722, 'has_answer': 0.62, 'prompt_length': 1680.924, 'perplexity': 1.093},
+        'RaR': {'em': 0.0, 'f1': 0.039, 'prec': 0.021, 'recall': 0.694, 'has_answer': 0.6, 'prompt_length': 1680.924, 'perplexity': 1.093},
         'cot': {'em': 0.356, 'f1': 0.493, 'prec': 0.5, 'recall': 0.537, 'has_answer': 0.456, 'prompt_length': 2397.923, 'perplexity': 1.105},
         'self-consistency': None,
         'least_to_most': None,
@@ -1278,7 +1278,7 @@ prompt_method_llama = {
     'TriviaQA': {
         '0shot': {'em': 0.202, 'f1': 0.378, 'prec': 0.309, 'recall': 0.861, 'has_answer': 0.825, 'prompt_length': 1759.983, 'perplexity': 1.068},
         '3shot': {'em': 0.675, 'f1': 0.737, 'prec': 0.722, 'recall': 0.787, 'has_answer': 0.763, 'prompt_length': 2280.983, 'perplexity': 1.13},
-        'RaR': {'em': 0.0, 'f1': 0.033, 'prec': 0.017, 'recall': 0.86, 'has_answer': 0.84, 'prompt_length': 1719.983, 'perplexity': 1.094},
+        'RaR': {'em': 0.0, 'f1': 0.076, 'prec': 0.045, 'recall': 0.819, 'has_answer': 0.821, 'prompt_length': 1719.983, 'perplexity': 1.094},
         'cot': {'em': 0.647, 'f1': 0.717, 'prec': 0.7, 'recall': 0.785, 'has_answer': 0.759, 'prompt_length': 2436.983, 'perplexity': 1.124},
         'self-consistency': None,
         'least_to_most': None,
@@ -1291,7 +1291,7 @@ prompt_method_llama = {
     'hotpotQA': {
         '0shot': {'em': 0.046, 'f1': 0.169, 'prec': 0.125, 'recall': 0.536, 'has_answer': 0.443, 'prompt_length': 1150.41, 'perplexity': 1.06},
         '3shot': {'em': 0.308, 'f1': 0.415, 'prec': 0.432, 'recall': 0.433, 'has_answer': 0.35, 'prompt_length': 2190.41, 'perplexity': 1.088},
-        'RaR': {'em': 0.0, 'f1': 0.029, 'prec': 0.015, 'recall': 0.569, 'has_answer': 0.488, 'prompt_length': 1110.41, 'perplexity': 1.082},
+        'RaR': {'em': 0.0, 'f1': 0.06, 'prec': 0.035, 'recall': 0.506, 'has_answer': 0.46, 'prompt_length': 1110.41, 'perplexity': 1.082},
         'cot': {'em': 0.324, 'f1': 0.438, 'prec': 0.456, 'recall': 0.452, 'has_answer': 0.368, 'prompt_length': 2424.41, 'perplexity': 1.098},
         'self-consistency': None,
         'least_to_most': None,

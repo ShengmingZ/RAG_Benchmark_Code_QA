@@ -111,19 +111,21 @@ def make_doc_selection_topk_analysis():
     qa_llama_perf_datas.append(get_avg_data(qa_llama_perf_datas, qa_llama_doc_selection_types, qa_dataset_names))
     code_gpt_perf_datas.append(get_avg_data(code_gpt_perf_datas, code_gpt_doc_selection_types, code_dataset_names))
     code_llama_perf_datas.append(get_avg_data(code_llama_perf_datas, code_llama_doc_selection_types, code_dataset_names))
-    qa_dataset_names.append('qa avg')
-    code_dataset_names.append('code avg')
+    qa_dataset_names.append('avg of QA')
+    code_dataset_names.append('avg of code generation')
 
     plt.style.use('ggplot')
     fig = plt.figure(figsize=(18, 4))
-    gs = gridspec.GridSpec(1, 4, width_ratios=[1, 1, 1, 1.75])
+    gs = gridspec.GridSpec(1, 4, width_ratios=[1, 1, 1.75, 1])
     # fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(24, 4))
-    ax1 = plt.subplot(gs[0])
-    ax2 = plt.subplot(gs[1])
-    ax3 = plt.subplot(gs[2])
-    ax4 = plt.subplot(gs[3])
-    colors1 = plt.cm.viridis(np.linspace(0, 0.9, len(qa_dataset_names)))
-    colors2 = plt.cm.plasma(np.linspace(0, 0.9, len(code_dataset_names)))
+    ax1 = plt.subplot(gs[1])
+    ax2 = plt.subplot(gs[0])
+    ax3 = plt.subplot(gs[3])
+    ax4 = plt.subplot(gs[2])
+    # colors1 = plt.cm.viridis(np.linspace(0, 0.9, len(qa_dataset_names)))
+    # colors2 = plt.cm.plasma(np.linspace(0, 0.9, len(code_dataset_names)))
+    # colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#17becf']
+    colors = ['#E03C31', '#FF6F00', '#FFB300', '#BA55D3', '#4169E1', '#00BFFF', '#708090', '#228B22']
 
     axs = [ax1, ax2, ax3, ax4]
     perf_datas_list = [code_llama_perf_datas, qa_llama_perf_datas, code_gpt_perf_datas, qa_gpt_perf_datas]
@@ -131,32 +133,40 @@ def make_doc_selection_topk_analysis():
     for ax_idx, (ax, perf_datas) in enumerate(zip(axs, perf_datas_list)):
         if ax_idx%2 == 0:
             dataset_names = code_dataset_names
-            colors = colors1
             metric = code_metric
+            tmp_colors = colors[4:]
         else:
             dataset_names = qa_dataset_names
-            colors = colors2
             metric = qa_metric
+            tmp_colors = colors[:4]
         for idx, dataset_name in enumerate(dataset_names):
-            ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker='o', linestyle='-', label=dataset_name, color=colors[idx])
-        ax.set_ylabel(metric)
-        ax.set_xlabel('top k documents', fontsize=12)
-        if ax_idx in [1,3]: ax.set_yticks([0.3, 0.5, 0.7, 0.9])
-        elif ax_idx == 0: ax.set_yticks([0.1, 0.3, 0.5, 0.7])
-        elif ax_idx == 2: ax.set_yticks([0.2, 0.4, 0.6, 0.8])
-        if ax_idx == 0:
-            ax.set_title('(1) Code Datasets, Llama2-13B', fontsize=12)
-        elif ax_idx == 1:
-            ax.set_title('(2) QA Datasets, Llama2-13B', fontsize=12)
+            ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker='o', linestyle='-', label=dataset_name, color=tmp_colors[idx])
+        ax.set_ylabel(metric, fontsize=13)
+        ax.set_xlabel('top k documents', fontsize=14)
+        ax.set_xticks([item.split('_')[1] for item in topk_list[ax_idx]])
+        ax.set_xticklabels([item.split('_')[1] for item in topk_list[ax_idx]], fontsize=12)
+        if ax_idx in [1,3]:
+            ax.set_yticks([0.3, 0.5, 0.7, 0.9])
+            ax.set_yticklabels([0.3, 0.5, 0.7, 0.9], fontsize=12)
+        elif ax_idx == 0:
+            ax.set_yticks([0.1, 0.3, 0.5, 0.7])
+            ax.set_yticklabels([0.1, 0.3, 0.5, 0.7], fontsize=12)
         elif ax_idx == 2:
-            ax.set_title('(3) Code Datasets, GPT-3.5', fontsize=12)
+            ax.set_yticks([0.2, 0.4, 0.6, 0.8])
+            ax.set_yticklabels([0.2, 0.4, 0.6, 0.8], fontsize=12)
+        if ax_idx == 0:
+            ax.set_title('Llama2-13B, Code Generation Datasets', fontsize=11)
+        elif ax_idx == 1:
+            ax.set_title('Llama2-13B, QA Datasets', fontsize=11)
+        elif ax_idx == 2:
+            ax.set_title('GPT-3.5, Code Generation Datasets', fontsize=11)
         else:
-            ax.set_title('(4) QA Datasets, GPT-3.5', fontsize=12)
+            ax.set_title('GPT-3.5, QA Datasets', fontsize=11)
 
     ax3_handles, ax3_labels = ax3.get_legend_handles_labels()
     ax4_handles, ax4_labels = ax4.get_legend_handles_labels()
-    handles, labels = ax3_handles + ax4_handles, ax3_labels + ax4_labels
-    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=12, bbox_to_anchor=(0.5, -0.18))
+    handles, labels = ax4_handles + ax3_handles, ax4_labels + ax3_labels
+    fig.legend(handles, labels, loc='lower center', ncol=4, fontsize=13, bbox_to_anchor=(0.5, -0.2))
     plt.savefig('graph/' + graph_name, bbox_inches='tight')
     plt.show()
 
@@ -198,14 +208,15 @@ def make_doc_selection_topk_perplexity():
 
     plt.style.use('ggplot')
     fig = plt.figure(figsize=(18, 4))
-    gs = gridspec.GridSpec(1, 4, width_ratios=[1, 1, 1, 1.75])
+    gs = gridspec.GridSpec(1, 4, width_ratios=[1, 1, 1.75, 1])
     # fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(24, 4))
-    ax1 = plt.subplot(gs[0])
-    ax2 = plt.subplot(gs[1])
-    ax3 = plt.subplot(gs[2])
-    ax4 = plt.subplot(gs[3])
-    colors1 = plt.cm.viridis(np.linspace(0, 0.9, len(qa_dataset_names)))
-    colors2 = plt.cm.plasma(np.linspace(0, 0.9, len(code_dataset_names)))
+    ax1 = plt.subplot(gs[1])
+    ax2 = plt.subplot(gs[0])
+    ax3 = plt.subplot(gs[3])
+    ax4 = plt.subplot(gs[2])
+    # colors1 = plt.cm.viridis(np.linspace(0, 0.9, len(qa_dataset_names)))
+    # colors2 = plt.cm.plasma(np.linspace(0, 0.9, len(code_dataset_names)))
+    colors = ['#E03C31', '#FF6F00', '#FFB300', '#BA55D3', '#4169E1', '#00BFFF', '#708090', '#228B22']
 
     axs = [ax1, ax2, ax3, ax4]
     perf_datas_list = [code_llama_perf_datas, qa_llama_perf_datas, code_gpt_perf_datas, qa_gpt_perf_datas]
@@ -213,14 +224,14 @@ def make_doc_selection_topk_perplexity():
     for ax_idx, (ax, perf_datas) in enumerate(zip(axs, perf_datas_list)):
         if ax_idx%2 == 0:
             dataset_names = code_dataset_names
-            colors = colors1
+            tmp_colors = colors[:4]
             metric = code_metric
         else:
             dataset_names = qa_dataset_names
-            colors = colors2
+            tmp_colors = colors[4:]
             metric = qa_metric
         for idx, dataset_name in enumerate(dataset_names):
-            ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker='o', linestyle='-', label=dataset_name, color=colors[idx])
+            ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker='o', linestyle='-', label=dataset_name, color=tmp_colors[idx])
         ax.set_ylabel(metric)
         ax.set_xlabel('top k documents', fontsize=12)
         if ax_idx == 0: ax.set_yticks([1.12, 1.17])
@@ -272,12 +283,11 @@ def make_doc_selection_topk_ret_recall():
 
     plt.style.use('ggplot')
     fig = plt.figure(figsize=(9, 4))
-    gs = gridspec.GridSpec(1, 2, width_ratios=[1, 1.75])
+    gs = gridspec.GridSpec(1, 2, width_ratios=[1.75, 1])
     # fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(24, 4))
-    ax1 = plt.subplot(gs[0])
-    ax2 = plt.subplot(gs[1])
-    colors1 = plt.cm.viridis(np.linspace(0, 0.9, len(qa_dataset_names)))
-    colors2 = plt.cm.plasma(np.linspace(0, 0.9, len(code_dataset_names)))
+    ax2 = plt.subplot(gs[0])
+    ax1 = plt.subplot(gs[1])
+    colors = ['#E03C31', '#FF6F00', '#FFB300', '#BA55D3', '#4169E1', '#00BFFF', '#708090', '#228B22']
 
     axs = [ax1, ax2]
     perf_datas_list = [code_gpt_perf_datas, qa_gpt_perf_datas]
@@ -285,27 +295,33 @@ def make_doc_selection_topk_ret_recall():
     for ax_idx, (ax, perf_datas) in enumerate(zip(axs, perf_datas_list)):
         if ax_idx%2 == 0:
             dataset_names = code_dataset_names
-            colors = colors1
+            tmp_colors = colors[4:]
             metric = code_metric
         else:
             dataset_names = qa_dataset_names
-            colors = colors2
+            tmp_colors = colors[:4]
             metric = qa_metric
         for idx, dataset_name in enumerate(dataset_names):
-            ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker='o', linestyle='-', label=dataset_name, color=colors[idx])
-        ax.set_ylabel(metric)
-        ax.set_xlabel('top k documents', fontsize=12)
-        if ax_idx == 0: ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4])
-        elif ax_idx == 1: ax.set_yticks([0.2, 0.4, 0.6, 0.8, 1.0])
+            ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker='o', linestyle='-', label=dataset_name, color=tmp_colors[idx])
+        ax.set_ylabel('Retrieval Recall', fontsize=14)
+        ax.set_xlabel('top k documents', fontsize=14)
         if ax_idx == 0:
-            ax.set_title('(1) Code Datasets, Retrieval Recall', fontsize=12)
+            ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4])
+            ax.set_yticklabels([0, 0.1, 0.2, 0.3, 0.4], fontsize=14)
         elif ax_idx == 1:
-            ax.set_title('(2) QA Datasets, Retrieval Recall', fontsize=12)
+            ax.set_yticks([0.2, 0.4, 0.6, 0.8, 1.0])
+            ax.set_yticklabels([0.2, 0.4, 0.6, 0.8, 1.0], fontsize=14)
+        ax.set_xticks([item.split('_')[1] for item in topk_list[ax_idx]])
+        ax.set_xticklabels([item.split('_')[1] for item in topk_list[ax_idx]], fontsize=14)
+        if ax_idx == 0:
+            ax.set_title('Code Generation Datasets', fontsize=14)
+        elif ax_idx == 1:
+            ax.set_title('QA Datasets', fontsize=14)
 
     ax3_handles, ax3_labels = ax1.get_legend_handles_labels()
     ax4_handles, ax4_labels = ax2.get_legend_handles_labels()
-    handles, labels = ax3_handles + ax4_handles, ax3_labels + ax4_labels
-    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=12, bbox_to_anchor=(0.5, -0.18))
+    handles, labels = ax4_handles + ax3_handles, ax4_labels + ax3_labels
+    fig.legend(handles, labels, loc='lower center', ncol=4, fontsize=14, bbox_to_anchor=(0.5, -0.21))
     plt.savefig('graph/' + graph_name, bbox_inches='tight')
     plt.show()
 
@@ -334,8 +350,8 @@ def make_ret_doc_type_perplexity():
     fig, ((ax1, ax2, ax3, ax4, ax5, ax6), (ax7, ax8, ax9, ax10, ax11, ax12)) = plt.subplots(2, 6, figsize=(24, 6))  # ax1: qa, ax2: code
     x = len(ret_doc_types)
     # fig.suptitle('retrieval document type analysis', fontsize=16)
-    fig.text(0.5, 0.03, '(2). perplexity of Llama2-13b on six datasets', ha='center', va='center', fontsize=16)
-    fig.text(0.5, 0.48, '(1). perplexity of GPT-3.5 on six datasets', ha='center', va='center', fontsize=16)
+    fig.text(0.5, 0.03, '(2). perplexity of Llama2-13B over six datasets', ha='center', va='center', fontsize=16)
+    fig.text(0.5, 0.48, '(1). perplexity of GPT-3.5 over six datasets', ha='center', va='center', fontsize=16)
     fig.subplots_adjust(hspace=0.4, wspace=0.2)
     doc_type_index = np.arange(x)
     colors1 = plt.cm.viridis(np.linspace(0, 1, len(ret_doc_types)))
@@ -344,9 +360,10 @@ def make_ret_doc_type_perplexity():
     yticks_list = [[1, 1.2], [1, 1.2], [1, 1.2]]
     for idx, ax in enumerate(axs):
         ax.bar(range(len(qa_gpt_perf_datas[idx])), qa_gpt_perf_datas[idx], label=ret_doc_types, color=colors1)
-        ax.set_xlabel(qa_dataset_names[idx], fontsize=16)
+        # ax.set_xlabel(qa_dataset_names[idx], fontsize=16)
+        ax.set_xlabel(auth_qa_dataset_names[idx], fontsize=16)
         ax.set_xticks([])
-        ax.set_ylabel('perplexity', fontsize=16)
+        # ax.set_ylabel('perplexity', fontsize=16)
         ax.set_yticks(yticks_list[idx])
         ax.set_yticklabels(yticks_list[idx], fontsize=16)
         ax.yaxis.set_label_coords(-0.05, 0.5)
@@ -355,9 +372,9 @@ def make_ret_doc_type_perplexity():
     yticks_list = [[1, 1.2], [1, 1.2], [1, 1.2]]
     for idx, ax in enumerate(axs):
         ax.bar(range(len(code_gpt_perf_datas[idx])), code_gpt_perf_datas[idx], label=ret_doc_types, color=colors1)
-        ax.set_xlabel(code_dataset_names[idx], fontsize=16)
+        ax.set_xlabel(auth_code_dataset_names[idx], fontsize=16)
         ax.set_xticks([])
-        ax.set_ylabel('perplexity', fontsize=16)
+        # ax.set_ylabel('perplexity', fontsize=16)
         ax.set_yticks(yticks_list[idx])
         ax.set_yticklabels(yticks_list[idx], fontsize=16)
         ax.yaxis.set_label_coords(-0.05, 0.5)
@@ -366,9 +383,9 @@ def make_ret_doc_type_perplexity():
     yticks_list = [[1, 1.2], [1, 1.2], [1, 1.2]]
     for idx, ax in enumerate(axs):
         ax.bar(range(len(qa_llama_perf_datas[idx])), qa_llama_perf_datas[idx], label=ret_doc_types, color=colors1)
-        ax.set_xlabel(qa_dataset_names[idx], fontsize=16)
+        ax.set_xlabel(auth_qa_dataset_names[idx], fontsize=16)
         ax.set_xticks([])
-        ax.set_ylabel('perplexity', fontsize=16)
+        # ax.set_ylabel('perplexity', fontsize=16)
         ax.set_yticks(yticks_list[idx])
         ax.set_yticklabels(yticks_list[idx], fontsize=16)
         ax.yaxis.set_label_coords(-0.05, 0.5)
@@ -377,9 +394,9 @@ def make_ret_doc_type_perplexity():
     yticks_list = [[1, 1.2], [1, 1.2], [1, 1.2]]
     for idx, ax in enumerate(axs):
         ax.bar(range(len(code_llama_perf_datas[idx])), code_llama_perf_datas[idx], label=ret_doc_types, color=colors1)
-        ax.set_xlabel(code_dataset_names[idx], fontsize=16)
+        ax.set_xlabel(auth_code_dataset_names[idx], fontsize=16)
         ax.set_xticks([])
-        ax.set_ylabel('perplexity', fontsize=16)
+        # ax.set_ylabel('perplexity', fontsize=16)
         ax.set_yticks(yticks_list[idx])
         ax.set_yticklabels(yticks_list[idx], fontsize=16)
         ax.yaxis.set_label_coords(-0.05, 0.5)
@@ -446,8 +463,8 @@ def make_ret_doc_type_analysis():
     plt.style.use('ggplot')
     fig, ((ax1, ax2, ax3, ax4, ax5, ax6), (ax7, ax8, ax9, ax10, ax11, ax12)) = plt.subplots(2, 6, figsize=(24, 6))  # ax1: qa, ax2: code
     # fig.suptitle('retrieval document type analysis', fontsize=16)
-    fig.text(0.5, 0.03, '(2). performance of llama2-13b on six datasets', ha='center', va='center', fontsize=16)
-    fig.text(0.5, 0.48, '(1). performance of gpt-3.5 on six datasets', ha='center', va='center', fontsize=16)
+    fig.text(0.5, 0.03, '(2). performance of Llama2-13B over six datasets', ha='center', va='center', fontsize=16)
+    fig.text(0.5, 0.48, '(1). performance of GPT-3.5 over six datasets', ha='center', va='center', fontsize=16)
     fig.subplots_adjust(hspace=0.4, wspace=0.2)
     x = len(ret_doc_types)
     doc_type_index = np.arange(x)
@@ -529,46 +546,46 @@ def make_ret_recall_perplexity():
     qa_colors, code_colors = colors[:3], colors[3:]
     fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(24, 6))  # ax1: qa, ax2: code
     for idx, (perf_data, dataset_name) in enumerate(zip(llama_perf_datas[:3], qa_dataset_names)):
-        line, = ax1.plot(x, perf_data, marker='o', linestyle='-', label=dataset_name, color=qa_colors[idx])
+        line, = ax1.plot(x, perf_data, marker='o', linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
     ax1.set_xlabel('Retrieval Recall', fontsize=16)
-    ax1.set_ylabel(f'{qa_metric}')
-    # ax1.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
-    # ax1.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=16)
+    # ax1.set_ylabel(f'{qa_metric}')
+    ax1.set_yticks([1.055, 1.06, 1.065, 1.07, 1.075])
+    ax1.set_yticklabels([1.055, 1.06, 1.065, 1.07, 1.075], fontsize=16)
     ax1.set_xticks(x, ret_recalls)
     ax1.set_xticklabels(ret_recalls, fontsize=16)
-    ax1.set_title('Llama2-13B performances on QA datasets')
+    ax1.set_title('Llama2-13B, QA Datasets')
     for idx, (perf_data, dataset_name) in enumerate(zip(llama_perf_datas[3:], code_dataset_names)):
-        line, = ax2.plot(x, perf_data, marker='o', linestyle='-', label=dataset_name, color=code_colors[idx])
+        line, = ax2.plot(x, perf_data, marker='o', linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
     ax2.set_xlabel('Retrieval Recall', fontsize=16)
-    ax2.set_ylabel(code_metric)
-    # ax2.set_yticks([0, 0.2, 0.4, 0.6])
-    # ax2.set_yticklabels([0, 0.2, 0.4, 0.6], fontsize=16)
+    # ax2.set_ylabel(code_metric)
+    ax2.set_yticks([1.11, 1.12, 1.13, 1.14, 1.15, 1.16])
+    ax2.set_yticklabels([1.11, 1.12, 1.13, 1.14, 1.15, 1.16], fontsize=16)
     ax2.set_xticks(x, ret_recalls)
     ax2.set_xticklabels(ret_recalls, fontsize=16)
-    ax2.set_title('Llama2-13B performances on code datasets')
+    ax2.set_title('Llama2-13B, Code Generation Datasets')
     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas[:3], qa_dataset_names)):
-        line, = ax3.plot(x, perf_data, marker='o', linestyle='-', label=dataset_name, color=qa_colors[idx])
+        line, = ax3.plot(x, perf_data, marker='o', linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
     ax3.set_xlabel('Retrieval Recall', fontsize=16)
-    ax3.set_ylabel(qa_metric)
-    # ax3.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
-    # ax3.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=16)
+    # ax3.set_ylabel(qa_metric)
+    ax3.set_yticks([1.015, 1.025, 1.035, 1.045, 1.055])
+    ax3.set_yticklabels([1.015, 1.025, 1.035, 1.045, 1.055], fontsize=16)
     ax3.set_xticks(x, ret_recalls)
     ax3.set_xticklabels(ret_recalls, fontsize=16)
-    ax3.set_title('GPT-3.5 performances on QA datasets')
+    ax3.set_title('GPT-3.5, QA Datasets')
     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas[3:], code_dataset_names)):
-        line, = ax4.plot(x, perf_data, marker='o', linestyle='-', label=dataset_name, color=code_colors[idx])
+        line, = ax4.plot(x, perf_data, marker='o', linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
     ax4.set_xlabel('Retrieval Recall', fontsize=16)
-    ax4.set_ylabel(code_metric)
-    # ax4.set_yticks([0.2, 0.4, 0.6, 0.8])
-    # ax4.set_yticklabels([0.2, 0.4, 0.6, 0.8], fontsize=16)
+    # ax4.set_ylabel(code_metric)
+    ax4.set_yticks([1.025, 1.03, 1.035, 1.04, 1.045, 1.05])
+    ax4.set_yticklabels([1.025, 1.03, 1.035, 1.04, 1.045, 1.05], fontsize=16)
     ax4.set_xticks(x, ret_recalls)
     ax4.set_xticklabels(ret_recalls, fontsize=16)
-    ax4.set_title('GPT-3.5 performances on code datasets')
+    ax4.set_title('GPT-3.5, Code Generation Datasets')
 
     ax1_handles, ax1_labels = ax1.get_legend_handles_labels()
     ax2_handles, ax2_labels = ax2.get_legend_handles_labels()
     handles, labels = ax1_handles+ax2_handles, ax1_labels+ax2_labels
-    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=10, bbox_to_anchor=(0.5, -0.1))
+    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=16, bbox_to_anchor=(0.5, -0.08))
     plt.savefig('graph/' + graph_name, bbox_inches='tight')
     plt.show()
 
@@ -596,54 +613,55 @@ def make_ret_recall_analysis():
     llama_perf_none.extend([results.code_ret_doc_type_llama_n_1[dataset_name]['none'][code_metric] for dataset_name in code_dataset_names])
     x = range(len(gpt_perf_datas[0]))
     plt.style.use('ggplot')
-    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#17becf']
-    qa_colors, code_colors = colors[:3], colors[3:]
+    # colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#17becf']
+    colors = ['#DC143C', '#FF8C00', '#DAA520', '#FFB6C1', '#228B22', '#4169E1', '#8B4513', '#C71585']
+    qa_colors, code_colors = colors[:4], colors[4:]
     fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(24, 6))  # ax1: qa, ax2: code
     for idx, (perf_data, dataset_name) in enumerate(zip(llama_perf_datas[:3], qa_dataset_names)):
-        line, = ax1.plot(x, perf_data, marker='o', linestyle='-', label=dataset_name, color=qa_colors[idx])
-        ax1.axhline(y=llama_perf_none[:3][idx], color=line.get_color(), linestyle='--', label='no ret')  # plot none result
+        line, = ax1.plot(x, perf_data, marker='o', linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
+        ax1.axhline(y=llama_perf_none[:3][idx], color=line.get_color(), linestyle='--')  # plot none result
     ax1.set_xlabel('Retrieval Recall', fontsize=16)
-    ax1.set_ylabel(f'{qa_metric}')
+    ax1.set_ylabel(qa_metric, fontsize=16)
     ax1.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     ax1.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=16)
     ax1.set_xticks(x, ret_recalls)
     ax1.set_xticklabels(ret_recalls, fontsize=16)
-    ax1.set_title('Llama2-13B performances on QA datasets')
+    ax1.set_title('Llama2-13B, QA Datasets')
     for idx, (perf_data, dataset_name) in enumerate(zip(llama_perf_datas[3:], code_dataset_names)):
-        line, = ax2.plot(x, perf_data, marker='o', linestyle='-', label=dataset_name, color=code_colors[idx])
-        ax2.axhline(y=llama_perf_none[3:][idx], color=line.get_color(), linestyle='--', label='no ret')  # plot none result
+        line, = ax2.plot(x, perf_data, marker='o', linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
+        ax2.axhline(y=llama_perf_none[3:][idx], color=line.get_color(), linestyle='--')  # plot none result
     ax2.set_xlabel('Retrieval Recall', fontsize=16)
-    ax2.set_ylabel(code_metric)
+    ax2.set_ylabel(code_metric, fontsize=16)
     ax2.set_yticks([0, 0.2, 0.4, 0.6])
     ax2.set_yticklabels([0, 0.2, 0.4, 0.6], fontsize=16)
     ax2.set_xticks(x, ret_recalls)
     ax2.set_xticklabels(ret_recalls, fontsize=16)
-    ax2.set_title('Llama2-13B performances on code datasets')
+    ax2.set_title('Llama2-13B, Code Generation Datasets')
     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas[:3], qa_dataset_names)):
-        line, = ax3.plot(x, perf_data, marker='o', linestyle='-', label=dataset_name, color=qa_colors[idx])
-        ax3.axhline(y=gpt_perf_none[:3][idx], color=line.get_color(), linestyle='--', label='no ret')   # plot none result
+        line, = ax3.plot(x, perf_data, marker='o', linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
+        ax3.axhline(y=gpt_perf_none[:3][idx], color=line.get_color(), linestyle='--')   # plot none result
     ax3.set_xlabel('Retrieval Recall', fontsize=16)
-    ax3.set_ylabel(qa_metric)
+    ax3.set_ylabel(qa_metric, fontsize=16)
     ax3.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     ax3.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=16)
     ax3.set_xticks(x, ret_recalls)
     ax3.set_xticklabels(ret_recalls, fontsize=16)
-    ax3.set_title('GPT-3.5 performances on QA datasets')
+    ax3.set_title('GPT-3.5, QA Datasets')
     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas[3:], code_dataset_names)):
-        line, = ax4.plot(x, perf_data, marker='o', linestyle='-', label=dataset_name, color=code_colors[idx])
-        ax4.axhline(y=gpt_perf_none[3:][idx], color=line.get_color(), linestyle='--', label='no ret')   # plot none result
+        line, = ax4.plot(x, perf_data, marker='o', linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
+        ax4.axhline(y=gpt_perf_none[3:][idx], color=line.get_color(), linestyle='--')   # plot none result
     ax4.set_xlabel('Retrieval Recall', fontsize=16)
-    ax4.set_ylabel(code_metric)
+    ax4.set_ylabel(code_metric, fontsize=16)
     ax4.set_yticks([0.2, 0.4, 0.6, 0.8])
     ax4.set_yticklabels([0.2, 0.4, 0.6, 0.8], fontsize=16)
     ax4.set_xticks(x, ret_recalls)
     ax4.set_xticklabels(ret_recalls, fontsize=16)
-    ax4.set_title('GPT-3.5 performances on code datasets')
+    ax4.set_title('GPT-3.5, Code Generation Datasets')
 
     ax1_handles, ax1_labels = ax1.get_legend_handles_labels()
     ax2_handles, ax2_labels = ax2.get_legend_handles_labels()
     handles, labels = ax1_handles+ax2_handles, ax1_labels+ax2_labels
-    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=10, bbox_to_anchor=(0.5, -0.1))
+    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=16, bbox_to_anchor=(0.5, -0.08))
     plt.savefig('graph/' + graph_name, bbox_inches='tight')
     plt.show()
 
@@ -726,27 +744,29 @@ def make_qa_code_ret_recall():
     for retrieval_acc_data, retriever_name in zip(qa_retrieval_acc_datas, retriever_names):
         if retrieval_acc_data: ax1.plot(x, retrieval_acc_data, marker='o', linestyle='-', label=retriever_name)
         else: ax1.plot([], [], marker='o', linestyle='-', label=retriever_name)
-    ax1.set_xlabel('top k', fontsize=16)
+    ax1.set_xlabel('top k', fontsize=18)
     # ax1.set_ylabel('Retrieval Recall', fontsize=16)
-    ax1.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
-    ax1.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=16)
+    ax1.set_yticks([0.2, 0.4, 0.6, 0.8, 1.0])
+    ax1.set_yticklabels([0.2, 0.4, 0.6, 0.8, 1.0], fontsize=18)
     ax1.set_xticks(x, top_ks)
+    ax1.set_ylabel('Avg Retrieval Recall', fontsize=18)
     # ax1.set_xticks(top_ks)
-    ax1.set_xticklabels(top_ks, fontsize=16)
-    ax1.set_title('Avg Retrieval Recall on QA Datasets', fontsize=16)
+    ax1.set_xticklabels(top_ks, fontsize=18)
+    ax1.set_title('QA Datasets', fontsize=18)
     for retrieval_acc_data, retriever_name in zip(code_retrieval_acc_datas, retriever_names):
         if retrieval_acc_data: ax2.plot(x, retrieval_acc_data, marker='o', linestyle='-', label=retriever_name)
         else: ax2.plot([], [], marker='o', linestyle='-', label=retriever_name)
     ax2.set_xlabel('top k', fontsize=16)
     # ax2.set_ylabel('Retrieval Recall', fontsize=16)
-    ax2.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
-    ax2.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=16)
+    ax2.set_yticks([0, 0.2, 0.4, 0.6])
+    ax2.set_yticklabels([0, 0.2, 0.4, 0.6], fontsize=18)
     ax2.set_xticks(x, top_ks)
-    ax2.set_xticklabels(top_ks, fontsize=16)
-    ax2.set_title('Avg Retrieval Recall on Code Datasets', fontsize=16)
+    ax2.set_xticklabels(top_ks, fontsize=18)
+    ax2.set_title('Code Generation Datasets', fontsize=18)
+    ax2.set_ylabel('Avg Retrieval Recall', fontsize=18)
 
     handles, labels = ax1.get_legend_handles_labels()
-    fig.legend(handles, labels, loc='lower center', ncol=5, fontsize=16, bbox_to_anchor=(0.5, -0.08))
+    fig.legend(handles, labels, loc='lower center', ncol=5, fontsize=16, bbox_to_anchor=(0.5, -0.1))
     plt.savefig('graph/' + graph_name, bbox_inches='tight')
     plt.show()
 
@@ -796,6 +816,6 @@ if __name__ == '__main__':
 
     # make_doc_selection_topk_syntax_semantic_error()
 
-    # make_doc_selection_topk_perplexity()
+    make_doc_selection_topk_perplexity()
 
-    make_doc_selection_topk_ret_recall()
+    # make_doc_selection_topk_ret_recall()
