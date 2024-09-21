@@ -203,8 +203,8 @@ def make_doc_selection_topk_perplexity():
     qa_llama_perf_datas.append(get_avg_data(qa_llama_perf_datas, qa_llama_doc_selection_types, qa_dataset_names))
     code_gpt_perf_datas.append(get_avg_data(code_gpt_perf_datas, code_gpt_doc_selection_types, code_dataset_names))
     code_llama_perf_datas.append(get_avg_data(code_llama_perf_datas, code_llama_doc_selection_types, code_dataset_names))
-    qa_dataset_names.append('qa avg')
-    code_dataset_names.append('code avg')
+    qa_dataset_names.append('avg of QA')
+    code_dataset_names.append('avg of code generation')
 
     plt.style.use('ggplot')
     fig = plt.figure(figsize=(18, 4))
@@ -224,33 +224,43 @@ def make_doc_selection_topk_perplexity():
     for ax_idx, (ax, perf_datas) in enumerate(zip(axs, perf_datas_list)):
         if ax_idx%2 == 0:
             dataset_names = code_dataset_names
-            tmp_colors = colors[:4]
+            tmp_colors = colors[4:]
             metric = code_metric
         else:
             dataset_names = qa_dataset_names
-            tmp_colors = colors[4:]
+            tmp_colors = colors[:4]
             metric = qa_metric
         for idx, dataset_name in enumerate(dataset_names):
             ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker='o', linestyle='-', label=dataset_name, color=tmp_colors[idx])
-        ax.set_ylabel(metric)
-        ax.set_xlabel('top k documents', fontsize=12)
-        if ax_idx == 0: ax.set_yticks([1.12, 1.17])
-        elif ax_idx == 1: ax.set_yticks([1.05, 1.1])
-        elif ax_idx == 2: ax.set_yticks([1.02, 1.07])
-        elif ax_idx == 3: ax.set_yticks([1.02, 1.07])
+        # ax.set_ylabel(metric, fontsize=13)
+        ax.set_xlabel('top k documents', fontsize=14)
+        ax.set_xticks([item.split('_')[1] for item in topk_list[ax_idx]])
+        ax.set_xticklabels([item.split('_')[1] for item in topk_list[ax_idx]], fontsize=12)
         if ax_idx == 0:
-            ax.set_title('(1) Code Datasets, Llama2-13B', fontsize=12)
+            ax.set_yticks([1.12, 1.17])
+            ax.set_yticklabels([1.12, 1.17], fontsize=12)
         elif ax_idx == 1:
-            ax.set_title('(2) QA Datasets, Llama2-13B', fontsize=12)
+            ax.set_yticks([1.05, 1.1])
+            ax.set_yticklabels([1.05, 1.1], fontsize=12)
         elif ax_idx == 2:
-            ax.set_title('(3) Code Datasets, GPT-3.5', fontsize=12)
+            ax.set_yticks([1.02, 1.07])
+            ax.set_yticklabels([1.02, 1.07], fontsize=12)
+        elif ax_idx == 3:
+            ax.set_yticks([1.02, 1.07])
+            ax.set_yticklabels([1.02, 1.07], fontsize=12)
+        if ax_idx == 0:
+            ax.set_title('Llama2-13B, Code Generation Datasets', fontsize=11)
+        elif ax_idx == 1:
+            ax.set_title('Llama2-13B, QA Datasets', fontsize=11)
+        elif ax_idx == 2:
+            ax.set_title('GPT-3.5, Code Generation Datasets', fontsize=11)
         else:
-            ax.set_title('(4) QA Datasets, GPT-3.5', fontsize=12)
+            ax.set_title('GPT-3.5, QA Datasets', fontsize=11)
 
     ax3_handles, ax3_labels = ax3.get_legend_handles_labels()
     ax4_handles, ax4_labels = ax4.get_legend_handles_labels()
-    handles, labels = ax3_handles + ax4_handles, ax3_labels + ax4_labels
-    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=12, bbox_to_anchor=(0.5, -0.18))
+    handles, labels = ax4_handles + ax3_handles, ax4_labels + ax3_labels
+    fig.legend(handles, labels, loc='lower center', ncol=4, fontsize=13, bbox_to_anchor=(0.5, -0.2))
     plt.savefig('graph/' + graph_name, bbox_inches='tight')
     plt.show()
 
