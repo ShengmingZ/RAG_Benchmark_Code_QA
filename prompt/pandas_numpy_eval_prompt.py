@@ -107,15 +107,16 @@ def prompt_con(ret_docs, question, model):
     user_prompt = f"""
 ## Potential documents:
 {potential_docs}
-## Question: 
+## Unfinished Code Snippet: 
 {question}
 """
-    SYS_PROMPT_CON = """Task Description:
+    SYS_PROMPT_CON = """follow the instruction to solve the problem.
+Instruction:
 1. Read the given unfinished code snippet and potential documents to gather relevant information.
-2. Write reading notes summarizing the key points from these documents.
-3. Discuss the relevance of the given unfinished code snippet and documents.
-4. If some documents are relevant to the given unfinished code snippet, generate completion code for unfinished code snippet based on the documents, the completion code should be tagged with ```.
-5. If no document is relevant, directly generate completion code without considering the documents, the completion code should be tagged with ```.
+2. Write reading notes summarizing the key points from these API documents.
+3. Discuss the relevance of the unfinished code snippet and the documents.
+4. If some documents are relevant to the given unfinished code snippet, complete the code snippet based on the documents, the completed code should be tagged with ```.
+5. If no document is relevant, directly complete the code snippet without considering the documents, the completed code should be tagged with ```.
 """
     prompt = ensemble_prompt(SYS_PROMPT_CON, user_prompt, model)
     return prompt

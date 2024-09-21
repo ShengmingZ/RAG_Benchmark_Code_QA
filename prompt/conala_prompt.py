@@ -93,12 +93,13 @@ def prompt_con(ret_docs, question, model):
     user_prompt = f"""
 ## Potential documents:
 {potential_docs}
-## Question: 
+## Code Description: 
 {question}
 """
-    SYS_PROMPT_CON = """Task Description:
+    SYS_PROMPT_CON = """follow the instruction to solve the problem.
+Instruction:
 1. Read the given code description and potential documents to gather relevant information.
-2. Write reading notes summarizing the key points from these documents.
+2. Write reading notes summarizing the key points from these API documents.
 3. Discuss the relevance of the given code description and documents.
 4. If some documents are relevant to the given code description, generate a one line code tagged with ``` based on the code description and the documents.
 5. If no document is relevant, directly generate a one line code tagged with ``` without considering the documents.

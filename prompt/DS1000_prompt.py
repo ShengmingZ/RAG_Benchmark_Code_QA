@@ -187,12 +187,14 @@ def prompt_con(ret_docs, question, model):
 ## Unfinished Code Solution:
 {answer}
 """
-    SYS_PROMPT_CON = """Task Description:
+    SYS_PROMPT_CON = """follow the instruction to solve the problem.
+Instruction:
 1. Read the given problem and potential documents to gather relevant information.
-2. Write reading notes summarizing the key points from these documents.
+2. Write reading notes summarizing the key points from these API documents.
 3. Discuss the relevance of the given problem and documents.
-4. If some documents are relevant to the given problem, generate insertion code for unfinished code snippet based on the problem and the documents, the code should be tagged with ```.
-5. If no document is relevant, directly generate insertion code for unfinished code snippet without considering the documents, the code should be tagged with ```.
+4. If some documents are relevant to the given problem, complete the [insert] in unfinished code snippet based on the problem and the documents, the code should be tagged with ```.
+5. If no document is relevant, directly complete the [insert] in unfinished code snippet without considering the documents, the code should be tagged with ```.
+6. When completing the code snippet, you should not change the existing code in it
 """
     prompt = ensemble_prompt(SYS_PROMPT_CON, user_prompt, model)
     return prompt

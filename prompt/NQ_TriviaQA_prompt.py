@@ -400,7 +400,8 @@ def prompt_con(ret_docs, question, model):
 ## Question: 
 {question}
 """
-    SYS_PROMPT_CON = """Task Description:
+    SYS_PROMPT_CON = """follow the instruction to answer the question.
+Instruction:
 1. Read the given question and potential documents to gather relevant information.
 2. Write reading notes summarizing the key points from these documents.
 3. Discuss the relevance of the given question and documents.
