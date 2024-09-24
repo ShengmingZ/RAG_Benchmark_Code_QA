@@ -244,12 +244,14 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
     def split_sents_and_logprobs(output_tokens, logprobs):
         sents, sents_tokens, sents_logprobs = [], [], []
         sent, sent_tokens, sent_logprobs = '', [], []
+        answer_count = 0
         for token, logprob in zip(output_tokens, logprobs):
             sent += token; sent_logprobs.append(logprob); sent_tokens.append(token)
-            if token == '.':    # if get ., record sentence
+            if token == '.' or (token == '\n' and dataset in ['conala', 'DS1000', 'pandas_numpy_eval'] and len(sent_logprobs) > 5):    # if get ., record sentence
                 sents.append(sent); sents_logprobs.append(sent_logprobs); sents_tokens.append(sent_tokens)
                 sent, sent_tokens, sent_logprobs = '', [], []
-            if sent.count('```') > 2 or ('<code' in sent and '</code>' in sent):     # if get answer, record sentence and end
+            if '```' in sent: answer_count += 1
+            if answer_count == 2 or '</code>' in sent:     # if get answer, record sentence and end
                 sents.append(sent); sents_logprobs.append(sent_logprobs); sents_tokens.append(sent_tokens)
                 sent, sent_tokens, sent_logprobs = '', [], []
                 break
@@ -310,8 +312,9 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
                     output_list[idx] += sents[0]; logprobs_list[idx].extend(sents_logprobs[0])
                     if_retrieve_list[idx] = False
                     sents = sents[1:]; sents_tokens = sents_tokens[1:]; sents_logprobs = sents_logprobs[1:]
-                # todo: 1.add if stop after model output the answer, avoid further generating 2. split code as an independent sentence (if <code> and </code> in sentence, then end)
-                for sent, sent_tokens, sent_logprobs in zip(sents, sents_tokens, sents_logprobs):   # for each sentence, if need retrieve, deprecate sentences behind, query retriever
+
+                # for each sentence, if need retrieve, deprecate sentences behind, query retriever
+                for sent, sent_tokens, sent_logprobs in zip(sents, sents_tokens, sents_logprobs):
                     ret_flag, new_query = if_retrieve(sent_tokens, sent_logprobs)
                     print(ret_flag, new_query)
                     if ret_flag:
@@ -360,6 +363,7 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
     input_tokens_list = [[]]*len(questions)
     retrieve_times_list = [0]*len(questions)
     stop_list = [False] * len(questions)
+    # queries_list = [[question] for question in questions]
 
     while False in stop_list:
         # first do retrieving for all non-stop samples, update ret_doc_keys_list
@@ -408,16 +412,19 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                     output_first_sent += token
                     logprobs_first_sent.append(logprob)
                     if token == '.': break
+                    if token == '\n' and dataset in ['conala', 'DS1000', 'pandas_numpy_eval'] and len(logprobs_first_sent) > 5: break   # this break is for code statement
                 if if_stop(dataset, output_first_sent, retrieve_times_list[idx], ret_docs_list[idx]):
                     output_list[idx] += output_this_round
                     logprobs_list[idx].extend(logprobs_this_round)
                     stop_list[idx] = True
+                    print('stop at output: ', output_list[idx])
                 else:
                     output_list[idx] += output_first_sent
                     logprobs_list[idx].extend(logprobs_first_sent)
-                print('processed output: ', output_list[idx])
+                    print('output kept: ', output_list[idx])
 
-    return output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list
+
+    return output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, []
 
 
 if __name__ == "__main__":
