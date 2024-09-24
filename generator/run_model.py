@@ -413,6 +413,7 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                     logprobs_first_sent.append(logprob)
                     if token == '.': break
                     if token == '\n' and dataset in ['conala', 'DS1000', 'pandas_numpy_eval'] and len(logprobs_first_sent) > 5: break   # this break is for code statement
+                print('extracted first sentence: ', output_first_sent)
                 if if_stop(dataset, output_first_sent, retrieve_times_list[idx], ret_docs_list[idx]):
                     output_list[idx] += output_this_round
                     logprobs_list[idx].extend(logprobs_this_round)
