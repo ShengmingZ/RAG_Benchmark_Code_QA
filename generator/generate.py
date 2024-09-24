@@ -211,14 +211,14 @@ class Generator:
                 output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, queries_list = (
                     run_model_for_flare(questions=[qs['question'] for qs in self.qs_list], model=self.model, dataset=self.dataset,
                                          temperature=self.temperature, max_tokens=self.max_tokens, n=self.n, stop=self.stop))
-            gene_results = [(dict(ret_doc_keys=ret_doc_keys_list[idx],
-                                  prompts=prompts_list[idx],
-                                  output=output_list[idx],
-                                  logprobs_list=logprobs_list[idx],
-                                  input_tokens=input_tokens_list[idx],
-                                  output_tokens=output_tokens_list[idx],
-                                  retrieve_times=retrieve_times_list[idx],
-                                  queries=queries_list[idx]) for idx in range(len(output_list)))]
+            gene_results = [dict(ret_doc_keys=ret_doc_keys_list[idx],
+                                 prompts=prompts_list[idx],
+                                 output=output_list[idx],
+                                 logprobs_list=logprobs_list[idx],
+                                 input_tokens=input_tokens_list[idx],
+                                 output_tokens=output_tokens_list[idx],
+                                 retrieve_times=retrieve_times_list[idx],
+                                 queries=queries_list[idx]) for idx in range(len(output_list))]
             save_results_to_files(self.result_save_file, gene_results, overwrite=True)
             # for idx in range(len(prompts_list)):
             #     f.write(json.dumps(dict(ret_doc_keys=ret_doc_keys_list[idx],
