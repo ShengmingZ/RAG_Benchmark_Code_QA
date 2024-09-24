@@ -416,7 +416,7 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                     output_first_sent += token
                     logprobs_first_sent.append(logprob)
                     if '.' in token and '```' not in output_first_sent and '<code>' not in output_first_sent: break     # use '.' to judge sentence end, but not for code
-                    if token == '\n' and len(logprobs_first_sent) > 5: break   # this break is for code statement
+                    if '\n' in token and len(logprobs_first_sent) > 5: break   # this break is for code statement
                 print('extracted first sentence: ', output_first_sent)
                 if if_stop(dataset, output_first_sent, retrieve_times_list[idx], ret_docs_list[idx], output_list):
                     output_list[idx] += output_this_round
