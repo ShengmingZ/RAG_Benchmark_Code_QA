@@ -342,16 +342,20 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
 
     indexer, encoder, doc_id_list = prepare_faiss_search(dataset)
 
-    def if_stop(dataset, output, retrieve_times, ret_doc_keys): # test if interleaved retrieve should stop
+    def if_stop(dataset, output, retrieve_times, ret_doc_keys, output_list): # test if interleaved retrieve should stop
         if retrieve_times >= max_iter or len(ret_doc_keys) >= max_docs:
             return True
         else:
-            if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:   # for qa, split first sentence
-                if 'the answer is' in output or '```' in output:
-                    return True
+            answer_count = False
+            for existing_output in output_list:
+                if '```' in existing_output or '<code>' in existing_output: answer_count = True
+            answer_count = 1 if answer_count else 0
+            answer_count += output.count('```')
+            if answer_count > 1: return True         # if more than 1 ``` appear in output, then stop
+            if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:   # direct indicator for QA and code tasks to stop
+                if 'the answer is' in output: return True
             else:
-                if '<code>' in output or '```' in output:
-                    return True
+                if '</code>' in output: return True
         return False
 
     output_list = ['']*len(questions)
@@ -411,10 +415,10 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                 for token, logprob in zip(output_tokens_this_round, logprobs_this_round):
                     output_first_sent += token
                     logprobs_first_sent.append(logprob)
-                    if '.' in token: break
-                    if token == '\n' and dataset in ['conala', 'DS1000', 'pandas_numpy_eval'] and len(logprobs_first_sent) > 5: break   # this break is for code statement
+                    if '.' in token and '```' not in output_first_sent and '<code>' not in output_first_sent: break     # use '.' to judge sentence end, but not for code
+                    if token == '\n' and ('```' in output_first_sent or '<code>' in output_first_sent) and len(logprobs_first_sent) > 5: break   # this break is for code statement
                 print('extracted first sentence: ', output_first_sent)
-                if if_stop(dataset, output_first_sent, retrieve_times_list[idx], ret_docs_list[idx]):
+                if if_stop(dataset, output_first_sent, retrieve_times_list[idx], ret_docs_list[idx], output_list):
                     output_list[idx] += output_this_round
                     logprobs_list[idx].extend(logprobs_this_round)
                     stop_list[idx] = True
