@@ -428,6 +428,10 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                     logprobs_list[idx].extend(logprobs_first_sent)
                     print('output kept: ', output_list[idx])
 
+    import inspect
+    vars = [output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, queries_list]
+    for var in vars:
+        print(inspect.isgenerator(var))
 
     return output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, queries_list
 
