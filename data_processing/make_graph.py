@@ -126,6 +126,7 @@ def make_doc_selection_topk_analysis():
     # colors2 = plt.cm.plasma(np.linspace(0, 0.9, len(code_dataset_names)))
     # colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#17becf']
     colors = ['#E03C31', '#FF6F00', '#FFB300', '#BA55D3', '#4169E1', '#00BFFF', '#708090', '#228B22']
+    markers = ['D', 'o', '^', '*']
 
     axs = [ax1, ax2, ax3, ax4]
     perf_datas_list = [code_llama_perf_datas, qa_llama_perf_datas, code_gpt_perf_datas, qa_gpt_perf_datas]
@@ -140,7 +141,7 @@ def make_doc_selection_topk_analysis():
             metric = qa_metric
             tmp_colors = colors[:4]
         for idx, dataset_name in enumerate(dataset_names):
-            ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker='o', linestyle='-', label=dataset_name, color=tmp_colors[idx])
+            ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker=markers[idx], markersize=7.5, linestyle='-', label=dataset_name, color=tmp_colors[idx])
         ax.set_ylabel(metric, fontsize=13)
         ax.set_xlabel('top k documents', fontsize=14)
         ax.set_xticks([item.split('_')[1] for item in topk_list[ax_idx]])
@@ -217,6 +218,7 @@ def make_doc_selection_topk_perplexity():
     # colors1 = plt.cm.viridis(np.linspace(0, 0.9, len(qa_dataset_names)))
     # colors2 = plt.cm.plasma(np.linspace(0, 0.9, len(code_dataset_names)))
     colors = ['#E03C31', '#FF6F00', '#FFB300', '#BA55D3', '#4169E1', '#00BFFF', '#708090', '#228B22']
+    markers = ['D', 'o', '^', '*']
 
     axs = [ax1, ax2, ax3, ax4]
     perf_datas_list = [code_llama_perf_datas, qa_llama_perf_datas, code_gpt_perf_datas, qa_gpt_perf_datas]
@@ -231,7 +233,7 @@ def make_doc_selection_topk_perplexity():
             tmp_colors = colors[:4]
             metric = qa_metric
         for idx, dataset_name in enumerate(dataset_names):
-            ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker='o', linestyle='-', label=dataset_name, color=tmp_colors[idx])
+            ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker=markers[idx], markersize=7.5, linestyle='-', label=dataset_name, color=tmp_colors[idx])
         # ax.set_ylabel(metric, fontsize=13)
         ax.set_xlabel('top k documents', fontsize=14)
         ax.set_xticks([item.split('_')[1] for item in topk_list[ax_idx]])
@@ -298,6 +300,7 @@ def make_doc_selection_topk_ret_recall():
     ax2 = plt.subplot(gs[0])
     ax1 = plt.subplot(gs[1])
     colors = ['#E03C31', '#FF6F00', '#FFB300', '#BA55D3', '#4169E1', '#00BFFF', '#708090', '#228B22']
+    markers = ['D', 'o', '^', '*']
 
     axs = [ax1, ax2]
     perf_datas_list = [code_gpt_perf_datas, qa_gpt_perf_datas]
@@ -312,7 +315,7 @@ def make_doc_selection_topk_ret_recall():
             tmp_colors = colors[:4]
             metric = qa_metric
         for idx, dataset_name in enumerate(dataset_names):
-            ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker='o', linestyle='-', label=dataset_name, color=tmp_colors[idx])
+            ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker=markers[idx], markersize=7.5, linestyle='-', label=dataset_name, color=tmp_colors[idx])
         ax.set_ylabel('Retrieval Recall', fontsize=14)
         ax.set_xlabel('top k documents', fontsize=14)
         if ax_idx == 0:
@@ -552,11 +555,13 @@ def make_ret_recall_perplexity():
             [results.code_ret_recall_llama_n_1[dataset_name][ret_recall][code_metric] for ret_recall in ret_recalls])
     x = range(len(gpt_perf_datas[0]))
     plt.style.use('ggplot')
-    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#17becf']
-    qa_colors, code_colors = colors[:3], colors[3:]
+    # colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#17becf']
+    colors = ['#DC143C', '#FF8C00', '#DAA520', '#FFB6C1', '#228B22', '#4169E1', '#8B4513', '#C71585']
+    markers = ['D', 'o', '^']
+    qa_colors, code_colors = colors[:4], colors[4:]
     fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(24, 6))  # ax1: qa, ax2: code
     for idx, (perf_data, dataset_name) in enumerate(zip(llama_perf_datas[:3], qa_dataset_names)):
-        line, = ax1.plot(x, perf_data, marker='o', linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
+        line, = ax1.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
     ax1.set_xlabel('Retrieval Recall', fontsize=16)
     # ax1.set_ylabel(f'{qa_metric}')
     ax1.set_yticks([1.055, 1.06, 1.065, 1.07, 1.075])
@@ -565,7 +570,7 @@ def make_ret_recall_perplexity():
     ax1.set_xticklabels(ret_recalls, fontsize=16)
     ax1.set_title('Llama2-13B, QA Datasets')
     for idx, (perf_data, dataset_name) in enumerate(zip(llama_perf_datas[3:], code_dataset_names)):
-        line, = ax2.plot(x, perf_data, marker='o', linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
+        line, = ax2.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
     ax2.set_xlabel('Retrieval Recall', fontsize=16)
     # ax2.set_ylabel(code_metric)
     ax2.set_yticks([1.11, 1.12, 1.13, 1.14, 1.15, 1.16])
@@ -574,7 +579,7 @@ def make_ret_recall_perplexity():
     ax2.set_xticklabels(ret_recalls, fontsize=16)
     ax2.set_title('Llama2-13B, Code Generation Datasets')
     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas[:3], qa_dataset_names)):
-        line, = ax3.plot(x, perf_data, marker='o', linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
+        line, = ax3.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
     ax3.set_xlabel('Retrieval Recall', fontsize=16)
     # ax3.set_ylabel(qa_metric)
     ax3.set_yticks([1.015, 1.025, 1.035, 1.045, 1.055])
@@ -583,7 +588,7 @@ def make_ret_recall_perplexity():
     ax3.set_xticklabels(ret_recalls, fontsize=16)
     ax3.set_title('GPT-3.5, QA Datasets')
     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas[3:], code_dataset_names)):
-        line, = ax4.plot(x, perf_data, marker='o', linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
+        line, = ax4.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
     ax4.set_xlabel('Retrieval Recall', fontsize=16)
     # ax4.set_ylabel(code_metric)
     ax4.set_yticks([1.025, 1.03, 1.035, 1.04, 1.045, 1.05])
@@ -625,10 +630,11 @@ def make_ret_recall_analysis():
     plt.style.use('ggplot')
     # colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#17becf']
     colors = ['#DC143C', '#FF8C00', '#DAA520', '#FFB6C1', '#228B22', '#4169E1', '#8B4513', '#C71585']
+    markers = ['D', 'o', '^']
     qa_colors, code_colors = colors[:4], colors[4:]
     fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(24, 6))  # ax1: qa, ax2: code
     for idx, (perf_data, dataset_name) in enumerate(zip(llama_perf_datas[:3], qa_dataset_names)):
-        line, = ax1.plot(x, perf_data, marker='o', linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
+        line, = ax1.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
         ax1.axhline(y=llama_perf_none[:3][idx], color=line.get_color(), linestyle='--')  # plot none result
     ax1.set_xlabel('Retrieval Recall', fontsize=16)
     ax1.set_ylabel(qa_metric, fontsize=16)
@@ -638,7 +644,7 @@ def make_ret_recall_analysis():
     ax1.set_xticklabels(ret_recalls, fontsize=16)
     ax1.set_title('Llama2-13B, QA Datasets')
     for idx, (perf_data, dataset_name) in enumerate(zip(llama_perf_datas[3:], code_dataset_names)):
-        line, = ax2.plot(x, perf_data, marker='o', linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
+        line, = ax2.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
         ax2.axhline(y=llama_perf_none[3:][idx], color=line.get_color(), linestyle='--')  # plot none result
     ax2.set_xlabel('Retrieval Recall', fontsize=16)
     ax2.set_ylabel(code_metric, fontsize=16)
@@ -648,7 +654,7 @@ def make_ret_recall_analysis():
     ax2.set_xticklabels(ret_recalls, fontsize=16)
     ax2.set_title('Llama2-13B, Code Generation Datasets')
     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas[:3], qa_dataset_names)):
-        line, = ax3.plot(x, perf_data, marker='o', linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
+        line, = ax3.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
         ax3.axhline(y=gpt_perf_none[:3][idx], color=line.get_color(), linestyle='--')   # plot none result
     ax3.set_xlabel('Retrieval Recall', fontsize=16)
     ax3.set_ylabel(qa_metric, fontsize=16)
@@ -658,7 +664,7 @@ def make_ret_recall_analysis():
     ax3.set_xticklabels(ret_recalls, fontsize=16)
     ax3.set_title('GPT-3.5, QA Datasets')
     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas[3:], code_dataset_names)):
-        line, = ax4.plot(x, perf_data, marker='o', linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
+        line, = ax4.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
         ax4.axhline(y=gpt_perf_none[3:][idx], color=line.get_color(), linestyle='--')   # plot none result
     ax4.set_xlabel('Retrieval Recall', fontsize=16)
     ax4.set_ylabel(code_metric, fontsize=16)
@@ -747,26 +753,32 @@ def make_qa_code_ret_recall():
                 code_retrieval_acc_datas[retriever_index][top_k_index] += results.retrieval_accuracy[retriever_name][dataset_name][top_k]
         for top_k_index in range(len(top_ks)):
             code_retrieval_acc_datas[retriever_index][top_k_index] /= len(code_dataset_names)
+    colors = ['#DC143C', '#FF8C00', '#DAA520', '#FFB6C1', '#228B22', '#4169E1', '#8B4513', '#C71585']
+    markers = ['D', 'o', '^', '*', '+']
+    qa_colors, code_colors = colors[:4], colors[4:]
 
-    x = range(len(qa_retrieval_acc_datas[0]))
+    # x = range(len(qa_retrieval_acc_datas[0]))
+    # x = [1, 3, 5, 10, 20, 50, 100]
+    x = [1, 3, 6, 10, 15, 22, 33]
     plt.style.use('ggplot')
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))   # ax1: qa, ax2: code
-    for retrieval_acc_data, retriever_name in zip(qa_retrieval_acc_datas, retriever_names):
-        if retrieval_acc_data: ax1.plot(x, retrieval_acc_data, marker='o', linestyle='-', label=retriever_name)
+    for idx, (retrieval_acc_data, retriever_name) in enumerate(zip(qa_retrieval_acc_datas, retriever_names)):
+        if retrieval_acc_data: ax1.plot(x, retrieval_acc_data, marker=markers[idx], markersize=10, linestyle='-', label=retriever_name)
         else: ax1.plot([], [], marker='o', linestyle='-', label=retriever_name)
     ax1.set_xlabel('top k', fontsize=18)
     # ax1.set_ylabel('Retrieval Recall', fontsize=16)
     ax1.set_yticks([0.2, 0.4, 0.6, 0.8, 1.0])
     ax1.set_yticklabels([0.2, 0.4, 0.6, 0.8, 1.0], fontsize=18)
     ax1.set_xticks(x, top_ks)
+    ax1.set_xticklabels(x, fontsize=18)
     ax1.set_ylabel('Avg Retrieval Recall', fontsize=18)
     # ax1.set_xticks(top_ks)
     ax1.set_xticklabels(top_ks, fontsize=18)
     ax1.set_title('QA Datasets', fontsize=18)
-    for retrieval_acc_data, retriever_name in zip(code_retrieval_acc_datas, retriever_names):
-        if retrieval_acc_data: ax2.plot(x, retrieval_acc_data, marker='o', linestyle='-', label=retriever_name)
+    for idx, (retrieval_acc_data, retriever_name) in enumerate(zip(code_retrieval_acc_datas, retriever_names)):
+        if retrieval_acc_data: ax2.plot(x, retrieval_acc_data, marker=markers[idx], markersize=10, linestyle='-', label=retriever_name)
         else: ax2.plot([], [], marker='o', linestyle='-', label=retriever_name)
-    ax2.set_xlabel('top k', fontsize=16)
+    ax2.set_xlabel('top k', fontsize=18)
     # ax2.set_ylabel('Retrieval Recall', fontsize=16)
     ax2.set_yticks([0, 0.2, 0.4, 0.6])
     ax2.set_yticklabels([0, 0.2, 0.4, 0.6], fontsize=18)
@@ -810,7 +822,7 @@ def make_avg_ret_recall():
 if __name__ == '__main__':
     # make_avg_ret_recall()
 
-    # make_qa_code_ret_recall()
+    make_qa_code_ret_recall()
 
     # make_ret_recall_analysis()
 
@@ -826,6 +838,6 @@ if __name__ == '__main__':
 
     # make_doc_selection_topk_syntax_semantic_error()
 
-    make_doc_selection_topk_perplexity()
+    # make_doc_selection_topk_perplexity()
 
     # make_doc_selection_topk_ret_recall()

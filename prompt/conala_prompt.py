@@ -15,7 +15,7 @@ SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last problem"""
 
 
 
-def prompt_cot(ret_docs, question, model):
+def prompt_cot(ret_docs, question, model, existing_output=None):
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
@@ -78,6 +78,8 @@ numpy.loadtxt('test.csv', delimiter=',')
 
 ## Code Generation:
 """
+
+    if existing_output is not None: user_prompt += existing_output
 
     if 'gpt' in model:
         prompt = ['', user_prompt]
