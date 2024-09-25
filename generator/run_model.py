@@ -292,7 +292,7 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
         # ensemble prompts
         for idx, ret_flag in enumerate(if_retrieve_list):
             if ret_flag:
-                prompts_list[idx].append(generate_func(ret_docs_list[idx], questions[idx]+output_list[idx], model))
+                prompts_list[idx].append(generate_func(ret_docs_list[idx], questions[idx], model, output_list[idx]))
                 input_tokens_list[idx].append(get_docs_tokens(docs=[prompts_list[idx][-1]], model=model)[0])
 
         # run models
