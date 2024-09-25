@@ -318,7 +318,7 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
                 # for each sentence, if need retrieve, deprecate sentences behind, query retriever
                 for sent, sent_tokens, sent_logprobs in zip(sents, sents_tokens, sents_logprobs):
                     ret_flag, new_query = if_retrieve(sent_tokens, sent_logprobs)
-                    print(ret_flag, new_query)
+                    print(ret_flag)
                     if ret_flag:
                         if_retrieve_list[idx] = True
                         queries_list[idx].append(new_query)
