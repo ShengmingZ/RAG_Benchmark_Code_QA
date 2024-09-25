@@ -244,16 +244,18 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
     def split_sents_and_logprobs(output_tokens, logprobs):
         sents, sents_tokens, sents_logprobs = [], [], []
         sent, sent_tokens, sent_logprobs = '', [], []
-        answer_count = 0
+        incode = False
         for token, logprob in zip(output_tokens, logprobs):
             sent += token; sent_logprobs.append(logprob); sent_tokens.append(token)
-            if token == '.' or (token == '\n' and dataset in ['conala', 'DS1000', 'pandas_numpy_eval'] and len(sent_logprobs) > 5):    # if get ., record sentence
+
+            if dataset in ['conala', 'DS1000', 'pandas_numpy_eval'] and ('```' in sent or '<code>' in sent): incode = True
+            if '.' in token or '\n' in token and incode is False and len(sent_logprobs) > 5:    # if get ., record sentence
                 sents.append(sent); sents_logprobs.append(sent_logprobs); sents_tokens.append(sent_tokens)
                 sent, sent_tokens, sent_logprobs = '', [], []
-            if '```' in sent: answer_count += 1
-            if answer_count == 2 or '</code>' in sent:     # if get answer, record sentence and end
+            if (sent.count('```') > 1 or '</code>' in sent) and incode is True:     # get sent for code
                 sents.append(sent); sents_logprobs.append(sent_logprobs); sents_tokens.append(sent_tokens)
                 sent, sent_tokens, sent_logprobs = '', [], []
+                incode = False
                 break
         if sent != '':
             sents.append(sent); sents_logprobs.append(sent_logprobs); sents_tokens.append(sent_tokens)
@@ -307,7 +309,7 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
 
                 # check if each new sent needs retrieve, update stop_list, output_list, logprobs_list
                 sents, sents_tokens, sents_logprobs = split_sents_and_logprobs(output_tokens_this_round, logprobs_this_round) # split output and logprobs to each sentences
-                print(sents_tokens)
+                print(sents)
                 if retrieve_times_list[idx] > 1:    # 1 means first retrieval using question, after that, each retrieval would make sure at least one more sentence is generated
                     output_list[idx] += sents[0]; logprobs_list[idx].extend(sents_logprobs[0])
                     if_retrieve_list[idx] = False
