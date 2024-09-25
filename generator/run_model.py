@@ -425,7 +425,7 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
         for idx, stop_flag in enumerate(stop_list):
             if not stop_flag:
                 prompts_list[idx].append(generate_func(ret_docs_list[idx], questions[idx], model, output_list[idx]))
-                print('ksdugchsd:', prompts_list[idx][-1][1].split('# Code Generation')[-1])
+                print('ksdugchsd:', prompts_list[idx][-1][1].split('##')[-1])
                 input_tokens_list[idx].append(get_docs_tokens(docs=[prompts_list[idx][-1]], model=model)[0])
 
         # run models
