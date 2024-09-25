@@ -31,9 +31,9 @@ multiplication of two 1-dimensional arrays  in numpy
 We first identify two 1-d arrays `a` and `b`,
 then we can use python function `numpy.outer` to do multiplication
 So the code is:
-<code>
+```
 numpy.outer(a,b)
-</code>
+```
 
 
 
@@ -48,9 +48,9 @@ convert epoch time represented as milliseconds `s` to string using format '%Y-%m
 We first use python function fromtimestamp() to convert epoch time s to local time.
 Then we use python function strftime() to convert the format of local time to '%Y-%m-%d %H:%M:%S.%f'
 So the code is:
-<code>
+```
 datetime.datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S.%f')
-</code>
+```
 
 
 
@@ -63,9 +63,9 @@ convert csv file 'test.csv' into two-dimensional matrix
 ## Code Generation:
 We can use python function `numpy.loadtxt` to load the data from 'test.csv'.
 So the code is:
-<code>
+```
 numpy.loadtxt('test.csv', delimiter=',')
-</code>
+```
 """
 
     user_prompt = f"""
