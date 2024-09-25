@@ -377,6 +377,10 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                         output_next_line += output_tokens[new_idx]
                         logprobs_next_line.append(logprobs[new_idx])
                         if '```' or '</code>' in token+output_next_line and new_idx-idx < 5:    # if indicates that next line is just '```' or </code>, incorporate it
+                            print(token)
+                            print(output_next_line)
+                            print(new_idx)
+                            print(idx)
                             output_first_sent += output_next_line
                             logprobs_first_sent.extend(logprobs_next_line)
                             break
