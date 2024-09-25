@@ -362,25 +362,29 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
         # check if retrieve should stop, update stop_list, output_list, logprobs_list
         output_first_sent, logprobs_first_sent = '', []
         assert len(output_tokens) == len(logprobs)
+        # incode = False
+        # if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
+        #     for existing_output in output_list:
+        #         if '```' in existing_output or '<code>' in existing_output: incode = True
         incode = False
-        if dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
-            for existing_output in output_list:
-                if '```' in existing_output or '<code>' in existing_output: incode = True
         for idx, (token, logprob) in enumerate(zip(output_tokens, logprobs)):
             output_first_sent += token
             logprobs_first_sent.append(logprob)
-            if '.' in token and '```' not in output_first_sent and '<code>' not in output_first_sent: break  # use '.' to judge sentence end, but not for code
-            if '\n' in token and len(logprobs_first_sent) > 5:  # this break is for code statement
-                if incode is True or ('```' in output_first_sent or '<code>' in output_first_sent): # this additional code is aim to incorporate ``` and </code>
-                    output_next_line, logprobs_next_line = '', []
-                    for new_idx in range(idx+1, len(output_tokens)):
-                        output_next_line += output_tokens[new_idx]
-                        logprobs_next_line.append(logprobs[new_idx])
-                        if ('```' in token+output_next_line or '</code>' in token+output_next_line) and new_idx-idx < 5:    # if indicates that next line is just '```' or </code>, incorporate it
-                            output_first_sent += output_next_line
-                            logprobs_first_sent.extend(logprobs_next_line)
-                            break
-                break
+            if '```' in output_first_sent or '<code>' in output_first_sent: incode = True
+            if '.' in token and incode is False: break  # use '.' to judge sentence end, but not for code
+            # if '\n' in token and len(logprobs_first_sent) > 5:  # this break is for code statement
+            #     if incode is True or ('```' in output_first_sent or '<code>' in output_first_sent): # this additional code is aim to incorporate ``` and </code>
+            #         output_next_line, logprobs_next_line = '', []
+            #         for new_idx in range(idx+1, len(output_tokens)):
+            #             output_next_line += output_tokens[new_idx]
+            #             logprobs_next_line.append(logprobs[new_idx])
+            #             if ('```' in token+output_next_line or '</code>' in token+output_next_line) and new_idx-idx < 5:    # if indicates that next line is just '```' or </code>, incorporate it
+            #                 output_first_sent += output_next_line
+            #                 logprobs_first_sent.extend(logprobs_next_line)
+            #                 break
+            #     break
+            if '\n' in token and len(logprobs_first_sent) > 5 and incode is False: break
+            if output_first_sent.count('```') > 1 or '</code>' in output_first_sent: break
         return output_first_sent, logprobs_first_sent
 
 
