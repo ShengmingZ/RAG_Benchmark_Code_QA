@@ -334,7 +334,7 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
 
 def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=500, n=1, stop=None):
     # some hyperparameters
-    max_iter = 2
+    max_iter = 8
     max_docs = 15 if dataset in ['NQ', 'TriviaQA', 'hotpotQA'] else 10
     k = 4 if dataset in ['NQ', 'TriviaQA', 'hotpotQA'] else 2
     assert n == 1
@@ -376,11 +376,7 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                     for new_idx in range(idx+1, len(output_tokens)):
                         output_next_line += output_tokens[new_idx]
                         logprobs_next_line.append(logprobs[new_idx])
-                        if '```' or '</code>' in token+output_next_line and new_idx-idx < 5:    # if indicates that next line is just '```' or </code>, incorporate it
-                            print(token)
-                            print(output_next_line)
-                            print(new_idx)
-                            print(idx)
+                        if '```' in token+output_next_line or '</code>' in token+output_next_line and new_idx-idx < 5:    # if indicates that next line is just '```' or </code>, incorporate it
                             output_first_sent += output_next_line
                             logprobs_first_sent.extend(logprobs_next_line)
                             break
