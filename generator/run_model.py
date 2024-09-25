@@ -249,7 +249,7 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
             sent += token; sent_logprobs.append(logprob); sent_tokens.append(token)
 
             if dataset in ['conala', 'DS1000', 'pandas_numpy_eval'] and ('```' in sent or '<code>' in sent): incode = True
-            if '.' in token or '\n' in token and incode is False and len(sent_logprobs) > 5:    # if get ., record sentence
+            if ('.' in token or '\n' in token) and incode is False and len(sent_logprobs) > 5:    # if get ., record sentence
                 sents.append(sent); sents_logprobs.append(sent_logprobs); sents_tokens.append(sent_tokens)
                 sent, sent_tokens, sent_logprobs = '', [], []
             if (sent.count('```') > 1 or '</code>' in sent) and incode is True:     # get sent for code
