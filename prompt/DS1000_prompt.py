@@ -166,7 +166,7 @@ def prompt_cot(ret_docs, question, model, existing_output=None):
 {answer}
 # Code Generation for [insert]:
 """
-    if existing_output is not None: user_prompt += existing_output
+    if existing_output is not None: user_prompt = user_prompt + '\n' + existing_output
     sys_prompt = LLAMA_SYSTEM_PROMPT
     # prompt_template = ensemble_prompt(sys_prompt, user_prompt, model, examples=[example1, example2, example3], answers=[answer1, answer2, answer3])
     if 'gpt' in model:

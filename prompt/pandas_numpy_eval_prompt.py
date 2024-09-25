@@ -92,7 +92,7 @@ So, the completion code is:
 
 ## Completion:
 """
-    if existing_output is not None: user_prompt += existing_output
+    if existing_output is not None: user_prompt = user_prompt + '\n' + existing_output
     if 'gpt' in model:
         prompt = ['', user_prompt]
     else:
