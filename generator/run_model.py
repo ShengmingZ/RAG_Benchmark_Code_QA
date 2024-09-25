@@ -334,7 +334,7 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
 
 def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=500, n=1, stop=None):
     # some hyperparameters
-    max_iter = 2
+    max_iter = 1
     max_docs = 15 if dataset in ['NQ', 'TriviaQA', 'hotpotQA'] else 10
     k = 4 if dataset in ['NQ', 'TriviaQA', 'hotpotQA'] else 2
     assert n == 1
