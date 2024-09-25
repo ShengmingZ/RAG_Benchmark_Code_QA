@@ -282,7 +282,7 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
                 cur_ret_doc_keys_list.append(ret_doc_keys)
                 ret_doc_keys_list[idx].append(ret_doc_keys)     # record doc keys in each retrieve
                 retrieve_times_list[idx] += 1
-                print(f'{retrieve_times_list[idx]}th retrieve result: ', ret_doc_keys)
+                print(f'{retrieve_times_list[idx]}th retrieve result: ', [ret_doc_keys])
         # get ret_docs, update ret_docs_list
         if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
             ret_docs_list = WikiCorpusLoader().get_docs(cur_ret_doc_keys_list, dataset, num_procs=8)
