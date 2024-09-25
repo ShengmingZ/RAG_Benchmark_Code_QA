@@ -358,6 +358,27 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                 if '</code>' in output: return True
         return False
 
+    def extract_first_sent(output_tokens, logprobs):
+        # check if retrieve should stop, update stop_list, output_list, logprobs_list
+        output_first_sent, logprobs_first_sent = '', []
+        assert len(output_tokens) == len(logprobs)
+        for idx, (token, logprob) in enumerate(zip(output_tokens, logprobs)):
+            output_first_sent += token
+            logprobs_first_sent.append(logprob)
+            if '.' in token and '```' not in output_first_sent and '<code>' not in output_first_sent: break  # use '.' to judge sentence end, but not for code
+            if '\n' in token and len(logprobs_first_sent) > 5:  # this break is for code statement
+                output_next_line, logprobs_next_line = '', []
+                for new_idx in range(idx+1, len(output_tokens)):    # incorporate ``` and </code>
+                    output_next_line += output_tokens[new_idx]
+                    logprobs_next_line.append(logprobs[new_idx])
+                    if '```' or '</code>' in token+output_next_line and new_idx-idx < 5:    # if indicates that next line is just '```' or </code>, incorporate it
+                        output_first_sent += output_next_line
+                        logprobs_first_sent.extend(logprobs_next_line)
+                        break
+                break
+        return output_first_sent, logprobs_first_sent
+
+
     output_list = ['']*len(questions)
     logprobs_list = [[]]*len(questions)
     ret_doc_keys_list = [[]]*len(questions)
@@ -410,14 +431,7 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                 output_tokens_list[idx].append(len(output_tokens_this_round))   # count output tokens of each generation
                 print(f'{retrieve_times_list[idx]}th generate output: ', output_this_round)
 
-                # check if retrieve should stop, update stop_list, output_list, logprobs_list
-                output_first_sent, logprobs_first_sent = '', []
-                assert len(output_tokens_this_round) == len(logprobs_this_round)
-                for token, logprob in zip(output_tokens_this_round, logprobs_this_round):
-                    output_first_sent += token
-                    logprobs_first_sent.append(logprob)
-                    if '.' in token and '```' not in output_first_sent and '<code>' not in output_first_sent: break     # use '.' to judge sentence end, but not for code
-                    if '\n' in token and len(logprobs_first_sent) > 5: break   # this break is for code statement
+                output_first_sent, logprobs_first_sent = extract_first_sent(output_tokens_this_round, logprobs_this_round)
                 print('extracted first sentence: ', output_first_sent)
                 if if_stop(dataset, output_first_sent, retrieve_times_list[idx], ret_docs_list[idx], output_list):
                     output_list[idx] += output_this_round
