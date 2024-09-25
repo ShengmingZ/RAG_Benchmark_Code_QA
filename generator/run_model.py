@@ -282,7 +282,7 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
                 cur_ret_doc_keys_list.append(ret_doc_keys)
                 ret_doc_keys_list[idx].append(ret_doc_keys)     # record doc keys in each retrieve
                 retrieve_times_list[idx] += 1
-                print(f'{retrieve_times_list[idx]}th retrieve result: ', [ret_doc_keys])
+                print(f'{retrieve_times_list[idx]}th retrieve result: ', ret_doc_keys)
         # get ret_docs, update ret_docs_list
         if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
             ret_docs_list = WikiCorpusLoader().get_docs(cur_ret_doc_keys_list, dataset, num_procs=8)
@@ -305,7 +305,7 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
                     [[output_this_round]], [[logprobs_this_round]], [[output_tokens_this_round]] = (
                         llama(prompts=[prompts_list[idx][-1]], model_name=model, max_new_tokens=max_tokens, temperature=temperature, n=n, stop=stop, return_tokens=True))
                 output_tokens_list[idx].append(len(output_tokens_this_round))  # count output tokens of each generation
-                print(f'{retrieve_times_list[idx]}th generate output: ', output_this_round)
+                print(f'{retrieve_times_list[idx]}th generate output: ', [output_this_round])
 
                 # check if each new sent needs retrieve, update stop_list, output_list, logprobs_list
                 sents, sents_tokens, sents_logprobs = split_sents_and_logprobs(output_tokens_this_round, logprobs_this_round) # split output and logprobs to each sentences
