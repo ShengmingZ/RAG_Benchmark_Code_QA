@@ -12,7 +12,7 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from generator.run_model import chatgpt, llama, chatgpt_batch, run_model_for_ir_cot, run_model_for_flare, run_model_for_self_refine
+from generator.run_model import chatgpt, llama, chatgpt_batch, run_model_for_ir_cot, run_model_for_flare
 from prompt import conala_prompt
 from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
