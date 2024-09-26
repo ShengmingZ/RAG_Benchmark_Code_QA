@@ -427,7 +427,7 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
         for idx, stop_flag in enumerate(stop_list):
             if not stop_flag:
                 prompts_list[idx].append(generate_func(ret_docs_list[idx], questions[idx], model, output_list[idx]))
-                print('ksdugchsd:', prompts_list[idx][-1][1].split('##')[-1])
+                print('ksdugchsd:', [prompts_list[idx][-1][1].split('##')[-1]])
                 input_tokens_list[idx].append(get_docs_tokens(docs=[prompts_list[idx][-1]], model=model)[0])
 
         # run models
@@ -440,7 +440,7 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                     [[output_this_round]], [[logprobs_this_round]], [[output_tokens_this_round]] = (
                         llama(prompts=[prompts_list[idx][-1]], model_name=model, max_new_tokens=max_tokens, temperature=temperature, n=n, stop=stop, return_tokens=True))
                 output_tokens_list[idx].append(len(output_tokens_this_round))   # count output tokens of each generation
-                print(f'{retrieve_times_list[idx]}th generate output: ', output_this_round)
+                print(f'{retrieve_times_list[idx]}th generate output: ', [output_this_round])
 
                 output_first_sent, logprobs_first_sent = extract_first_sent(dataset, output_tokens_this_round, logprobs_this_round, output_list)
                 print('extracted first sentence: ', output_first_sent)
@@ -448,11 +448,11 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                     output_list[idx] += output_this_round
                     logprobs_list[idx].extend(logprobs_this_round)
                     stop_list[idx] = True
-                    print('stop at output: ', output_list[idx])
+                    print('stop at output: ', [output_list[idx]])
                 else:
                     output_list[idx] += output_first_sent
                     logprobs_list[idx].extend(logprobs_first_sent)
-                    print('output kept: ', output_list[idx])
+                    print('output kept: ', [output_list[idx]])
 
     # import inspect
     # vars = [output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, queries_list]
@@ -460,6 +460,12 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
     #     print(inspect.isgenerator(var))
 
     return output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, queries_list
+
+
+def run_model_for_self_refine(questions, model, dataset, temperature=0, max_tokens=500, n=1, stop=None):
+    initial_prompt_gene_func = _get_generate_func(dataset, no_ret_flag=False, prompt_type='3shot')
+    self_refine_gene_func = ...
+
 
 
 if __name__ == "__main__":
