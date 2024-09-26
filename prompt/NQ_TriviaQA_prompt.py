@@ -352,7 +352,7 @@ Finally, you should extract the exact answer tagged with <answer>"""
     return prompt
 
 
-def prompt_cot(ret_docs, question, model):
+def prompt_cot(ret_docs, question, model, existing_output=None):
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
@@ -366,6 +366,7 @@ def prompt_cot(ret_docs, question, model):
 
 ## Answer:
 """
+    if existing_output is not None: user_prompt = user_prompt + '\n' + existing_output
     # sys_prompt = SYS_PROMPT_PLAN_AND_SOLVE
     # prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
     prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt] if 'gpt' in model else user_prompt

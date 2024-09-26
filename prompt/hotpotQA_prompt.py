@@ -114,7 +114,7 @@ def prompt_3shot(ret_docs, question, model):
     return prompt
 
 
-def prompt_cot(ret_docs, question, model):
+def prompt_cot(ret_docs, question, model, existing_output=None):
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
@@ -130,6 +130,7 @@ def prompt_cot(ret_docs, question, model):
 """
 
     # prompt_template = ensemble_prompt('', user_prompt, model)
+    if existing_output is not None: user_prompt = user_prompt + '\n' + existing_output
     if 'gpt' in model: prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt]
     else: prompt = user_prompt
     # prompt = ensemble_prompt(sys_prompt=SYS_PROMPT_3SHOT, user_prompt=user_prompt, model=model)
