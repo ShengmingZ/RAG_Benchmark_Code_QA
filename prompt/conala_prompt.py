@@ -424,7 +424,7 @@ Your task is to first rephrase and expand the Problem, then you should generate 
     return prompt
 
 
-def prompt_self_refine(ret_docs, question, model, inital_output):
+def prompt_self_refine(ret_docs, question, model, initial_output):
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
@@ -503,17 +503,19 @@ numpy.loadtxt('test.csv', delimiter=',')
 """
 
     user_prompt = f"""
-    {self_refine_prompt}
-    \n
-    ## Potential documents: 
-    {potential_docs}
-    ## Code Description: 
-    {question}
+{self_refine_prompt}
+\n
+## Potential documents: 
+{potential_docs}
+## Code Description: 
+{question}
 
-    ## Code Generation:
-    """
+## Code Generation:
+{initial_output}
 
-    if existing_output is not None: user_prompt = user_prompt + '\n' + existing_output
+## Feedback and refine: Does the generated code align with code description? If not, refines the generated code
+"""
+
 
     if 'gpt' in model:
         prompt = ['', user_prompt]

@@ -12,7 +12,7 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from generator.run_model import chatgpt, llama, chatgpt_batch, run_model_for_ir_cot, run_model_for_flare
+from generator.run_model import chatgpt, llama, chatgpt_batch, run_model_for_ir_cot, run_model_for_flare, run_model_for_self_refine
 from prompt import conala_prompt
 from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
@@ -122,6 +122,11 @@ class Generator:
                                                                      doc_selection_type=self.doc_selection_type,
                                                                      dataset=self.dataset)
             elif self.analysis_type == 'prompt_method':
+                if self.prompt_type == 'self-refine':
+                    initial_result_save_file = self.result_save_file.replace('self-refine', '3shot')
+                    initial_results = json.load(open(initial_result_save_file, 'r'))
+                    initial_outputs = [item['outputs'][0] for item in initial_results]
+                else: initial_outputs = None
                 if self.dataset in ['NQ', 'TriviaQA', 'hotpotQA']: k = 10
                 else: k = 5
                 ret_results_docs = get_docs_for_ret_results(ret_results=self.ret_results, dataset=self.dataset)
@@ -138,7 +143,8 @@ class Generator:
                                                 prompt_type=self.prompt_type,
                                                 dataset=self.dataset,
                                                 model_name=self.model,
-                                                doc_max_length=self.doc_max_length)
+                                                doc_max_length=self.doc_max_length,
+                                                initial_outputs=initial_outputs)
 
         return ret_doc_keys_list, prompts, pl_list
 
@@ -202,7 +208,7 @@ class Generator:
 
         if self.prompt_type == 'ir-cot' or self.prompt_type == 'flare':     # multi retrieval framework
             if self.prompt_type == 'ir-cot':
-                self.qs_list = self.qs_list[15:16]
+                self.qs_list = self.qs_list[17:18]
                 output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, queries_list = (
                     run_model_for_ir_cot(questions=[qs['question'] for qs in self.qs_list], model=self.model, dataset=self.dataset,
                                          temperature=self.temperature, max_tokens=self.max_tokens, n=self.n, stop=self.stop))
@@ -219,6 +225,15 @@ class Generator:
                                  output_tokens=output_tokens_list[idx],
                                  retrieve_times=retrieve_times_list[idx],
                                  queries=queries_list[idx]) for idx in range(len(output_list))]
+            # elif self.prompt_type == 'self-refine':
+            #     self.qs_list = self.qs_list[1:2]
+            #     self_refine_prompts, refined_outputs_list, refined_logprobs_list = (
+            #         run_model_for_self_refine(qs_list=self.qs_list, model=self.model, dataset=self.dataset, prompt_save_file=self.prompt_save_file,
+            #                                   result_save_file=self.result_save_file, temperature=self.temperature, max_tokens=self.max_tokens, n=self.n, stop=self.stop))
+            #     gene_results = [dict(prompts=self_refine_prompts[idx],
+            #                          outputs=refined_outputs_list[idx],
+            #                          logprobs=refined_logprobs_list[idx]) for idx in range(len(refined_outputs_list))]
+
             # save_results_to_files(self.result_save_file, gene_results, overwrite=True)
             # for idx in range(len(prompts_list)):
             #     f.write(json.dumps(dict(ret_doc_keys=ret_doc_keys_list[idx],

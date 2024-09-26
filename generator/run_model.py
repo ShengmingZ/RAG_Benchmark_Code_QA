@@ -15,7 +15,7 @@ if system == 'Darwin':
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
-from generator.generate_utils import get_docs_tokens, _get_generate_func, truncate_docs
+from generator.generate_utils import get_docs_tokens, _get_generate_func, truncate_docs, get_docs_for_ret_results
 from dataset_utils.corpus_utils import WikiCorpusLoader, PythonDocsLoader
 
 openai.api_key = os.getenv("OPENAI_API_KEY", "")
@@ -462,9 +462,56 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
     return output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, queries_list
 
 
-def run_model_for_self_refine(questions, model, dataset, temperature=0, max_tokens=500, n=1, stop=None):
-    initial_prompt_gene_func = _get_generate_func(dataset, no_ret_flag=False, prompt_type='3shot')
-    self_refine_gene_func = ...
+# def run_model_for_self_refine(qs_list, model, dataset, prompt_save_file, result_save_file, temperature=0, max_tokens=500, n=1, stop=None, batch=True):
+#     # initial_prompt_gene_func = _get_generate_func(dataset, no_ret_flag=False, prompt_type='3shot')
+#     self_refine_gene_func = _get_generate_func(dataset, no_ret_flag=False, prompt_type='self_refine')
+#
+#     # gene inital prompts and then get answer
+#     # initial_prompts = []
+#     from retriever.retriever_utils import get_ret_results
+#     ret_results = get_ret_results(dataset=dataset, retriever='openai-embedding')
+#     ret_results_docs = get_docs_for_ret_results(ret_results=ret_results, dataset=dataset)
+#     if dataset in ['NQ', 'TriviaQA', 'hotpotQA']: k = 10
+#     else: k = 5
+#     # for qs in qs_list:
+#     #     docs = [item['doc'] for item in ret_results_docs[qs['qs_id']][:k]]
+#     #     initial_prompts.append(initial_prompt_gene_func(docs, qs['question'], model))
+#     #
+#     # if model.startswith('llama') or model.startswith('codellama'):
+#     #     initial_outputs_list, initial_logprobs_list = llama(prompts=initial_prompts, model_name=model, max_new_tokens=max_tokens, temperature=temperature, n=n, stop=stop)
+#     # elif model.startswith('gpt'):
+#     #     if batch is False:
+#     #         initial_outputs_list, initial_logprobs_list = chatgpt(prompts=initial_prompts, model=model, max_tokens=max_tokens, temperature=temperature, n=n, stop=stop)
+#     #     else:
+#     #         prompt_file_for_batch = prompt_save_file.replace('prompts.jsonl', 'prompts_for_batch.jsonl')
+#     #         assert 'prompts_for_batch.jsonl' in prompt_file_for_batch
+#     #         initial_outputs_list, initial_logprobs_list = chatgpt_batch(prompt_file_for_batch=prompt_file_for_batch, prompts=initial_prompts,
+#     #                                                                     model=model, max_tokens=max_tokens, temperature=temperature, n=n, stop=stop)
+#     initial_prompts_save_file = prompt_save_file.replace('self-refine', '3shot')
+#     initial_prompts = json.load(open(initial_prompts_save_file, 'r'))
+#     initial_prompts = [item['prompt'] for item in initial_prompts]
+#     initial_result_save_file = result_save_file.replace('self-refine', '3shot')
+#     initial_results = json.load(open(initial_result_save_file, 'r'))
+#     initial_outputs = [item['outputs'] for item in initial_results]
+#
+#     # generate feedback
+#     self_refine_prompts = []
+#     for qs, outputs in zip(qs_list, initial_outputs):
+#         docs = [item['doc'] for item in ret_results_docs[qs['qs_id']][:k]]
+#         self_refine_prompts.append(self_refine_gene_func(docs, qs['question'], model, outputs[0]))
+#
+#     if model.startswith('llama') or model.startswith('codellama'):
+#         refined_outputs_list, refined_logprobs_list = llama(prompts=self_refine_prompts, model_name=model, max_new_tokens=max_tokens, temperature=temperature, n=n, stop=stop)
+#     elif model.startswith('gpt'):
+#         if batch is False:
+#             refined_outputs_list, refined_logprobs_list = chatgpt(prompts=self_refine_prompts, model=model, max_tokens=max_tokens, temperature=temperature, n=n, stop=stop)
+#         else:
+#             prompt_file_for_batch = prompt_save_file.replace('prompts.jsonl', 'prompts_for_batch.jsonl')
+#             assert 'prompts_for_batch.jsonl' in prompt_file_for_batch
+#             refined_outputs_list, refined_logprobs_list = chatgpt_batch(prompt_file_for_batch=prompt_file_for_batch, prompts=self_refine_prompts,
+#                                                                         model=model, max_tokens=max_tokens, temperature=temperature, n=n, stop=stop)
+#
+#     return self_refine_prompts, refined_outputs_list, refined_logprobs_list
 
 
 

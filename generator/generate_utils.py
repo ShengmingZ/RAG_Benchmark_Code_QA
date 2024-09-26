@@ -1060,7 +1060,7 @@ def _get_generate_func(dataset, no_ret_flag, prompt_type):
     return generate_func
 
 
-def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name, doc_max_length):
+def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name, doc_max_length, initial_outputs=None):
     generate_func = _get_generate_func(dataset=dataset, no_ret_flag=True if len(ret_docs_list) == 0 else False, prompt_type=prompt_type)   # get prompt gene func
     if len(ret_docs_list) == 0:     # no retrieval
         prompts = []
@@ -1072,8 +1072,8 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
             _ret_docs_list.append(truncate_docs(docs, model_name, doc_max_length))
         ret_docs_list = _ret_docs_list
         prompts = []
-        for ret_docs, question in zip(ret_docs_list, questions):
-            prompts.append(generate_func(ret_docs, question, model_name))
+        for idx, (ret_docs, question) in enumerate(zip(ret_docs_list, questions)):
+            prompts.append(generate_func(ret_docs, question, model_name) if initial_outputs is None else generate_func(ret_docs, question, model_name, initial_outputs[idx]))
 
     pl_list = approximate_token(prompts, model_name)
     # if exceed prompt limit, truncate more docs
