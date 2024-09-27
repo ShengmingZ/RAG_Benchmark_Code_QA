@@ -11,7 +11,7 @@ def config():
     parser.add_argument('--analysis_type', type=str, choices=['retrieval_recall', 'retrieval_doc_type', 'retrieval_doc_selection_topk', 'retrieval_doc_selection_pl', 'prompt_method',
                                                               'prompt_length_oracle', 'prompt_length_distracting', 'prompt_length_retrieved_top', 'prompt_length_none', 'prompt_length_irrelevant',
                                                               'prompt_length_oracle_type2', 'prompt_length_distracting_type2', 'prompt_length_retrieved_top_type2', 'prompt_length_none_type2', 'prompt_length_irrelevant_type2'])
-    parser.add_argument('--prompt_type', type=str, default=None, choices=['3shot', 'RaR', 'cot', 'self-consistency', 'least_to_most', 'plan_and_solve', 'con'])
+    parser.add_argument('--prompt_type', type=str, default=None, choices=['3shot', 'RaR', 'cot', 'self-consistency', 'least_to_most', 'plan_and_solve', 'self-refine', 'con'])
     parser.add_argument('--action', type=str, choices=['gene_prompts', 'gene_responses', 'eval_pred'])
     parser.add_argument('--n', type=int)
     parser.add_argument('--batch', action='store_true')
@@ -203,7 +203,7 @@ elif args.analysis_type == 'prompt_method':     # run by dataset
             cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} --batch '
                    f'--dataset {dataset_name} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --prompt_type {args.prompt_type}')
             if args.prompt_type in ['RaR', 'con'] and dataset_name in ['conala', 'DS1000', 'pandas_numpy_eval']: cmd += ' --max_token 1000'
-            if 'llama' in args.model and args.prompt_type in ['cot', 'self-consistency'] and dataset_name in ['NQ', 'TriviaQA', 'hotpotQA']: cmd += '--max_token 200'
+            if 'llama' in args.model and args.prompt_type in ['cot', 'self-consistency', 'self-refine'] and dataset_name in ['NQ', 'TriviaQA', 'hotpotQA']: cmd += '--max_token 200'
             cmds.append(cmd)
         batch_cmd = ''
         for cmd in cmds:
@@ -216,7 +216,7 @@ elif args.analysis_type == 'prompt_method':     # run by dataset
             cmd = (f'python generator/generate.py --action {args.action} --model {args.model} --temperature {args.temperature} '
                    f'--dataset {dataset_name} --retriever {args.retriever} --analysis_type {args.analysis_type} --n {args.n} --prompt_type {args.prompt_type}')
             if args.prompt_type == ['RaR', 'con'] and dataset_name in ['conala', 'DS1000', 'pandas_numpy_eval']: cmd += ' --max_token 1000'
-            if 'llama' in args.model and args.prompt_type in ['cot', 'self-consistency'] and dataset_name in ['NQ', 'TriviaQA', 'hotpotQA']: cmd += '--max_token 200'
+            if 'llama' in args.model and args.prompt_type in ['cot', 'self-consistency', 'self-refine'] and dataset_name in ['NQ', 'TriviaQA', 'hotpotQA']: cmd += '--max_token 200'
             cmds.append(cmd)
         batch_cmd = ''
         for cmd in cmds:

@@ -1002,6 +1002,8 @@ def _get_generate_func(dataset, no_ret_flag, prompt_type):
                 generate_func = conala_prompt.prompt_con
             elif prompt_type == 'RaR':
                 generate_func = conala_prompt.prompt_RaR
+            elif prompt_type == 'self-refine':
+                generate_func = conala_prompt.prompt_self_refine
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         elif dataset == 'DS1000':
@@ -1019,6 +1021,8 @@ def _get_generate_func(dataset, no_ret_flag, prompt_type):
                 generate_func = DS1000_prompt.prompt_con
             elif prompt_type == 'RaR':
                 generate_func = DS1000_prompt.prompt_RaR
+            elif prompt_type == 'self-refine':
+                generate_func = DS1000_prompt.prompt_self_refine
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         elif dataset == 'pandas_numpy_eval':
@@ -1036,6 +1040,8 @@ def _get_generate_func(dataset, no_ret_flag, prompt_type):
                 generate_func = pandas_numpy_eval_prompt.prompt_con
             elif prompt_type == 'RaR':
                 generate_func = pandas_numpy_eval_prompt.prompt_RaR
+            elif prompt_type == 'self-refine':
+                generate_func = pandas_numpy_eval_prompt.prompt_self_refine
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         elif dataset == 'hotpotQA':
@@ -1053,6 +1059,8 @@ def _get_generate_func(dataset, no_ret_flag, prompt_type):
                 generate_func = hotpotQA_prompt.prompt_con
             elif prompt_type == 'RaR':
                 generate_func = hotpotQA_prompt.prompt_RaR
+            elif prompt_type == 'self-refine':
+                generate_func = hotpotQA_prompt.prompt_self_refine
             else:
                 raise ValueError(f"Invalid prompt type: {prompt_type} for dataset {dataset}")
         else:
@@ -1083,7 +1091,7 @@ def generate_prompts(questions, ret_docs_list, prompt_type, dataset, model_name,
         while pl > token_limit:
             new_doc_max_length -= 100
             ret_docs_list[idx] = truncate_docs(ret_docs_list[idx], model_name, new_doc_max_length)
-            prompt = generate_func(ret_docs_list[idx], questions[idx], model_name)
+            prompt = generate_func(ret_docs_list[idx], questions[idx], model_name) if initial_outputs is None else generate_func(ret_docs_list[idx], questions[idx], model_name, initial_outputs[idx])
             pl = get_docs_tokens(docs=[prompt[0]+prompt[1]] if 'gpt' in model_name else [prompt], model=model_name)[0]
             prompts[idx] = prompt
     pl_list = approximate_token(prompts, model_name)
