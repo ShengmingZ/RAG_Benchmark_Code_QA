@@ -819,10 +819,15 @@ def make_avg_ret_recall():
     plt.show()
 
 
+def make_prompt_method_correctness():
+    graph_name = 'prompt_method_correctness.pdf'
+
+
+
 if __name__ == '__main__':
     # make_avg_ret_recall()
 
-    make_qa_code_ret_recall()
+    # make_qa_code_ret_recall()
 
     # make_ret_recall_analysis()
 
@@ -841,3 +846,5 @@ if __name__ == '__main__':
     # make_doc_selection_topk_perplexity()
 
     # make_doc_selection_topk_ret_recall()
+
+    make_prompt_method_correctness()
