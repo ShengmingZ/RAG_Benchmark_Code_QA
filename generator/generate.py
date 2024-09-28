@@ -205,7 +205,7 @@ class Generator:
         if os.path.exists(self.result_save_file):
             print(f'generation results exists for {self.result_save_file}')
             return
-        print(self.result_save_file)
+
         if self.prompt_type == 'ir-cot' or self.prompt_type == 'flare':     # multi retrieval framework
             if self.prompt_type == 'ir-cot':
                 self.qs_list = self.qs_list[17:18]
