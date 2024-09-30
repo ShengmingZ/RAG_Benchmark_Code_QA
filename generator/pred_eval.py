@@ -405,3 +405,6 @@ if __name__ == '__main__':
             outputs = process_gene_results(args, result['outputs'])
             print([outputs[0]])
         print(cannot_answer_count)
+
+    # todo: for self-refine
+    # todo: for self-consistency

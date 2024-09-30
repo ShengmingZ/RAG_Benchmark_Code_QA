@@ -358,6 +358,7 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                 if 'the answer is' in output: return True
             else:
                 if '</code>' in output: return True
+            if 'Potential document' in output: return True  # if model begin to self-generate next case, stop
         return False
 
     def extract_first_sent(dataset, output_tokens, logprobs, output_list):

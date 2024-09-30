@@ -215,7 +215,7 @@ def generate_config(in_program_call=None):
     parser.add_argument('--action', type=str, choices=['gene_prompts', 'gene_responses', 'eval_pred'])
 
     # model parameters
-    parser.add_argument('--model', type=str, default='gpt-3.5-turbo-1106', choices=['llama3-8b', 'llama2-13b-chat', 'codellama-13b-instruct', 'gpt-3.5-turbo-0125', 'gpt-4o'])
+    parser.add_argument('--model', type=str, choices=['llama3-8b', 'llama2-13b-chat', 'codellama-13b-instruct', 'gpt-3.5-turbo-0125', 'gpt-4o'])
     parser.add_argument('--temperature', type=float)
     parser.add_argument('--n', type=int)
     parser.add_argument('--max_tokens', type=int, default=500)
