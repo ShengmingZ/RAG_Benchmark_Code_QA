@@ -150,7 +150,7 @@ class DenseRetrievalEncoder:
                 all_embeddings.append(self.model.encode(batch))
 
             all_embeddings = np.concatenate(all_embeddings, axis=0)
-            print(f"done embedding: {all_embeddings.shape}")
+            # print(f"done embedding: {all_embeddings.shape}")
 
         elif 'text-embedding' in self.model_name:
             OPENAI_TOKENIZER = "cl100k_base"
@@ -182,7 +182,7 @@ class DenseRetrievalEncoder:
                 all_embeddings.append(embeds)
 
             all_embeddings = np.concatenate(all_embeddings, axis=0)
-            print(f"done embedding: {all_embeddings.shape}")
+            # print(f"done embedding: {all_embeddings.shape}")
 
 
         elif 'contriever' in self.model_name:
@@ -195,7 +195,7 @@ class DenseRetrievalEncoder:
                     all_embeddings.append(embeds.cpu())
 
                 all_embeddings = np.concatenate(all_embeddings, axis=0)
-                print(f"done embedding: {all_embeddings.shape}")
+                # print(f"done embedding: {all_embeddings.shape}")
 
 
         else:
@@ -233,7 +233,7 @@ class DenseRetrievalEncoder:
                     all_embeddings.append(emb.cpu())
 
                 all_embeddings = np.concatenate(all_embeddings, axis=0)
-                print(f"done embedding: {all_embeddings.shape}")
+                # print(f"done embedding: {all_embeddings.shape}")
 
 
         if save_file is not None:

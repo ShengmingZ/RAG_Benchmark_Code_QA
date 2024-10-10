@@ -401,6 +401,7 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
     retrieve_times_list = [0]*len(questions)
     stop_list = [False] * len(questions)
     queries_list = [[question] for question in questions]
+    round_idx = 0
 
     while False in stop_list:
         # first do retrieving for all non-stop samples, update ret_doc_keys_list
@@ -454,6 +455,9 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                     output_list[idx] += output_first_sent
                     logprobs_list[idx].extend(logprobs_first_sent)
                     # print('output kept: ', [output_list[idx]])
+
+        print(f'round {round_idx} complete')
+        round_idx += 1
 
     # import inspect
     # vars = [output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, queries_list]
