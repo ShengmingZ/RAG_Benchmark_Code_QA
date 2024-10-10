@@ -213,7 +213,7 @@ class Generator:
                     run_model_for_ir_cot(questions=[qs['question'] for qs in self.qs_list], model=self.model, dataset=self.dataset,
                                          temperature=self.temperature, max_tokens=self.max_tokens, n=self.n, stop=self.stop))
             elif self.prompt_type == 'flare':
-                self.qs_list = self.qs_list[12:13]
+                self.qs_list = self.qs_list[17:18]
                 output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, queries_list = (
                     run_model_for_flare(questions=[qs['question'] for qs in self.qs_list], model=self.model, dataset=self.dataset,
                                          temperature=self.temperature, max_tokens=self.max_tokens, n=self.n, stop=self.stop))

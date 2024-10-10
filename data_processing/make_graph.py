@@ -819,9 +819,130 @@ def make_avg_ret_recall():
     plt.show()
 
 
+def make_prompt_method_avg_correctness():
+    graph_name = 'prompt_method_avg_correctness.pdf'
+
+    prompt_method_list = ['0shot', '3shot', 'RaR', 'cot', 'self-consistency', 'least_to_most', 'plan_and_solve', 'self-refine', 'con', 'ir-cot', 'flare']
+    qa_metric = 'has_answer'
+    code_metric = 'pass@1'
+
+    qa_gpt_avg_prompt_perf_datas = []
+    qa_llama_avg_prompt_perf_datas = []
+    code_gpt_avg_prompt_perf_datas = []
+    code_llama_avg_prompt_perf_datas = []
+    for prompt_method in prompt_method_list:
+        try: avg_qa_gpt_data = sum([results.prompt_method_gpt[qa_dataset_name][prompt_method][qa_metric] for qa_dataset_name in qa_dataset_names])/3
+        except: avg_qa_gpt_data = 0
+        qa_gpt_avg_prompt_perf_datas.append(avg_qa_gpt_data)
+        try: avg_qa_llama_data = sum([results.prompt_method_llama[qa_dataset_name][prompt_method][qa_metric] for qa_dataset_name in qa_dataset_names])/3
+        except: avg_qa_llama_data = 0
+        qa_llama_avg_prompt_perf_datas.append(avg_qa_llama_data)
+        try: avg_code_gpt_data = sum([results.prompt_method_gpt[code_dataset_name][prompt_method][code_metric] for code_dataset_name in code_dataset_names])/3
+        except: avg_code_gpt_data = 0
+        code_gpt_avg_prompt_perf_datas.append(avg_code_gpt_data)
+        try: avg_code_llama_data = sum([results.prompt_method_llama[code_dataset_name][prompt_method][code_metric] for code_dataset_name in code_dataset_names])/3
+        except: avg_code_llama_data = 0
+        code_llama_avg_prompt_perf_datas.append(avg_code_llama_data)
+
+    colors = ['#DC143C', '#FF8C00', '#DAA520', '#FFB6C1', '#228B22', '#4169E1', '#8B4513', '#C71585']
+    plt.style.use('ggplot')
+    fig, ((ax1, ax2, ax3, ax4)) = plt.subplots(4, 1, figsize=(12, 24), sharex=True)  # ax1: qa, ax2: code
+    axes = [ax1, ax2, ax3, ax4]
+    perf_datas_list = [qa_gpt_avg_prompt_perf_datas, qa_llama_avg_prompt_perf_datas, code_gpt_avg_prompt_perf_datas, code_llama_avg_prompt_perf_datas]
+    for ax_idx, (ax, perf_datas) in enumerate(zip(axes, perf_datas_list)):
+        ax.bar(range(len(perf_datas)), perf_datas, width=0.6)
+        if ax_idx == 3:
+            ax.set_xticks(range(len(perf_datas)))
+            ax.set_xticklabels(prompt_method_list, rotation=45, ha='right', fontsize=16)
+        else:
+            ax.set_xticks([])
+        if ax_idx in [0, 1]:
+            ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+            ax.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=16)
+            ax.set_ylabel(qa_metric, fontsize=16)
+        else:
+            ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4, 0.5])
+            ax.set_yticklabels([0, 0.1, 0.2, 0.3, 0.4, 0.5], fontsize=16)
+            ax.set_ylabel(code_metric, fontsize=16)
+
+    plt.tight_layout()
+    plt.savefig('graph/' + graph_name)
+    plt.show()
+
+
 def make_prompt_method_correctness():
     graph_name = 'prompt_method_correctness.pdf'
 
+    prompt_method_list = ['0shot', '3shot', 'RaR', 'cot', 'self-consistency', 'least_to_most', 'plan_and_solve', 'self-refine', 'con', 'ir-cot', 'flare']
+    auth_prompt_method_names = ['zero-shot', 'few-shot', 'RaR', 'CoT', 'Self-Consistency', 'Least-to-Most', 'Plan-and-Solve', 'Self-Refine', 'CoN', 'IR-CoT', 'FLARE']
+    qa_metric = 'has_answer'
+    code_metric = 'pass@1'
+
+    qa_gpt_avg_prompt_perf_datas = []
+    qa_llama_avg_prompt_perf_datas = []
+    code_gpt_avg_prompt_perf_datas = []
+    code_llama_avg_prompt_perf_datas = []
+    for prompt_method in prompt_method_list:
+        try: avg_qa_gpt_data = [results.prompt_method_gpt[qa_dataset_name][prompt_method][qa_metric] for qa_dataset_name in qa_dataset_names]
+        except: avg_qa_gpt_data = [0, 0, 0]
+        qa_gpt_avg_prompt_perf_datas.append(avg_qa_gpt_data)
+        try: avg_qa_llama_data = [results.prompt_method_llama[qa_dataset_name][prompt_method][qa_metric] for qa_dataset_name in qa_dataset_names]
+        except: avg_qa_llama_data = [0, 0, 0]
+        qa_llama_avg_prompt_perf_datas.append(avg_qa_llama_data)
+        try: avg_code_gpt_data = [results.prompt_method_gpt[code_dataset_name][prompt_method][code_metric] for code_dataset_name in code_dataset_names]
+        except: avg_code_gpt_data = [0, 0, 0]
+        code_gpt_avg_prompt_perf_datas.append(avg_code_gpt_data)
+        try: avg_code_llama_data = [results.prompt_method_llama[code_dataset_name][prompt_method][code_metric] for code_dataset_name in code_dataset_names]
+        except: avg_code_llama_data = [0, 0, 0]
+        code_llama_avg_prompt_perf_datas.append(avg_code_llama_data)
+
+    # colors = ['#DC143C', '#FF8C00', '#DAA520', '#FFB6C1', '#228B22', '#4169E1', '#8B4513', '#C71585']
+    colors = ['skyblue', 'lightgreen', 'salmon']
+    colors = ['skyblue', 'lightgreen', 'tomato']
+    hatches = ['/', '||', 'X']
+    edge_colors = ['blue', 'green', 'red']
+    plt.style.use('ggplot')
+    fig, ((ax1, ax2, ax3, ax4)) = plt.subplots(4, 1, figsize=(12, 24))  # ax1: qa, ax2: code
+    axes = [ax1, ax2, ax3, ax4]
+    perf_datas_list = [qa_gpt_avg_prompt_perf_datas, qa_llama_avg_prompt_perf_datas, code_gpt_avg_prompt_perf_datas,
+                       code_llama_avg_prompt_perf_datas]
+    special_idx = 2
+    bar_width = 0.2
+    index = np.arange(len(prompt_method_list))
+    for ax_idx, (ax, perf_datas) in enumerate(zip(axes, perf_datas_list)):
+        if ax_idx in [0,1]: dataset_names = auth_qa_dataset_names
+        else: dataset_names = auth_code_dataset_names
+        for dataset_idx, dataset_name in enumerate(dataset_names):
+            offset = dataset_idx * bar_width
+            bar_data = [item[dataset_idx] for item in perf_datas]
+            hatch_styles = [hatches[dataset_idx] if idx != special_idx or ax_idx in [2,3] else 'XX' for idx in index]  # Dense hatch for unreliable
+
+            ax.bar(index+offset, bar_data, width=bar_width, label=dataset_name,
+                   color=colors[dataset_idx], hatch=hatch_styles, edgecolor=edge_colors[dataset_idx])
+        if ax_idx == 3:
+            ax.set_xticks(index+bar_width)
+            ax.set_xticklabels(auth_prompt_method_names, rotation=45, ha='right', fontsize=22)
+        else:
+            ax.set_xticks([])
+        if ax_idx in [0, 1]:
+            ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+            ax.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=20)
+            ax.set_ylabel(qa_metric, fontsize=24)
+        else:
+            ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+            ax.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=20)
+            ax.set_ylabel(code_metric, fontsize=24)
+        ax.legend(loc='upper right', fontsize=18)
+
+        if ax_idx in [0,1]:
+            bar_center = index[special_idx] + bar_width
+            # ax.text(bar_center, 0.9, 'Unreliable', ha='center', fontsize=12, color='black')
+            ax.annotate('Unreliable', xy=(bar_center, 0.75), xytext=(bar_center + 0.3, 0.9),
+                        arrowprops=dict(facecolor='black', shrink=0.05))
+
+    plt.tight_layout()
+    plt.savefig('graph/' + graph_name)
+    plt.show()
 
 
 if __name__ == '__main__':
@@ -846,5 +967,7 @@ if __name__ == '__main__':
     # make_doc_selection_topk_perplexity()
 
     # make_doc_selection_topk_ret_recall()
+
+    # make_prompt_method_avg_correctness()
 
     make_prompt_method_correctness()
