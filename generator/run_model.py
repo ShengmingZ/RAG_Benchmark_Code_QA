@@ -305,11 +305,11 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
                     [[output_this_round]], [[logprobs_this_round]], [[output_tokens_this_round]] = (
                         llama(prompts=[prompts_list[idx][-1]], model_name=model, max_new_tokens=max_tokens, temperature=temperature, n=n, stop=stop, return_tokens=True))
                 output_tokens_list[idx].append(len(output_tokens_this_round))  # count output tokens of each generation
-                print(f'{retrieve_times_list[idx]}th generate output: ', [output_this_round])
+                # print(f'{retrieve_times_list[idx]}th generate output: ', [output_this_round])
 
                 # check if each new sent needs retrieve, update stop_list, output_list, logprobs_list
                 sents, sents_tokens, sents_logprobs = split_sents_and_logprobs(output_tokens_this_round, logprobs_this_round) # split output and logprobs to each sentences
-                print(sents)
+                # print(sents)
                 if retrieve_times_list[idx] > 1:    # 1 means first retrieval using question, after that, each retrieval would make sure at least one more sentence is generated
                     output_list[idx] += sents[0]; logprobs_list[idx].extend(sents_logprobs[0])
                     if_retrieve_list[idx] = False
@@ -318,16 +318,16 @@ def run_model_for_flare(questions, model, dataset, temperature=0, max_tokens=500
                 # for each sentence, if need retrieve, deprecate sentences behind, query retriever
                 for sent, sent_tokens, sent_logprobs in zip(sents, sents_tokens, sents_logprobs):
                     ret_flag, new_query = if_retrieve(sent_tokens, sent_logprobs)
-                    print(ret_flag)
+                    # print(ret_flag)
                     if ret_flag:
                         if_retrieve_list[idx] = True
                         queries_list[idx].append(new_query)
-                        print('new query: ', new_query)
+                        # print('new query: ', new_query)
                         break
                     else:
                         output_list[idx] += sent; logprobs_list[idx].extend(sent_logprobs)
                         if_retrieve_list[idx] = False
-            print(f'final output in {retrieve_times_list[idx]}th: ', output_list[idx])
+            # print(f'final output in {retrieve_times_list[idx]}th: ', output_list[idx])
 
     return output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, queries_list
 
@@ -414,7 +414,7 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                 ret_doc_keys_list[idx].extend(new_ret_doc_keys)
                 new_ret_doc_keys_list.append(new_ret_doc_keys)
                 retrieve_times_list[idx] += 1
-                print(f'{retrieve_times_list[idx]}th retrieve result: ', ret_doc_keys)
+                # print(f'{retrieve_times_list[idx]}th retrieve result: ', ret_doc_keys)
         # get ret_docs, update ret_docs_list
         if dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
             new_ret_docs_list = WikiCorpusLoader().get_docs(new_ret_doc_keys_list, dataset, num_procs=8)
@@ -428,7 +428,7 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
         for idx, stop_flag in enumerate(stop_list):
             if not stop_flag:
                 prompts_list[idx].append(generate_func(ret_docs_list[idx], questions[idx], model, output_list[idx]))
-                print('ksdugchsd:', [prompts_list[idx][-1][1].split('##')[-1]])
+                # print('ksdugchsd:', [prompts_list[idx][-1][1].split('##')[-1]])
                 input_tokens_list[idx].append(get_docs_tokens(docs=[prompts_list[idx][-1]], model=model)[0])
 
         # run models
@@ -441,19 +441,19 @@ def run_model_for_ir_cot(questions, model, dataset, temperature=0, max_tokens=50
                     [[output_this_round]], [[logprobs_this_round]], [[output_tokens_this_round]] = (
                         llama(prompts=[prompts_list[idx][-1]], model_name=model, max_new_tokens=max_tokens, temperature=temperature, n=n, stop=stop, return_tokens=True))
                 output_tokens_list[idx].append(len(output_tokens_this_round))   # count output tokens of each generation
-                print(f'{retrieve_times_list[idx]}th generate output: ', [output_this_round])
+                # print(f'{retrieve_times_list[idx]}th generate output: ', [output_this_round])
 
                 output_first_sent, logprobs_first_sent = extract_first_sent(dataset, output_tokens_this_round, logprobs_this_round, output_list)
-                print('extracted first sentence: ', output_first_sent)
+                # print('extracted first sentence: ', output_first_sent)
                 if if_stop(dataset, output_first_sent, retrieve_times_list[idx], ret_docs_list[idx], output_list):
                     output_list[idx] += output_this_round
                     logprobs_list[idx].extend(logprobs_this_round)
                     stop_list[idx] = True
-                    print('stop at output: ', [output_list[idx]])
+                    # print('stop at output: ', [output_list[idx]])
                 else:
                     output_list[idx] += output_first_sent
                     logprobs_list[idx].extend(logprobs_first_sent)
-                    print('output kept: ', [output_list[idx]])
+                    # print('output kept: ', [output_list[idx]])
 
     # import inspect
     # vars = [output_list, logprobs_list, ret_doc_keys_list, prompts_list, input_tokens_list, output_tokens_list, retrieve_times_list, queries_list]
