@@ -157,7 +157,7 @@ def pandas_numpy_eval_result_process(args, output, code_prompt):
     return pred
 
 
-def process_gene_results(args, outputs, code_prompt=None):
+def process_gene_results(args, outputs, code_prompt=None, outputs_before=None):
     preds = []
     if args.dataset == 'conala':
         for output in outputs:
@@ -175,13 +175,16 @@ def process_gene_results(args, outputs, code_prompt=None):
             preds.append(pred)
 
     elif args.dataset == 'NQ' or args.dataset == 'TriviaQA' or args.dataset == 'hotpotQA':
-        for output in outputs:
+        for idx, output in enumerate(outputs):
             pred = output
             if args.prompt_type == 'RaR':
                 try: pred = pred.split('Answer:\n')[1]
                 except: ...
                 try: pred = pred.split('the answer')[1]
                 except: ...
+            if args.prompt_type == 'self-refine':
+                if not '<answer>' in output and not '```' in output:
+                    pred = outputs_before[idx]
             try: pred = pred.split('Potential documents')[0]
             except: ...
             try: pred = pred.split('<answer>')[1].split('</answer>')[0]
@@ -196,6 +199,18 @@ def process_gene_results(args, outputs, code_prompt=None):
     return preds
 
 
+def process_outputs_for_self_consistency(outputs):
+    outputs_dict = dict()
+    for output in outputs:
+        if output in outputs_dict.keys():
+            outputs_dict[output] += 1
+        else:
+            outputs_dict[output] = 1
+    most_output = sorted(outputs_dict.items(), key=lambda item: item[1], reverse=True)[0][0]
+    return most_output
+
+
+
 def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_analysis=True, if_save=True):
     eval_save_file = args.result_save_file.replace('.json', '_eval.json')
     # if os.path.exists(eval_save_file):
@@ -205,12 +220,14 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
     #     return
 
     gene_results = json.load(open(args.result_save_file, 'r'))
-    if args.n == 10:
-        k_list = [1,3,5,10]
-    elif args.n == 1:
-        k_list = [1]
-    else:
-        raise ValueError('args.n must be 1 or 10')
+    if args.prompt_type == 'self-refine': gene_results_before = json.load(open(args.result_save_file.replace('self-refine', '3shot'), 'r'))
+    # if args.n == 10:
+    #     k_list = [1,3,5,10]
+    # elif args.n == 1:
+    #     k_list = [1]
+    # else:
+    #     raise ValueError('args.n must be 1 or 10')
+    k_list = [1]
 
     output_records = dict()
     retrieval_records = dict()
@@ -271,8 +288,10 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
         loader = HotpotQAUtils()
         oracle_list = loader.load_oracle_list()
         pred_list = []
-        for result in gene_results:
-            output = process_gene_results(args, result['outputs'])[0]   # Todo: now only 1 inference
+        for idx, result in enumerate(gene_results):
+            if args.prompt_type == 'self-refine': output = process_gene_results(args, result['outputs'], outputs_before=gene_results_before[idx]['outputs'])[0]
+            elif args.prompt_type == 'self-consistency': output = process_outputs_for_self_consistency(process_gene_results(args, result['outputs']))
+            else: output = process_gene_results(args, result['outputs'])[0]   # Todo: now only 1 inference
             pred_list.append(dict(qs_id=result['qs_id'], output=output))
             output_records[result['qs_id']] = [output]
             retrieval_records[result['qs_id']] = result['ret_docs']
@@ -335,7 +354,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
 
 if __name__ == '__main__':
     in_program_call = None
-    in_program_call = '--model llama2-13b-chat --dataset NQ --retriever openai-embedding --analysis_type prompt_method --prompt_type RaR --n 1'
+    in_program_call = '--model gpt-3.5-turbo-0125 --dataset hotpotQA --retriever openai-embedding --analysis_type prompt_method --prompt_type self-consistency --n 10'
     # in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_5'
     args = generate_config(in_program_call)
 
@@ -398,13 +417,21 @@ if __name__ == '__main__':
         """
         cannot_answer_count = 0
         gene_results = json.load(open(args.result_save_file, 'r'))
+        if args.prompt_type == 'self-refine': gene_results_before = json.load(open(args.result_save_file.replace('self-refine', '3shot'), 'r'))
         for idx, result in enumerate(gene_results):
             print(f'\n<processed answer {idx}>]')
-            print([result['outputs'][0]])
+            print([result['outputs']])
             if "I'm sorry" in result['outputs'][0]: cannot_answer_count += 1
-            outputs = process_gene_results(args, result['outputs'])
-            print([outputs[0]])
+            if args.prompt_type == 'self-refine':
+                outputs = process_gene_results(args, result['outputs'], outputs_before=gene_results_before[idx]['outputs'])
+            else:
+                outputs = process_gene_results(args, result['outputs'])
+            if args.prompt_type == 'self-consistency':
+                print(outputs)
+                most_output = process_outputs_for_self_consistency(outputs)
+                print(most_output)
+            else:
+                print([outputs[0]])
         print(cannot_answer_count)
 
-    # todo: for self-refine
     # todo: for self-consistency
