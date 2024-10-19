@@ -21,8 +21,9 @@ from retriever.retriever_utils import ret_eval_by_doc_keys
 from data_processing.analyze_result import analyze_results_for_code
 
 
-def conala_result_process(args, output):
+def conala_result_process(args, output, output_before=None):
     pred = output
+    if args.prompt_type == 'self-refine' and '```' not in output and '<code>' not in output: pred = output_before   # if no refine in self-refine, just use output before
     pred = pred.replace('</s>', '').replace('```python', '```')
     try: pred = pred.split('Potential documents')[0]
     except: ...
@@ -42,8 +43,9 @@ def conala_result_process(args, output):
     return pred
 
 
-def DS1000_result_process(args, output, code_prompt):
+def DS1000_result_process(args, output, code_prompt, output_before=None):
     pred = output
+    if args.prompt_type == 'self-refine' and not '```' in output and not '<code>' in output: pred = output_before
     pred = pred.replace('</s>', '').replace('```python', '```')
     try: pred = pred.split('Potential documents')[0]
     except: ...
@@ -61,10 +63,10 @@ def DS1000_result_process(args, output, code_prompt):
 
     prompt_lines = code_prompt.split('\n')
     prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-    print(prompt_lines)
+    # print(prompt_lines)
     pred_lines = pred.split('\n')
     pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-    print(pred_lines)
+    # print(pred_lines)
 
     preload_variables = []  # get pre-defined variables in code prompt
     for prompt_line in prompt_lines:
@@ -99,10 +101,11 @@ def DS1000_result_process(args, output, code_prompt):
     return pred
 
 
-def pandas_numpy_eval_result_process(args, output, code_prompt):
+def pandas_numpy_eval_result_process(args, output, code_prompt, output_before=None):
     # first extract code
-    if output.startswith(' '): output = output[1:]
     pred = output
+    if args.prompt_type == 'self-refine' and not '```' in output and not '<code>' in output: pred = output_before
+    if pred.startswith(' '): pred = pred[1:]
     pred = pred.replace('</s>', '').replace('```python', '```')
     try: pred = pred.split('Potential documents')[0]
     except: ...
@@ -123,10 +126,10 @@ def pandas_numpy_eval_result_process(args, output, code_prompt):
     # clean code
     prompt_lines = code_prompt.split('\n')
     prompt_lines = [line for line in prompt_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-    print(prompt_lines)
+    # print(prompt_lines)
     pred_lines = pred.split('\n')
     pred_lines = [line for line in pred_lines if line != '' and not line.startswith('#') and not line.startswith('    #')]
-    print(pred_lines)
+    # print(pred_lines)
     # remove dup lines
     _pred_lines = []
     for pred_line in pred_lines:
@@ -160,18 +163,27 @@ def pandas_numpy_eval_result_process(args, output, code_prompt):
 def process_gene_results(args, outputs, code_prompt=None, outputs_before=None):
     preds = []
     if args.dataset == 'conala':
-        for output in outputs:
-            pred = conala_result_process(args, output)
+        for idx, output in enumerate(outputs):
+            if args.prompt_type == 'self-refine':
+                pred = conala_result_process(args, output, outputs_before[idx])
+            else:
+                pred = conala_result_process(args, output)
             preds.append(pred)
 
     elif args.dataset == 'DS1000':
-        for output in outputs:
-            pred = DS1000_result_process(args, output, code_prompt)
+        for idx, output in enumerate(outputs):
+            if args.prompt_type == 'self-refine':
+                pred = DS1000_result_process(args, output, code_prompt, outputs_before[idx])
+            else:
+                pred = DS1000_result_process(args, output, code_prompt)
             preds.append(pred)
 
     elif args.dataset == 'pandas_numpy_eval':
-        for output in outputs:
-            pred = pandas_numpy_eval_result_process(args, output, code_prompt)
+        for idx, output in enumerate(outputs):
+            if args.prompt_type == 'self-refine':
+                pred = pandas_numpy_eval_result_process(args, output, code_prompt, outputs_before[idx])
+            else:
+                pred = pandas_numpy_eval_result_process(args, output, code_prompt)
             preds.append(pred)
 
     elif args.dataset == 'NQ' or args.dataset == 'TriviaQA' or args.dataset == 'hotpotQA':
@@ -235,8 +247,10 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
     if args.dataset == 'conala':
         loader = ConalaLoader()
         _gene_results = list()
-        for result in gene_results:
-            outputs = process_gene_results(args, result['outputs'])
+        for idx, result in enumerate(gene_results):
+            if args.prompt_type == 'self-refine': outputs = process_gene_results(args, result['outputs'], outputs_before=gene_results_before[idx]['outputs'])
+            elif args.prompt_type == 'self-consistency': outputs = [process_outputs_for_self_consistency(process_gene_results(args, result['outputs']))]
+            else: outputs = process_gene_results(args, result['outputs'])
             # outputs = [result['oracle_output']]
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
             output_records[result['qs_id']] = outputs
@@ -250,7 +264,9 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
         _gene_results = list()
         for idx, result in enumerate(gene_results):
             assert qs_list[idx]['qs_id'] == result['qs_id']
-            outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
+            if args.prompt_type == 'self-refine': outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1], outputs_before=gene_results_before[idx]['outputs'])
+            elif args.prompt_type == 'self-consistency': outputs = [process_outputs_for_self_consistency(process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1]))]
+            else: outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
             output_records[result['qs_id']] = outputs
             retrieval_records[result['qs_id']] = result['ret_docs']
@@ -262,7 +278,9 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
         _gene_results = []
         for idx, result in enumerate(gene_results):
             assert qs_list[idx]['qs_id'] == result['qs_id']
-            outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'])
+            if args.prompt_type == 'self-refine': outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'], outputs_before=gene_results_before[idx]['outputs'])
+            elif args.prompt_type == 'self-consistency': outputs = [process_outputs_for_self_consistency(process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question']))]
+            else: outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'])
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
             output_records[result['qs_id']] = outputs
             retrieval_records[result['qs_id']] = result['ret_docs']
@@ -356,7 +374,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
 
 if __name__ == '__main__':
     in_program_call = None
-    in_program_call = '--model gpt-3.5-turbo-0125 --dataset hotpotQA --retriever openai-embedding --analysis_type prompt_method --prompt_type 3shot --n 1'
+    in_program_call = '--model gpt-3.5-turbo-0125 --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type prompt_method --prompt_type self-consistency --n 10'
     # in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_5'
     args = generate_config(in_program_call)
 
@@ -369,6 +387,7 @@ if __name__ == '__main__':
         cannot_answer_count = 0
         ds1000 = DS1000Dataset(source_dir='../data/DS1000/ds1000_data', libs='all', mode='Insertion')
         gene_results = json.load(open(args.result_save_file, 'r'))
+        if args.prompt_type == 'self-refine': gene_results_before = json.load(open(args.result_save_file.replace('self-refine', '3shot'), 'r'))
         loader = DS1000Loader()
         oracle_list = loader.load_oracle_list()
         qs_list = loader.load_qs_list()
@@ -381,9 +400,16 @@ if __name__ == '__main__':
             if '\n\n\n\n\n\n\n\n' in result['outputs'][0]: cannot_answer_count += 1
             # print([result['outputs'][0]])
             # print(qs_list[idx]['question'].split('\nA:')[1])
-            outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
-            # outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'])
-            print([outputs[0]])
+            if args.prompt_type == 'self-refine':
+                outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1], outputs_before=gene_results_before[idx]['outputs'])
+            else:
+                outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
+            if args.prompt_type == 'self-consistency':
+                print(outputs)
+                most_output = process_outputs_for_self_consistency(outputs)
+                print(most_output)
+            else:
+                print([outputs[0]])
         print(cannot_answer_count)
 
     elif args.dataset == 'pandas_numpy_eval':
@@ -392,6 +418,7 @@ if __name__ == '__main__':
         """
         dataset = json.load(open('../data/pandas_numpy_eval/data/pandas_numpy_eval.json', 'r'))
         gene_results = json.load(open(args.result_save_file, 'r'))
+        if args.prompt_type == 'self-refine': gene_results_before = json.load(open(args.result_save_file.replace('self-refine', '3shot'), 'r'))
         for idx, result in enumerate(gene_results):
             print(f'\n<processed code {idx}>]')
             print([result['outputs'][0]])
@@ -399,19 +426,36 @@ if __name__ == '__main__':
             for data in dataset:
                 if data['task_id'] == result['qs_id']:
                     code_prompt = data['prompt']
-            outputs = process_gene_results(args, result['outputs'], code_prompt)
-            print([outputs[0]])
+            if args.prompt_type == 'self-refine':
+                outputs = process_gene_results(args, result['outputs'], code_prompt, gene_results_before[idx]['outputs'])
+            else:
+                outputs = process_gene_results(args, result['outputs'], code_prompt)
+            if args.prompt_type == 'self-consistency':
+                print(outputs)
+                most_output = process_outputs_for_self_consistency(outputs)
+                print(most_output)
+            else:
+                print([outputs[0]])
 
     elif args.dataset == 'conala':
         """
         test for conala
         """
         gene_results = json.load(open(args.result_save_file, 'r'))
+        if args.prompt_type == 'self-refine': gene_results_before = json.load(open(args.result_save_file.replace('self-refine', '3shot'), 'r'))
         for idx, result in enumerate(gene_results):
             print(f'\n<processed code {idx}>]')
             print([result['outputs'][0]])
-            outputs = process_gene_results(args, result['outputs'])
-            print([outputs[0]])
+            if args.prompt_type == 'self-refine':
+                outputs = process_gene_results(args, result['outputs'], outputs_before=gene_results_before[idx]['outputs'])
+            else:
+                outputs = process_gene_results(args, result['outputs'])
+            if args.prompt_type == 'self-consistency':
+                print(outputs)
+                most_output = process_outputs_for_self_consistency(outputs)
+                print(most_output)
+            else:
+                print([outputs[0]])
 
     else:
         """
