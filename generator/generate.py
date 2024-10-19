@@ -125,7 +125,12 @@ class Generator:
                 if self.prompt_type == 'self-refine':
                     initial_result_save_file = self.result_save_file.replace('self-refine', '3shot')
                     initial_results = json.load(open(initial_result_save_file, 'r'))
-                    initial_outputs = [item['outputs'][0] for item in initial_results]
+                    if 'llama' in args.model:
+                        initial_outputs = []
+                        for item in initial_results:
+                            initial_output = item['outputs'][0].split('Potential documents')[0].replace('\n\n\n', '')
+                            initial_outputs.append(initial_output)
+                    else: initial_outputs = [item['outputs'][0] for item in initial_results]
                 else: initial_outputs = None
                 if self.dataset in ['NQ', 'TriviaQA', 'hotpotQA']: k = 10
                 else: k = 5

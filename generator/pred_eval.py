@@ -356,7 +356,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
 
 if __name__ == '__main__':
     in_program_call = None
-    in_program_call = '--model gpt-3.5-turbo-0125 --dataset hotpotQA --retriever openai-embedding --analysis_type prompt_method --prompt_type plan_and_solve --n 1'
+    in_program_call = '--model gpt-3.5-turbo-0125 --dataset hotpotQA --retriever openai-embedding --analysis_type prompt_method --prompt_type 3shot --n 1'
     # in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_5'
     args = generate_config(in_program_call)
 
