@@ -272,9 +272,11 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
         loader = NQTriviaQAUtils(args.dataset)
         oracle_list = loader.load_oracle_list()
         preds, answers_list = [], []
-        for result, oracle in zip(gene_results, oracle_list):
+        for idx, (result, oracle) in enumerate(zip(gene_results, oracle_list)):
             assert str(result['qs_id']) == str(oracle['qs_id'])
-            pred = process_gene_results(args, result['outputs'])[0]  # Todo: now only 1 inference
+            if args.prompt_type == 'self-refine': pred = process_gene_results(args, result['outputs'], outputs_before=gene_results_before[idx]['outputs'])[0]
+            elif args.prompt_type == 'self-consistency': pred = process_outputs_for_self_consistency(process_gene_results(args, result['outputs']))
+            else: pred = process_gene_results(args, result['outputs'])[0]  # Todo: now only 1 inference
             preds.append(pred)
             answers_list.append(oracle['answers'])
             output_records[result['qs_id']] = [pred]
@@ -354,7 +356,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
 
 if __name__ == '__main__':
     in_program_call = None
-    in_program_call = '--model gpt-3.5-turbo-0125 --dataset hotpotQA --retriever openai-embedding --analysis_type prompt_method --prompt_type self-consistency --n 10'
+    in_program_call = '--model gpt-3.5-turbo-0125 --dataset hotpotQA --retriever openai-embedding --analysis_type prompt_method --prompt_type plan_and_solve --n 1'
     # in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_5'
     args = generate_config(in_program_call)
 

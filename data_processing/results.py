@@ -1211,10 +1211,10 @@ prompt_method_gpt = {
         '3shot': {'em': 0.291, 'f1': 0.401, 'prec': 0.407, 'recall': 0.482, 'has_answer': 0.406, 'prompt_length': 1805.863, 'perplexity': 1.096},    # refuse to answer: 189
         'RaR': {'em': 0.0, 'f1': 0.051, 'prec': 0.028, 'recall': 0.65, 'has_answer': 0.541, 'prompt_length': 924.867, 'perplexity': 1.154},
         'cot': {'em': 0.334, 'f1': 0.447, 'prec': 0.464, 'recall': 0.533, 'has_answer': 0.434, 'prompt_length': 2007.836, 'perplexity': 1.148},
-        'self-consistency': None,
+        'self-consistency': {'em': 0.401, 'f1': 0.518, 'prec': 0.543, 'recall': 0.539, 'has_answer': 0.444, 'prompt_length': 2007.836, 'perplexity': 0},
         'least_to_most': {'em': 0.353, 'f1': 0.465, 'prec': 0.481, 'recall': 0.54, 'has_answer': 0.442, 'prompt_length': 2574.836, 'perplexity': 1.065},
         'plan_and_solve': {'em': 0.182, 'f1': 0.316, 'prec': 0.293, 'recall': 0.525, 'has_answer': 0.461, 'prompt_length': 946.841, 'perplexity': 1.123},
-        'self-refine': None,
+        'self-refine': {'em': 0.276, 'f1': 0.398, 'prec': 0.4, 'recall': 0.481, 'has_answer': 0.406, 'prompt_length': 2137.653, 'perplexity': 1.301},
         'con': {'em': 0.065, 'f1': 0.196, 'prec': 0.159, 'recall': 0.467, 'has_answer': 0.416, 'prompt_length': 991.863, 'perplexity': 1.129},
         'ir-cot': None,
         'flare': None,
