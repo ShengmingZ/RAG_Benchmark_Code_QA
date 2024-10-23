@@ -486,7 +486,7 @@ if __name__ == '__main__':
         print(dataset)
         for eval in evals:
             in_program_call = (f'--action eval_pred --model {model} --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
-                               f'--analysis_type prompt_method --n 1 --prompt_type 0shot')
+                               f'--analysis_type retrieval_doc_selection --n 1 --doc_selection_type top10')
             args = generate_config(in_program_call)
             eval_file = args.result_save_file.replace('.json', '_eval.json')
             eval_datas = json.load(open(eval_file)) # RAG
