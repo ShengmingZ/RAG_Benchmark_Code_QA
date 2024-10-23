@@ -78,9 +78,9 @@ percentage_of_correct_prompt_method_gpt_code = {
 }
 
 percentage_of_correct_prompt_method_llama_qa = {
-    'NQ': [],
-    'TriviaQA': [],
-    'hotpotQA': []
+    'NQ': [4, 9.3, 4.1, 3.6, 5.4, 5.7, 4.5, 4.9],
+    'TriviaQA': [2.1, 4.9, 1.6, 1.7, 2.5, 3.5, 2.9, 3.1],
+    'hotpotQA': [3.7, 9.2, 6, 6.1, 7, 5.1, 5, 5.2]
 }
 
 percentage_of_correct_prompt_method_llama_code = {
@@ -88,6 +88,8 @@ percentage_of_correct_prompt_method_llama_code = {
     'DS1000': [],
     'pandas_numpy_eval': [],
 }
+
+# use this over the corresponding performance, get the percentage of instance only correct in prompt method over the whole correct ones
 
 
 def make_doc_selection_percentage_of_mistakes():
