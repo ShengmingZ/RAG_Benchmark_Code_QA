@@ -65,6 +65,31 @@ percentage_of_mistakes_as_documents_added_llama = [
 ]
 
 
+percentage_of_correct_prompt_method_gpt_qa = {
+    'NQ': [0.054, 0.183, 0.053, 0.054, 0.07, 0.065, 0.069, 0.077],
+    'TriviaQA': [0.035, 0.091, 0.041, 0.038, 0.05, 0.042, 0.051, 0.043],
+    'hotpotQA': [0.054, 0.178, 0.087, 0.084, 0.101, 0.122, 0.069, 0.081]
+}
+
+percentage_of_correct_prompt_method_gpt_code = {
+    'conala': [],
+    'DS1000': [],
+    'pandas_numpy_eval': [],
+}
+
+percentage_of_correct_prompt_method_llama_qa = {
+    'NQ': [],
+    'TriviaQA': [],
+    'hotpotQA': []
+}
+
+percentage_of_correct_prompt_method_llama_code = {
+    'conala': [],
+    'DS1000': [],
+    'pandas_numpy_eval': [],
+}
+
+
 def make_doc_selection_percentage_of_mistakes():
     graph_name = 'select_topk_percentage_of_mistakes.pdf'
 

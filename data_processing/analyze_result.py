@@ -477,7 +477,7 @@ if __name__ == '__main__':
 
     """compare 2 prediction distributions"""
     datasets = ['NQ', 'TriviaQA', 'hotpotQA']
-    # datasets = ['conala', 'DS1000', 'pandas_numpy_eval']
+    datasets = ['conala', 'DS1000', 'pandas_numpy_eval']
     evals = ['3shot', 'RaR', 'cot', 'self-consistency', 'least_to_most', 'plan_and_solve', 'self-refine', 'con']
     # if datasets == ['NQ', 'TriviaQA', 'hotpotQA']: model = 'llama2-13b-chat'
     # else: model = 'codellama-13b-instruct'
