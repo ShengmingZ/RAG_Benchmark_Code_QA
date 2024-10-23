@@ -1062,45 +1062,69 @@ def make_prompt_method_correctness():
     code_gpt_avg_prompt_perf_datas = []
     code_llama_avg_prompt_perf_datas = []
     for prompt_method in prompt_method_list:
-        try: avg_qa_gpt_data = [results.prompt_method_gpt[qa_dataset_name][prompt_method][qa_metric] for qa_dataset_name in qa_dataset_names]
-        except: avg_qa_gpt_data = [0, 0, 0]
+        try:
+            avg_qa_gpt_data = [results.prompt_method_gpt[qa_dataset_name][prompt_method][qa_metric] for qa_dataset_name in qa_dataset_names]
+            avg_qa_gpt_data.append(sum(avg_qa_gpt_data)/3)  # avg
+        except: avg_qa_gpt_data = [0, 0, 0, 0]
         qa_gpt_avg_prompt_perf_datas.append(avg_qa_gpt_data)
-        try: avg_qa_llama_data = [results.prompt_method_llama[qa_dataset_name][prompt_method][qa_metric] for qa_dataset_name in qa_dataset_names]
-        except: avg_qa_llama_data = [0, 0, 0]
+        try:
+            avg_qa_llama_data = [results.prompt_method_llama[qa_dataset_name][prompt_method][qa_metric] for qa_dataset_name in qa_dataset_names]
+            avg_qa_llama_data.append(sum(avg_qa_llama_data) / 3)  # avg
+        except: avg_qa_llama_data = [0, 0, 0, 0, 0]
         qa_llama_avg_prompt_perf_datas.append(avg_qa_llama_data)
-        try: avg_code_gpt_data = [results.prompt_method_gpt[code_dataset_name][prompt_method][code_metric] for code_dataset_name in code_dataset_names]
-        except: avg_code_gpt_data = [0, 0, 0]
+        try:
+            avg_code_gpt_data = [results.prompt_method_gpt[code_dataset_name][prompt_method][code_metric] for code_dataset_name in code_dataset_names]
+            avg_code_gpt_data.append(sum(avg_code_gpt_data) / 3)  # avg
+        except: avg_code_gpt_data = [0, 0, 0, 0]
         code_gpt_avg_prompt_perf_datas.append(avg_code_gpt_data)
-        try: avg_code_llama_data = [results.prompt_method_llama[code_dataset_name][prompt_method][code_metric] for code_dataset_name in code_dataset_names]
-        except: avg_code_llama_data = [0, 0, 0]
+        try:
+            avg_code_llama_data = [results.prompt_method_llama[code_dataset_name][prompt_method][code_metric] for code_dataset_name in code_dataset_names]
+            avg_code_llama_data.append(sum(avg_code_llama_data) / 3)  # avg
+        except: avg_code_llama_data = [0, 0, 0, 0]
         code_llama_avg_prompt_perf_datas.append(avg_code_llama_data)
 
     # colors = ['#DC143C', '#FF8C00', '#DAA520', '#FFB6C1', '#228B22', '#4169E1', '#8B4513', '#C71585']
-    colors = ['skyblue', 'lightgreen', 'salmon']
-    colors = ['skyblue', 'lightgreen', 'tomato']
-    hatches = ['/', '||', 'X']
-    edge_colors = ['blue', 'green', 'red']
+    # colors = ['skyblue', 'lightgreen', 'salmon']
+    # colors = ['skyblue', 'lightgreen', 'tomato', '#228B22']
+    colors = ['#E03C31', '#FF6F00', '#FFB300', '#BA55D3', '#4169E1', '#00BFFF', '#708090', '#228B22']
+    colors = ['#D62728', '#FF9896', '#2CA02C', '#1F77B4']
+    hatches = ['/', '||', 'X', 'O']
+    edge_colors = ['red', 'green', 'green', 'blue']
+    edge_colors = ['#D62728', '#FF9896', '#2CA02C', '#1F77B4']
+    edge_colors = ['#4D4D4D']*4
+    line_colors = ['#8B0000', '#FF6347', '#228B22', '#4169E1']
     plt.style.use('ggplot')
-    fig, ((ax1, ax2, ax3, ax4)) = plt.subplots(4, 1, figsize=(12, 24))  # ax1: qa, ax2: code
+    fig, ((ax1, ax3), (ax2, ax4)) = plt.subplots(2, 2, figsize=(24, 12))  # ax1: qa, ax2: code
     axes = [ax1, ax2, ax3, ax4]
     perf_datas_list = [qa_gpt_avg_prompt_perf_datas, qa_llama_avg_prompt_perf_datas, code_gpt_avg_prompt_perf_datas,
                        code_llama_avg_prompt_perf_datas]
-    special_idx = 2
+    for perf_datas in perf_datas_list:
+        print(len(perf_datas))
+        for perf_data in perf_datas:
+            print(len(perf_data))
+    auth_qa_dataset_names.append('avg of QA tasks')
+    auth_code_dataset_names.append('avg of code tasks')
+
+    special_idx = 1
     bar_width = 0.2
+    prompt_method_list.remove('0shot')
     index = np.arange(len(prompt_method_list))
     for ax_idx, (ax, perf_datas) in enumerate(zip(axes, perf_datas_list)):
-        if ax_idx in [0,1]: dataset_names = auth_qa_dataset_names
-        else: dataset_names = auth_code_dataset_names
+        if ax_idx in [0,1]:
+            dataset_names = auth_qa_dataset_names
+        else:
+            dataset_names = auth_code_dataset_names
         for dataset_idx, dataset_name in enumerate(dataset_names):
             offset = dataset_idx * bar_width
-            bar_data = [item[dataset_idx] for item in perf_datas]
+            bar_data = [item[dataset_idx] for item in perf_datas][1:]
             hatch_styles = [hatches[dataset_idx] if idx != special_idx or ax_idx in [2,3] else 'XX' for idx in index]  # Dense hatch for unreliable
 
             ax.bar(index+offset, bar_data, width=bar_width, label=dataset_name,
                    color=colors[dataset_idx], hatch=hatch_styles, edgecolor=edge_colors[dataset_idx])
-        if ax_idx == 3:
-            ax.set_xticks(index+bar_width)
-            ax.set_xticklabels(auth_prompt_method_names, rotation=45, ha='right', fontsize=22)
+            ax.axhline(y=[item[dataset_idx] for item in perf_datas][0], color=line_colors[dataset_idx], linestyle=':', linewidth=4)  # plot baseline result
+        if ax_idx == 3 or ax_idx == 1:
+            ax.set_xticks(index+bar_width*1.5)
+            ax.set_xticklabels(auth_prompt_method_names[1:], rotation=45, ha='right', fontsize=22)
         else:
             ax.set_xticks([])
         if ax_idx in [0, 1]:
@@ -1111,13 +1135,82 @@ def make_prompt_method_correctness():
             ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
             ax.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=20)
             ax.set_ylabel(code_metric, fontsize=24)
-        ax.legend(loc='upper right', fontsize=18, ncol=3)
+        ax.legend(loc='upper right', fontsize=18, ncol=4)
 
         if ax_idx in [0,1]:
             bar_center = index[special_idx] + bar_width
             # ax.text(bar_center, 0.9, 'Unreliable', ha='center', fontsize=12, color='black')
-            ax.annotate('Unreliable', xy=(bar_center, 0.75), xytext=(bar_center + 0.3, 0.9),
-                        arrowprops=dict(facecolor='black', shrink=0.05), fontsize=14)
+            ax.annotate('Unreliable', xy=(bar_center, 0.75), xytext=(bar_center + 0.3, 0.82),
+                        arrowprops=dict(facecolor='black', shrink=0.01), fontsize=14)
+
+    plt.tight_layout()
+    plt.savefig('graph/' + graph_name)
+    plt.show()
+
+
+
+def make_prompt_method_perplexity():
+    graph_name = 'prompt_method_perplexity.pdf'
+
+    # prompt_method_list = ['0shot', '3shot', 'RaR', 'cot', 'self-consistency', 'least_to_most', 'plan_and_solve', 'self-refine', 'con', 'ir-cot', 'flare']
+    # auth_prompt_method_names = ['zero-shot', 'few-shot', 'RaR', 'CoT', 'Self-Consistency', 'Least-to-Most', 'Plan-and-Solve', 'Self-Refine', 'CoN', 'IR-CoT', 'FLARE']
+    prompt_method_list = ['0shot', '3shot', 'RaR', 'cot', 'least_to_most', 'plan_and_solve', 'self-refine', 'con']
+    auth_prompt_method_names = ['zero-shot', 'few-shot', 'RaR', 'CoT', 'Least-to-Most', 'Plan-and-Solve', 'Self-Refine', 'CoN']
+    qa_metric = 'perplexity'
+    code_metric = 'perplexity'
+
+    qa_gpt_avg_prompt_perf_datas = []
+    qa_llama_avg_prompt_perf_datas = []
+    code_gpt_avg_prompt_perf_datas = []
+    code_llama_avg_prompt_perf_datas = []
+    for prompt_method in prompt_method_list:
+        avg_qa_gpt_data = [results.prompt_method_gpt[qa_dataset_name][prompt_method][qa_metric] for qa_dataset_name in qa_dataset_names]
+        avg_qa_gpt_data = sum(avg_qa_gpt_data)/3  # avg
+        qa_gpt_avg_prompt_perf_datas.append(avg_qa_gpt_data)
+        avg_qa_llama_data = [results.prompt_method_llama[qa_dataset_name][prompt_method][qa_metric] for qa_dataset_name in qa_dataset_names]
+        avg_qa_llama_data = sum(avg_qa_llama_data)/3  # avg
+        qa_llama_avg_prompt_perf_datas.append(avg_qa_llama_data)
+        avg_code_gpt_data = [results.prompt_method_gpt[code_dataset_name][prompt_method][code_metric] for code_dataset_name in code_dataset_names]
+        avg_code_gpt_data = sum(avg_code_gpt_data)/3  # avg
+        code_gpt_avg_prompt_perf_datas.append(avg_code_gpt_data)
+        avg_code_llama_data = [results.prompt_method_llama[code_dataset_name][prompt_method][code_metric] for code_dataset_name in code_dataset_names]
+        avg_code_llama_data = sum(avg_code_llama_data)/3  # avg
+        code_llama_avg_prompt_perf_datas.append(avg_code_llama_data)
+
+
+    colors = ['#D62728', '#FF9896', '#2CA02C', '#1F77B4']
+    edge_colors = ['#4D4D4D']*4
+    plt.style.use('ggplot')
+    fig, ((ax1, ax3), (ax2, ax4)) = plt.subplots(2, 2, figsize=(12, 8))  # ax1: qa, ax2: code
+    axes = [ax1, ax2, ax3, ax4]
+    perf_datas_list = [qa_gpt_avg_prompt_perf_datas, qa_llama_avg_prompt_perf_datas, code_gpt_avg_prompt_perf_datas,
+                       code_llama_avg_prompt_perf_datas]
+
+    bar_width = 0.3
+    index = np.arange(len(prompt_method_list))
+    for ax_idx, (ax, perf_datas) in enumerate(zip(axes, perf_datas_list)):
+        if ax_idx in [0,1]:
+            dataset_name = 'avg of QA tasks'
+        else:
+            dataset_name = 'avg of code tasks'
+
+        ax.bar(index, perf_datas, width=bar_width, label=dataset_name, color=colors[3], edgecolor=edge_colors[3])
+        if ax_idx == 3 or ax_idx == 1:
+            ax.set_xticks(index)
+            ax.set_xticklabels(auth_prompt_method_names, rotation=90, ha='right', fontsize=22)
+        else:
+            ax.set_xticks([])
+        if ax_idx in [0, 1]:
+            ax.set_ylim(1, 1.3)
+            ax.set_yticks([1, 1.1, 1.2, 1.3])
+            ax.set_yticklabels([1, 1.1, 1.2, 1.3], fontsize=20)
+            ax.set_ylabel('PPL', fontsize=24)
+        else:
+            ax.set_ylim(1, 1.3)
+            ax.set_yticks([1, 1.1, 1.2, 1.3])
+            ax.set_yticklabels([1, 1.1, 1.2, 1.3], fontsize=20)
+            ax.set_ylabel('PPL', fontsize=24)
+        ax.legend(loc='upper right', fontsize=18, ncol=1)
 
     plt.tight_layout()
     plt.savefig('graph/' + graph_name)
@@ -1145,10 +1238,12 @@ if __name__ == '__main__':
 
     # make_doc_selection_topk_perplexity()
 
-    make_doc_selection_topk_ret_recall()
+    # make_doc_selection_topk_ret_recall()
 
     # make_prompt_method_avg_correctness()
 
     # make_prompt_method_correctness()
+
+    make_prompt_method_perplexity()
 
     # make_doc_selection_percentage_of_mistakes()

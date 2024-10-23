@@ -441,7 +441,7 @@ def get_avg_result_pl_analysis():
 
 
 if __name__ == '__main__':
-    get_avg_result_pl_analysis()
+    # get_avg_result_pl_analysis()
 
     # calc_avg_syntax_error()
 
@@ -476,33 +476,32 @@ if __name__ == '__main__':
 
 
     """compare 2 prediction distributions"""
-    # datasets = ['NQ', 'TriviaQA', 'hotpotQA']
+    datasets = ['NQ', 'TriviaQA', 'hotpotQA']
     # datasets = ['conala', 'DS1000', 'pandas_numpy_eval']
-    # # evals = ['top_5', 'top_10', 'top_15', 'top_20', 'top_40', 'top_60', 'top_80']
-    # evals = ['top_5', 'top_10', 'top_15', 'top_20']
+    evals = ['3shot', 'RaR', 'cot', 'self-consistency', 'least_to_most', 'plan_and_solve', 'self-refine', 'con']
     # if datasets == ['NQ', 'TriviaQA', 'hotpotQA']: model = 'llama2-13b-chat'
     # else: model = 'codellama-13b-instruct'
-    # model = 'gpt-3.5-turbo-0125'
-    # for dataset in datasets:
-    #     print(dataset)
-    #     for eval in evals:
-    #         in_program_call = (f'--action eval_pred --model {model} --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
-    #                            f'--analysis_type retrieval_doc_selection --n 1 --doc_selection_type top_1')
-    #         args = generate_config(in_program_call)
-    #         eval_file = args.result_save_file.replace('.json', '_eval.json')
-    #         eval_datas = json.load(open(eval_file)) # RAG
-    #
-    #         in_program_call = (f'--action eval_pred --model {model} --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
-    #                            f'--analysis_type retrieval_doc_selection --n 1 --doc_selection_type {eval}')
-    #         args = generate_config(in_program_call)
-    #         eval_file = args.result_save_file.replace('.json', '_eval.json')
-    #         eval_datas2 = json.load(open(eval_file))    # single LLM
-    #
-    #         # ret_eval_vs_eval(eval_datas)
-    #
-    #         hamming_dist, eval1_true_eval2_false, eval1_false_eval2_true = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
-    #         print(f"top 5 true but {eval} false percent: {round(eval1_true_eval2_false,3)}")
-    #         # print(f"RAG false LLM true percent: {round(eval1_false_eval2_true, 3)}")
+    model = 'gpt-3.5-turbo-0125'
+    for dataset in datasets:
+        print(dataset)
+        for eval in evals:
+            in_program_call = (f'--action eval_pred --model {model} --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
+                               f'--analysis_type prompt_method --n 1 --prompt_type 0shot')
+            args = generate_config(in_program_call)
+            eval_file = args.result_save_file.replace('.json', '_eval.json')
+            eval_datas = json.load(open(eval_file)) # RAG
+
+            in_program_call = (f'--action eval_pred --model {model} --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
+                               f'--analysis_type prompt_method --n 1 --prompt_type {eval}')
+            args = generate_config(in_program_call)
+            eval_file = args.result_save_file.replace('.json', '_eval.json')
+            eval_datas2 = json.load(open(eval_file))    # single LLM
+
+            # ret_eval_vs_eval(eval_datas)
+
+            hamming_dist, eval1_true_eval2_false, eval1_false_eval2_true = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
+            print(f"0shot False but {eval} True percent: {round(eval1_false_eval2_true,3)}")
+            # print(f"RAG false LLM true percent: {round(eval1_false_eval2_true, 3)}")
 
 
     """wilcoxon test"""
