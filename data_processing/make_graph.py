@@ -66,15 +66,15 @@ percentage_of_mistakes_as_documents_added_llama = [
 
 
 percentage_of_correct_prompt_method_gpt_qa = {
-    'NQ': [0.054, 0.183, 0.053, 0.054, 0.07, 0.065, 0.069, 0.077],
-    'TriviaQA': [0.035, 0.091, 0.041, 0.038, 0.05, 0.042, 0.051, 0.043],
-    'hotpotQA': [0.054, 0.178, 0.087, 0.084, 0.101, 0.122, 0.069, 0.081]
+    'NQ': [5.4, 18.3, 5.3, 5.4, 7, 6.5, 6.9, 7.7],
+    'TriviaQA': [3.5, 9.1, 4.1, 3.8, 5, 4.2, 5.1, 4.3],
+    'hotpotQA': [5.4, 17.8, 8.7, 8.4, 10.1, 12.2, 6.9, 8.1]
 }
 
 percentage_of_correct_prompt_method_gpt_code = {
-    'conala': [],
-    'DS1000': [],
-    'pandas_numpy_eval': [],
+    'conala': [11.9, 3.6, 7.1, 4.8, 8.3, 0, 11.9, 0],
+    'DS1000': [7, 7, 8.9, 8.9, 6.4, 6.4, 10.2, 5.1],
+    'pandas_numpy_eval': [9, 9.6, 11.4, 9.6, 8.4, 7.8, 10.2, 6],
 }
 
 percentage_of_correct_prompt_method_llama_qa = {
