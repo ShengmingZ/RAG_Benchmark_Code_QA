@@ -491,8 +491,13 @@ if __name__ == '__main__':
             eval_file = args.result_save_file.replace('.json', '_eval.json')
             eval_datas = json.load(open(eval_file)) # RAG
 
-            in_program_call = (f'--action eval_pred --model {model} --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
-                               f'--analysis_type prompt_method --n 1 --prompt_type {eval}')
+            if eval == 'self-consistency':
+                in_program_call = (
+                    f'--action eval_pred --model {model} --temperature 1.0 --dataset {dataset} --retriever openai-embedding '
+                    f'--analysis_type prompt_method --n 10 --prompt_type {eval}')
+            else:
+                in_program_call = (f'--action eval_pred --model {model} --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
+                                   f'--analysis_type prompt_method --n 1 --prompt_type {eval}')
             args = generate_config(in_program_call)
             eval_file = args.result_save_file.replace('.json', '_eval.json')
             eval_datas2 = json.load(open(eval_file))    # single LLM
