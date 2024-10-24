@@ -84,9 +84,9 @@ percentage_of_correct_prompt_method_llama_qa = {
 }
 
 percentage_of_correct_prompt_method_llama_code = {
-    'conala': [],
-    'DS1000': [],
-    'pandas_numpy_eval': [],
+    'conala': [8.3, 2.4, 7.1, 8.3, 13.1, 3.6, 7.1, 2.4],
+    'DS1000': [17.2, 6.4, 14.6, 11.5, 13.4, 5.7, 12.7, 2.5],
+    'pandas_numpy_eval': [8.4, 7.8, 7.8, 6.6, 9, 5.4, 7.8, 6],
 }
 
 # use this over the corresponding performance, get the percentage of instance only correct in prompt method over the whole correct ones
@@ -1244,6 +1244,105 @@ def make_prompt_method_perplexity():
     plt.show()
 
 
+
+def make_prompt_method_percentage_of_only_correct():
+    graph_name = 'prompt_method_percentage_only_correct.pdf'
+
+    # prompt_method_list = ['0shot', '3shot', 'RaR', 'cot', 'self-consistency', 'least_to_most', 'plan_and_solve', 'self-refine', 'con', 'ir-cot', 'flare']
+    # auth_prompt_method_names = ['zero-shot', 'few-shot', 'RaR', 'CoT', 'Self-Consistency', 'Least-to-Most', 'Plan-and-Solve', 'Self-Refine', 'CoN', 'IR-CoT', 'FLARE']
+    prompt_method_list = ['3shot', 'RaR', 'cot', 'self-consistency', 'least_to_most', 'plan_and_solve', 'self-refine', 'con']
+    auth_prompt_method_names = ['few-shot', 'RaR', 'CoT', 'Self-Consistency', 'Least-to-Most', 'Plan-and-Solve', 'Self-Refine', 'CoN']
+    qa_metric = 'has_answer'
+    code_metric = 'pass@1'
+
+    qa_gpt_avg_prompt_perf_datas = []
+    qa_llama_avg_prompt_perf_datas = []
+    code_gpt_avg_prompt_perf_datas = []
+    code_llama_avg_prompt_perf_datas = []
+    for prompt_method in prompt_method_list:
+        try:
+            avg_qa_gpt_data = [results.prompt_method_gpt[qa_dataset_name][prompt_method][qa_metric] for qa_dataset_name in qa_dataset_names]
+            avg_qa_gpt_data.append(sum(avg_qa_gpt_data) / 3)  # avg
+        except: avg_qa_gpt_data = [0, 0, 0, 0]
+        qa_gpt_avg_prompt_perf_datas.append(avg_qa_gpt_data)
+        try:
+            avg_qa_llama_data = [results.prompt_method_llama[qa_dataset_name][prompt_method][qa_metric] for qa_dataset_name in qa_dataset_names]
+            avg_qa_llama_data.append(sum(avg_qa_llama_data) / 3)  # avg
+        except: avg_qa_llama_data = [0, 0, 0, 0, 0]
+        qa_llama_avg_prompt_perf_datas.append(avg_qa_llama_data)
+        try:
+            avg_code_gpt_data = [results.prompt_method_gpt[code_dataset_name][prompt_method][code_metric] for code_dataset_name in code_dataset_names]
+            avg_code_gpt_data.append(sum(avg_code_gpt_data) / 3)  # avg
+        except: avg_code_gpt_data = [0, 0, 0, 0]
+        code_gpt_avg_prompt_perf_datas.append(avg_code_gpt_data)
+        try:
+            avg_code_llama_data = [results.prompt_method_llama[code_dataset_name][prompt_method][code_metric] for code_dataset_name in code_dataset_names]
+            avg_code_llama_data.append(sum(avg_code_llama_data) / 3)  # avg
+        except: avg_code_llama_data = [0, 0, 0, 0]
+        code_llama_avg_prompt_perf_datas.append(avg_code_llama_data)
+
+    percentage_datas = [percentage_of_correct_prompt_method_gpt_qa, percentage_of_correct_prompt_method_llama_qa, percentage_of_correct_prompt_method_gpt_code, percentage_of_correct_prompt_method_llama_code]
+    for idx, percentage_data in enumerate(percentage_datas):
+        new_percentage_data = [[] for _ in range(len(auth_prompt_method_names))]
+        for key, value in percentage_data.items():
+            for value_idx, v in enumerate(value):
+                new_percentage_data[value_idx].append(v)
+        for xx_idx in range(len(auth_prompt_method_names)): new_percentage_data[xx_idx].append(sum(new_percentage_data[xx_idx])/3)
+        percentage_datas[idx] = new_percentage_data
+
+    perf_datas_list = [qa_gpt_avg_prompt_perf_datas, qa_llama_avg_prompt_perf_datas, code_gpt_avg_prompt_perf_datas,
+                       code_llama_avg_prompt_perf_datas]
+    for idx, perf_datas in enumerate(perf_datas_list):
+        print(perf_datas)
+        print(percentage_datas[idx])
+        for xx_idx, perf_data in enumerate(perf_datas):
+            perf_datas_list[idx][xx_idx] = [a/b/100 for a,b in zip(percentage_datas[idx][xx_idx], perf_datas_list[idx][xx_idx])]
+        print(perf_datas_list[idx])
+
+    auth_qa_dataset_names.append('avg of QA tasks')
+    auth_code_dataset_names.append('avg of code tasks')
+
+
+    colors = ['#D62728', '#FF9896', '#2CA02C', '#1F77B4']
+    hatches = ['/', '||', 'X', 'O']
+    edge_colors = ['#4D4D4D'] * 4
+    line_colors = ['#8B0000', '#FF6347', '#228B22', '#4169E1']
+    plt.style.use('ggplot')
+    fig, ((ax1, ax3), (ax2, ax4)) = plt.subplots(2, 2, figsize=(12, 8))  # ax1: qa, ax2: code
+    axes = [ax1, ax2, ax3, ax4]
+    special_idx = 1
+    bar_width = 0.3
+    index = np.arange(len(prompt_method_list))
+    for ax_idx, (ax, perf_datas) in enumerate(zip(axes, perf_datas_list)):
+        if ax_idx in [0, 1]:
+            dataset_names = auth_qa_dataset_names
+        else:
+            dataset_names = auth_code_dataset_names
+        ax.bar(index, [item[3] for item in perf_datas], width=bar_width, label=dataset_names[3],
+               color=colors[3], edgecolor=edge_colors[3])
+        if ax_idx == 3 or ax_idx == 1:
+            ax.set_xticks(index)
+            ax.set_xticklabels(auth_prompt_method_names, rotation=90, ha='right', fontsize=22)
+        else:
+            ax.set_xticks(ticks=range(len(auth_prompt_method_names)))
+        ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4])
+        ax.set_yticklabels([0, 10, 20, 30, 40], fontsize=20)
+        ax.set_ylabel('percentage', fontsize=22)
+        ax.legend(loc='upper right', fontsize=18, ncol=4)
+
+        if ax_idx in [0, 1]:
+            bar_center = index[special_idx] + bar_width
+            # ax.text(bar_center, 0.9, 'Unreliable', ha='center', fontsize=12, color='black')
+            ax.annotate('Unreliable', xy=(bar_center-bar_width, 0.1), xytext=(bar_center, 0.2),
+                        arrowprops=dict(facecolor='black', shrink=0.01), fontsize=14)
+
+    plt.tight_layout()
+    plt.savefig('graph/' + graph_name)
+    plt.show()
+
+
+
+
 if __name__ == '__main__':
     # make_avg_ret_recall()
 
@@ -1271,6 +1370,8 @@ if __name__ == '__main__':
 
     # make_prompt_method_correctness()
 
-    make_prompt_method_perplexity()
+    # make_prompt_method_perplexity()
+
+    make_prompt_method_percentage_of_only_correct()
 
     # make_doc_selection_percentage_of_mistakes()

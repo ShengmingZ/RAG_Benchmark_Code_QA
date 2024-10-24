@@ -11,7 +11,7 @@ elif system == 'Linux':
     root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
 sys.path.insert(0, root_path)
 from dataset_utils.conala_utils import ConalaLoader
-from generator.generate_utils import generate_config
+from generator.generate_utils import generate_config, get_docs_tokens
 from dataset_utils.DS1000_utils import DS1000Loader
 from data.DS1000.ds1000 import DS1000Dataset
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
@@ -349,7 +349,12 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
         perplexity = 0
         for result in gene_results:
             logprobs = result['logprobs'][0]  # todo: only for n=1
-            if 'llama' in args.model: logprobs = logprobs[0]  # for llama
+            if 'llama' in args.model:
+                logprobs = logprobs[0]  # for llama
+                if args.analysis_type == 'prompt_method':
+                    valid_output = result['outputs'][0].split('Potential documents')[0].replace('\n\n\n', '')
+                    valid_output_length = get_docs_tokens([valid_output], args.model)
+                    logprobs = logprobs[:valid_output_length]       # llama would output extra content, remove them when calculating perplexity
             try:
                 perplexity += np.exp(-sum(logprobs) / len(logprobs))
             except: print(logprobs)
