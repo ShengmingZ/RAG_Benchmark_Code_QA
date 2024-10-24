@@ -1270,7 +1270,7 @@ prompt_method_llama = {
         'self-consistency': {'em': 0.37, 'f1': 0.503, 'prec': 0.512, 'recall': 0.536, 'has_answer': 0.456, 'prompt_length': 2397.923, 'perplexity': 1.263},
         'least_to_most': {'em': 0.303, 'f1': 0.453, 'prec': 0.445, 'recall': 0.567, 'has_answer': 0.483, 'prompt_length': 3100.923, 'perplexity': 1.085},
         'plan_and_solve': {'em': 0.067, 'f1': 0.111, 'prec': 0.102, 'recall': 0.459, 'has_answer': 0.4, 'prompt_length': 1716.924, 'perplexity': 1.081},
-        'self-refine': {'em': 0.325, 'f1': 0.462, 'prec': 0.463, 'recall': 0.52, 'has_answer': 0.431, 'prompt_length': 2604.947, 'perplexity': 1.106},
+        'self-refine': {'em': 0.325, 'f1': 0.462, 'prec': 0.463, 'recall': 0.52, 'has_answer': 0.431, 'prompt_length': 2604.947, 'perplexity': 1.134},
         'con': {'em': 0.163, 'f1': 0.252, 'prec': 0.24, 'recall': 0.565, 'has_answer': 0.482, 'prompt_length': 1755.924, 'perplexity': 1.075},
         'ir-cot': None,
         'flare': None,

@@ -347,17 +347,25 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
     # calc perplexity
     if if_calc_perplexity is True:
         perplexity = 0
-        for result in gene_results:
+        batch_idx = 0; valid_outputs = [], logprobs_list = []
+        for result_idx, result in enumerate(gene_results):
             logprobs = result['logprobs'][0]  # todo: only for n=1
-            if 'llama' in args.model:
-                logprobs = logprobs[0]  # for llama
-                if args.analysis_type == 'prompt_method':
-                    valid_output = result['outputs'][0].split('Potential documents')[0].replace('\n\n\n', '')
-                    valid_output_length = get_docs_tokens([valid_output], args.model)[0]
-                    logprobs = logprobs[:valid_output_length]       # llama would output extra content, remove them when calculating perplexity
-            try:
-                perplexity += np.exp(-sum(logprobs) / len(logprobs))
-            except: print(logprobs)
+            # llama would output extra content, remove them when calculating perplexity
+            if 'llama' in args.model and args.analysis_type == 'prompt_method':
+                batch_idx += 1
+                valid_outputs.append(result['outputs'][0].split('Potential documents')[0].replace('\n\n\n', ''))
+                logprobs_list.append(logprobs[0])   # for llama
+                if batch_idx == 100 or result_idx == len(gene_results) - 1:
+                    valid_outputs_length = get_docs_tokens(valid_outputs, args.model)
+                    logprobs_list = [logprobs[:length] for logprobs, length in zip(logprobs_list, valid_outputs_length)]
+                    for logprobs in logprobs_list: perplexity += np.exp(-sum(logprobs) / len(logprobs))
+                    batch_idx = 0; valid_outputs = [], logprobs_list = []
+            else:
+                if 'llama' in args.model:
+                    logprobs = logprobs[0]  # for llama
+                try:
+                    perplexity += np.exp(-sum(logprobs) / len(logprobs))
+                except: print(logprobs)
         scores['perplexity'] = perplexity / len(gene_results)
 
     # extra analyze for code
