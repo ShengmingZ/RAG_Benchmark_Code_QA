@@ -353,7 +353,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
                 logprobs = logprobs[0]  # for llama
                 if args.analysis_type == 'prompt_method':
                     valid_output = result['outputs'][0].split('Potential documents')[0].replace('\n\n\n', '')
-                    valid_output_length = get_docs_tokens([valid_output], args.model)
+                    valid_output_length = get_docs_tokens([valid_output], args.model)[0]
                     logprobs = logprobs[:valid_output_length]       # llama would output extra content, remove them when calculating perplexity
             try:
                 perplexity += np.exp(-sum(logprobs) / len(logprobs))
