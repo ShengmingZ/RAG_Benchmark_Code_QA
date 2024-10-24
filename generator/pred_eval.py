@@ -270,7 +270,8 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
             output_records[result['qs_id']] = outputs
             retrieval_records[result['qs_id']] = result['ret_docs']
-        scores, eval_records = loader.eval_passk(_gene_results, k_list=k_list)
+        # scores, eval_records = loader.eval_passk(_gene_results, k_list=k_list)
+        scores, eval_records = dict(), dict()
 
     elif args.dataset == 'pandas_numpy_eval':
         loader = PandasNumpyEvalLoader()
