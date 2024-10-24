@@ -347,7 +347,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
     # calc perplexity
     if if_calc_perplexity is True:
         perplexity = 0
-        batch_idx = 0; valid_outputs = [], logprobs_list = []
+        batch_idx = 0; valid_outputs = []; logprobs_list = []
         for result_idx, result in enumerate(gene_results):
             logprobs = result['logprobs'][0]  # todo: only for n=1
             # llama would output extra content, remove them when calculating perplexity
@@ -359,7 +359,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
                     valid_outputs_length = get_docs_tokens(valid_outputs, args.model)
                     logprobs_list = [logprobs[:length] for logprobs, length in zip(logprobs_list, valid_outputs_length)]
                     for logprobs in logprobs_list: perplexity += np.exp(-sum(logprobs) / len(logprobs))
-                    batch_idx = 0; valid_outputs = [], logprobs_list = []
+                    batch_idx = 0; valid_outputs = []; logprobs_list = []
             else:
                 if 'llama' in args.model:
                     logprobs = logprobs[0]  # for llama
