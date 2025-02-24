@@ -349,6 +349,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
     # calc perplexity
     if if_calc_perplexity is True:
         perplexity = 0
+        perplexity_list = []
         batch_idx = 0; valid_outputs = []; logprobs_list = []
         for result_idx, result in enumerate(gene_results):
             logprobs = result['logprobs'][0]  # todo: only for n=1
@@ -360,15 +361,20 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
                 if batch_idx == 100 or result_idx == len(gene_results) - 1:
                     valid_outputs_length = get_docs_tokens(valid_outputs, args.model)
                     logprobs_list = [logprobs[:length] for logprobs, length in zip(logprobs_list, valid_outputs_length)]
-                    for logprobs in logprobs_list: perplexity += np.exp(-sum(logprobs) / len(logprobs))
+                    for logprobs in logprobs_list:
+                        perplexity += np.exp(-sum(logprobs) / len(logprobs))
+                        perplexity_list.append(np.exp(-sum(logprobs) / len(logprobs)))
                     batch_idx = 0; valid_outputs = []; logprobs_list = []
             else:
                 if 'llama' in args.model:
                     logprobs = logprobs[0]  # for llama
                 try:
                     perplexity += np.exp(-sum(logprobs) / len(logprobs))
+                    perplexity_list.append(np.exp(-sum(logprobs) / len(logprobs)))
                 except: print(logprobs)
         scores['perplexity'] = perplexity / len(gene_results)
+        for idx, oracle in enumerate(oracle_list):
+            eval_records[oracle['qs_id']]['perplexity'] = perplexity_list[idx]
 
     # extra analyze for code
     if if_code_analysis is True and args.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
@@ -389,110 +395,112 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
 
 if __name__ == '__main__':
     in_program_call = None
-    in_program_call = '--model gpt-3.5-turbo-0125 --dataset pandas_numpy_eval --retriever openai-embedding --analysis_type prompt_method --prompt_type self-consistency --n 10'
-    # in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_5'
-    args = generate_config(in_program_call)
+    ret_accs = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
+    for ret_acc in ret_accs:
+        in_program_call = f'--model codellama-13b-instruct --dataset conala --retriever openai-embedding --analysis_type retrieval_recall --ret_acc {ret_acc} --n 1'
+        # in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_5'
+        args = generate_config(in_program_call)
 
-    # scores = pred_eval(args, if_eval_retrieval=True, if_code_analysis=True, if_calc_perplexity=True, if_save=True)
+        scores = pred_eval(args, if_eval_retrieval=False, if_code_analysis=True, if_calc_perplexity=True, if_save=True)
 
-    if args.dataset == 'DS1000':
-        """
-        test process outputs for DS1000
-        """
-        cannot_answer_count = 0
-        ds1000 = DS1000Dataset(source_dir='../data/DS1000/ds1000_data', libs='all', mode='Insertion')
-        gene_results = json.load(open(args.result_save_file, 'r'))
-        if args.prompt_type == 'self-refine': gene_results_before = json.load(open(args.result_save_file.replace('self-refine', '3shot'), 'r'))
-        loader = DS1000Loader()
-        oracle_list = loader.load_oracle_list()
-        qs_list = loader.load_qs_list()
-        for idx, result in enumerate(gene_results):
-            qs_id = result['qs_id']
-            [lib, problema_id] = qs_id.split('_')
-            data = ds1000[lib][int(problema_id)]
-            print(f'\n<processed code {idx}>]')
-            print([result['outputs'][0]])
-            if '\n\n\n\n\n\n\n\n' in result['outputs'][0]: cannot_answer_count += 1
-            # print([result['outputs'][0]])
-            # print(qs_list[idx]['question'].split('\nA:')[1])
-            if args.prompt_type == 'self-refine':
-                outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1], outputs_before=gene_results_before[idx]['outputs'])
-            else:
-                outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
-            if args.prompt_type == 'self-consistency':
-                print(outputs)
-                most_output = process_outputs_for_self_consistency(outputs)
-                print(most_output)
-            else:
-                print([outputs[0]])
-        print(cannot_answer_count)
-
-    elif args.dataset == 'pandas_numpy_eval':
-        """
-        test process outputs for pandas_numpy_eval
-        """
-        dataset = json.load(open('../data/pandas_numpy_eval/data/pandas_numpy_eval.json', 'r'))
-        gene_results = json.load(open(args.result_save_file, 'r'))
-        if args.prompt_type == 'self-refine': gene_results_before = json.load(open(args.result_save_file.replace('self-refine', '3shot'), 'r'))
-        for idx, result in enumerate(gene_results):
-            print(f'\n<processed code {idx}>]')
-            print([result['outputs'][0]])
-            # print([result['outputs'][0]])
-            for data in dataset:
-                if data['task_id'] == result['qs_id']:
-                    code_prompt = data['prompt']
-            if args.prompt_type == 'self-refine':
-                outputs = process_gene_results(args, result['outputs'], code_prompt, gene_results_before[idx]['outputs'])
-            else:
-                outputs = process_gene_results(args, result['outputs'], code_prompt)
-            if args.prompt_type == 'self-consistency':
-                print(outputs)
-                most_output = process_outputs_for_self_consistency(outputs)
-                print(most_output)
-            else:
-                print([outputs[0]])
-
-    elif args.dataset == 'conala':
-        """
-        test for conala
-        """
-        gene_results = json.load(open(args.result_save_file, 'r'))
-        if args.prompt_type == 'self-refine': gene_results_before = json.load(open(args.result_save_file.replace('self-refine', '3shot'), 'r'))
-        for idx, result in enumerate(gene_results):
-            print(f'\n<processed code {idx}>]')
-            print([result['outputs'][0]])
-            if args.prompt_type == 'self-refine':
-                outputs = process_gene_results(args, result['outputs'], outputs_before=gene_results_before[idx]['outputs'])
-            else:
-                outputs = process_gene_results(args, result['outputs'])
-            if args.prompt_type == 'self-consistency':
-                print(outputs)
-                most_output = process_outputs_for_self_consistency(outputs)
-                print(most_output)
-            else:
-                print([outputs[0]])
-
-    else:
-        """
-        test for NQ, TriviaQA, hotpotQA
-        """
-        cannot_answer_count = 0
-        gene_results = json.load(open(args.result_save_file, 'r'))
-        if args.prompt_type == 'self-refine': gene_results_before = json.load(open(args.result_save_file.replace('self-refine', '3shot'), 'r'))
-        for idx, result in enumerate(gene_results):
-            print(f'\n<processed answer {idx}>]')
-            print([result['outputs']])
-            if "I'm sorry" in result['outputs'][0]: cannot_answer_count += 1
-            if args.prompt_type == 'self-refine':
-                outputs = process_gene_results(args, result['outputs'], outputs_before=gene_results_before[idx]['outputs'])
-            else:
-                outputs = process_gene_results(args, result['outputs'])
-            if args.prompt_type == 'self-consistency':
-                print(outputs)
-                most_output = process_outputs_for_self_consistency(outputs)
-                print(most_output)
-            else:
-                print([outputs[0]])
-        print(cannot_answer_count)
-
-    # todo: for self-consistency
+    # if args.dataset == 'DS1000':
+    #     """
+    #     test process outputs for DS1000
+    #     """
+    #     cannot_answer_count = 0
+    #     ds1000 = DS1000Dataset(source_dir='../data/DS1000/ds1000_data', libs='all', mode='Insertion')
+    #     gene_results = json.load(open(args.result_save_file, 'r'))
+    #     if args.prompt_type == 'self-refine': gene_results_before = json.load(open(args.result_save_file.replace('self-refine', '3shot'), 'r'))
+    #     loader = DS1000Loader()
+    #     oracle_list = loader.load_oracle_list()
+    #     qs_list = loader.load_qs_list()
+    #     for idx, result in enumerate(gene_results):
+    #         qs_id = result['qs_id']
+    #         [lib, problema_id] = qs_id.split('_')
+    #         data = ds1000[lib][int(problema_id)]
+    #         print(f'\n<processed code {idx}>]')
+    #         print([result['outputs'][0]])
+    #         if '\n\n\n\n\n\n\n\n' in result['outputs'][0]: cannot_answer_count += 1
+    #         # print([result['outputs'][0]])
+    #         # print(qs_list[idx]['question'].split('\nA:')[1])
+    #         if args.prompt_type == 'self-refine':
+    #             outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1], outputs_before=gene_results_before[idx]['outputs'])
+    #         else:
+    #             outputs = process_gene_results(args, result['outputs'], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
+    #         if args.prompt_type == 'self-consistency':
+    #             print(outputs)
+    #             most_output = process_outputs_for_self_consistency(outputs)
+    #             print(most_output)
+    #         else:
+    #             print([outputs[0]])
+    #     print(cannot_answer_count)
+    #
+    # elif args.dataset == 'pandas_numpy_eval':
+    #     """
+    #     test process outputs for pandas_numpy_eval
+    #     """
+    #     dataset = json.load(open('../data/pandas_numpy_eval/data/pandas_numpy_eval.json', 'r'))
+    #     gene_results = json.load(open(args.result_save_file, 'r'))
+    #     if args.prompt_type == 'self-refine': gene_results_before = json.load(open(args.result_save_file.replace('self-refine', '3shot'), 'r'))
+    #     for idx, result in enumerate(gene_results):
+    #         print(f'\n<processed code {idx}>]')
+    #         print([result['outputs'][0]])
+    #         # print([result['outputs'][0]])
+    #         for data in dataset:
+    #             if data['task_id'] == result['qs_id']:
+    #                 code_prompt = data['prompt']
+    #         if args.prompt_type == 'self-refine':
+    #             outputs = process_gene_results(args, result['outputs'], code_prompt, gene_results_before[idx]['outputs'])
+    #         else:
+    #             outputs = process_gene_results(args, result['outputs'], code_prompt)
+    #         if args.prompt_type == 'self-consistency':
+    #             print(outputs)
+    #             most_output = process_outputs_for_self_consistency(outputs)
+    #             print(most_output)
+    #         else:
+    #             print([outputs[0]])
+    #
+    # elif args.dataset == 'conala':
+    #     """
+    #     test for conala
+    #     """
+    #     gene_results = json.load(open(args.result_save_file, 'r'))
+    #     if args.prompt_type == 'self-refine': gene_results_before = json.load(open(args.result_save_file.replace('self-refine', '3shot'), 'r'))
+    #     for idx, result in enumerate(gene_results):
+    #         print(f'\n<processed code {idx}>]')
+    #         print([result['outputs'][0]])
+    #         if args.prompt_type == 'self-refine':
+    #             outputs = process_gene_results(args, result['outputs'], outputs_before=gene_results_before[idx]['outputs'])
+    #         else:
+    #             outputs = process_gene_results(args, result['outputs'])
+    #         if args.prompt_type == 'self-consistency':
+    #             print(outputs)
+    #             most_output = process_outputs_for_self_consistency(outputs)
+    #             print(most_output)
+    #         else:
+    #             print([outputs[0]])
+    #
+    # else:
+    #     """
+    #     test for NQ, TriviaQA, hotpotQA
+    #     """
+    #     cannot_answer_count = 0
+    #     gene_results = json.load(open(args.result_save_file, 'r'))
+    #     if args.prompt_type == 'self-refine': gene_results_before = json.load(open(args.result_save_file.replace('self-refine', '3shot'), 'r'))
+    #     for idx, result in enumerate(gene_results):
+    #         print(f'\n<processed answer {idx}>]')
+    #         print([result['outputs']])
+    #         if "I'm sorry" in result['outputs'][0]: cannot_answer_count += 1
+    #         if args.prompt_type == 'self-refine':
+    #             outputs = process_gene_results(args, result['outputs'], outputs_before=gene_results_before[idx]['outputs'])
+    #         else:
+    #             outputs = process_gene_results(args, result['outputs'])
+    #         if args.prompt_type == 'self-consistency':
+    #             print(outputs)
+    #             most_output = process_outputs_for_self_consistency(outputs)
+    #             print(most_output)
+    #         else:
+    #             print([outputs[0]])
+    #     print(cannot_answer_count)
+    #
+    # # todo: for self-consistency

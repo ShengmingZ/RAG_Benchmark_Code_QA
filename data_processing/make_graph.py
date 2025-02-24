@@ -138,8 +138,8 @@ def make_doc_selection_percentage_of_mistakes():
             else:
                 ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker=markers[idx],
                         markersize=7.5, linestyle='-', label=auth_dataset_names[idx], color=tmp_colors[idx])
-        ax.set_ylabel('percentage of instances', fontsize=14)
-        ax.set_xlabel('top k documents', fontsize=16)
+        ax.set_ylabel('Instances Percentage', fontsize=16)
+        ax.set_xlabel('Top K Documents', fontsize=16)
         if ax_idx == 3:
             ax.set_xticks(x, [item.split('_')[1] for item in topk_list[ax_idx]])
             ax.set_xticklabels([item.split('_')[1] for item in topk_list[ax_idx]], fontsize=16)
@@ -158,13 +158,13 @@ def make_doc_selection_percentage_of_mistakes():
         ax.set_yticks([0, 2, 4, 6, 8, 10])
         ax.set_yticklabels([0, 2, 4, 6, 8, 10], fontsize=16)
         if ax_idx == 0:
-            ax.set_title('CodeLlama-13B, Code Datasets', fontsize=14)
+            ax.set_title('b. CodeLlama-13B, Code Tasks', fontsize=14)
         elif ax_idx == 1:
-            ax.set_title('Llama2-13B, QA Datasets', fontsize=14)
+            ax.set_title('a. Llama2-13B, QA Tasks', fontsize=14)
         elif ax_idx == 2:
-            ax.set_title('GPT-3.5, Code Datasets', fontsize=14)
+            ax.set_title('d. GPT-3.5, Code Tasks', fontsize=14)
         else:
-            ax.set_title('GPT-3.5, QA Datasets', fontsize=14)
+            ax.set_title('c. GPT-3.5, QA Tasks', fontsize=14)
 
     ax3_handles, ax3_labels = ax3.get_legend_handles_labels()
     ax4_handles, ax4_labels = ax4.get_legend_handles_labels()
@@ -306,7 +306,7 @@ def make_doc_selection_topk_analysis():
             else:
                 ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker=markers[idx], markersize=7.5, linestyle='-', label=auth_dataset_names[idx], color=tmp_colors[idx])
         ax.set_ylabel(metric, fontsize=16)
-        ax.set_xlabel('top k documents', fontsize=16)
+        ax.set_xlabel('Top K Documents', fontsize=16)
         if ax_idx == 3:
             ax.set_xticks(x, [item.split('_')[1] for item in topk_list[ax_idx]])
             ax.set_xticklabels([item.split('_')[1] for item in topk_list[ax_idx]], fontsize=16)
@@ -323,13 +323,13 @@ def make_doc_selection_topk_analysis():
             ax.set_yticks([0.2, 0.4, 0.6, 0.8])
             ax.set_yticklabels([0.2, 0.4, 0.6, 0.8], fontsize=16)
         if ax_idx == 0:
-            ax.set_title('CodeLlama-13B, Code Datasets', fontsize=14)
+            ax.set_title('b. CodeLlama-13B, Code Tasks', fontsize=14)
         elif ax_idx == 1:
-            ax.set_title('Llama2-13B, QA Datasets', fontsize=14)
+            ax.set_title('a. Llama2-13B, QA Tasks', fontsize=14)
         elif ax_idx == 2:
-            ax.set_title('GPT-3.5, Code Datasets', fontsize=14)
+            ax.set_title('d. GPT-3.5, Code Tasks', fontsize=14)
         else:
-            ax.set_title('GPT-3.5, QA Datasets', fontsize=14)
+            ax.set_title('c. GPT-3.5, QA Tasks', fontsize=14)
 
     ax3_handles, ax3_labels = ax3.get_legend_handles_labels()
     ax4_handles, ax4_labels = ax4.get_legend_handles_labels()
@@ -411,7 +411,7 @@ def make_doc_selection_topk_perplexity():
             else:
                 ax.plot([item.split('_')[1] for item in topk_list[ax_idx]], perf_datas[idx], marker=markers[idx], markersize=7.5, linestyle='-', label=auth_dataset_names[idx], color=tmp_colors[idx])
         ax.set_ylabel(metric, fontsize=16)
-        ax.set_xlabel('top k documents', fontsize=16)
+        ax.set_xlabel('Top K Documents', fontsize=16)
         if ax_idx == 3:
             ax.set_xticks(x, [item.split('_')[1] for item in topk_list[ax_idx]])
             ax.set_xticklabels([item.split('_')[1] for item in topk_list[ax_idx]], fontsize=16)
@@ -431,13 +431,13 @@ def make_doc_selection_topk_perplexity():
             ax.set_yticks([1.02, 1.03, 1.04, 1.05, 1.06])
             ax.set_yticklabels([1.02, 1.03, 1.04, 1.05, 1.06], fontsize=16)
         if ax_idx == 0:
-            ax.set_title('CodeLlama-13B, Code Datasets', fontsize=14)
+            ax.set_title('b. CodeLlama-13B, Code Tasks', fontsize=14)
         elif ax_idx == 1:
-            ax.set_title('Llama2-13B, QA Datasets', fontsize=14)
+            ax.set_title('a. Llama2-13B, QA Tasks', fontsize=14)
         elif ax_idx == 2:
-            ax.set_title('GPT-3.5, Code Datasets', fontsize=14)
+            ax.set_title('d. GPT-3.5, Code Tasks', fontsize=14)
         else:
-            ax.set_title('GPT-3.5, QA Datasets', fontsize=14)
+            ax.set_title('c. GPT-3.5, QA Tasks', fontsize=14)
 
     ax3_handles, ax3_labels = ax3.get_legend_handles_labels()
     ax4_handles, ax4_labels = ax4.get_legend_handles_labels()
@@ -506,7 +506,7 @@ def make_doc_selection_topk_ret_recall():
             else:
                 ax.plot(x, perf_datas[idx], marker=markers[idx], markersize=7.5, linestyle='-', label=auth_dataset_names[idx], color=tmp_colors[idx])
         ax.set_ylabel('Retrieval Recall', fontsize=16)
-        ax.set_xlabel('top k documents', fontsize=16)
+        ax.set_xlabel('Top K Documents', fontsize=16)
         if ax_idx == 0:
             ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4])
             ax.set_yticklabels([0, 0.1, 0.2, 0.3, 0.4], fontsize=16)
@@ -518,9 +518,9 @@ def make_doc_selection_topk_ret_recall():
             ax.set_xticks(x, [item.split('_')[1] for item in topk_list[ax_idx]])
             ax.set_xticklabels([item.split('_')[1] for item in topk_list[ax_idx]], fontsize=16)
         if ax_idx == 0:
-            ax.set_title('Code Generation Datasets', fontsize=14)
+            ax.set_title('b. Code Tasks', fontsize=14)
         elif ax_idx == 1:
-            ax.set_title('QA Datasets', fontsize=14)
+            ax.set_title('a. QA Tasks', fontsize=14)
 
     ax3_handles, ax3_labels = ax1.get_legend_handles_labels()
     ax4_handles, ax4_labels = ax2.get_legend_handles_labels()
@@ -555,8 +555,8 @@ def make_ret_doc_type_perplexity():
     fig, ((ax1, ax2, ax3, ax4, ax5, ax6), (ax7, ax8, ax9, ax10, ax11, ax12)) = plt.subplots(2, 6, figsize=(24, 6))  # ax1: qa, ax2: code
     x = len(ret_doc_types)
     # fig.suptitle('retrieval document type analysis', fontsize=16)
-    fig.text(0.5, -0.035, '(2) perplexity of Llama2-13B / CodeLlama-13B over six datasets', ha='center', va='center', fontsize=26)
-    fig.text(0.5, 0.505, '(1) perplexity of GPT-3.5 over six datasets', ha='center', va='center', fontsize=26)
+    fig.text(0.5, -0.035, '(2). Confidence of RAG systems with Llama2-13B / CodeLlama-13B', ha='center', va='center', fontsize=26)
+    fig.text(0.5, 0.505, '(1). Confidence of RAG systems with GPT-3.5', ha='center', va='center', fontsize=26)
     fig.subplots_adjust(hspace=0.4, wspace=0.2)
     doc_type_index = np.arange(x)
     colors1 = plt.cm.viridis(np.linspace(0, 1, len(ret_doc_types)))
@@ -670,8 +670,8 @@ def make_ret_doc_type_analysis():
     plt.style.use('ggplot')
     fig, ((ax1, ax2, ax3, ax4, ax5, ax6), (ax7, ax8, ax9, ax10, ax11, ax12)) = plt.subplots(2, 6, figsize=(24, 6))  # ax1: qa, ax2: code
     # fig.suptitle('retrieval document type analysis', fontsize=16)
-    fig.text(0.5, -0.035, '(2) correctness of Llama2-13B / CodeLlama-13B over six datasets', ha='center', va='center', fontsize=26)
-    fig.text(0.5, 0.505, '(1) correctness of GPT-3.5 over six datasets', ha='center', va='center', fontsize=26)
+    fig.text(0.5, -0.035, '(2). Correctness of RAG systems with Llama2-13B / CodeLlama-13B', ha='center', va='center', fontsize=26)
+    fig.text(0.5, 0.505, '(1). Correctness of RAG systems with GPT-3.5', ha='center', va='center', fontsize=26)
     fig.subplots_adjust(hspace=0.4, wspace=0.2)
     x = len(ret_doc_types)
     doc_type_index = np.arange(x)
@@ -755,54 +755,54 @@ def make_ret_recall_perplexity():
     colors = ['#DC143C', '#FF8C00', '#DAA520', '#FFB6C1', '#228B22', '#4169E1', '#8B4513', '#C71585']
     markers = ['D', 'o', '^']
     qa_colors, code_colors = colors[:4], colors[4:]
-    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(24, 6))  # ax1: qa, ax2: code
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 12))  # ax1: qa, ax2: code
     for idx, (perf_data, dataset_name) in enumerate(zip(llama_perf_datas[:3], qa_dataset_names)):
         line, = ax1.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
     ax1.set_xlabel('Retrieval Recall', fontsize=22)
-    ax1.set_ylabel(f'{qa_metric}', fontsize=22)
+    ax1.set_ylabel(f'Perplexity', fontsize=22)
     # ax1.set_yticks([1.055, 1.06, 1.065, 1.07, 1.075])
     # ax1.set_yticklabels([1.055, 1.06, 1.065, 1.07, 1.075], fontsize=20)
     ax1.set_yticks([1.05, 1.06, 1.07, 1.08])
     ax1.set_yticklabels([1.05, 1.06, 1.07, 1.08], fontsize=20)
     ax1.set_xticks(x, ret_recalls)
     ax1.set_xticklabels(ret_recalls, fontsize=20)
-    ax1.set_title('Llama2-13B, QA Datasets', fontsize=22)
+    ax1.set_title('a. Llama2-13B, QA Tasks', fontsize=22)
     for idx, (perf_data, dataset_name) in enumerate(zip(llama_perf_datas[3:], code_dataset_names)):
         line, = ax2.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
     ax2.set_xlabel('Retrieval Recall', fontsize=22)
-    ax2.set_ylabel(code_metric, fontsize=22)
+    ax2.set_ylabel(f'Perplexity', fontsize=22)
     ax2.set_yticks([1.11, 1.12, 1.13, 1.14, 1.15, 1.16])
     ax2.set_yticklabels([1.11, 1.12, 1.13, 1.14, 1.15, 1.16], fontsize=16)
     ax2.set_xticks(x, ret_recalls)
     ax2.set_xticklabels(ret_recalls, fontsize=20)
-    ax2.set_title('CodeLlama-13B, Code Datasets', fontsize=22)
+    ax2.set_title('b. CodeLlama-13B, Code Tasks', fontsize=22)
     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas[:3], qa_dataset_names)):
         line, = ax3.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
     ax3.set_xlabel('Retrieval Recall', fontsize=22)
-    ax3.set_ylabel(qa_metric, fontsize=22)
+    ax3.set_ylabel(f'Perplexity', fontsize=22)
     # ax3.set_yticks([1.015, 1.025, 1.035, 1.045, 1.055])
     # ax3.set_yticklabels([1.015, 1.025, 1.035, 1.045, 1.055], fontsize=20)
     ax3.set_yticks([1.01, 1.02, 1.03, 1.04, 1.05, 1.06])
     ax3.set_yticklabels([1.01, 1.02, 1.03, 1.04, 1.05, 1.06], fontsize=20)
     ax3.set_xticks(x, ret_recalls)
     ax3.set_xticklabels(ret_recalls, fontsize=20)
-    ax3.set_title('GPT-3.5, QA Datasets', fontsize=22)
+    ax3.set_title('c. GPT-3.5, QA Tasks', fontsize=22)
     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas[3:], code_dataset_names)):
         line, = ax4.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
     ax4.set_xlabel('Retrieval Recall', fontsize=22)
-    ax4.set_ylabel(code_metric, fontsize=22)
+    ax4.set_ylabel(f'Perplexity', fontsize=22)
     # ax4.set_yticks([1.025, 1.03, 1.035, 1.04, 1.045, 1.05])
     # ax4.set_yticklabels([1.025, 1.03, 1.035, 1.04, 1.045, 1.05], fontsize=20)
     ax4.set_yticks([1.02, 1.03, 1.04, 1.05])
     ax4.set_yticklabels([1.02, 1.03, 1.04, 1.05], fontsize=20)
     ax4.set_xticks(x, ret_recalls)
     ax4.set_xticklabels(ret_recalls, fontsize=20)
-    ax4.set_title('GPT-3.5, Code Datasets', fontsize=22)
+    ax4.set_title('d. GPT-3.5, Code Tasks', fontsize=22)
 
     ax1_handles, ax1_labels = ax1.get_legend_handles_labels()
     ax2_handles, ax2_labels = ax2.get_legend_handles_labels()
     handles, labels = ax1_handles+ax2_handles, ax1_labels+ax2_labels
-    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=24, bbox_to_anchor=(0.5, -0.12))
+    fig.legend(handles, labels, loc='lower center', ncol=3, fontsize=24, bbox_to_anchor=(0.5, -0.12))
     plt.tight_layout()
     plt.savefig('graph/' + graph_name, bbox_inches='tight')
     plt.show()
@@ -835,52 +835,52 @@ def make_ret_recall_analysis():
     colors = ['#DC143C', '#FF8C00', '#DAA520', '#FFB6C1', '#228B22', '#4169E1', '#8B4513', '#C71585']
     markers = ['D', 'o', '^']
     qa_colors, code_colors = colors[:4], colors[4:]
-    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(24, 6))  # ax1: qa, ax2: code
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 12))  # ax1: qa, ax2: code
     for idx, (perf_data, dataset_name) in enumerate(zip(llama_perf_datas[:3], qa_dataset_names)):
         line, = ax1.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
-        ax1.axhline(y=llama_perf_none[:3][idx], color=line.get_color(), linestyle='--')  # plot none result
+        # ax1.axhline(y=llama_perf_none[:3][idx], color=line.get_color(), linestyle='--', linewidth=3)  # plot none result
     ax1.set_xlabel('Retrieval Recall', fontsize=22)
-    ax1.set_ylabel(qa_metric, fontsize=22)
+    ax1.set_ylabel('Accuracy', fontsize=22)
     ax1.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     ax1.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=20)
     ax1.set_xticks(x, ret_recalls)
     ax1.set_xticklabels(ret_recalls, fontsize=20)
-    ax1.set_title('Llama2-13B, QA Datasets', fontsize=22)
+    ax1.set_title('a. Llama2-13B, QA Tasks', fontsize=22)
     for idx, (perf_data, dataset_name) in enumerate(zip(llama_perf_datas[3:], code_dataset_names)):
         line, = ax2.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
-        ax2.axhline(y=llama_perf_none[3:][idx], color=line.get_color(), linestyle='--')  # plot none result
+        # ax2.axhline(y=llama_perf_none[3:][idx], color=line.get_color(), linestyle='--', linewidth=3)  # plot none result
     ax2.set_xlabel('Retrieval Recall', fontsize=22)
-    ax2.set_ylabel(code_metric, fontsize=22)
+    ax2.set_ylabel('Pass@1', fontsize=22)
     ax2.set_yticks([0, 0.2, 0.4, 0.6])
     ax2.set_yticklabels([0, 0.2, 0.4, 0.6], fontsize=20)
     ax2.set_xticks(x, ret_recalls)
     ax2.set_xticklabels(ret_recalls, fontsize=20)
-    ax2.set_title('CodeLlama-13B, Code Datasets', fontsize=22)
+    ax2.set_title('b. Llama2-13B, Code Tasks', fontsize=22)
     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas[:3], qa_dataset_names)):
         line, = ax3.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
-        ax3.axhline(y=gpt_perf_none[:3][idx], color=line.get_color(), linestyle='--')   # plot none result
+        # ax3.axhline(y=gpt_perf_none[:3][idx], color=line.get_color(), linestyle='--', linewidth=3)   # plot none result
     ax3.set_xlabel('Retrieval Recall', fontsize=22)
-    ax3.set_ylabel(qa_metric, fontsize=22)
+    ax3.set_ylabel('Accuracy', fontsize=22)
     ax3.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     ax3.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=20)
     ax3.set_xticks(x, ret_recalls)
     ax3.set_xticklabels(ret_recalls, fontsize=20)
-    ax3.set_title('GPT-3.5, QA Datasets', fontsize=22)
+    ax3.set_title('c. GPT-3.5, QA Tasks', fontsize=22)
     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas[3:], code_dataset_names)):
         line, = ax4.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
-        ax4.axhline(y=gpt_perf_none[3:][idx], color=line.get_color(), linestyle='--')   # plot none result
+        # ax4.axhline(y=gpt_perf_none[3:][idx], color=line.get_color(), linestyle='--', linewidth=3)   # plot none result
     ax4.set_xlabel('Retrieval Recall', fontsize=22)
-    ax4.set_ylabel(code_metric, fontsize=22)
+    ax4.set_ylabel('Pass@1', fontsize=22)
     ax4.set_yticks([0.2, 0.4, 0.6, 0.8])
     ax4.set_yticklabels([0.2, 0.4, 0.6, 0.8], fontsize=20)
     ax4.set_xticks(x, ret_recalls)
     ax4.set_xticklabels(ret_recalls, fontsize=20)
-    ax4.set_title('GPT-3.5, Code Datasets', fontsize=22)
+    ax4.set_title('d. GPT-3.5, Code Tasks', fontsize=22)
 
     ax1_handles, ax1_labels = ax1.get_legend_handles_labels()
     ax2_handles, ax2_labels = ax2.get_legend_handles_labels()
     handles, labels = ax1_handles+ax2_handles, ax1_labels+ax2_labels
-    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=24, bbox_to_anchor=(0.5, -0.12))
+    fig.legend(handles, labels, loc='lower center', ncol=3, fontsize=24, bbox_to_anchor=(0.5, -0.12))
     plt.tight_layout()
     plt.savefig('graph/' + graph_name, bbox_inches='tight')
     plt.show()
@@ -934,6 +934,7 @@ def make_qa_code_retriever_perf():
 
 
 def make_qa_code_ret_recall():
+    auth_retriever_names = ['BM25', 'MiniLM', 'text-embedding', 'Contriever', 'CodeT5']
     graph_name = 'qa_code_ret_recall.pdf'
     qa_retrieval_acc_datas = []
     for retriever_index, retriever_name in enumerate(retriever_names):  # for qa
@@ -967,29 +968,29 @@ def make_qa_code_ret_recall():
     plt.style.use('ggplot')
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))   # ax1: qa, ax2: code
     for idx, (retrieval_acc_data, retriever_name) in enumerate(zip(qa_retrieval_acc_datas, retriever_names)):
-        if retrieval_acc_data: ax1.plot(x, retrieval_acc_data, marker=markers[idx], markersize=10, linestyle='-', label=retriever_name)
+        if retrieval_acc_data: ax1.plot(x, retrieval_acc_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_retriever_names[idx])
         else: ax1.plot([], [], marker='o', linestyle='-', label=retriever_name)
-    ax1.set_xlabel('top k', fontsize=18)
+    ax1.set_xlabel('Top K Documents', fontsize=18)
     # ax1.set_ylabel('Retrieval Recall', fontsize=16)
-    ax1.set_yticks([0.2, 0.4, 0.6, 0.8, 1.0])
-    ax1.set_yticklabels([0.2, 0.4, 0.6, 0.8, 1.0], fontsize=18)
+    ax1.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+    ax1.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=16)
     ax1.set_xticks(x, top_ks)
     ax1.set_xticklabels(x, fontsize=18)
-    ax1.set_ylabel('Avg Retrieval Recall', fontsize=18)
+    ax1.set_ylabel('Retrieval Recall', fontsize=20)
     # ax1.set_xticks(top_ks)
     ax1.set_xticklabels(top_ks, fontsize=18)
     ax1.set_title('QA Datasets', fontsize=18)
     for idx, (retrieval_acc_data, retriever_name) in enumerate(zip(code_retrieval_acc_datas, retriever_names)):
-        if retrieval_acc_data: ax2.plot(x, retrieval_acc_data, marker=markers[idx], markersize=10, linestyle='-', label=retriever_name)
+        if retrieval_acc_data: ax2.plot(x, retrieval_acc_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_retriever_names[idx])
         else: ax2.plot([], [], marker='o', linestyle='-', label=retriever_name)
-    ax2.set_xlabel('top k', fontsize=18)
+    ax2.set_xlabel('Top K Documents', fontsize=18)
     # ax2.set_ylabel('Retrieval Recall', fontsize=16)
-    ax2.set_yticks([0, 0.2, 0.4, 0.6])
-    ax2.set_yticklabels([0, 0.2, 0.4, 0.6], fontsize=18)
+    ax2.set_yticks([0, 0.1, 0.2, 0.3, 0.4, 0.5])
+    ax2.set_yticklabels([0, 0.1, 0.2, 0.3, 0.4, 0.5], fontsize=16)
     ax2.set_xticks(x, top_ks)
     ax2.set_xticklabels(top_ks, fontsize=18)
-    ax2.set_title('Code Generation Datasets', fontsize=18)
-    ax2.set_ylabel('Avg Retrieval Recall', fontsize=18)
+    ax2.set_title('Code Datasets', fontsize=18)
+    ax2.set_ylabel('Rretrieval Recall', fontsize=20)
 
     handles, labels = ax1.get_legend_handles_labels()
     fig.legend(handles, labels, loc='lower center', ncol=5, fontsize=16, bbox_to_anchor=(0.5, -0.1))
@@ -1162,13 +1163,21 @@ def make_prompt_method_correctness():
             ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
             ax.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=20)
             ax.set_ylabel(code_metric, fontsize=24)
+        if ax_idx == 0:
+            ax.set_title('a. GPT-3.5, QA Tasks', fontsize=22)
+        if ax_idx == 2:
+            ax.set_title('b. GPT-3.5, Code Tasks', fontsize=22)
+        if ax_idx == 1:
+            ax.set_title('c. Llama2-13B, QA Tasks', fontsize=22)
+        if ax_idx == 3:
+            ax.set_title('d. CodeLlama-13B, Code Tasks', fontsize=22)
         ax.legend(loc='upper right', fontsize=18, ncol=4)
 
         if ax_idx in [0,1]:
             bar_center = index[special_idx] + bar_width
             # ax.text(bar_center, 0.9, 'Unreliable', ha='center', fontsize=12, color='black')
             ax.annotate('Unreliable', xy=(bar_center, 0.75), xytext=(bar_center + 0.3, 0.82),
-                        arrowprops=dict(facecolor='black', shrink=0.01), fontsize=14)
+                        arrowprops=dict(facecolor='black', shrink=0.01), fontsize=22)
 
     plt.tight_layout()
     plt.savefig('graph/' + graph_name)
@@ -1213,7 +1222,7 @@ def make_prompt_method_perplexity():
     perf_datas_list = [qa_gpt_avg_prompt_perf_datas, qa_llama_avg_prompt_perf_datas, code_gpt_avg_prompt_perf_datas,
                        code_llama_avg_prompt_perf_datas]
 
-    bar_width = 0.3
+    bar_width = 0.5
     index = np.arange(len(prompt_method_list))
     for ax_idx, (ax, perf_datas) in enumerate(zip(axes, perf_datas_list)):
         if ax_idx in [0,1]:
@@ -1226,17 +1235,25 @@ def make_prompt_method_perplexity():
             ax.set_xticks(index)
             ax.set_xticklabels(auth_prompt_method_names, rotation=90, ha='right', fontsize=22)
         else:
-            ax.set_xticks([])
-        if ax_idx in [0, 1]:
-            ax.set_ylim(1, 1.3)
-            ax.set_yticks([1, 1.1, 1.2, 1.3])
-            ax.set_yticklabels([1, 1.1, 1.2, 1.3], fontsize=20)
+            ax.set_xticks(ticks=range(len(auth_prompt_method_names)))
+        if ax_idx in [1, 2]:
+            ax.set_ylim(1, 1.4)
+            ax.set_yticks([1, 1.1, 1.2, 1.3, 1.4])
+            ax.set_yticklabels([1, 1.1, 1.2, 1.3, 1.4], fontsize=20)
             ax.set_ylabel('PPL', fontsize=24)
-        else:
-            ax.set_ylim(1, 1.3)
-            ax.set_yticks([1, 1.1, 1.2, 1.3])
-            ax.set_yticklabels([1, 1.1, 1.2, 1.3], fontsize=20)
+        elif ax_idx in [0, 3]:
+            ax.set_ylim(1, 1.4)
+            ax.set_yticks([1, 1.1, 1.2, 1.3, 1.4])
+            ax.set_yticklabels([1, 1.1, 1.2, 1.3, 1.4], fontsize=20)
             ax.set_ylabel('PPL', fontsize=24)
+        if ax_idx == 0:
+            ax.set_title('a. GPT-3.5, QA Tasks', fontsize=22)
+        if ax_idx == 2:
+            ax.set_title('b. GPT-3.5, Code Tasks', fontsize=22)
+        if ax_idx == 1:
+            ax.set_title('c. Llama2-13B, QA Tasks', fontsize=22)
+        if ax_idx == 3:
+            ax.set_title('d. CodeLlama-13B, Code Tasks', fontsize=22)
         ax.legend(loc='upper right', fontsize=18, ncol=1)
 
     plt.tight_layout()
@@ -1296,7 +1313,7 @@ def make_prompt_method_percentage_of_only_correct():
         print(perf_datas)
         print(percentage_datas[idx])
         for xx_idx, perf_data in enumerate(perf_datas):
-            perf_datas_list[idx][xx_idx] = [a/b/100 for a,b in zip(percentage_datas[idx][xx_idx], perf_datas_list[idx][xx_idx])]
+            perf_datas_list[idx][xx_idx] = [a/100 for a,b in zip(percentage_datas[idx][xx_idx], perf_datas_list[idx][xx_idx])]
         print(perf_datas_list[idx])
 
     auth_qa_dataset_names.append('avg of QA tasks')
@@ -1311,7 +1328,7 @@ def make_prompt_method_percentage_of_only_correct():
     fig, ((ax1, ax3), (ax2, ax4)) = plt.subplots(2, 2, figsize=(12, 8))  # ax1: qa, ax2: code
     axes = [ax1, ax2, ax3, ax4]
     special_idx = 1
-    bar_width = 0.3
+    bar_width = 0.5
     index = np.arange(len(prompt_method_list))
     for ax_idx, (ax, perf_datas) in enumerate(zip(axes, perf_datas_list)):
         if ax_idx in [0, 1]:
@@ -1325,16 +1342,24 @@ def make_prompt_method_percentage_of_only_correct():
             ax.set_xticklabels(auth_prompt_method_names, rotation=90, ha='right', fontsize=22)
         else:
             ax.set_xticks(ticks=range(len(auth_prompt_method_names)))
-        ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4])
-        ax.set_yticklabels([0, 10, 20, 30, 40], fontsize=20)
+        ax.set_yticks([0, 0.05, 0.1, 0.15, 0.2])
+        ax.set_yticklabels([0, 5, 10, 15, 20], fontsize=20)
         ax.set_ylabel('percentage', fontsize=22)
+        if ax_idx == 0:
+            ax.set_title('a. GPT-3.5, QA Tasks', fontsize=22)
+        if ax_idx == 2:
+            ax.set_title('b. GPT-3.5, Code Tasks', fontsize=22)
+        if ax_idx == 1:
+            ax.set_title('c. Llama2-13B, QA Tasks', fontsize=22)
+        if ax_idx == 3:
+            ax.set_title('d. CodeLlama-13B, Code Tasks', fontsize=22)
         ax.legend(loc='upper right', fontsize=18, ncol=4)
 
         if ax_idx in [0, 1]:
             bar_center = index[special_idx] + bar_width
             # ax.text(bar_center, 0.9, 'Unreliable', ha='center', fontsize=12, color='black')
-            ax.annotate('Unreliable', xy=(bar_center-bar_width, 0.1), xytext=(bar_center, 0.2),
-                        arrowprops=dict(facecolor='black', shrink=0.01), fontsize=14)
+            ax.annotate('Unreliable', xy=(bar_center-bar_width, 0.05), xytext=(bar_center, 0.1),
+                        arrowprops=dict(facecolor='black', shrink=0.01), fontsize=22)
 
     plt.tight_layout()
     plt.savefig('graph/' + graph_name)
@@ -1350,7 +1375,7 @@ if __name__ == '__main__':
 
     # make_ret_recall_analysis()
 
-    # make_ret_recall_perplexity()
+    make_ret_recall_perplexity()
 
     # make_ret_doc_type_analysis()
 
@@ -1372,6 +1397,6 @@ if __name__ == '__main__':
 
     # make_prompt_method_perplexity()
 
-    make_prompt_method_percentage_of_only_correct()
+    # make_prompt_method_percentage_of_only_correct()
 
     # make_doc_selection_percentage_of_mistakes()
