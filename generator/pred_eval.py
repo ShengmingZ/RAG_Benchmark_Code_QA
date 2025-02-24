@@ -373,6 +373,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
                     perplexity_list.append(np.exp(-sum(logprobs) / len(logprobs)))
                 except: print(logprobs)
         scores['perplexity'] = perplexity / len(gene_results)
+        oracle_list = loader.load_oracle_list()
         for idx, oracle in enumerate(oracle_list):
             eval_records[oracle['qs_id']]['perplexity'] = perplexity_list[idx]
 
