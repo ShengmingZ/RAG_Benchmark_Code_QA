@@ -531,7 +531,8 @@ if __name__ == '__main__':
             # ret_eval_vs_eval(eval_datas)
 
             hamming_dist, percentage_only_correct_data2, p_value, baseline_preds, prediction_preds = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
-            predictions_list.append(prediction_preds)
+            if dataset not in ['NQ', 'TriviaQA', 'hotpotQA'] or args.prompt_type == 'RaR':
+                predictions_list.append(prediction_preds)
             print(f"0shot False but {eval} True percent: {round(percentage_only_correct_data2,4)}  |  p-value: {p_value}")
             # print(f"RAG false LLM true percent: {round(eval1_false_eval2_true, 3)}")
 
