@@ -525,7 +525,7 @@ if __name__ == '__main__':
             # ret_eval_vs_eval(eval_datas)
 
             hamming_dist, percentage_only_correct_data2, p_value = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
-            print(f"0shot False but {eval} True percent: {round(percentage_only_correct_data2,3)}  |  p-value: {round(p_value,3)}")
+            print(f"0shot False but {eval} True percent: {round(percentage_only_correct_data2,4)}  |  p-value: {p_value}")
             # print(f"RAG false LLM true percent: {round(eval1_false_eval2_true, 3)}")
 
 
