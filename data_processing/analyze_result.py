@@ -260,7 +260,7 @@ def eval_vs_eval(dataset, baseline_datas, compared_datas):
     # Fisher's exact test on discordant pairs
     _, fisher_p = stats.fisher_exact([[b, c], [c, b]])
 
-    return hamming_dist, only_baseline_false_count/len(eval_records1), [mcnemar_p, fisher_p]
+    return hamming_dist, only_baseline_false_count/len(eval_records1), [mcnemar_p, fisher_p], baseline_predictions, compared_predictions
 
 
 
@@ -507,6 +507,7 @@ if __name__ == '__main__':
     if datasets == ['NQ', 'TriviaQA', 'hotpotQA']: model = 'llama2-13b-chat'
     else: model = 'codellama-13b-instruct'
     # model = 'gpt-3.5-turbo-0125'
+    predictions_list = []
     for dataset in datasets:
         print(dataset)
         for eval in evals:
@@ -529,10 +530,20 @@ if __name__ == '__main__':
 
             # ret_eval_vs_eval(eval_datas)
 
-            hamming_dist, percentage_only_correct_data2, p_value = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
+            hamming_dist, percentage_only_correct_data2, p_value, baseline_preds, prediction_preds = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
+            predictions_list.append(prediction_preds)
             print(f"0shot False but {eval} True percent: {round(percentage_only_correct_data2,4)}  |  p-value: {p_value}")
             # print(f"RAG false LLM true percent: {round(eval1_false_eval2_true, 3)}")
 
+    add_up_unique_samples_count = 0
+    for i, baseline_pred in enumerate(baseline_preds):
+        if baseline_pred is False:
+            for j in range(len(predictions_list)):
+                if predictions_list[j][i] is True:
+                    add_up_unique_samples_count += 1
+                    break
+
+    print('add up percentage: ', add_up_unique_samples_count / len(baseline_preds))
 
     """wilcoxon test"""
     # in_program_call = (
