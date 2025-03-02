@@ -408,7 +408,7 @@ if __name__ == '__main__':
         # in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_5'
         args = generate_config(in_program_call)
 
-        scores = pred_eval(args, if_eval_retrieval=False, if_code_analysis=True, if_calc_perplexity=True, if_save=True)
+        scores = pred_eval(args, if_eval_retrieval=False, if_code_analysis=True, if_calc_perplexity=False, if_save=True)
 
     # if args.dataset == 'DS1000':
     #     """
