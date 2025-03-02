@@ -247,17 +247,15 @@ def eval_vs_eval(dataset, baseline_datas, compared_datas):
     # calculate McNemar's test
     baseline = np.array(baseline_predictions, dtype=bool)
     technique = np.array(compared_predictions, dtype=bool)
-    import pandas as pd
-    contingency_table = pd.crosstab(
-        pd.Series(technique, name='Technique'),
-        pd.Series(baseline, name='Baseline')
-    )
-    mcnemar_chi2, mcnemar_p = stats.mcnemar(contingency_table, exact=False, correction=True)
 
     # Fisher's Exact Test (for the 2x2 table)
     # We'll create the 2x2 table of discordant pairs
     b = np.sum((technique == 1) & (baseline == 0))  # Technique solves, Baseline fails
     c = np.sum((technique == 0) & (baseline == 1))  # Technique fails, Baseline solves
+
+    # Exact binomial test on discordant pairs
+    from scipy.stats import binom_test
+    mcnemar_p = binom_test(b, n=b + c, p=0.5)
 
     # Fisher's exact test on discordant pairs
     _, fisher_p = stats.fisher_exact([[b, c], [c, b]])
