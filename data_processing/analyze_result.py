@@ -507,8 +507,8 @@ if __name__ == '__main__':
     if datasets == ['NQ', 'TriviaQA', 'hotpotQA']: model = 'llama2-13b-chat'
     else: model = 'codellama-13b-instruct'
     # model = 'gpt-3.5-turbo-0125'
-    predictions_list = []
     for dataset in datasets:
+        predictions_list = []
         print(dataset)
         for eval in evals:
             in_program_call = (f'--action eval_pred --model {model} --temperature 0.0 --dataset {dataset} --retriever openai-embedding '
@@ -535,15 +535,15 @@ if __name__ == '__main__':
             print(f"0shot False but {eval} True percent: {round(percentage_only_correct_data2,4)}  |  p-value: {p_value}")
             # print(f"RAG false LLM true percent: {round(eval1_false_eval2_true, 3)}")
 
-    add_up_unique_samples_count = 0
-    for i, baseline_pred in enumerate(baseline_preds):
-        if baseline_pred is False:
-            for j in range(len(predictions_list)):
-                if predictions_list[j][i] is True:
-                    add_up_unique_samples_count += 1
-                    break
+        add_up_unique_samples_count = 0
+        for i, baseline_pred in enumerate(baseline_preds):
+            if baseline_pred is False:
+                for j in range(len(predictions_list)):
+                    if predictions_list[j][i] is True:
+                        add_up_unique_samples_count += 1
+                        break
 
-    print('add up percentage: ', add_up_unique_samples_count / len(baseline_preds))
+        print('add up percentage: ', add_up_unique_samples_count / len(baseline_preds))
 
     """wilcoxon test"""
     # in_program_call = (
