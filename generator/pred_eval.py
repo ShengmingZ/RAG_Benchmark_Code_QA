@@ -381,7 +381,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
         #     eval_records[oracle['qs_id']]['perplexity'] = perplexity_list[idx]
         print(perplexity_list)
 
-    """
+
     # extra analyze for code
     if if_code_analysis is True and args.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
         eval_datas = dict(eval_records=eval_records, output_records=output_records, retrieval_records=retrieval_records, ret_eval_records=ret_doc_key_flags_list if len(ret_doc_keys_list) != 0 else [])
@@ -397,7 +397,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
             json.dump(dict(scores=scores, eval_records=eval_records, output_records=output_records, retrieval_records=retrieval_records, ret_eval_records=ret_doc_key_flags_list), f, indent=2)
 
     return scores
-    """
+
 
 
 if __name__ == '__main__':
