@@ -247,49 +247,22 @@ def eval_vs_eval(dataset, baseline_datas, compared_datas):
     # calculate McNemar's test
     baseline = np.array(baseline_predictions, dtype=bool)
     technique = np.array(compared_predictions, dtype=bool)
-    total_samples = len(baseline)
+    import pandas as pd
+    contingency_table = pd.crosstab(
+        pd.Series(technique, name='Technique'),
+        pd.Series(baseline, name='Baseline')
+    )
+    mcnemar_chi2, mcnemar_p = stats.mcnemar(contingency_table, exact=False, correction=True)
 
-    # Calculate unique solutions (cases where technique is correct but baseline is wrong)
-    unique_correct = np.logical_and(technique, np.logical_not(baseline))
-    num_unique_correct = np.sum(unique_correct)
+    # Fisher's Exact Test (for the 2x2 table)
+    # We'll create the 2x2 table of discordant pairs
+    b = np.sum((technique == 1) & (baseline == 0))  # Technique solves, Baseline fails
+    c = np.sum((technique == 0) & (baseline == 1))  # Technique fails, Baseline solves
 
-    # Calculate baseline-incorrect samples
-    baseline_incorrect = np.logical_not(baseline)
-    num_baseline_incorrect = np.sum(baseline_incorrect)
+    # Fisher's exact test on discordant pairs
+    _, fisher_p = stats.fisher_exact([[b, c], [c, b]])
 
-    # Calculate baseline-correct but technique-incorrect
-    baseline_only_correct = np.logical_and(baseline, np.logical_not(technique))
-    num_baseline_only_correct = np.sum(baseline_only_correct)
-
-    # Calculate Unique Contribution Rate (UCR)
-    ucr = (num_unique_correct / total_samples) * 100
-
-    # Calculate Complementary Success Rate (CSR)
-    csr = (num_unique_correct / num_baseline_incorrect) * 100 if num_baseline_incorrect > 0 else 0
-
-    # Contingency table for McNemar's test
-    n11 = np.sum(np.logical_and(baseline, technique))  # Both correct
-    n10 = num_baseline_only_correct  # Only baseline correct
-    n01 = num_unique_correct  # Only technique correct
-    n00 = np.sum(np.logical_not(np.logical_or(baseline, technique)))  # Both incorrect
-
-    # McNemar's test
-    # Use the exact binomial test when sample size is small or correction is preferred
-    if n10 + n01 < 25:
-        # Use exact binomial test with p=0.5 (null hypothesis: marginal proportions are equal)
-        if n10 + n01 > 0:  # Avoid division by zero
-            p_value = stats.binom_test(n01, n10 + n01, p=0.5)
-            statistic = None  # Exact test doesn't use test statistic
-        else:
-            p_value = 1.0
-            statistic = 0
-    else:
-        # Use chi-square approximation with continuity correction
-        statistic = ((abs(n10 - n01) - 1) ** 2) / (n10 + n01)
-        p_value = stats.chi2.sf(statistic, df=1)  # p-value from chi-square distribution with df=1
-
-
-    return hamming_dist, only_baseline_false_count/len(eval_records1), p_value
+    return hamming_dist, only_baseline_false_count/len(eval_records1), [mcnemar_p, fisher_p]
 
 
 
