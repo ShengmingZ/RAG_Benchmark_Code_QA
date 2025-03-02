@@ -15,6 +15,7 @@ from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from dataset_utils.DS1000_utils import DS1000Loader
 from data_processing import results
+from scipy import stats
 
 
 
@@ -179,13 +180,16 @@ def retrieval_consistency_vs_eval(dataset, eval_datas):
 
 
 
-def eval_vs_eval(dataset, eval_datas1, eval_datas2):
-    data1_true_data2_true_count = 0
-    data1_false_data2_true_count = 0
-    data1_true_data2_false_count = 0
-    data1_false_data2_false_count = 0
-    eval_records1 = eval_datas1['eval_records']
-    eval_records2 = eval_datas2['eval_records']
+def eval_vs_eval(dataset, baseline_datas, compared_datas):
+    # data1_true_data2_true_count = 0
+    only_baseline_false_count = 0
+    only_baseline_true_count = 0
+    # data1_false_data2_false_count = 0
+    all_false_count = 0
+    eval_records1 = baseline_datas['eval_records']
+    eval_records2 = compared_datas['eval_records']
+    baseline_predictions = []
+    compared_predictions = []
     if dataset == 'conala':
         for key in eval_records1.keys():
             eval_records1[key] = eval_records1[key]['passed']
@@ -209,16 +213,21 @@ def eval_vs_eval(dataset, eval_datas1, eval_datas2):
     evals1, evals2 = [], []
     evals1_wo_false, evals2_wo_false = [], []
     for key in eval_records1.keys():
+        baseline_predictions.append(eval_records1[key])
+        compared_predictions.append(eval_records2[key])
         if eval_records1[key] == eval_records2[key]:
             if eval_records1[key] is True:
-                data1_true_data2_true_count += 1
+                # data1_true_data2_true_count += 1
+                ...
             else:
-                data1_false_data2_false_count += 1
+                # data1_false_data2_false_count += 1
+                all_false_count += 1
+
         else:
             if eval_records1[key] is True:
-                data1_true_data2_false_count += 1
+                only_baseline_true_count += 1
             else:
-                data1_false_data2_true_count += 1
+                only_baseline_false_count += 1
 
         if eval_records1[key] is True or eval_records2[key] is True:
             evals1_wo_false.append(eval_records1[key])
@@ -235,7 +244,18 @@ def eval_vs_eval(dataset, eval_datas1, eval_datas2):
     # print('hamming dist: ', hamming_dist)
     # print('hamming dist without both False: ', hamming_dist_wo_false)
 
-    return hamming_dist, data1_true_data2_false_count/len(eval_records1), data1_false_data2_true_count/len(eval_records1)
+    # calculate wilcoxon signed rank test
+    baseline = np.array(baseline_predictions, dtype=bool)
+    technique = np.array(compared_predictions, dtype=bool)
+    baseline_int = baseline.astype(int)
+    technique_int = technique.astype(int)
+    if np.any(baseline_int != technique_int):
+        statistic, p_value = stats.wilcoxon(baseline_int, technique_int)
+        # significant = p_value < 0.05
+    else:
+        statistic, p_value = 0, 1.0
+
+    return hamming_dist, only_baseline_false_count/len(eval_records1), p_value
 
 
 
@@ -477,7 +497,7 @@ if __name__ == '__main__':
 
     """compare 2 prediction distributions"""
     datasets = ['NQ', 'TriviaQA', 'hotpotQA']
-    datasets = ['conala', 'DS1000', 'pandas_numpy_eval']
+    # datasets = ['conala', 'DS1000', 'pandas_numpy_eval']
     evals = ['3shot', 'RaR', 'cot', 'self-consistency', 'least_to_most', 'plan_and_solve', 'self-refine', 'con']
     if datasets == ['NQ', 'TriviaQA', 'hotpotQA']: model = 'llama2-13b-chat'
     else: model = 'codellama-13b-instruct'
@@ -489,7 +509,7 @@ if __name__ == '__main__':
                                f'--analysis_type retrieval_doc_selection --n 1 --doc_selection_type top_10')
             args = generate_config(in_program_call)
             eval_file = args.result_save_file.replace('.json', '_eval.json')
-            eval_datas = json.load(open(eval_file)) # RAG
+            eval_datas = json.load(open(eval_file)) # baseline
 
             if eval == 'self-consistency':
                 in_program_call = (
@@ -500,12 +520,12 @@ if __name__ == '__main__':
                                    f'--analysis_type prompt_method --n 1 --prompt_type {eval}')
             args = generate_config(in_program_call)
             eval_file = args.result_save_file.replace('.json', '_eval.json')
-            eval_datas2 = json.load(open(eval_file))    # single LLM
+            eval_datas2 = json.load(open(eval_file))    # prompt method
 
             # ret_eval_vs_eval(eval_datas)
 
-            hamming_dist, eval1_true_eval2_false, eval1_false_eval2_true = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
-            print(f"0shot False but {eval} True percent: {round(eval1_false_eval2_true,3)}")
+            hamming_dist, percentage_only_correct_data2, p_value = eval_vs_eval(args.dataset, eval_datas, eval_datas2)
+            print(f"0shot False but {eval} True percent: {round(percentage_only_correct_data2,3)}  |  p-value: {round(p_value,3)}")
             # print(f"RAG false LLM true percent: {round(eval1_false_eval2_true, 3)}")
 
 
@@ -545,4 +565,87 @@ if __name__ == '__main__':
     #     semantic_error_count = count_semantic_error(args.dataset, eval_datas)
     #
     #     print(dict(perplexity=round(perplexity,3), retrieval_consistency=round(retrieval_consistency,3), syntax_error_percent=round(syntax_error_count,3), semantic_error_percent=round(semantic_error_count,3)))
+
+
+
+    """perplexity cliffs_delta"""
+    # data_list = []
+
+
+
+    # sample_indices = np.random.choice(2000, 200, replace=False)
+    #
+    # # Sample datasets at those indices
+    # sampled_datasets = [
+    #     [dataset[idx] for idx in sample_indices]
+    #     for dataset in data_list
+    # ]
+    # data_list = sampled_datasets
+
+    # results = []
+    #
+    # import numpy as np
+    # from scipy import stats
+    #
+    # # Iterate through consecutive pairs of data
+    # for i in range(len(data_list) - 1):
+    #     # Perform Mann-Whitney U test
+    #     statistic, p_value = stats.mannwhitneyu(
+    #         data_list[i],
+    #         data_list[i + 1],
+    #         alternative='two-sided'  # two-sided test for difference in distribution
+    #     )
+    #
+    #     # Determine significance (typically using alpha = 0.05)
+    #     significance = "Significant" if p_value < 0.05 else "Not Significant"
+    #
+    #
+    #     # cliff delta
+    #     data1 = np.asarray(data_list[i])
+    #     data2 = np.asarray(data_list[i+1])
+    #     greater = 0
+    #     lesser = 0
+    #     for x in data1:
+    #         for y in data2:
+    #             if x > y:
+    #                 greater += 1
+    #             elif x < y:
+    #                 lesser += 1
+    #     total_comparisons = len(data1) * len(data2)
+    #     delta = (greater - lesser) / total_comparisons
+    #
+    #     # Interpret the magnitude of the effect
+    #     if abs(delta) < 0.147:
+    #         interpretation = "negligible"
+    #     elif abs(delta) < 0.33:
+    #         interpretation = "small"
+    #     elif abs(delta) < 0.474:
+    #         interpretation = "medium"
+    #     else:
+    #         interpretation = "large"
+    #
+    #
+    #
+    #     results.append({
+    #         'Pair': f'{i*0.2} vs {(i + 1)*0.2}',
+    #         'cliff_delta': delta,
+    #         'effect_size_interpretation': interpretation,
+    #         'Statistic': statistic,
+    #         'P-value': p_value,
+    #         'Significance': significance,
+    #         'sample_size': (len(data_list[i]), len(data_list[i+1])),
+    #         'mean_perplexity': (np.mean(data_list[i]), np.mean(data_list[i+1])),
+    #         'median_perplexity': (np.median(data_list[i]), np.median(data_list[i+1]))
+    #     })
+    #
+    # print("Test Results:")
+    # for result in results:
+    #     print(f"Pair {result['Pair']}:")
+    #     print(f"  Cliff delta: {result['cliff_delta']}")
+    #     print(f"  Effect size interpretation: {result['effect_size_interpretation']}")
+    #     print(f"  Statistic: {result['Statistic']}")
+    #     print(f"  P-value: {result['P-value']:.4f}")
+    #     print(f"  Significance: {result['Significance']}")
+    #     print(f"  Mean: {result['mean_perplexity']}")
+    #     print(f"  Median: {result['median_perplexity']}")
 

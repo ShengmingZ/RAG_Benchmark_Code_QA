@@ -552,10 +552,10 @@ def make_ret_doc_type_perplexity():
     qa_llama_perf_datas, code_llama_perf_datas = llama_perf_datas[:3], llama_perf_datas[3:]
 
     plt.style.use('ggplot')
-    fig, ((ax1, ax2, ax3, ax4, ax5, ax6), (ax7, ax8, ax9, ax10, ax11, ax12)) = plt.subplots(2, 6, figsize=(24, 6))  # ax1: qa, ax2: code
+    fig, ((ax1, ax2, ax3), (ax4, ax5, ax6), (ax7, ax8, ax9), (ax10, ax11, ax12)) = plt.subplots(4, 3, figsize=(12, 12))  # ax1: qa, ax2: code
     x = len(ret_doc_types)
     # fig.suptitle('retrieval document type analysis', fontsize=16)
-    fig.text(0.5, -0.035, '(2). Confidence of RAG systems with Llama2-13B / CodeLlama-13B', ha='center', va='center', fontsize=26)
+    fig.text(0.5, -0.035, '(2). Confidence of RAG systems with Llama2-13B', ha='center', va='center', fontsize=26)
     fig.text(0.5, 0.505, '(1). Confidence of RAG systems with GPT-3.5', ha='center', va='center', fontsize=26)
     fig.subplots_adjust(hspace=0.4, wspace=0.2)
     doc_type_index = np.arange(x)
@@ -610,7 +610,7 @@ def make_ret_doc_type_perplexity():
     handles, labels = ax1.get_legend_handles_labels()
     # ax2_handles, ax2_labels = ax2.get_legend_handles_labels()
     # handles, labels = ax1_handles + ax2_handles, ax1_labels + ax2_labels
-    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=24, bbox_to_anchor=(0.5, -0.21))
+    fig.legend(handles, labels, loc='lower center', ncol=3, fontsize=24, bbox_to_anchor=(0.5, -0.21))
     plt.tight_layout()
     plt.subplots_adjust(hspace=0.6)
     plt.savefig('graph/' + graph_name, bbox_inches='tight')
@@ -668,9 +668,9 @@ def make_ret_doc_type_analysis():
     # plt.show()
 
     plt.style.use('ggplot')
-    fig, ((ax1, ax2, ax3, ax4, ax5, ax6), (ax7, ax8, ax9, ax10, ax11, ax12)) = plt.subplots(2, 6, figsize=(24, 6))  # ax1: qa, ax2: code
+    fig, ((ax1, ax2, ax3), (ax4, ax5, ax6), (ax7, ax8, ax9), (ax10, ax11, ax12)) = plt.subplots(4, 3, figsize=(12, 12))  # ax1: qa, ax2: code
     # fig.suptitle('retrieval document type analysis', fontsize=16)
-    fig.text(0.5, -0.035, '(2). Correctness of RAG systems with Llama2-13B / CodeLlama-13B', ha='center', va='center', fontsize=26)
+    fig.text(0.5, -0.035, '(2). Correctness of RAG systems with Llama2-13B', ha='center', va='center', fontsize=26)
     fig.text(0.5, 0.505, '(1). Correctness of RAG systems with GPT-3.5', ha='center', va='center', fontsize=26)
     fig.subplots_adjust(hspace=0.4, wspace=0.2)
     x = len(ret_doc_types)
@@ -683,7 +683,7 @@ def make_ret_doc_type_analysis():
         ax.bar(range(len(qa_gpt_perf_datas[idx])), qa_gpt_perf_datas[idx], label=ret_doc_types, color=colors1)
         ax.set_xlabel(auth_qa_dataset_names[idx], fontsize=24)
         ax.set_xticks([])
-        ax.set_ylabel(metric, fontsize=20)
+        ax.set_ylabel('Accuracy', fontsize=20)
         ax.set_yticks(yticks_list[idx])
         ax.set_yticklabels(yticks_list[idx], fontsize=20)
         ax.yaxis.set_label_coords(-0.05, 0.5)
@@ -694,7 +694,7 @@ def make_ret_doc_type_analysis():
         ax.bar(range(len(code_gpt_perf_datas[idx])), code_gpt_perf_datas[idx], label=ret_doc_types, color=colors1)
         ax.set_xlabel(auth_code_dataset_names[idx], fontsize=24)
         ax.set_xticks([])
-        ax.set_ylabel('pass@1', fontsize=20)
+        ax.set_ylabel('Pass@1', fontsize=20)
         ax.set_yticks(yticks_list[idx])
         ax.set_yticklabels(yticks_list[idx], fontsize=20)
         ax.yaxis.set_label_coords(-0.05, 0.5)
@@ -705,7 +705,7 @@ def make_ret_doc_type_analysis():
         ax.bar(range(len(qa_llama_perf_datas[idx])), qa_llama_perf_datas[idx], label=ret_doc_types, color=colors1)
         ax.set_xlabel(auth_qa_dataset_names[idx], fontsize=24)
         ax.set_xticks([])
-        ax.set_ylabel(metric, fontsize=20)
+        ax.set_ylabel('Accuracy', fontsize=20)
         ax.set_yticks(yticks_list[idx])
         ax.set_yticklabels(yticks_list[idx], fontsize=20)
         ax.yaxis.set_label_coords(-0.05, 0.5)
@@ -716,7 +716,7 @@ def make_ret_doc_type_analysis():
         ax.bar(range(len(code_llama_perf_datas[idx])), code_llama_perf_datas[idx], label=ret_doc_types, color=colors1)
         ax.set_xlabel(auth_code_dataset_names[idx], fontsize=24)
         ax.set_xticks([])
-        ax.set_ylabel('pass@1', fontsize=20)
+        ax.set_ylabel('Pass@1', fontsize=20)
         ax.set_yticks(yticks_list[idx])
         ax.set_yticklabels(yticks_list[idx], fontsize=20)
         ax.yaxis.set_label_coords(-0.05, 0.5)
@@ -727,7 +727,7 @@ def make_ret_doc_type_analysis():
     # handles, labels = ax1_handles + ax2_handles, ax1_labels + ax2_labels
     plt.tight_layout()
     plt.subplots_adjust(hspace=0.6)
-    fig.legend(handles, labels, loc='lower center', ncol=6, fontsize=24, bbox_to_anchor=(0.5, -0.21))
+    fig.legend(handles, labels, loc='lower center', ncol=3, fontsize=24, bbox_to_anchor=(0.5, -0.21))
     plt.savefig('graph/' + graph_name, bbox_inches='tight')
     plt.show()
 
@@ -1110,6 +1110,10 @@ def make_prompt_method_correctness():
             avg_code_llama_data.append(sum(avg_code_llama_data) / 3)  # avg
         except: avg_code_llama_data = [0, 0, 0, 0]
         code_llama_avg_prompt_perf_datas.append(avg_code_llama_data)
+    print(qa_gpt_avg_prompt_perf_datas)
+    print(qa_llama_avg_prompt_perf_datas)
+    print(code_gpt_avg_prompt_perf_datas)
+    print(code_llama_avg_prompt_perf_datas)
 
     # colors = ['#DC143C', '#FF8C00', '#DAA520', '#FFB6C1', '#228B22', '#4169E1', '#8B4513', '#C71585']
     # colors = ['skyblue', 'lightgreen', 'salmon']
@@ -1375,7 +1379,7 @@ if __name__ == '__main__':
 
     # make_ret_recall_analysis()
 
-    make_ret_recall_perplexity()
+    # make_ret_recall_perplexity()
 
     # make_ret_doc_type_analysis()
 
@@ -1393,7 +1397,7 @@ if __name__ == '__main__':
 
     # make_prompt_method_avg_correctness()
 
-    # make_prompt_method_correctness()
+    make_prompt_method_correctness()
 
     # make_prompt_method_perplexity()
 
