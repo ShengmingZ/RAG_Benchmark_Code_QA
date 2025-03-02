@@ -196,7 +196,6 @@ def eval_vs_eval(dataset, baseline_datas, compared_datas):
             eval_records2[key] = eval_records2[key]['passed']
     elif dataset == 'DS1000':
         for key in eval_records1.keys():
-            print(eval_records1[key][0])
             eval_records1[key] = eval_records1[key][0]
             eval_records2[key] = eval_records2[key][0]
     elif dataset == 'pandas_numpy_eval':

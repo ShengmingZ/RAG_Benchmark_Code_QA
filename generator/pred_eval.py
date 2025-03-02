@@ -245,7 +245,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
     retrieval_records = dict()
 
 
-    """
+
     if args.dataset == 'conala':
         loader = ConalaLoader()
         _gene_results = list()
@@ -347,7 +347,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
 
     # avg prompt length
     scores['prompt_length'] = sum(pl_list) / len(pl_list)
-    """
+
 
     # calc perplexity
     if if_calc_perplexity is True:
@@ -404,7 +404,7 @@ if __name__ == '__main__':
     in_program_call = None
     ret_accs = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
     for ret_acc in ret_accs:
-        in_program_call = f'--model gpt-3.5-turbo-0125 --dataset conala --retriever openai-embedding --analysis_type retrieval_recall --ret_acc {ret_acc} --n 1'
+        in_program_call = f'--model codellama-13b-instruct --dataset DS1000 --retriever openai-embedding --analysis_type prompt_method --prompt_type 3shot --n 1'
         # in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_5'
         args = generate_config(in_program_call)
 
