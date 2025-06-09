@@ -39,42 +39,42 @@ class DS1000Loader:
                     break
         return qs_list
 
-    def load_oracle_list(self):
-        """
-        {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
-        """
-        oracle_list = json.load(open(self.oracle_doc_file, 'r'))
-        _oracle_list = list()
-        for oracle in oracle_list:
-            _oracle_list.append(dict(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'], output=oracle['output']))
-        return json.load(open(self.oracle_doc_file))
-
-    # sample 20%
-    def sample_dataset(self):
-        import data.DS1000.ds1000
-        import random
-
-        random.seed(0)
-
-        ds1000 = DS1000Dataset(source_dir='../data/DS1000/ds1000_data', libs='all', mode='Completion')
-
-        sampled_idx_dict = dict()
-        sampled_data_list = list()
-        for lib in ds1000.libs:
-            num_sampled = int(len(ds1000[lib]) * 0.2)
-            problem_id_list = list(range(0, len(ds1000[lib])))
-            sampled_idx = random.sample(problem_id_list, num_sampled)
-            sampled_idx_dict[lib] = sampled_idx
-            print(len(sampled_idx))
-            for idx in sampled_idx:
-                sampled_data = ds1000[lib][idx]
-                sampled_data_list.append(dict(qs_id=f'{lib}_{idx}',
-                                              reference_code=sampled_data['reference_code'],
-                                              code_context=sampled_data['code_context'],
-                                              prompt=sampled_data['prompt']))
-
-        with open('../data/DS1000/sampled_data.json', 'w+') as f:
-            json.dump(sampled_data_list, f, indent=2)
+    # def load_oracle_list(self):
+    #     """
+    #     {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
+    #     """
+    #     oracle_list = json.load(open(self.oracle_doc_file, 'r'))
+    #     _oracle_list = list()
+    #     for oracle in oracle_list:
+    #         _oracle_list.append(dict(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'], output=oracle['output']))
+    #     return json.load(open(self.oracle_doc_file))
+    #
+    # # sample 20%
+    # def sample_dataset(self):
+    #     import data.DS1000.ds1000
+    #     import random
+    #
+    #     random.seed(0)
+    #
+    #     ds1000 = DS1000Dataset(source_dir='../data/DS1000/ds1000_data', libs='all', mode='Completion')
+    #
+    #     sampled_idx_dict = dict()
+    #     sampled_data_list = list()
+    #     for lib in ds1000.libs:
+    #         num_sampled = int(len(ds1000[lib]) * 0.2)
+    #         problem_id_list = list(range(0, len(ds1000[lib])))
+    #         sampled_idx = random.sample(problem_id_list, num_sampled)
+    #         sampled_idx_dict[lib] = sampled_idx
+    #         print(len(sampled_idx))
+    #         for idx in sampled_idx:
+    #             sampled_data = ds1000[lib][idx]
+    #             sampled_data_list.append(dict(qs_id=f'{lib}_{idx}',
+    #                                           reference_code=sampled_data['reference_code'],
+    #                                           code_context=sampled_data['code_context'],
+    #                                           prompt=sampled_data['prompt']))
+    #
+    #     with open('../data/DS1000/sampled_data.json', 'w+') as f:
+    #         json.dump(sampled_data_list, f, indent=2)
 
     def test_helper(self, problem_code_pair: Tuple[DS1000Problem, List[str]]):
         problem, code_list = problem_code_pair

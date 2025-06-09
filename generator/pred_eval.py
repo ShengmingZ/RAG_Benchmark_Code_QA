@@ -21,13 +21,13 @@ from retriever.retriever_utils import ret_eval_by_doc_keys
 from data_processing.analyze_result import analyze_results_for_code
 
 
-def conala_result_process(args, output, output_before=None):
+def conala_result_process(prompt_type, output, output_before=None):
     pred = output
-    if args.prompt_type == 'self-refine' and '```' not in output and '<code>' not in output: pred = output_before   # if no refine in self-refine, just use output before
+    if prompt_type == 'self-refine' and '```' not in output and '<code>' not in output: pred = output_before   # if no refine in self-refine, just use output before
     pred = pred.replace('</s>', '').replace('```python', '```')
     try: pred = pred.split('Potential documents')[0]
     except: ...
-    if args.prompt_type in ['least_to_most']:
+    if prompt_type in ['least_to_most']:
         try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
         except: ...
     try: pred = pred.split('<code>')[1].split('</code>')[0]
@@ -43,13 +43,13 @@ def conala_result_process(args, output, output_before=None):
     return pred
 
 
-def DS1000_result_process(args, output, code_prompt, output_before=None):
+def DS1000_result_process(prompt_type, output, code_prompt, output_before=None):
     pred = output
-    if args.prompt_type == 'self-refine' and not '```' in output and not '<code>' in output: pred = output_before
+    if prompt_type == 'self-refine' and not '```' in output and not '<code>' in output: pred = output_before
     pred = pred.replace('</s>', '').replace('```python', '```')
     try: pred = pred.split('Potential documents')[0]
     except: ...
-    if args.prompt_type in ['least_to_most']:
+    if prompt_type in ['least_to_most']:
         try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
         except: ...
     try: pred = pred.split('BEGIN SOLUTION')[1]
@@ -101,15 +101,15 @@ def DS1000_result_process(args, output, code_prompt, output_before=None):
     return pred
 
 
-def pandas_numpy_eval_result_process(args, output, code_prompt, output_before=None):
+def pandas_numpy_eval_result_process(prompt_type, output, code_prompt, output_before=None):
     # first extract code
     pred = output
-    if args.prompt_type == 'self-refine' and not '```' in output and not '<code>' in output: pred = output_before
+    if prompt_type == 'self-refine' and not '```' in output and not '<code>' in output: pred = output_before
     if pred.startswith(' '): pred = pred[1:]
     pred = pred.replace('</s>', '').replace('```python', '```')
     try: pred = pred.split('Potential documents')[0]
     except: ...
-    if args.prompt_type in ['least_to_most']:
+    if prompt_type in ['least_to_most']:
         try: pred = pred.rsplit('```', 1)[0].rsplit('```', 1)[1]
         except: ...
     try: pred = pred.split('<code>')[1]
@@ -160,41 +160,41 @@ def pandas_numpy_eval_result_process(args, output, code_prompt, output_before=No
     return pred
 
 
-def process_gene_results(args, outputs, code_prompt=None, outputs_before=None):
+def process_gene_results(dataset, outputs, prompt_type=None, code_prompt=None, outputs_before=None):
     preds = []
-    if args.dataset == 'conala':
+    if dataset == 'conala':
         for idx, output in enumerate(outputs):
-            if args.prompt_type == 'self-refine':
-                pred = conala_result_process(args, output, outputs_before[idx])
+            if prompt_type == 'self-refine':
+                pred = conala_result_process(prompt_type, output, outputs_before[idx])
             else:
-                pred = conala_result_process(args, output)
+                pred = conala_result_process(prompt_type, output)
             preds.append(pred)
 
-    elif args.dataset == 'DS1000':
+    elif dataset == 'DS1000':
         for idx, output in enumerate(outputs):
-            if args.prompt_type == 'self-refine':
-                pred = DS1000_result_process(args, output, code_prompt, outputs_before[idx])
+            if prompt_type == 'self-refine':
+                pred = DS1000_result_process(prompt_type, output, code_prompt, outputs_before[idx])
             else:
-                pred = DS1000_result_process(args, output, code_prompt)
+                pred = DS1000_result_process(prompt_type, output, code_prompt)
             preds.append(pred)
 
-    elif args.dataset == 'pandas_numpy_eval':
+    elif dataset == 'pandas_numpy_eval':
         for idx, output in enumerate(outputs):
-            if args.prompt_type == 'self-refine':
-                pred = pandas_numpy_eval_result_process(args, output, code_prompt, outputs_before[idx])
+            if prompt_type == 'self-refine':
+                pred = pandas_numpy_eval_result_process(prompt_type, output, code_prompt, outputs_before[idx])
             else:
-                pred = pandas_numpy_eval_result_process(args, output, code_prompt)
+                pred = pandas_numpy_eval_result_process(prompt_type, output, code_prompt)
             preds.append(pred)
 
-    elif args.dataset == 'NQ' or args.dataset == 'TriviaQA' or args.dataset == 'hotpotQA':
+    elif dataset == 'NQ' or dataset == 'TriviaQA' or dataset == 'hotpotQA':
         for idx, output in enumerate(outputs):
             pred = output
-            if args.prompt_type == 'RaR':
+            if prompt_type == 'RaR':
                 try: pred = pred.split('Answer:\n')[1]
                 except: ...
                 try: pred = pred.split('the answer')[1]
                 except: ...
-            if args.prompt_type == 'self-refine':
+            if prompt_type == 'self-refine':
                 if not '<answer>' in output and not '```' in output:
                     pred = outputs_before[idx]
             try: pred = pred.split('Potential documents')[0]
@@ -220,6 +220,66 @@ def process_outputs_for_self_consistency(outputs):
             outputs_dict[output] = 1
     most_output = sorted(outputs_dict.items(), key=lambda item: item[1], reverse=True)[0][0]
     return most_output
+
+
+
+
+def pred_eval_new(dataset, result_path):
+    eval_save_file = result_path.replace('.json', '_eval.json')
+    results = json.load(open(result_path, 'r'))
+    if dataset == 'conala':
+        loader = ConalaLoader()
+        _gene_results = list()
+        for idx, result in enumerate(results):
+            outputs = process_gene_results(dataset, [result['response']])   # one time result is in the key: response
+            _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
+        scores, eval_records = loader.eval_passk(_gene_results, top_k=[1])
+    elif dataset == 'DS1000':
+        loader = DS1000Loader()
+        qs_list = loader.load_qs_list()
+        _gene_results = list()
+        for idx, result in enumerate(results):
+            assert qs_list[idx]['qs_id'] == result['qs_id']
+            outputs = process_gene_results(dataset, [result['response']], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
+            _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
+        scores, eval_records = loader.eval_passk(_gene_results, k_list=[1])
+    elif dataset == 'pandas_numpy_eval':
+        loader = PandasNumpyEvalLoader()
+        qs_list = loader.load_qs_list()
+        _gene_results = []
+        for idx, result in enumerate(results):
+            assert qs_list[idx]['qs_id'] == result['qs_id']
+            outputs = process_gene_results(dataset, [result['response']], code_prompt=qs_list[idx]['question'])
+            _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
+        scores, eval_records = loader.eval_passk(_gene_results, k_list=[1])
+    elif dataset == 'NQ' or dataset == 'TriviaQA':
+        loader = NQTriviaQAUtils(dataset)
+        oracle_list = loader.load_oracle_list()
+        preds, answers_list = [], []
+        for idx, (result, oracle) in enumerate(zip(results, oracle_list)):
+            assert str(result['qs_id']) == str(oracle['qs_id'])
+            pred = process_gene_results(dataset, [result['response']])[0]   # no k trial for QA datasets
+            preds.append(pred)
+            answers_list.append(oracle['answers'])
+        scores, _eval_records = loader.pred_eval(preds=preds, answers_list=answers_list)
+        eval_records = dict()
+        for idx, oracle in enumerate(oracle_list):
+            eval_records[oracle['qs_id']] = _eval_records[idx]
+    elif dataset == 'hotpotQA':
+        loader = HotpotQAUtils()
+        oracle_list = loader.load_oracle_list()
+        pred_list = []
+        for idx, result in enumerate(results):
+            output = process_gene_results(dataset, [result['response']])[0]   # Todo: now only 1 inference
+            pred_list.append(dict(qs_id=result['qs_id'], output=output))    # format for eval_pred()
+        scores, eval_records = loader.eval_pred(pred_list=pred_list, oracle_list=oracle_list)
+    else:
+        raise ValueError('Not supported dataset {}'.format(dataset))
+    scores = {key: round(value, 3) for key, value in scores.items() if value is not None}
+    print(scores)
+    with open(eval_save_file, 'w') as f:
+        json.dump(dict(scores=scores, eval_records=eval_records), f, indent=2)
+
 
 
 
@@ -406,9 +466,9 @@ if __name__ == '__main__':
     for ret_acc in ret_accs:
         in_program_call = f'--model codellama-13b-instruct --dataset DS1000 --retriever openai-embedding --analysis_type prompt_method --prompt_type 3shot --n 1'
         # in_program_call = '--model codellama-13b-instruct --dataset conala --retriever openai-embedding --n 1 --analysis_type retrieval_doc_selection --doc_selection_type top_5'
-        args = generate_config(in_program_call)
+        # args = generate_config(in_program_call)
 
-        scores = pred_eval(args, if_eval_retrieval=False, if_code_analysis=True, if_calc_perplexity=False, if_save=True)
+        # scores = pred_eval(args, if_eval_retrieval=False, if_code_analysis=True, if_calc_perplexity=False, if_save=True)
 
     # if args.dataset == 'DS1000':
     #     """

@@ -99,7 +99,7 @@ def _update_answer(metrics, prediction, gold):
 class HotpotQAUtils:
     def __init__(self):
         self.root = root_path
-        self.qs_file = os.path.join(self.root, 'data/hotpotQA/hotpot_dev_distractor_v1.json')
+        # self.qs_file = os.path.join(self.root, 'data/hotpotQA/hotpot_dev_distractor_v1.json')
         self.sample_qs_file = os.path.join(self.root, 'data/hotpotQA/sampled_data.json')
 
     def load_qs_list(self):
@@ -118,66 +118,66 @@ class HotpotQAUtils:
             _qs_list.append(dict(qs_id=qs['_id'], oracle_docs=proc_sp, answer=qs['answer']))
         return _qs_list
 
-    def sample_dataset(self, k=2000, sampled_data_file=None):
-        """
-        sample 2000 queries
-        :return:
-        """
-        qs_list = json.load(open(self.qs_file, 'r'))
-        problem_id_list = list(range(0, len(qs_list)))
-        sampled_id_list = random.sample(problem_id_list, k=k)
-        sampled_data = list()
-        for id in sampled_id_list:
-            sampled_data.append(qs_list[id])
-
-        if sampled_data_file is not None:
-            with open(sampled_data_file, 'w+') as f:
-                json.dump(sampled_data, f, indent=2)
-        return sampled_data
-
-    def get_sample(self, sample_num):
-        """
-        for prompt generation usage, randomly sample instances in dataset
-        :param sample_num:
-        :return:
-        """
-        qs_list = json.load(open(self.qs_file, 'r'))
-        problem_id_list = list(range(0, len(qs_list)))
-        sampled_qs_list = json.load(open(self.sample_qs_file, 'r'))
-        new_sampled_id_list = []
-        while len(new_sampled_id_list) < sample_num:
-            sampled_id = random.sample(problem_id_list, 1)[0]
-            if sampled_id not in new_sampled_id_list and qs_list[sampled_id] not in sampled_qs_list:
-                new_sampled_id_list.append(sampled_id)
-        new_sampled_qs_list = []
-        for id in new_sampled_id_list:
-            new_sampled_qs_list.append(qs_list[id])
-
-        return new_sampled_qs_list
-
-    @staticmethod
-    def eval_sp(preds, golds, top_k):
-        """
-        evaluate retrieval doc acc
-        :param preds:
-        :param golds:
-        :param top_k:
-        :return:
-        """
-        assert len(preds) == len(golds)
-        metrics = dict()
-        for k in top_k:
-            metrics[k] = {'sp_em': 0, 'sp_f1': 0, 'sp_prec': 0, 'sp_recall': 0}
-            for pred, gold in zip(preds, golds):
-                _update_sp(metrics=metrics[k], prediction=pred[:k], gold=gold)
-            N = len(golds)
-            for key in metrics[k].keys():
-                metrics[k][key] /= N
-        _metrics = dict()
-        for k in top_k:
-            _metrics[k] = round(metrics[k]['sp_recall'], 3)
-        print(_metrics)
-        return metrics
+    # def sample_dataset(self, k=2000, sampled_data_file=None):
+    #     """
+    #     sample 2000 queries
+    #     :return:
+    #     """
+    #     qs_list = json.load(open(self.qs_file, 'r'))
+    #     problem_id_list = list(range(0, len(qs_list)))
+    #     sampled_id_list = random.sample(problem_id_list, k=k)
+    #     sampled_data = list()
+    #     for id in sampled_id_list:
+    #         sampled_data.append(qs_list[id])
+    #
+    #     if sampled_data_file is not None:
+    #         with open(sampled_data_file, 'w+') as f:
+    #             json.dump(sampled_data, f, indent=2)
+    #     return sampled_data
+    #
+    # def get_sample(self, sample_num):
+    #     """
+    #     for prompt generation usage, randomly sample instances in dataset
+    #     :param sample_num:
+    #     :return:
+    #     """
+    #     qs_list = json.load(open(self.qs_file, 'r'))
+    #     problem_id_list = list(range(0, len(qs_list)))
+    #     sampled_qs_list = json.load(open(self.sample_qs_file, 'r'))
+    #     new_sampled_id_list = []
+    #     while len(new_sampled_id_list) < sample_num:
+    #         sampled_id = random.sample(problem_id_list, 1)[0]
+    #         if sampled_id not in new_sampled_id_list and qs_list[sampled_id] not in sampled_qs_list:
+    #             new_sampled_id_list.append(sampled_id)
+    #     new_sampled_qs_list = []
+    #     for id in new_sampled_id_list:
+    #         new_sampled_qs_list.append(qs_list[id])
+    #
+    #     return new_sampled_qs_list
+    #
+    # @staticmethod
+    # def eval_sp(preds, golds, top_k):
+    #     """
+    #     evaluate retrieval doc acc
+    #     :param preds:
+    #     :param golds:
+    #     :param top_k:
+    #     :return:
+    #     """
+    #     assert len(preds) == len(golds)
+    #     metrics = dict()
+    #     for k in top_k:
+    #         metrics[k] = {'sp_em': 0, 'sp_f1': 0, 'sp_prec': 0, 'sp_recall': 0}
+    #         for pred, gold in zip(preds, golds):
+    #             _update_sp(metrics=metrics[k], prediction=pred[:k], gold=gold)
+    #         N = len(golds)
+    #         for key in metrics[k].keys():
+    #             metrics[k][key] /= N
+    #     _metrics = dict()
+    #     for k in top_k:
+    #         _metrics[k] = round(metrics[k]['sp_recall'], 3)
+    #     print(_metrics)
+    #     return metrics
 
     @staticmethod
     def eval_pred(pred_list, oracle_list):

@@ -15,6 +15,55 @@ SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last problem"""
 
 
 
+def prompt_0shot(ret_docs, question, model):
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+
+    user_prompt = f"""## Potential documents: 
+{potential_docs}
+## Description: 
+{question}
+"""
+
+#     if model.startswith('llama2') or model.startswith('codellama'):
+#         prompt_template = f"""<s>[INST] <<SYS>> {LLAMA_SYS_PROMPT} <</SYS>>\n{user_prompt} [/INST]"""
+#     elif model.startswith('llama3'):
+#         prompt_template = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{LLAMA_SYS_PROMPT}<|eot_id|>\n
+# <|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n
+# <|start_header_id|>assistant<|end_header_id>
+# """
+#     elif model.startswith('gpt'):
+#         prompt_template = LLAMA_SYS_PROMPT + '\n\n' + user_prompt
+#     else:
+#         raise ValueError(f'Unrecognized model: {model}')
+    prompt_template = ensemble_prompt(sys_prompt=LLAMA_SYS_PROMPT, user_prompt=user_prompt, model=model)
+    return prompt_template
+
+
+def prompt_0shot_no_ret(question, model, pads=''):
+    user_prompt = f"""
+{pads}\n
+## Description: 
+{question}
+"""
+    sys_prompt = LLAMA_SYS_PROMPT_NO_RET
+
+    # if model.startswith('llama2') or model.startswith('codellama'):
+    #     prompt_template = f"""<s>[INST] <<SYS>> {sys_prompt} <</SYS>>\n{user_prompt} [/INST]"""
+    # elif model.startswith('llama3'):
+    #     prompt_template = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{sys_prompt}<|eot_id|>\n
+    # <|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n
+    # <|start_header_id|>assistant<|end_header_id>
+    # """
+    # elif model.startswith('gpt'):
+    #     prompt_template = sys_prompt + '\n\n' + user_prompt
+    # else:
+    #     raise ValueError(f'Unrecognized model: {model}')
+    prompt_template = ensemble_prompt(sys_prompt=sys_prompt, user_prompt=user_prompt, model=model)
+    return prompt_template
+
+
 def prompt_cot(ret_docs, question, model, existing_output=None):
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
@@ -179,53 +228,6 @@ numpy.loadtxt(open('test.csv', 'rb'), delimiter=',', skiprows=1)
     return prompt
 
 
-def prompt_0shot(ret_docs, question, model):
-    potential_docs = ''
-    for idx, ret_doc in enumerate(ret_docs):
-        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
-
-    user_prompt = f"""## Potential documents: 
-{potential_docs}
-## Description: 
-{question}
-"""
-
-#     if model.startswith('llama2') or model.startswith('codellama'):
-#         prompt_template = f"""<s>[INST] <<SYS>> {LLAMA_SYS_PROMPT} <</SYS>>\n{user_prompt} [/INST]"""
-#     elif model.startswith('llama3'):
-#         prompt_template = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{LLAMA_SYS_PROMPT}<|eot_id|>\n
-# <|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n
-# <|start_header_id|>assistant<|end_header_id>
-# """
-#     elif model.startswith('gpt'):
-#         prompt_template = LLAMA_SYS_PROMPT + '\n\n' + user_prompt
-#     else:
-#         raise ValueError(f'Unrecognized model: {model}')
-    prompt_template = ensemble_prompt(sys_prompt=LLAMA_SYS_PROMPT, user_prompt=user_prompt, model=model)
-    return prompt_template
-
-
-def prompt_0shot_no_ret(question, model, pads=''):
-    user_prompt = f"""
-{pads}\n
-## Description: 
-{question}
-"""
-    sys_prompt = LLAMA_SYS_PROMPT_NO_RET
-
-    # if model.startswith('llama2') or model.startswith('codellama'):
-    #     prompt_template = f"""<s>[INST] <<SYS>> {sys_prompt} <</SYS>>\n{user_prompt} [/INST]"""
-    # elif model.startswith('llama3'):
-    #     prompt_template = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{sys_prompt}<|eot_id|>\n
-    # <|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n
-    # <|start_header_id|>assistant<|end_header_id>
-    # """
-    # elif model.startswith('gpt'):
-    #     prompt_template = sys_prompt + '\n\n' + user_prompt
-    # else:
-    #     raise ValueError(f'Unrecognized model: {model}')
-    prompt_template = ensemble_prompt(sys_prompt=sys_prompt, user_prompt=user_prompt, model=model)
-    return prompt_template
 
 
 examples_least_to_most = """

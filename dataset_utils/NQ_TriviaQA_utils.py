@@ -273,76 +273,76 @@ class NQTriviaQAUtils:
     #     with open(self.filtered_qs_file, 'w+') as f:
     #         json.dump(_qs_list, f, indent=2)
 
-    def sample_data(self, k=2000, sampled_data_file=None):
-        """
-        sample 2000 queries from train set
-        :return:
-        """
-        has_positive_idx_list = []
-        count = 0
-        with open(self.train_file, 'rb') as f:
-            for record in ijson.items(f, 'item'):
-                if record['positive_ctxs'] != []:
-                    has_positive_idx_list.append(count)
-                count += 1
-        random_idx_list = random.sample(has_positive_idx_list, k)
+    # def sample_data(self, k=2000, sampled_data_file=None):
+    #     """
+    #     sample 2000 queries from train set
+    #     :return:
+    #     """
+    #     has_positive_idx_list = []
+    #     count = 0
+    #     with open(self.train_file, 'rb') as f:
+    #         for record in ijson.items(f, 'item'):
+    #             if record['positive_ctxs'] != []:
+    #                 has_positive_idx_list.append(count)
+    #             count += 1
+    #     random_idx_list = random.sample(has_positive_idx_list, k)
+    #
+    #     count = 0
+    #     data_list = []
+    #     with open(self.train_file, 'rb') as f:
+    #         for record in ijson.items(f, 'item'):
+    #             if count in random_idx_list:
+    #                 assert record['positive_ctxs'] != []
+    #                 if self.dataset == 'TriviaQA':
+    #                     proc_record = dict(question=record['question'], answers=record['answers'], oracle_doc=record['positive_ctxs'][0]['psg_id'])
+    #                 elif self.dataset == 'NQ':
+    #                     proc_record = dict(question=record['question'], answers=record['answers'], oracle_doc=record['positive_ctxs'][0]['passage_id'])
+    #                 data_list.append(proc_record)
+    #             count += 1
+    #     assert len(data_list) == k
+    #
+    #     if sampled_data_file is not None:
+    #         with open(sampled_data_file, 'w+') as f:
+    #             json.dump(data_list, f, indent=2)
+    #
+    #     return data_list
 
-        count = 0
-        data_list = []
-        with open(self.train_file, 'rb') as f:
-            for record in ijson.items(f, 'item'):
-                if count in random_idx_list:
-                    assert record['positive_ctxs'] != []
-                    if self.dataset == 'TriviaQA':
-                        proc_record = dict(question=record['question'], answers=record['answers'], oracle_doc=record['positive_ctxs'][0]['psg_id'])
-                    elif self.dataset == 'NQ':
-                        proc_record = dict(question=record['question'], answers=record['answers'], oracle_doc=record['positive_ctxs'][0]['passage_id'])
-                    data_list.append(proc_record)
-                count += 1
-        assert len(data_list) == k
+    # def if_has_answer(self, doc, qs_id):
+    #     oracle_list = self.load_oracle_list()
+    #     answers = None
+    #     for oracle in oracle_list:
+    #         if oracle['qs_id'] == qs_id:
+    #             answers = oracle['answers']
+    #     if answers is None:
+    #         raise Exception(f'wrong qs_id: {qs_id}')
+    #     # doc = _normalize(doc)
+    #     # answers = [_normalize(answer) for answer in answers]
+    #     return has_answer(answers, doc)
 
-        if sampled_data_file is not None:
-            with open(sampled_data_file, 'w+') as f:
-                json.dump(data_list, f, indent=2)
-
-        return data_list
-
-    def if_has_answer(self, doc, qs_id):
-        oracle_list = self.load_oracle_list()
-        answers = None
-        for oracle in oracle_list:
-            if oracle['qs_id'] == qs_id:
-                answers = oracle['answers']
-        if answers is None:
-            raise Exception(f'wrong qs_id: {qs_id}')
-        # doc = _normalize(doc)
-        # answers = [_normalize(answer) for answer in answers]
-        return has_answer(answers, doc)
-
-    @staticmethod
-    def retrieval_eval(docs_list, answers_list, top_k):
-        """
-        follow DPR: if answer is in retrieval docs, then retrieval right, and randomly set one text as oracle
-        :param docs_list: a list of docs, each one is a list of retrieved docs of a sample
-        :return: hits_list: a list of list, each list corresponds to the retrieved docs of a sample
-                hits_rate: a dict records the recall of top_k retrieval
-        """
-        from tqdm import tqdm
-        hits_list = list()
-        for docs, answers in tqdm(zip(docs_list, answers_list), total=len(docs_list)):
-            # docs = wiki_loader.get_docs(doc_keys)
-            hits = [has_answer(answers, doc) for doc in docs]
-            hits_list.append(hits)
-
-        hits_rate = dict()
-        for k in top_k:
-            hits_rate[k] = 0
-            for hits in hits_list:
-                if True in hits[:k]:
-                    hits_rate[k] += 1
-            hits_rate[k] = hits_rate[k] / len(hits_list)
-        print(hits_rate)
-        return hits_rate
+    # @staticmethod
+    # def retrieval_eval(docs_list, answers_list, top_k):
+    #     """
+    #     follow DPR: if answer is in retrieval docs, then retrieval right, and randomly set one text as oracle
+    #     :param docs_list: a list of docs, each one is a list of retrieved docs of a sample
+    #     :return: hits_list: a list of list, each list corresponds to the retrieved docs of a sample
+    #             hits_rate: a dict records the recall of top_k retrieval
+    #     """
+    #     from tqdm import tqdm
+    #     hits_list = list()
+    #     for docs, answers in tqdm(zip(docs_list, answers_list), total=len(docs_list)):
+    #         # docs = wiki_loader.get_docs(doc_keys)
+    #         hits = [has_answer(answers, doc) for doc in docs]
+    #         hits_list.append(hits)
+    #
+    #     hits_rate = dict()
+    #     for k in top_k:
+    #         hits_rate[k] = 0
+    #         for hits in hits_list:
+    #             if True in hits[:k]:
+    #                 hits_rate[k] += 1
+    #         hits_rate[k] = hits_rate[k] / len(hits_list)
+    #     print(hits_rate)
+    #     return hits_rate
 
     @staticmethod
     def pred_eval(preds, answers_list):

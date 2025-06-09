@@ -555,8 +555,8 @@ def make_ret_doc_type_perplexity():
     fig, ((ax1, ax2, ax3), (ax4, ax5, ax6), (ax7, ax8, ax9), (ax10, ax11, ax12)) = plt.subplots(4, 3, figsize=(12, 12))  # ax1: qa, ax2: code
     x = len(ret_doc_types)
     # fig.suptitle('retrieval document type analysis', fontsize=16)
-    fig.text(0.5, -0.035, '(2). Confidence of RAG systems with Llama2-13B', ha='center', va='center', fontsize=26)
-    fig.text(0.5, 0.505, '(1). Confidence of RAG systems with GPT-3.5', ha='center', va='center', fontsize=26)
+    fig.text(0.5, -0.035, '(2). Perplexity of RAG systems with Llama2-13B', ha='center', va='center', fontsize=26)
+    fig.text(0.5, 0.505, '(1). Perplexity of RAG systems with GPT-3.5', ha='center', va='center', fontsize=26)
     fig.subplots_adjust(hspace=0.4, wspace=0.2)
     doc_type_index = np.arange(x)
     colors1 = plt.cm.viridis(np.linspace(0, 1, len(ret_doc_types)))
@@ -775,7 +775,7 @@ def make_ret_recall_perplexity():
     ax2.set_yticklabels([1.11, 1.12, 1.13, 1.14, 1.15, 1.16], fontsize=16)
     ax2.set_xticks(x, ret_recalls)
     ax2.set_xticklabels(ret_recalls, fontsize=20)
-    ax2.set_title('b. CodeLlama-13B, Code Tasks', fontsize=22)
+    ax2.set_title('b. Llama2-13B, Code Tasks', fontsize=22)
     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas[:3], qa_dataset_names)):
         line, = ax3.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
     ax3.set_xlabel('Retrieval Recall', fontsize=22)
@@ -1205,15 +1205,19 @@ def make_prompt_method_perplexity():
     code_llama_avg_prompt_perf_datas = []
     for prompt_method in prompt_method_list:
         avg_qa_gpt_data = [results.prompt_method_gpt[qa_dataset_name][prompt_method][qa_metric] for qa_dataset_name in qa_dataset_names]
+        print(f'QA LLAMA {prompt_method}: ', avg_qa_gpt_data)
         avg_qa_gpt_data = sum(avg_qa_gpt_data)/3  # avg
         qa_gpt_avg_prompt_perf_datas.append(avg_qa_gpt_data)
         avg_qa_llama_data = [results.prompt_method_llama[qa_dataset_name][prompt_method][qa_metric] for qa_dataset_name in qa_dataset_names]
+        print(f'QA GPT {prompt_method}: ', avg_qa_llama_data)
         avg_qa_llama_data = sum(avg_qa_llama_data)/3  # avg
         qa_llama_avg_prompt_perf_datas.append(avg_qa_llama_data)
         avg_code_gpt_data = [results.prompt_method_gpt[code_dataset_name][prompt_method][code_metric] for code_dataset_name in code_dataset_names]
+        print(f'CODE GPT {prompt_method}: ', avg_code_gpt_data)
         avg_code_gpt_data = sum(avg_code_gpt_data)/3  # avg
         code_gpt_avg_prompt_perf_datas.append(avg_code_gpt_data)
         avg_code_llama_data = [results.prompt_method_llama[code_dataset_name][prompt_method][code_metric] for code_dataset_name in code_dataset_names]
+        print(f'QA LLAMA {prompt_method}: ', avg_code_llama_data)
         avg_code_llama_data = sum(avg_code_llama_data)/3  # avg
         code_llama_avg_prompt_perf_datas.append(avg_code_llama_data)
 
@@ -1257,7 +1261,7 @@ def make_prompt_method_perplexity():
         if ax_idx == 1:
             ax.set_title('c. Llama2-13B, QA Tasks', fontsize=22)
         if ax_idx == 3:
-            ax.set_title('d. CodeLlama-13B, Code Tasks', fontsize=22)
+            ax.set_title('d. Llama2-13B, Code Tasks', fontsize=22)
         ax.legend(loc='upper right', fontsize=18, ncol=1)
 
     plt.tight_layout()
@@ -1397,9 +1401,9 @@ if __name__ == '__main__':
 
     # make_prompt_method_avg_correctness()
 
-    make_prompt_method_correctness()
+    # make_prompt_method_correctness()
 
-    # make_prompt_method_perplexity()
+    make_prompt_method_perplexity()
 
     # make_prompt_method_percentage_of_only_correct()
 

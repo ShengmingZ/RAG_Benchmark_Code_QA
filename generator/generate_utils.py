@@ -123,34 +123,89 @@ def truncate_docs(docs, model, max_length):
     return truncated_docs
 
 
-def get_docs_tokens(docs, model):
+
+
+def get_docs_tokens(docs, model, batch_size=1000):
+    """
+    Calculate tokens for documents with batching for efficiency.
+
+    model in gpt-3.5, gpt-4o, gpt-4o-mini, llama2-13b, codellama-13b, llama3-8b
+    :param docs: List of documents or single document
+    :param model: Model name
+    :param batch_size: Number of documents to process at once (default: 1000)
+    :return: List of token counts or single token count
+    """
+    # Handle single document input
+    if isinstance(docs, str):
+        docs = [docs]
+        return_single = True
+    else:
+        return_single = False
+
+    # Preprocess docs to handle list format (sys prompt + user prompt)
+    processed_docs = []
+    for doc in docs:
+        if isinstance(doc, list):
+            processed_docs.append(doc[0] + doc[1])  # sys prompt + user prompt
+        else:
+            processed_docs.append(doc)
+
     docs_tokens = []
+
     if model.startswith('gpt'):
         import tiktoken
         encoding = tiktoken.encoding_for_model(model)
-        for doc in docs:
-            if isinstance(doc, list): doc = doc[0] + doc[1] # sys prompt + user prompt
-            encoded_doc = encoding.encode(doc)
-            docs_tokens.append(len(encoded_doc))
+
+        # Process in TRUE batches using tiktoken's batch encoding
+        for i in range(0, len(processed_docs), batch_size):
+            batch = processed_docs[i:i + batch_size]
+
+            # Use tiktoken's batch encoding (much faster!)
+            batch_encoded = encoding.encode_ordinary_batch(batch)
+            batch_tokens = [len(tokens) for tokens in batch_encoded]
+
+            docs_tokens.extend(batch_tokens)
+
+            # Optional: Print progress for large datasets
+            if len(processed_docs) > 5000:
+                print(f"Processed {min(i + batch_size, len(processed_docs))}/{len(processed_docs)} documents")
+
     elif model.startswith('llama') or model.startswith('codellama'):
-        if model == 'llama2-13b-chat':
-            model = 'meta-llama/Llama-2-13b-chat-hf'
-        elif model == 'codellama-13b-instruct':
-            model = 'codellama/CodeLlama-13b-Instruct-hf'
-        elif model == 'llama3-8b':
-            model = 'meta-llama/Meta-Llama-3-8B'
+        from transformers import AutoTokenizer
+        import torch
+
+        # Map model names
+        model_mapping = {
+            'llama2-13b': 'meta-llama/Llama-2-13b-chat-hf',
+            'codellama-13b': 'codellama/CodeLlama-13b-Instruct-hf',
+            'llama3-8b': 'meta-llama/Llama-3.1-8B-Instruct'
+        }
+        actual_model = model_mapping.get(model, model)
         access_token = "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"
-        tokenizer = AutoTokenizer.from_pretrained(model, torch_dtype=torch.float16, token=access_token)
-        for doc in docs:
-            tokens = tokenizer.encode(doc, add_special_tokens=False)
-            docs_tokens.append(len(tokens))
+
+        tokenizer = AutoTokenizer.from_pretrained(actual_model, torch_dtype=torch.float16, token=access_token)
+
+        # Process in TRUE batches using transformers batch encoding
+        for i in range(0, len(processed_docs), batch_size):
+            batch = processed_docs[i:i + batch_size]
+
+            # Use transformers' batch encoding (much faster!)
+            batch_encoded = tokenizer(batch, add_special_tokens=False)['input_ids']
+            batch_tokens = [len(tokens) for tokens in batch_encoded]
+
+            docs_tokens.extend(batch_tokens)
+
+            # Optional: Print progress for large datasets
+            if len(processed_docs) > 5000:
+                print(f"Processed {min(i + batch_size, len(processed_docs))}/{len(processed_docs)} documents")
+
     else:
         raise ValueError(f'Unknown model: {model} in get_docs_tokens')
-    # if max_length is not None:
-    #     for i in range(len(docs_tokens)):
-    #         docs_tokens[i] = docs_tokens[i] if docs_tokens[i] < max_length else max_length
 
-    return docs_tokens
+    return docs_tokens[0] if return_single else docs_tokens
+
+
+
 
 
 def get_irrelevant_docs(irrelevant_type, oracle_docs, model, dataset, random_docs=None):
