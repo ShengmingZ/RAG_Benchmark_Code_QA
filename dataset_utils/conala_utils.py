@@ -45,7 +45,7 @@ class ConalaLoader:
         for oracle in oracle_list:
             for key, data in dataset.items():
                 if oracle['qs_id'] == key:
-                    qs_list.append(dict(qs_id=key, question=data['intent']))
+                    qs_list.append(dict(qs_id=key, question=data['intent']+'\n'+data['prompt']))
                     break
         return qs_list
 

@@ -1,14 +1,14 @@
 from prompt.prompt_utils import ensemble_prompt
 
 
-LLAMA_SYSTEM_PROMPT = """You are a senior python programmer, given some potential api documents starts with `## Potential documents`, a program description starts with `## Problem`, and the unfinished code solution starts with `## Unfinished Code Solution`, 
-you should first read the potential documents, and then use the knowledge in documents to complete the code solution according to the problem.
-you should only output the uncompleted part of the code solution, and the output code should start with <code> and end with </code>
+LLAMA_SYSTEM_PROMPT = """You are a senior python programmer, given some potentially useful api documents tagged `## Potential documents`, a program description tagged `## Problem`, and the unfinished code solution tagged `## Unfinished Code Solution`, 
+your task is to complete the code solution according to the description.
+You should only generate the uncompleted part of the code solution, and the output code should start with <code> and end with </code>
 """
 
-LLAMA_SYSTEM_PROMPT_NO_RET = """You are a senior python programmer, given a program description starts with `## Problem`, and the unfinished code solution starts with `## Unfinished Code Solution`, 
-you need to complete the code solution according to the problem.
-you should only output the uncompleted part of the code solution, and the output code should start with <code> and end with </code>
+LLAMA_SYSTEM_PROMPT_NO_RET = """You are a senior python programmer, given a program description tagged `## Problem`, and the unfinished code solution tagged `## Unfinished Code Solution`, 
+you task is to complete the code solution according to the description.
+You should only generate the uncompleted part of the code solution, and the output code should start with <code> and end with </code>
 """
 
 # LLAMA_SYSTEM_PROMPT_TYPE2 = """You are a senior python programmer, given some potential api documents starts with `## Potential documents`, and a unfinished code snippet starts with `## Unfinished Code Snippet`,
