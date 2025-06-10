@@ -1,4 +1,6 @@
 import argparse
+import sys
+sys.path.append('../../Code_RAG_Benchmark')
 from generator.pred_eval import pred_eval_new
 
 
