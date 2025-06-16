@@ -16,10 +16,11 @@ SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last problem"""
 def prompt_0shot(ret_docs, question, model):
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
-        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc + '\n\n'
 
     user_prompt = f"""## Potential documents: 
 {potential_docs}
+\n
 ## Description: 
 {question}
 """

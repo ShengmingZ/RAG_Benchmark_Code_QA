@@ -62,144 +62,31 @@ class LLMOracleEvaluator:
         else:
             raise Exception('unsupported dataset')
 
-    def generate_single_llm(self, result_path=None, test_prompt=False):
-        # default result path for SINGLE llm
-        if result_path is None: result_path = f'../data/{self.dataset}/new_results/single_{self.model_config.model}.json'
+        self.recall_range = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
+
+
+    def generate_with_retrieval_recall(self, recall, result_path=None, test_prompt=False):
+        assert recall in self.recall_range
+        # default result path
+        if result_path is None and recall != 1.0: result_path = f'../data/{self.dataset}/new_results/recall-{recall}_{self.model_config.model}.json'
+        elif result_path is None and recall == 1.0: result_path = f'../data/{self.dataset}/new_results/oracle_{self.model_config.model}.json'
         if os.path.exists(result_path):
             print('result already exists in path {}, if want to overwrite, please delete it first'.format(result_path))
-            # pred_eval_new(self.dataset, result_path=result_path)
+            pred_eval_new(self.dataset, result_path=result_path)
             return
 
-        """Generate responses using single LLM only"""
-        print(f"🤖 Generating Single LLM responses for {len(self.problems)} questions...")
-
-        # Prepare messages
-        prompts = []
-        problem_ids = []
-
-        for problem in self.problems:
-            prompt = self.prompt_generator_no_ret(question=problem['question'], model=self.model_config.model)
-            prompts.append(prompt)
-            problem_ids.append(problem['qs_id'])
-
-        if test_prompt:
-            if 'gpt' in self.model_config.model:
-                print(prompts[0][0]['content'])
-                print(prompts[0][1]['content'])
-            return
-
-        # Batch API call
-        if 'gpt' in self.model_config.model:
-            llm_responses = self.llm_provider.batch_generate(
-                prompts=prompts,
-                return_type="text",
-                include_logits=True,
-                custom_id_prefix=f"single_{self.dataset}_{self.model_config.model}"
-            )
-        else:
-            raise Exception('unsupported model')
-
-        # Process results
-        results = []
-        for problem_id, response in zip(problem_ids , llm_responses):
-            results.append({
-                'qs_id': problem_id,
-                'method': 'single_llm',
-                'response': response.get('text', ''),
-                'logprobs': response.get('logprobs', []),
-            })
-
-        print(f"✅ Generated {len(results)} Single LLM responses")
-
-        os.makedirs(result_path.rsplit('/', 1)[0], exist_ok=True)
-        with open(result_path, 'w+') as f:
-            json.dump(results, f, indent=2)
-
-
-    def generate_with_oracle(self, result_path=None, test_prompt=False):
-        # default result path for SINGLE llm
-        if result_path is None: result_path = f'../data/{self.dataset}/new_results/oracle_{self.model_config.model}.json'
-        if os.path.exists(result_path):
-            print('result already exists in path {}, if want to overwrite, please delete it first'.format(result_path))
-            # pred_eval_new(self.dataset, result_path=result_path)
-            return
-
-        """Generate responses using single LLM only"""
-        print(f"🤖 Generating Oracle LLM responses for {len(self.problems)} questions...")
+        print(f"🤖 Generating Retrieval Recall LLM responses for {len(self.problems)} questions...")
 
         # Prepare messages
         prompts = []
         problem_ids = []
 
         oracle_docs = self.doc_loader.get_oracle_docs()
+        ret_docs = self.doc_loader.get_ret_docs()
 
         for problem, qs_id in zip(self.problems, oracle_docs):
             assert qs_id == problem['qs_id']
             truncated_docs = truncate_docs(oracle_docs[qs_id], model='gpt-3.5-turbo-0125', max_length=500)
-            prompt = self.prompt_generator(question=problem['question'], model=self.model_config.model, ret_docs=truncated_docs)
-            prompts.append(prompt)
-            problem_ids.append(problem['qs_id'])
-
-        if test_prompt:
-            if 'gpt' in self.model_config.model:
-                print(prompts[0][0]['content'])
-                print(prompts[0][1]['content'])
-            return
-
-        # Batch API call
-        if 'gpt' in self.model_config.model:
-            llm_responses = self.llm_provider.batch_generate(
-                prompts=prompts,
-                return_type="text",
-                include_logits=True,
-                custom_id_prefix=f"single_{self.dataset}_{self.model_config.model}"
-            )
-        else:
-            raise Exception('unsupported model')
-
-        # Process results
-        results = []
-        for problem_id, response in zip(problem_ids , llm_responses):
-            results.append({
-                'qs_id': problem_id,
-                'method': 'single_llm',
-                'response': response.get('text', ''),
-                'logprobs': response.get('logprobs', []),
-            })
-
-        print(f"✅ Generated {len(results)} Single LLM responses")
-
-        os.makedirs(result_path.rsplit('/', 1)[0], exist_ok=True)
-        with open(result_path, 'w+') as f:
-            json.dump(results, f, indent=2)
-
-
-
-
-    def generate_with_recall(self, recall, result_path=None, test_prompt=False):
-        self.recall_range = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
-        assert recall in self.recall_range
-
-        if recall == 0: recall = int(recall)    # turn 0.0 to 0
-        if result_path is None and recall != 1.0: result_path = f'../data/{self.dataset}/new_results/recall-{recall}_{self.model_config.model}.json'
-        elif result_path is None and recall == 1.0: result_path = f'../data/{self.dataset}/new_results/oracle_{self.model_config.model}.json'
-        if os.path.exists(result_path):
-            print('result already exists in path {}, if want to overwrite, please delete it first'.format(result_path))
-            # pred_eval_new(self.dataset, result_path=result_path)
-            return
-
-        """Generate responses using single LLM only"""
-        print(f"🤖 Generating Oracle LLM responses for {len(self.problems)} questions...")
-
-        # Prepare messages
-        prompts = []
-        problem_ids = []
-
-        controlled_docs = self.doc_loader.get_recall_controlled_docs(recall=recall)
-
-        for problem, qs_id in zip(self.problems, controlled_docs):
-            assert qs_id == problem['qs_id']
-            truncated_docs = truncate_docs(controlled_docs[qs_id], model='gpt-3.5-turbo-0125', max_length=500)
             prompt = self.prompt_generator(question=problem['question'], model=self.model_config.model, ret_docs=truncated_docs)
             prompts.append(prompt)
             problem_ids.append(problem['qs_id'])
@@ -245,8 +132,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', required=True, help='Dataset (conala, DS1000)')
     parser.add_argument('--model', required=True, help='Model (openai-new, claude)')
-    parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'recall'])
-    parser.add_argument('--recall', type=float, default=1, help='Recall, only effective if mode is "recall"')
+    parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'both'])
     parser.add_argument('--test-prompt', action='store_true')
 
     args = parser.parse_args()
@@ -257,5 +143,3 @@ if __name__ == "__main__":
         evaluator.generate_single_llm(test_prompt=args.test_prompt)
     elif args.mode == 'oracle':
         evaluator.generate_with_oracle(test_prompt=args.test_prompt)
-    elif args.mode == 'recall':
-        evaluator.generate_with_recall(test_prompt=args.test_prompt, recall=args.recall)

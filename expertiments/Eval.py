@@ -19,7 +19,10 @@ if __name__ == '__main__':
     elif args.model == 'llama-old-qa': args.model = 'meta-llama/Llama-2-13b-chat-hf'
     else: raise Exception('unknown model')
 
-    result_path = f'../data/{args.dataset}/new_results/single_{args.model}.json'
+    if args.mode == 'single':
+        result_path = f'../data/{args.dataset}/new_results/single_{args.model}.json'
+    elif args.mode == 'oracle':
+        result_path = f'../data/{args.dataset}/new_results/oracle_{args.model}.json'
 
     pred_eval_new(dataset=args.dataset, result_path=result_path)
 

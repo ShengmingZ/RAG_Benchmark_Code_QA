@@ -1,6 +1,7 @@
 """
 provide an inferface for retrieval, isolating old retrieving codes
 """
+import random
 import sys
 sys.path.append('../../Code_RAG_Benchmark')
 import json
@@ -10,6 +11,7 @@ from retriever.retriever_utils import retriever_config, get_ret_results
 import re
 from collections import defaultdict
 from dataset_utils.corpus_utils import PythonDocsLoader, WikiCorpusLoader
+from copy import deepcopy
 
 
 class RetrievalProvider:
@@ -28,6 +30,9 @@ class RetrievalProvider:
 
         self.oracle_docs_path = f'../data/{dataset}/persist_oracle_docs.json'
         self.ret_docs_path = f'../data/{dataset}/persist_ret_docs.json'
+
+        # retrieval recall
+        self.recall_range = [1.0, 0.8, 0.6, 0.4, 0.2, 0]
 
     # def get_ret_results(self):
     #     return json.load(open(self.ret_results_path, 'r'))
@@ -115,18 +120,98 @@ class RetrievalProvider:
         load and store retrieval documents for each dataset
         :return:
         """
+        ret_docs = dict()
+        if self.dataset in ['pandas_numpy_eval', 'DS1000', 'conala']:
+            ret_doc_keys = json.load(open(self.ret_results_path, 'r'))
+            doc_loader = PythonDocsLoader()
+            for qs_id in ret_doc_keys:
+                ret_docs[qs_id] = doc_loader.get_docs([elem['doc_key'] for elem in ret_doc_keys[qs_id]])
+
+        with open(self.ret_docs_path, 'w+', encoding='utf-8') as f:
+            json.dump(ret_docs, f, indent=2)
+
+
+    @staticmethod
+    def calculate_recall(oracle_docs, controlled_docs):
+        """Calculate average retrieval recall"""
+        total_recall = 0
+        count = 0
+
+        for qid in oracle_docs:
+            golden_docs = set(oracle_docs[qid])
+            current_docs = set(controlled_docs[qid])
+
+            if len(golden_docs) > 0:
+                retrieved_golden = golden_docs.intersection(current_docs)
+                recall = len(retrieved_golden) / len(golden_docs)
+                total_recall += recall
+                count += 1
+
+        return total_recall / count if count > 0 else 0
+
+    def creat_controlled_recall_docs(self):
+        random.seed = 0
+
+        controlled_recall_docs = dict()
+        oracle_docs = self.get_oracle_docs()
+        ret_docs = self.get_ret_docs()
+        for qid in oracle_docs:
+            golden_docs = set(oracle_docs[qid])
+            retrieved_docs = set(ret_docs[qid])
+            distractors = retrieved_docs - golden_docs
+            # construct controlled docs
+            controlled_recall_docs[qid] = list(golden_docs) + list(distractors)
+
+        for target_recall in self.recall_range[1:]:     # first one is all oracle
+            while True:
+                current_recall = self.calculate_recall(oracle_docs, controlled_recall_docs)
+
+                if current_recall <= target_recall: break
+
+                removable_golden = []   # collect all existing golden docs in controlled docs
+                for qid in oracle_docs:
+                    golden_docs = set(oracle_docs[qid])
+                    current_docs = controlled_recall_docs[qid]
+                    current_golden = golden_docs.intersection(current_docs)
+
+                    for doc in current_golden:
+                        removable_golden.append((qid, doc))
+
+                # Remove one random golden doc
+                qid_to_modify, doc_to_remove = random.choice(removable_golden)
+                controlled_recall_docs[qid_to_modify].remove(doc_to_remove)
+
+            # store the controlled docs
+            persist_path = f'../data/{self.dataset}/controlled_docs_recall-{target_recall}.json'
+            truncated_docs = {}
+            for qid in oracle_docs:
+                oracle_length = len(oracle_docs[qid])
+                truncated_docs[qid] = controlled_recall_docs[qid][:oracle_length]
+            # verify recall
+            print(self.calculate_recall(oracle_docs, truncated_docs))
+            with open(persist_path, 'w+') as f:
+                json.dump(truncated_docs, f, indent=2)
+
+    def get_recall_controlled_docs(self, recall):
+        assert recall in self.recall_range
+        persist_path = f'../data/{self.dataset}/controlled_docs_recall-{recall}.json'
+        return json.load(open(persist_path, 'r'))
+
 
 
 
 if __name__ == '__main__':
-    ret_provider = RetrievalProvider(dataset='TriviaQA')
+    ret_provider = RetrievalProvider(dataset='pandas_numpy_eval')
 
     # ret_provider.filter_ret_results()
 
-    ret_provider.persist_oracle_docs()
+    # ret_provider.persist_oracle_docs()
 
     # ret_provider.get_oracle_docs()
 
+    ret_provider.persist_ret_docs()
+
+    # ret_provider.creat_controlled_recall_docs()
 
 
 

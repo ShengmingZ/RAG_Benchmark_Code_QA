@@ -137,6 +137,8 @@ class DS1000Loader:
         for key in eval_records.keys():
             assert eval_records[key] is not None
 
+        # add an evaluation of syntax error
+
         return avg_pass_score, eval_records
 
     @staticmethod

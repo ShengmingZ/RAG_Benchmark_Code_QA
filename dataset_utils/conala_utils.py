@@ -7,6 +7,7 @@ import sys
 import evaluate
 from tqdm import tqdm
 import random
+import ast
 system = platform.system()
 if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
@@ -181,6 +182,15 @@ class ConalaLoader:
             if pass_k['pass@1'] != 1: wrong_ids.append(qs_id)
             eval_records[qs_id] = _[0][0][1]    # todo: for n=1 only
             pass_k_list.append(pass_k)
+
+            syntax_error = True
+            for program in runnable_func:
+                try:
+                    ast.parse(program)
+                    syntax_error = False
+                except:
+                    ...
+            eval_records[qs_id]['syntax_error'] = syntax_error
         _pass_k = {}
         pass_keys = list(pass_k_list[0].keys())
         for key in pass_keys: _pass_k[key] = 0
@@ -188,6 +198,7 @@ class ConalaLoader:
             for key in pass_keys: _pass_k[key] += pass_k[key]
         for key in pass_keys: _pass_k[key] = _pass_k[key] / len(results)
         # print(_pass_k)
+
         return _pass_k, eval_records
 
     @staticmethod
