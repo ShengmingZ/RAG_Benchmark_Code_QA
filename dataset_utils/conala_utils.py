@@ -45,7 +45,7 @@ class ConalaLoader:
         for oracle in oracle_list:
             for key, data in dataset.items():
                 if oracle['qs_id'] == key:
-                    qs_list.append(dict(qs_id=key, question=data['intent']+'\n'+data['prompt']))
+                    qs_list.append(dict(qs_id=key, question=data['intent']+'\n\n'+data['prompt']+data['suffix']))
                     break
         return qs_list
 
@@ -165,7 +165,8 @@ class ConalaLoader:
             suffix = unittest['suffix']
             entry_point = unittest["entry_point"]
             test_func = f"\n{unittest['test']}\ncheck({entry_point})"
-            runnable_func = [f"{unittest['prompt']}{x}{suffix}" for x in result['outputs']]
+            # runnable_func = [f"{unittest['prompt']}{x}{suffix}" for x in result['outputs']]
+            runnable_func = [x for x in result['outputs']]
             # test_funcs.append(test_func)
             # runnable_funcs.append(runnable_func)
             # runnable_func = [f"{unittest['prompt']}{unittest['canonical_solution']}{suffix}"] # oracle

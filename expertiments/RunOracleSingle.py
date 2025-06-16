@@ -61,7 +61,7 @@ class LLMOracleEvaluator:
         else:
             raise Exception('unsupported dataset')
 
-    def generate_single_llm(self, result_path=None):
+    def generate_single_llm(self, result_path=None, test_prompt=False):
         # default result path for SINGLE llm
         if result_path is None: result_path = f'../data/{self.dataset}/new_results/single_{self.model_config.model}.json'
         if os.path.exists(result_path):
@@ -80,6 +80,12 @@ class LLMOracleEvaluator:
             prompt = self.prompt_generator_no_ret(question=problem['question'], model=self.model_config.model)
             prompts.append(prompt)
             problem_ids.append(problem['qs_id'])
+
+        if test_prompt:
+            if 'gpt' in self.model_config.model:
+                print(prompts[0][0]['content'])
+                print(prompts[0][1]['content'])
+            return
 
         # Batch API call
         if 'gpt' in self.model_config.model:
@@ -117,14 +123,13 @@ if __name__ == "__main__":
     parser.add_argument('--dataset', required=True, help='Dataset (conala, DS1000)')
     parser.add_argument('--model', required=True, help='Model (openai-new, claude)')
     parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'both'])
+    parser.add_argument('--test-prompt', action='store_true')
 
     args = parser.parse_args()
 
     evaluator = LLMOracleEvaluator(dataset=args.dataset, model=args.model)
 
     if args.mode == 'single':
-        evaluator.generate_single_llm()
+        evaluator.generate_single_llm(test_prompt=args.test_prompt)
     elif args.mode == 'oracle':
         ...
-
-    # LLMOracleEvaluator(dataset='conala', model='openai-new').generate_single_llm()
