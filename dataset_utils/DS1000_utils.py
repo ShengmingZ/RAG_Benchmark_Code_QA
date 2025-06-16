@@ -1,3 +1,4 @@
+import ast
 import json
 from multiprocessing import Pool
 import os
@@ -84,6 +85,7 @@ class DS1000Loader:
         return test_results
 
     def eval_passk(self, result_list, k_list, num_procs=16):
+        sampled_data = json.load(open(self.sampled_data_file, 'r'))
         ds1000 = DS1000Dataset(source_dir=root_path + '/data/DS1000/ds1000_data', mode='Completion', libs='all')
         # process generate code
         processed_gene_codes = dict()
@@ -102,6 +104,8 @@ class DS1000Loader:
         for lib in processed_gene_codes.keys():
             lib_results = list()
             if num_procs > 1 and lib != "Sklearn":
+                # print(processed_gene_codes[lib])
+                # print(problem_id_dict[lib])
                 with Pool(processes=num_procs) as pool:
                     for problem_id, test_results in tqdm(
                             zip(problem_id_dict[lib], pool.imap(self.test_helper, processed_gene_codes[lib])),
@@ -114,6 +118,7 @@ class DS1000Loader:
                         #     [result_lib, result_problem_id] = result['qs_id'].split('_')
                         #     if result_lib == lib and int(result_problem_id) == problem_id:
                         #         result['test_results'] = test_results
+
             else:
                 for problem_id, problem_code_pair in tqdm(zip(problem_id_dict[lib], processed_gene_codes[lib])):
                     test_results = self.test_helper(problem_code_pair)
@@ -123,6 +128,23 @@ class DS1000Loader:
                     #     [result_lib, result_problem_id] = result['nl']['qs_id'].split('_')
                     #     if result_lib == lib and int(result_problem_id) == problem_id:
                     #         result['test_results'] = test_results
+
+            for problem_id, problem_code_pair in tqdm(zip(problem_id_dict[lib], processed_gene_codes[lib])):
+                pid = lib + '_' + str(problem_id)
+                eval_records[pid] = dict(passed=any(test_results))
+                for item in sampled_data:
+                    if item['qs_id'] == pid:
+                        code_context = item['code_context']
+                problem, code_list = problem_code_pair
+                runnable_func = [code_context.replace("[insert]", code) for code in code_list]
+                syntax_error = True
+                for program in runnable_func:
+                    try:
+                        ast.parse(program)
+                        syntax_error = False
+                    except:
+                        ...
+                eval_records[pid]['syntax_error'] = syntax_error
 
             pass_scores = self.pass_rate(lib_results, k_list)
             total_pass_score[lib] = pass_scores

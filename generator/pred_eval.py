@@ -235,6 +235,11 @@ def pred_eval_new(dataset, result_path):
             outputs = [result['response'].replace('<code>', '').replace('</code>', '')]
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
         scores, eval_records = loader.eval_passk(_gene_results, top_k=[1])
+        syntax_error_count = 0
+        for qid in eval_records:
+            if eval_records[qid]['syntax_error']:
+                syntax_error_count += 1
+        print('number of syntax errors: {}'.format(syntax_error_count))
     elif dataset == 'DS1000':
         loader = DS1000Loader()
         qs_list = loader.load_qs_list()
