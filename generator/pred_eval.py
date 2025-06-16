@@ -231,7 +231,8 @@ def pred_eval_new(dataset, result_path):
         loader = ConalaLoader()
         _gene_results = list()
         for idx, result in enumerate(results):
-            outputs = process_gene_results(dataset, [result['response']])   # one time result is in the key: response
+            # outputs = process_gene_results(dataset, [result['response']])   # only one response is in the key: response
+            outputs = [result['response'].replace('<code>', '').replace('</code>', '')]
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
         scores, eval_records = loader.eval_passk(_gene_results, top_k=[1])
     elif dataset == 'DS1000':
