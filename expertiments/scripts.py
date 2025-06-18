@@ -12,7 +12,7 @@ python Eval.py --dataset conala --model openai-new --mode single
 python RunOracleSingle.py --dataset DS1000 --model openai-new --mode oracle --test-prompt
 
 # transfer result to server
-scp -P 34123 Code_RAG_Benchmark/data/pandas_numpy_eval/new_results/oracle_gpt-4o-mini.json zhaoshengming@129.128.209.206:~/Code_RAG_Benchmark/data/pandas_numpy_eval/new_results
+scp -P 34123 Code_RAG_Benchmark/data/DS1000/new_results/single_gpt-4o-mini.json zhaoshengming@129.128.209.206:~/Code_RAG_Benchmark/data/DS1000/new_results
 
 # eval
 python Eval.py --dataset conala --model openai-new --mode oracle

@@ -223,7 +223,7 @@ def process_outputs_for_self_consistency(outputs):
     return most_output
 
 
-def process_ds1000_outputs(outputs: List[str], existing_code: str):
+def process_ds1000_outputs(pid: str, outputs: List[str], existing_code: str):
     """
     replace existing code in DS1000, because the test code is different from code prompt
     :param outputs:
@@ -233,7 +233,11 @@ def process_ds1000_outputs(outputs: List[str], existing_code: str):
     processed_outputs = []
     for output in outputs:
         for code_statement in existing_code.split('\n'):
-            output.replace(code_statement, '')
+            if code_statement not in ['<code>', '</code>', 'BEGIN SOLUTION', 'END SOLUTION', '[insert]', 'runnable code', 'Runnable code', 'corrected, runnable code']:
+                if code_statement not in output:
+                    print(
+                        f'***********parsing error, LLM fail to keep the existing code exactly the same in {pid}: {code_statement}')
+                output = output.replace(code_statement, '')
         processed_outputs.append(output)
     return processed_outputs
 
@@ -261,7 +265,8 @@ def pred_eval_new(dataset, result_path):
         for idx, result in enumerate(results):
             assert qs_list[idx]['qs_id'] == result['qs_id']
             # outputs = process_gene_results(dataset, [result['response']], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
-            outputs = process_ds1000_outputs([result['response']], existing_code=qs_list[idx]['question'].split('\nA:')[1])
+            result['response'] = result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')
+            outputs = process_ds1000_outputs(pid=result['qs_id'], outputs=[result['response']], existing_code=qs_list[idx]['question'].split('\nA:')[1])
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
         scores, eval_records = loader.eval_passk(_gene_results, k_list=[1])
         syntax_error_count = 0

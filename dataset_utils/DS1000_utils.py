@@ -131,7 +131,7 @@ class DS1000Loader:
 
             for problem_id, problem_code_pair in tqdm(zip(problem_id_dict[lib], processed_gene_codes[lib])):
                 pid = lib + '_' + str(problem_id)
-                eval_records[pid] = dict(passed=any(test_results))
+                eval_records[pid] = dict(passed=any(eval_records[pid]))
                 for item in sampled_data:
                     if item['qs_id'] == pid:
                         code_context = item['code_context']
