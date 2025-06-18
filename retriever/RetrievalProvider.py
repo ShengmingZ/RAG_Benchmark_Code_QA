@@ -209,9 +209,9 @@ if __name__ == '__main__':
 
     # ret_provider.get_oracle_docs()
 
-    ret_provider.persist_ret_docs()
+    # ret_provider.persist_ret_docs()
 
-    # ret_provider.creat_controlled_recall_docs()
+    ret_provider.creat_controlled_recall_docs()
 
 
 

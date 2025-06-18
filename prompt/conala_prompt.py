@@ -2,11 +2,11 @@ from prompt.prompt_utils import ensemble_prompt
 
 
 LLAMA_SYS_PROMPT = """You are a senior python programmer, given some potentially useful api documentation tagged `## Potential documents` and a program description with uncompleted code tagged `## Description`, your task is to complete the python program. 
-You should generate the complete python function, and the function should starts with <code> and ends with </code>
+You should generate the complete python function, and the function should start with <code> and end with </code>
 """
 
 LLAMA_SYS_PROMPT_NO_RET = """You are a senior python programmer, given a program description with uncompleted code tagged `## Description`, your task is to complete the python program.
- You should generate the complete python function, and the function should starts with <code> and ends with </code>
+ You should generate the complete python function, and the function should start with <code> and end with </code>
 """
 
 SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last problem"""

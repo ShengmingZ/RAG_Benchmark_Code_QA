@@ -4,6 +4,7 @@ import sys
 import json
 import re
 import numpy as np
+from typing import List
 system = platform.system()
 if system == 'Darwin':
     root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
@@ -222,6 +223,19 @@ def process_outputs_for_self_consistency(outputs):
     return most_output
 
 
+def process_ds1000_outputs(outputs: List[str], existing_code: str):
+    """
+    replace existing code in DS1000, because the test code is different from code prompt
+    :param outputs:
+    :param existing_code:
+    :return:
+    """
+    processed_outputs = []
+    for output in outputs:
+        for code_statement in existing_code.split('\n'):
+            output.replace(code_statement, '')
+        processed_outputs.append(output)
+    return processed_outputs
 
 
 def pred_eval_new(dataset, result_path):
@@ -232,7 +246,7 @@ def pred_eval_new(dataset, result_path):
         _gene_results = list()
         for idx, result in enumerate(results):
             # outputs = process_gene_results(dataset, [result['response']])   # only one response is in the key: response
-            outputs = [result['response'].replace('<code>', '').replace('</code>', '')]
+            outputs = [result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')]
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
         scores, eval_records = loader.eval_passk(_gene_results, top_k=[1])
         syntax_error_count = 0
@@ -246,18 +260,30 @@ def pred_eval_new(dataset, result_path):
         _gene_results = list()
         for idx, result in enumerate(results):
             assert qs_list[idx]['qs_id'] == result['qs_id']
-            outputs = process_gene_results(dataset, [result['response']], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
+            # outputs = process_gene_results(dataset, [result['response']], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
+            outputs = process_ds1000_outputs([result['response']], existing_code=qs_list[idx]['question'].split('\nA:')[1])
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
         scores, eval_records = loader.eval_passk(_gene_results, k_list=[1])
+        syntax_error_count = 0
+        for qid in eval_records:
+            if eval_records[qid]['syntax_error']:
+                syntax_error_count += 1
+        print('number of syntax errors: {}'.format(syntax_error_count))
     elif dataset == 'pandas_numpy_eval':
         loader = PandasNumpyEvalLoader()
         qs_list = loader.load_qs_list()
         _gene_results = []
         for idx, result in enumerate(results):
             assert qs_list[idx]['qs_id'] == result['qs_id']
-            outputs = process_gene_results(dataset, [result['response']], code_prompt=qs_list[idx]['question'])
+            # outputs = process_gene_results(dataset, [result['response']], code_prompt=qs_list[idx]['question'])
+            outputs = [result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```','')]
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
         scores, eval_records = loader.eval_passk(_gene_results, k_list=[1])
+        syntax_error_count = 0
+        for qid in eval_records:
+            if eval_records[qid]['syntax_error']:
+                syntax_error_count += 1
+        print('number of syntax errors: {}'.format(syntax_error_count))
     elif dataset == 'NQ' or dataset == 'TriviaQA':
         loader = NQTriviaQAUtils(dataset)
         oracle_list = loader.load_oracle_list()

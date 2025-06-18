@@ -1,14 +1,33 @@
 from prompt.prompt_utils import ensemble_prompt
 
 
-LLAMA_SYSTEM_PROMPT = """You are a senior python programmer, given some potentially useful api documents tagged `## Potential documents`, a program description tagged `## Problem`, and the unfinished code solution tagged `## Unfinished Code Solution`, 
-your task is to complete the code solution according to the description.
-You should only generate the uncompleted part of the code solution, and the output code should start with <code> and end with </code>
+LLAMA_SYSTEM_PROMPT = """You are a senior python programmer. 
+
+Input:
+- Some potentially useful api documents tagged `## Potential documents`
+- A program description tagged `## Problem`
+- Incomplete code tagged `## Incomplete code`.
+
+Task:
+Complete the code by replacing `[insert]` with the correct Python code.
+
+Output Rules:
+1. Only change `[insert]` to working Python code, keep everything else exactly the same
+2. Output the complete code in <code> and </code> tags
 """
 
-LLAMA_SYSTEM_PROMPT_NO_RET = """You are a senior python programmer, given a program description tagged `## Problem`, and the unfinished code solution tagged `## Unfinished Code Solution`, 
-you task is to complete the code solution according to the description.
-You should only generate the uncompleted part of the code solution, and the output code should start with <code> and end with </code>
+LLAMA_SYSTEM_PROMPT_NO_RET = """You are a senior python programmer. 
+
+Input:
+- A program description tagged `## Problem`
+- Incomplete code tagged `## Incomplete code`.
+
+Task:
+Complete the code by replacing `[insert]` with the correct Python code.
+
+Output Rules:
+1. Only change `[insert]` to working Python code, keep everything else exactly the same
+2. Output the complete code in <code> and </code> tags
 """
 
 # LLAMA_SYSTEM_PROMPT_TYPE2 = """You are a senior python programmer, given some potential api documents starts with `## Potential documents`, and a unfinished code snippet starts with `## Unfinished Code Snippet`,
@@ -18,16 +37,59 @@ You should only generate the uncompleted part of the code solution, and the outp
 
 SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last problem"""
 
+
+def prompt_0shot(ret_docs, question, model):
+    potential_docs, prompt, answer = process_docs_question(ret_docs, question)
+    answer = answer.replace('<code>', '').replace('</code>', '').replace('BEGIN SOLUTION', '').replace('END SOLUTION', '')
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+\n
+## Problem: 
+{prompt}
+\n
+## Unfinished Code Solution:
+{answer}
+"""
+
+    sys_prompt = LLAMA_SYSTEM_PROMPT
+#     if model.startswith('llama2') or model.startswith('codellama'):
+#         prompt_template = f"""<s>[INST] <<SYS>> {sys_prompt} <</SYS>>\n{user_prompt} [/INST]"""
+#     elif model.startswith('llama3'):
+#         prompt_template = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{sys_prompt}<|eot_id|>\n
+# <|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n
+# <|start_header_id|>assistant<|end_header_id>
+# """
+#     elif model.startswith('gpt'):
+#         prompt_template = sys_prompt + '\n' + user_prompt
+#     else:
+#         raise ValueError(f'Unrecognized model: {model}')
+    prompt_template = ensemble_prompt(sys_prompt=sys_prompt, user_prompt=user_prompt, model=model)
+    return prompt_template
+
+
+def prompt_0shot_no_ret(question, model, pads=''):
+    prompt, answer = question.split('\nA:')
+    prompt = prompt.replace('Problem:', '')
+    answer = answer.replace('<code>', '').replace('</code>', '').replace('BEGIN SOLUTION', '').replace('END SOLUTION', '')
+    user_prompt = f"""
+{pads}\n
+## Problem: 
+{prompt}
+\n
+## Unfinished Code Solution:
+{answer}
+"""
+    prompt_template = ensemble_prompt(sys_prompt=LLAMA_SYSTEM_PROMPT_NO_RET, user_prompt=user_prompt, model=model)
+    return prompt_template
+
+
 def process_docs_question(ret_docs, question):
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
-        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
-    if '\nA:' in question:
-        prompt, answer = question.split('\nA:')
-        prompt = prompt.replace('Problem:', '').replace('\n', ' ')
-    else:
-        prompt = question
-        answer = None
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc + '\n\n'
+    prompt, answer = question.split('\nA:')
+    prompt = prompt.replace('Problem:', '')
     return potential_docs, prompt, answer
 
 
@@ -660,53 +722,6 @@ result = g(df.copy())
 #     else:
 #         return llama_0shot_prompt_type2(ret_docs, question, model)
 
-
-def prompt_0shot(ret_docs, question, model):
-    potential_docs, prompt, answer = process_docs_question(ret_docs, question)
-    user_prompt = f"""
-## Potential documents:
-{potential_docs}
-\n
-## Problem: 
-{prompt}
-\n
-## Unfinished Code Solution:
-{answer}
-"""
-
-    sys_prompt = LLAMA_SYSTEM_PROMPT
-#     if model.startswith('llama2') or model.startswith('codellama'):
-#         prompt_template = f"""<s>[INST] <<SYS>> {sys_prompt} <</SYS>>\n{user_prompt} [/INST]"""
-#     elif model.startswith('llama3'):
-#         prompt_template = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>{sys_prompt}<|eot_id|>\n
-# <|start_header_id|>user<|end_header_id|>{user_prompt}<|eot_id|>\n
-# <|start_header_id|>assistant<|end_header_id>
-# """
-#     elif model.startswith('gpt'):
-#         prompt_template = sys_prompt + '\n' + user_prompt
-#     else:
-#         raise ValueError(f'Unrecognized model: {model}')
-    prompt_template = ensemble_prompt(sys_prompt=sys_prompt, user_prompt=user_prompt, model=model)
-    return prompt_template
-
-
-def prompt_0shot_no_ret(question, model, pads=''):
-    if '\nA:' in question:
-        prompt, answer = question.split('\nA:')
-        prompt = prompt.replace('Problem:', '').replace('\n', ' ')
-    else:
-        prompt = question
-        answer = None
-    user_prompt = f"""
-{pads}\n
-## Problem: 
-{prompt}
-\n
-## Unfinished Code Solution:
-{answer}
-"""
-    prompt_template = ensemble_prompt(sys_prompt=LLAMA_SYSTEM_PROMPT_NO_RET, user_prompt=user_prompt, model=model)
-    return prompt_template
 
 
 examples_least_to_most = """

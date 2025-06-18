@@ -1,3 +1,4 @@
+import ast
 import json
 import gzip
 import random
@@ -85,13 +86,22 @@ class PandasNumpyEvalLoader:
                 for data in data_list:
                     if data['task_id'] == pred['qs_id']:
                         assert type(pred['outputs']) is list and len(pred['outputs']) >= max(k_list)
-                        for idx, output in enumerate(pred['outputs']):
+                        for idx, output in enumerate(pred['outputs']):  # pred['outputs'] is the complete test function
                             args = (data, output, 3, idx)
                             future = executor.submit(check_correctness, *args)
                             futures.append(future)
+                        syntax_error = True
+                        for program in pred['outputs']:
+                            try:
+                                ast.parse(program)
+                                syntax_error = False
+                            except:
+                                ...
+                        eval_records[pred['qs_id']] = dict()
+                        eval_records[pred['qs_id']]['syntax_error'] = syntax_error
             for future in tqdm(as_completed(futures), total=len(futures)):
                 result = future.result()
-                eval_records[result['task_id']] = result['result']
+                eval_records[result['task_id']]['passed'] = True if result['result'] == 'passed' else False
                 results_list[result['task_id']].append(result['passed'])
             # for id, results in results_list.items():
             #     if False in results:

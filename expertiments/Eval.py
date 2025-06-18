@@ -8,7 +8,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', required=True, help='Dataset (conala, DS1000)')
     parser.add_argument('--model', required=True, help='Model (openai-new, claude)')
-    parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'both'])
+    parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'recall'])
+    parser.add_argument('--recall', type=float, default=1, help='Recall, only effective if mode is "recall"')
 
     args = parser.parse_args()
 
@@ -23,6 +24,9 @@ if __name__ == '__main__':
         result_path = f'../data/{args.dataset}/new_results/single_{args.model}.json'
     elif args.mode == 'oracle':
         result_path = f'../data/{args.dataset}/new_results/oracle_{args.model}.json'
+    elif args.model == 'recall':
+        if args.recall == 0: args.recall = int(args.recall)
+        result_path = f'../data/{args.dataset}/new_results/recall-{args.recall}_{args.model}.json'
 
     pred_eval_new(dataset=args.dataset, result_path=result_path)
 

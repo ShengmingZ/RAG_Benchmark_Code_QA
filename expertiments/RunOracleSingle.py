@@ -26,10 +26,13 @@ class LLMOracleEvaluator:
         elif model == 'llama-old-code': self.model_config = LLMSettings().LLAMAConfigs().llama_old_code
         elif model == 'llama-old-qa': self.model_config = LLMSettings().LLAMAConfigs().llama_old_qa
         else: raise Exception('Unknown model')
+        if dataset in ['NQ', 'TriviaQA', 'HotpotQA']: self.max_tokens = 100     # todo: do not consider prompting method!
+        elif dataset == 'DS1000': self.max_tokens = 500
+        else: self.max_tokens = 300
         self.llm_provider = OpenAIProvider(organization=self.model_config.organization,
                                            model=self.model_config.model,
                                            temperature=self.model_config.temperature,
-                                           max_tokens=self.model_config.max_tokens,
+                                           max_tokens=self.max_tokens,
                                            is_async=self.model_config.is_async,
                                            stop=None)
 
@@ -65,19 +68,13 @@ class LLMOracleEvaluator:
     def generate_single_llm(self, result_path=None, test_prompt=False):
         # default result path for SINGLE llm
         if result_path is None: result_path = f'../data/{self.dataset}/new_results/single_{self.model_config.model}.json'
-        if os.path.exists(result_path):
-            print('result already exists in path {}, if want to overwrite, please delete it first'.format(result_path))
-            # pred_eval_new(self.dataset, result_path=result_path)
-            return
-
-        """Generate responses using single LLM only"""
-        print(f"🤖 Generating Single LLM responses for {len(self.problems)} questions...")
 
         # Prepare messages
         prompts = []
         problem_ids = []
 
         for problem in self.problems:
+            # if '\nA:' not in problem['question']: print(problem['question'])
             prompt = self.prompt_generator_no_ret(question=problem['question'], model=self.model_config.model)
             prompts.append(prompt)
             problem_ids.append(problem['qs_id'])
@@ -87,6 +84,14 @@ class LLMOracleEvaluator:
                 print(prompts[0][0]['content'])
                 print(prompts[0][1]['content'])
             return
+
+        if os.path.exists(result_path):
+            print('result already exists in path {}, if want to overwrite, please delete it first'.format(result_path))
+            # pred_eval_new(self.dataset, result_path=result_path)
+            return
+
+        """Generate responses using single LLM only"""
+        print(f"🤖 Generating Single LLM responses for {len(self.problems)} questions...")
 
         # Batch API call
         if 'gpt' in self.model_config.model:
@@ -119,10 +124,6 @@ class LLMOracleEvaluator:
     def generate_with_oracle(self, result_path=None, test_prompt=False):
         # default result path for SINGLE llm
         if result_path is None: result_path = f'../data/{self.dataset}/new_results/oracle_{self.model_config.model}.json'
-        if os.path.exists(result_path):
-            print('result already exists in path {}, if want to overwrite, please delete it first'.format(result_path))
-            # pred_eval_new(self.dataset, result_path=result_path)
-            return
 
         """Generate responses using single LLM only"""
         print(f"🤖 Generating Oracle LLM responses for {len(self.problems)} questions...")
@@ -146,6 +147,11 @@ class LLMOracleEvaluator:
                 print(prompts[0][1]['content'])
             return
 
+        if os.path.exists(result_path):
+            print('result already exists in path {}, if want to overwrite, please delete it first'.format(result_path))
+            # pred_eval_new(self.dataset, result_path=result_path)
+            return
+
         # Batch API call
         if 'gpt' in self.model_config.model:
             llm_responses = self.llm_provider.batch_generate(
@@ -162,7 +168,7 @@ class LLMOracleEvaluator:
         for problem_id, response in zip(problem_ids , llm_responses):
             results.append({
                 'qs_id': problem_id,
-                'method': 'single_llm',
+                'method': 'oracle_llm',
                 'response': response.get('text', ''),
                 'logprobs': response.get('logprobs', []),
             })
@@ -226,7 +232,7 @@ class LLMOracleEvaluator:
         for problem_id, response in zip(problem_ids , llm_responses):
             results.append({
                 'qs_id': problem_id,
-                'method': 'single_llm',
+                'method': 'recall_llm',
                 'response': response.get('text', ''),
                 'logprobs': response.get('logprobs', []),
             })

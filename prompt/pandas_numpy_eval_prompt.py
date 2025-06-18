@@ -1,16 +1,45 @@
 from prompt.prompt_utils import ensemble_prompt
 
-LLAMA_SYSTEM_PROMPT = """You are a senior python programmer, given some potentially useful api documents tagged `## Potential documents`, and a unfinished code snippet tagged `## Unfinished Code Snippet`, 
-your task is to complete the code snippet according to the comments in the code.
-You should only generate the uncompleted part of the code snippet, and the output code should starts with <code> and ends with </code>
+LLAMA_SYSTEM_PROMPT = """You are a senior python programmer, given some potentially useful api documents tagged `## Potential documents`, and a unfinished code snippet tagged `## Unfinished Code Snippet`, your task is to complete the code snippet according to the comments in the code.
+You should generate the complete code snippet, and the code should start with <code> and end with </code>
 """
 
-LLAMA_SYSTEM_PROMPT_NO_RET = """You are a senior python programmer, given a unfinished code snippet tagged `## Unfinished Code Snippet`,
-your task is to complete the code snippet according to the comments in the code.
-You should only generate the uncompleted part of the code snippet, and the output code should starts with <code> and ends with </code>
+LLAMA_SYSTEM_PROMPT_NO_RET = """You are a senior python programmer, given a unfinished code snippet tagged `## Unfinished Code Snippet`, your task is to complete the code snippet according to the comments in the code.
+You should generate the complete code snippet, and the code should start with <code> and end with </code>
 """
 
 SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last problem"""
+
+
+
+def prompt_0shot(ret_docs, question, model):
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc + '\n\n'
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+\n
+## Unfinished Code Snippet:
+{question}
+"""
+
+    sys_prompt = LLAMA_SYSTEM_PROMPT
+    prompt_template = ensemble_prompt(sys_prompt=sys_prompt, user_prompt=user_prompt, model=model)
+    return prompt_template
+
+
+def prompt_0shot_no_ret(question, model, pads=''):
+    user_prompt = f"""
+{pads}\n
+## Unfinished Code Snippet:
+{question}
+"""
+    sys_prompt = LLAMA_SYSTEM_PROMPT_NO_RET
+    prompt_template = ensemble_prompt(sys_prompt=sys_prompt, user_prompt=user_prompt, model=model)
+    return prompt_template
+
+
 
 def prompt_cot(ret_docs, question, model, existing_output=None):
     examples_prompt = '''
@@ -457,34 +486,6 @@ df_string = df.to_string(index=False)
         prompt = user_prompt
     # prompt_template = ensemble_prompt(sys_prompt='', user_prompt=user_prompt, model=model)
     return prompt
-
-
-def prompt_0shot(ret_docs, question, model):
-    potential_docs = ''
-    for idx, ret_doc in enumerate(ret_docs):
-        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
-    user_prompt = f"""
-## Potential documents:
-{potential_docs}
-\n
-## Unfinished Code Snippet:
-{question}
-"""
-
-    sys_prompt = LLAMA_SYSTEM_PROMPT
-    prompt_template = ensemble_prompt(sys_prompt=sys_prompt, user_prompt=user_prompt, model=model)
-    return prompt_template
-
-
-def prompt_0shot_no_ret(question, model, pads=''):
-    user_prompt = f"""
-{pads}\n
-## Unfinished Code Snippet:
-{question}
-"""
-    sys_prompt = LLAMA_SYSTEM_PROMPT_NO_RET
-    prompt_template = ensemble_prompt(sys_prompt=sys_prompt, user_prompt=user_prompt, model=model)
-    return prompt_template
 
 
 def prompt_plan_and_solve(ret_docs, question, model):

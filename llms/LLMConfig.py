@@ -28,20 +28,20 @@ class LLMSettings:
         openai_new = LLMConfig(organization="openai",
                                model="gpt-4o-mini",
                                temperature=0,
-                               max_tokens=200,
+                               max_tokens=500,
                                is_async=False)
 
         openai_old = LLMConfig(organization='openai',
                                model='gpt-3.5-turbo-0125',
                                temperature=0,
-                               max_tokens=200,
+                               max_tokens=500,
                                is_async=False)
 
     class LLAMAConfigs:
         llama_old_code = LLMConfig(organization='llama',
                                    model='codellama/CodeLlama-13b-Instruct-hf',
                                    temperature=0,
-                                   max_tokens=200,
+                                   max_tokens=500,
                                    is_async=False)
 
         llama_old_qa = LLMConfig(organization='llama',
@@ -53,7 +53,7 @@ class LLMSettings:
         llama_new = LLMConfig(organization='llama',
                               model='meta-llama/Llama-3.1-8B-Instruct',
                               temperature=0,
-                              max_tokens=200,
+                              max_tokens=500,
                               is_async=False)
 
     # class AnthropicConfigs:
