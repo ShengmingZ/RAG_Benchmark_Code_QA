@@ -149,7 +149,7 @@ class DS1000Loader:
         passed_count = 0
         for pid in eval_records:
             if eval_records[pid]['passed']: passed_count += 1
-        pass_score = passed_count / len(eval_records)
+        pass_score = {'pass@1': passed_count / len(eval_records)}
 
         #     pass_scores = self.pass_rate(lib_results, k_list)
         #     total_pass_score[lib] = pass_scores

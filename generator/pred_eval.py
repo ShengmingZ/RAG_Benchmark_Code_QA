@@ -223,6 +223,56 @@ def process_outputs_for_self_consistency(outputs):
     return most_output
 
 
+# def parsing_ds1000_by_llm(generated_code: str, existing_code: str):
+#     from llms.OpenAIProvider import OpenAIProvider
+#     llm_provider = OpenAIProvider(organization='openai',
+#                                   model='gpt-4.1',
+#                                   temperature=0,
+#                                   max_tokens=1000,
+#                                   is_async=False,
+#                                   stop=None)
+#     prompt_template = """The original code has [insert] placeholders. The generated code should keep all original lines exactly the same and only replace [insert] with actual code.
+#
+# Fix any parts where the generated code changed the original lines. Keep the same functionality.
+#
+#
+# original code:
+# {original_code}
+#
+# generated code:
+# {generated_code}
+#
+# Output the corrected code, wrapped in <code> and </code>."""
+#     prompt = prompt_template.format(original_code=existing_code, generated_code=generated_code)
+#     # print(prompt)
+#     llm_response = llm_provider.generate([{'role': 'user', 'content': prompt}], include_logits=False)
+#     try:
+#         llm_response = llm_response.split('<code>')[1].split('</code>')[0]
+#     except: print(llm_response)
+#     try:
+#         llm_response = llm_response.split('```python')[1].split('```')[0]
+#     except: print(llm_response)
+#     return llm_response
+#
+# if __name__ == '__main__':
+#     generated_code = """import pandas as pd
+#
+# df=pd.DataFrame(data=[[1,1,2,5],[1,3,4,1],[4,1,2,5],[5,1,4,9],[1,1,2,5]],columns=['val', 'col1','col2','3col'])
+#
+# duplicate_bool = df.duplicated(subset=['col1','col2', '3col'], keep='first')
+# duplicate = df.loc[duplicate_bool == True]
+# # Adding a column referring to the index of the first duplicate
+# duplicate['index_original'] = df[duplicate_bool].index[0]
+# print(duplicate)"""
+#     original_code = """import pandas as pd
+#
+# df=pd.DataFrame(data=[[1,1,2,5],[1,3,4,1],[4,1,2,5],[5,1,4,9],[1,1,2,5]],columns=['val', 'col1','col2','3col'])
+# [insert]
+# print(result)"""
+#     print(parsing_ds1000_by_llm(generated_code, existing_code=original_code))
+
+
+
 def process_ds1000_outputs(pid: str, outputs: List[str], existing_code: str):
     """
     replace existing code in DS1000, because the test code is different from code prompt
@@ -232,13 +282,26 @@ def process_ds1000_outputs(pid: str, outputs: List[str], existing_code: str):
     """
     processed_outputs = []
     for output in outputs:
+        output_statements = output.split('\n')
         for code_statement in existing_code.split('\n'):
-            if code_statement not in ['<code>', '</code>', 'BEGIN SOLUTION', 'END SOLUTION', '[insert]', 'runnable code', 'Runnable code', 'corrected, runnable code']:
-                if code_statement not in output:
-                    print(
-                        f'***********parsing error, LLM fail to keep the existing code exactly the same in {pid}: {code_statement}')
-                output = output.replace(code_statement, '')
-        processed_outputs.append(output)
+            if code_statement not in ['<code>', '</code>', 'BEGIN SOLUTION', 'END SOLUTION', '[insert]', 'runnable code', 'Runnable code', 'corrected, runnable code', '']:
+                # if regex matching cannot solve, use LLM as parser
+                if code_statement not in output_statements:
+                    print(f'***********parsing error, LLM fail to keep the existing code exactly the same in {pid}: {[code_statement]}')
+                output_statements.remove(code_statement)
+        processed_outputs.append('\n'.join(output_statements))
+        # else:
+        #     parsed_code = parsing_ds1000_by_llm(generated_code=output, existing_code=existing_code)
+        #     output_statements = parsed_code.split('\n')
+        #     for code_statement in existing_code.split('\n'):
+        #         if code_statement not in ['<code>', '</code>', 'BEGIN SOLUTION', 'END SOLUTION', '[insert]',
+        #                                   'runnable code', 'Runnable code', 'corrected, runnable code', '']:
+        #             if code_statement not in output_statements:
+        #                 print(f'***********parsing error, LLM fail to keep the existing code exactly the same in {pid}: {[code_statement]}')
+        #                 # if regex matching cannot solve, use LLM as parser
+        #             else:
+        #                 output_statements.remove(code_statement)
+        #     processed_outputs.append('\n'.join(output_statements))
     return processed_outputs
 
 
@@ -267,7 +330,10 @@ def pred_eval_new(dataset, result_path):
             # outputs = process_gene_results(dataset, [result['response']], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
             result['response'] = result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')
             outputs = process_ds1000_outputs(pid=result['qs_id'], outputs=[result['response']], existing_code=qs_list[idx]['question'].split('\nA:')[1])
+            # results[idx]['parsed_response'] = outputs[0]    # use LLM as parser, save the parsing results
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
+        # with open(result_path, 'w+', encoding='utf-8') as f:
+        #     json.dump(results, f, indent=2)
         scores, eval_records = loader.eval_passk(_gene_results, k_list=[1])
         syntax_error_count = 0
         for qid in eval_records:
@@ -496,6 +562,7 @@ def pred_eval(args, if_eval_retrieval=False, if_calc_perplexity=True, if_code_an
     return scores
 
 
+"""
 
 if __name__ == '__main__':
     in_program_call = None

@@ -26,9 +26,9 @@ class LLMOracleEvaluator:
         elif model == 'llama-old-code': self.model_config = LLMSettings().LLAMAConfigs().llama_old_code
         elif model == 'llama-old-qa': self.model_config = LLMSettings().LLAMAConfigs().llama_old_qa
         else: raise Exception('Unknown model')
-        if dataset in ['NQ', 'TriviaQA', 'HotpotQA']: self.max_tokens = 100     # todo: do not consider prompting method!
-        elif dataset == 'DS1000': self.max_tokens = 500
-        else: self.max_tokens = 300
+        if dataset in ['NQ', 'TriviaQA', 'HotpotQA']: self.max_tokens = 200     # todo: do not consider prompting method!
+        elif dataset == 'DS1000': self.max_tokens = 1000
+        else: self.max_tokens = 500
         self.llm_provider = OpenAIProvider(organization=self.model_config.organization,
                                            model=self.model_config.model,
                                            temperature=self.model_config.temperature,
