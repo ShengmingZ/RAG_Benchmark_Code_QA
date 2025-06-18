@@ -146,22 +146,27 @@ class DS1000Loader:
                         ...
                 eval_records[pid]['syntax_error'] = syntax_error
 
-            pass_scores = self.pass_rate(lib_results, k_list)
-            total_pass_score[lib] = pass_scores
-        avg_pass_score = {key: 0 for key in pass_scores}
-        for lib in total_pass_score.keys():
-            # print(f'{lib} pass score: {total_pass_score[lib]}')
-            for key in avg_pass_score.keys():
-                avg_pass_score[key] += total_pass_score[lib][key]
-        for key in avg_pass_score.keys():
-            avg_pass_score[key] = avg_pass_score[key] / len(total_pass_score.keys())
+        passed_count = 0
+        for pid in eval_records:
+            if eval_records[pid]['passed']: passed_count += 1
+        pass_score = passed_count / len(eval_records)
+
+        #     pass_scores = self.pass_rate(lib_results, k_list)
+        #     total_pass_score[lib] = pass_scores
+        # avg_pass_score = {key: 0 for key in pass_scores}
+        # for lib in total_pass_score.keys():
+        #     # print(f'{lib} pass score: {total_pass_score[lib]}')
+        #     for key in avg_pass_score.keys():
+        #         avg_pass_score[key] += total_pass_score[lib][key]
+        # for key in avg_pass_score.keys():
+        #     avg_pass_score[key] = avg_pass_score[key] / len(total_pass_score.keys())
         # print(avg_pass_score)
         for key in eval_records.keys():
             assert eval_records[key] is not None
 
         # add an evaluation of syntax error
 
-        return avg_pass_score, eval_records
+        return pass_score, eval_records
 
     @staticmethod
     def pass_rate(results_list, k_list):

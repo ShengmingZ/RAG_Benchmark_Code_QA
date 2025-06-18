@@ -17,6 +17,10 @@ scp -P 34123 Code_RAG_Benchmark/data/DS1000/new_results/single_gpt-4o-mini.json 
 # eval
 python Eval.py --dataset conala --model openai-new --mode oracle
 
+# pull back
+scp -P 34123 zhaoshengming@129.128.209.206:~/Code_RAG_Benchmark/data/DS1000/new_results/single_gpt-4o-mini_eval.json  Code_RAG_Benchmark/data/DS1000/new_results/
+
+
 
 # run recall exp
 python RunOracleSingle.py --dataset conala --model openai-new --mode recall --recall 1.0 --test-prompt
