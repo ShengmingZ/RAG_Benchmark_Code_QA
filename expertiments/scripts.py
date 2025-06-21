@@ -26,7 +26,7 @@ scp -P 34123 zhaoshengming@129.128.209.206:~/Code_RAG_Benchmark/data/DS1000/new_
 python RunOracleSingle.py --dataset conala --model openai-new --mode recall --recall 1.0 --test-prompt
 
 # transfer result to server
-scp -P 34123 Code_RAG_Benchmark/data/conala/new_results/recall-0.8_gpt-4o-mini.json zhaoshengming@129.128.209.206:~/Code_RAG_Benchmark/data/conala/new_results
+scp -P 34123 ~/Code_RAG_Benchmark/data/pandas_numpy_eval/new_results/recall-0.8_gpt-4o-mini.json zhaoshengming@129.128.209.206:~/Code_RAG_Benchmark/data/pandas_numpy_eval/new_results
 
 # eval
-python Eval.py --dataset conala --model openai-new --mode recall --recall 0.8
+python Eval.py --dataset DS1000 --model openai-new --mode recall --recall 0.2

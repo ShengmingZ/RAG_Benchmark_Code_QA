@@ -1,13 +1,42 @@
 from prompt.prompt_utils import ensemble_prompt
 
 
-LLAMA_SYS_PROMPT = """You are a senior python programmer, given some potentially useful api documentation tagged `## Potential documents` and a program description with uncompleted code tagged `## Description`, your task is to complete the python program. 
-You should generate the complete python function, and the function should start with <code> and end with </code>
+# LLAMA_SYS_PROMPT = """You are a senior python programmer, given some potentially useful api documentation tagged `## Potential documents` and a program description with uncompleted code tagged `## Description`, your task is to complete the python program.
+# You should generate the complete python function, and the function should start with <code> and end with </code>
+# """
+
+LLAMA_SYS_PROMPT = """You are a senior python programmer. 
+
+Input:
+- useful api documents tagged `## API Documents`
+- a program description with uncompleted code tagged `## Description`.
+
+Task:
+Follow the API documents and the program description to complete the python program.
+
+Output Rules:
+1. Generate the complete python function, keep existing code exactly the same
+2. Output the complete code in <code> and </code> tags
 """
 
-LLAMA_SYS_PROMPT_NO_RET = """You are a senior python programmer, given a program description with uncompleted code tagged `## Description`, your task is to complete the python program.
- You should generate the complete python function, and the function should start with <code> and end with </code>
+# todo: new no ret:
+LLAMA_SYS_PROMPT_NO_RET = """You are a senior python programmer.
+
+Input:
+- a program description with uncompleted code tagged `## Description`.
+
+Task:
+Follow the program description to complete the python program.
+
+Output Rules:
+1. Generate the complete python function, keep existing code exactly the same
+2. Output the complete code in <code> and </code> tags
 """
+
+# # todo: OG no ret prompt:
+# LLAMA_SYS_PROMPT_NO_RET = """You are a senior python programmer, given a program description with uncompleted code tagged `## Description`, your task is to complete the python program.
+#  You should generate the complete python function, and the function should start with <code> and end with </code>
+# """
 
 SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last problem"""
 
@@ -18,7 +47,7 @@ def prompt_0shot(ret_docs, question, model):
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc + '\n\n'
 
-    user_prompt = f"""## Potential documents: 
+    user_prompt = f"""## API Documents: 
 {potential_docs}
 \n
 ## Description: 

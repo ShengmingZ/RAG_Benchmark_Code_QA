@@ -19,7 +19,7 @@ def get_truncated_docs(api_signs):
 
 def ensemble_prompt(sys_prompt, user_prompt, model, examples=None, answers=None):
     if examples is not None: assert len(examples) == len(answers)
-    if model.startswith('Llama-2') or model.startswith('CodeLlama'):
+    if 'Llama-2' in model or 'CodeLlama' in model:
         if examples is None:
             prompt_template = f"""<s>[INST] <<SYS>> {sys_prompt} <</SYS>>\n{user_prompt}\n[/INST]"""
         else:
@@ -27,7 +27,7 @@ def ensemble_prompt(sys_prompt, user_prompt, model, examples=None, answers=None)
             for example, answer in zip(examples, answers):
                 prompt_template += f"<s>[INST]{example}\n[/INST]{answer}</s>\n"
             prompt_template += f"<s>[INST]{user_prompt}\n[/INST]"
-    elif model.startswith('Llama-3.1'):
+    elif 'Llama-3.1' in model:
         prompt_template = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>{sys_prompt}<|eot_id|>\n"
         if examples is not None:
             for example, answer in zip(examples, answers):

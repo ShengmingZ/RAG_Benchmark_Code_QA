@@ -288,7 +288,7 @@ def process_ds1000_outputs(pid: str, outputs: List[str], existing_code: str):
                 # if regex matching cannot solve, use LLM as parser
                 if code_statement not in output_statements:
                     print(f'***********parsing error, LLM fail to keep the existing code exactly the same in {pid}: {[code_statement]}')
-                output_statements.remove(code_statement)
+                else: output_statements.remove(code_statement)
         processed_outputs.append('\n'.join(output_statements))
         # else:
         #     parsed_code = parsing_ds1000_by_llm(generated_code=output, existing_code=existing_code)

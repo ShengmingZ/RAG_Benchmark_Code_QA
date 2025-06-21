@@ -1,12 +1,41 @@
 from prompt.prompt_utils import ensemble_prompt
 
-LLAMA_SYSTEM_PROMPT = """You are a senior python programmer, given some potentially useful api documents tagged `## Potential documents`, and a unfinished code snippet tagged `## Unfinished Code Snippet`, your task is to complete the code snippet according to the comments in the code.
-You should generate the complete code snippet, and the code should start with <code> and end with </code>
+# LLAMA_SYSTEM_PROMPT = """You are a senior python programmer, given some potentially useful api documents tagged `## Potential documents`, and a unfinished code snippet tagged `## Unfinished Code Snippet`, your task is to complete the code snippet according to the comments in the code.
+# You should generate the complete code snippet, and the code should start with <code> and end with </code>
+# """
+
+LLAMA_SYSTEM_PROMPT = """You are a senior python programmer. 
+
+Input:
+- useful api documents tagged `## API Documents`
+- Incomplete code tagged `## Incomplete Code`.
+
+Task:
+Follow the API documents to complete the code.
+
+Output Rules:
+1. Keep existing code exactly the same
+2. Output the complete code in <code> and </code> tags
 """
 
-LLAMA_SYSTEM_PROMPT_NO_RET = """You are a senior python programmer, given a unfinished code snippet tagged `## Unfinished Code Snippet`, your task is to complete the code snippet according to the comments in the code.
-You should generate the complete code snippet, and the code should start with <code> and end with </code>
+# todo: New no ret prompt
+LLAMA_SYSTEM_PROMPT_NO_RET = """You are a senior python programmer. 
+
+Input:
+- Incomplete code tagged `## Incomplete Code`.
+
+Task:
+complete the code.
+
+Output Rules:
+1. Keep existing code exactly the same
+2. Output the complete code in <code> and </code> tags
 """
+
+# todo: OG no ret prompt
+# LLAMA_SYSTEM_PROMPT_NO_RET = """You are a senior python programmer, given a unfinished code snippet tagged `## Incomplete Code`, your task is to complete the code snippet according to the comments in the code.
+# You should generate the complete code snippet without changing the existing code, and the code should in <code> and </code> tags
+# """
 
 SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last problem"""
 
@@ -17,10 +46,10 @@ def prompt_0shot(ret_docs, question, model):
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc + '\n\n'
     user_prompt = f"""
-## Potential documents:
+## API Documents:
 {potential_docs}
 \n
-## Unfinished Code Snippet:
+## Incomplete Code:
 {question}
 """
 
@@ -32,7 +61,7 @@ def prompt_0shot(ret_docs, question, model):
 def prompt_0shot_no_ret(question, model, pads=''):
     user_prompt = f"""
 {pads}\n
-## Unfinished Code Snippet:
+## Incomplete Code:
 {question}
 """
     sys_prompt = LLAMA_SYSTEM_PROMPT_NO_RET

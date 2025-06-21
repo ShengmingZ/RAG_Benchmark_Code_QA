@@ -1,7 +1,7 @@
 import os
 import time
 import torch
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from llms.LLMProvider import LLMProvider
 
@@ -36,19 +36,6 @@ class LlamaProvider(LLMProvider):
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
-        self.model = AutoModelForCausalLM.from_pretrained(
-            self.model_name,
-            torch_dtype=torch.float16,
-            device_map="auto" if self.device == "cuda" else None,
-            trust_remote_code=True,
-            low_cpu_mem_usage=True
-        )
-
-        if self.device == "cpu":
-            self.model = self.model.to(self.device)
-
-        print(f"✅ Model loaded successfully")
-
     def _compose_params(self, prompt):
         """Convert prompt to text format"""
         if isinstance(prompt, list):
@@ -67,7 +54,26 @@ class LlamaProvider(LLMProvider):
 
         return text
 
+    def generate_batch(self, prompts, return_type='text', include_logits=True, print_generation_time=True):
+        self.model = AutoModelForCausalLM.from_pretrained(
+            self.model_name,
+            torch_dtype=torch.float16,
+            device_map="auto" if self.device == "cuda" else None,
+            trust_remote_code=True,
+            low_cpu_mem_usage=True
+        )
+        results = list()
+        for prompt in prompts:
+            result = self.generate(prompt=prompt, return_type=return_type, include_logits=include_logits, print_generation_time=print_generation_time)
+            results.append(result)
+        return results
+
     def generate(self, prompt, return_type='text', include_logits=True, print_generation_time=True):
+        if self.device == "cpu":
+            self.model = self.model.to(self.device)
+
+        print(f"✅ Model loaded successfully")
+
         start_time = time.time()
 
         # Prepare input
@@ -79,7 +85,6 @@ class LlamaProvider(LLMProvider):
             return_tensors="pt",
             padding=True,
             truncation=True,
-            max_length=2048
         ).to(self.device)
 
         # Generation parameters

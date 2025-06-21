@@ -14,6 +14,7 @@ from dataset_utils.hotpotQA_utils import HotpotQAUtils
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from llms.LLMConfig import LLMConfig, LLMSettings
 from llms.OpenAIProvider import OpenAIProvider
+from llms.LLAMAProvider import LlamaProvider
 from generator.pred_eval import pred_eval_new
 from generator.generate_utils import truncate_docs
 
@@ -29,12 +30,20 @@ class LLMOracleEvaluator:
         if dataset in ['NQ', 'TriviaQA', 'HotpotQA']: self.max_tokens = 200     # todo: do not consider prompting method!
         elif dataset == 'DS1000': self.max_tokens = 1000
         else: self.max_tokens = 500
-        self.llm_provider = OpenAIProvider(organization=self.model_config.organization,
-                                           model=self.model_config.model,
-                                           temperature=self.model_config.temperature,
-                                           max_tokens=self.max_tokens,
-                                           is_async=self.model_config.is_async,
-                                           stop=None)
+        if self.model_config.organization == 'openai':
+            self.llm_provider = OpenAIProvider(organization=self.model_config.organization,
+                                               model=self.model_config.model,
+                                               temperature=self.model_config.temperature,
+                                               max_tokens=self.max_tokens,
+                                               is_async=self.model_config.is_async,
+                                               stop=None)
+        elif self.model_config.organization == 'llama':
+            self.llm_provider = LlamaProvider(organization=self.model_config.organization,
+                                              model=self.model_config.model,
+                                              temperature=self.model_config.temperature,
+                                              max_tokens=self.max_tokens,
+                                              is_async=self.model_config.is_async,
+                                              stop=['</code>', '</answer>'])
 
         self.dataset = dataset
 
@@ -83,6 +92,8 @@ class LLMOracleEvaluator:
             if 'gpt' in self.model_config.model:
                 print(prompts[0][0]['content'])
                 print(prompts[0][1]['content'])
+            elif 'llama' in self.model_config.model.lower():
+                print(prompts[0])
             return
 
         if os.path.exists(result_path):
@@ -100,6 +111,12 @@ class LLMOracleEvaluator:
                 return_type="text",
                 include_logits=True,
                 custom_id_prefix=f"single_{self.dataset}_{self.model_config.model}"
+            )
+        elif 'llama' in self.model_config.model.lower():
+            llm_responses = self.llm_provider.generate_batch(
+                prompts=prompts,
+                return_type="text",
+                include_logits=True
             )
         else:
             raise Exception('unsupported model')
@@ -145,6 +162,8 @@ class LLMOracleEvaluator:
             if 'gpt' in self.model_config.model:
                 print(prompts[0][0]['content'])
                 print(prompts[0][1]['content'])
+            elif 'llama' in self.model_config.model.lower():
+                print(prompts[0])
             return
 
         if os.path.exists(result_path):
@@ -214,6 +233,8 @@ class LLMOracleEvaluator:
             if 'gpt' in self.model_config.model:
                 print(prompts[0][0]['content'])
                 print(prompts[0][1]['content'])
+            elif 'llama' in self.model_config.model.lower():
+                print(prompts[0])
             return
 
         # Batch API call
