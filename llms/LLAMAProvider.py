@@ -62,6 +62,10 @@ class LlamaProvider(LLMProvider):
             trust_remote_code=True,
             low_cpu_mem_usage=True
         )
+        if self.device == "cpu":
+            self.model = self.model.to(self.device)
+        print(f"✅ Model loaded successfully")
+        
         results = list()
         for prompt in prompts:
             result = self.generate(prompt=prompt, return_type=return_type, include_logits=include_logits, print_generation_time=print_generation_time)
@@ -69,11 +73,6 @@ class LlamaProvider(LLMProvider):
         return results
 
     def generate(self, prompt, return_type='text', include_logits=True, print_generation_time=True):
-        if self.device == "cpu":
-            self.model = self.model.to(self.device)
-
-        print(f"✅ Model loaded successfully")
-
         start_time = time.time()
 
         # Prepare input
