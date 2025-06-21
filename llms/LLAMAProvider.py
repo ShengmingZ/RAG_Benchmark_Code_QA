@@ -65,7 +65,7 @@ class LlamaProvider(LLMProvider):
         if self.device == "cpu":
             self.model = self.model.to(self.device)
         print(f"✅ Model loaded successfully")
-        
+
         results = list()
         for prompt in prompts:
             result = self.generate(prompt=prompt, return_type=return_type, include_logits=include_logits, print_generation_time=print_generation_time)

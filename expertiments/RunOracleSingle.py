@@ -179,6 +179,12 @@ class LLMOracleEvaluator:
                 include_logits=True,
                 custom_id_prefix=f"single_{self.dataset}_{self.model_config.model}"
             )
+        elif 'llama' in self.model_config.model.lower():
+            llm_responses = self.llm_provider.generate_batch(
+                prompts=prompts,
+                return_type="text",
+                include_logits=True
+            )
         else:
             raise Exception('unsupported model')
 
@@ -244,6 +250,12 @@ class LLMOracleEvaluator:
                 return_type="text",
                 include_logits=True,
                 custom_id_prefix=f"single_{self.dataset}_{self.model_config.model}"
+            )
+        elif 'llama' in self.model_config.model.lower():
+            llm_responses = self.llm_provider.generate_batch(
+                prompts=prompts,
+                return_type="text",
+                include_logits=True
             )
         else:
             raise Exception('unsupported model')
