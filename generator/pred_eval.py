@@ -305,7 +305,7 @@ def process_ds1000_outputs(pid: str, outputs: List[str], existing_code: str):
     return processed_outputs
 
 
-def pred_eval_new(dataset, result_path):
+def pred_eval_new(model, dataset, result_path):
     eval_save_file = result_path.replace('.json', '_eval.json')
     results = json.load(open(result_path, 'r'))
     if dataset == 'conala':
@@ -314,6 +314,10 @@ def pred_eval_new(dataset, result_path):
         for idx, result in enumerate(results):
             # outputs = process_gene_results(dataset, [result['response']])   # only one response is in the key: response
             outputs = [result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')]
+            # todo：conala parsing没什么大问题，提取出完整程序就行
+            if 'codellama' in model:
+                # print(result['qs_id'])
+                outputs = [result['response'].split('```', 1)[1].split('```', 1)[0]]
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
         scores, eval_records = loader.eval_passk(_gene_results, top_k=[1])
         syntax_error_count = 0
@@ -328,8 +332,15 @@ def pred_eval_new(dataset, result_path):
         for idx, result in enumerate(results):
             assert qs_list[idx]['qs_id'] == result['qs_id']
             # outputs = process_gene_results(dataset, [result['response']], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
-            result['response'] = result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')
-            outputs = process_ds1000_outputs(pid=result['qs_id'], outputs=[result['response']], existing_code=qs_list[idx]['question'].split('\nA:')[1])
+            outputs = [result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')]
+            # todo: ds1000 主要需要匹配删除已有的prompt code
+            if 'codellama' in model:
+                print(result['qs_id'])
+                try:
+                    outputs = [result['response'].split('```', 1)[1].split('```', 1)[0]]
+                except:
+                    outputs = [result['response'].split('[PYTHON]', 1)[1].split('[/PYTHON]', 1)[0]]
+            outputs = process_ds1000_outputs(pid=result['qs_id'], outputs=outputs, existing_code=qs_list[idx]['question'].split('\nA:')[1])
             # results[idx]['parsed_response'] = outputs[0]    # use LLM as parser, save the parsing results
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
         # with open(result_path, 'w+', encoding='utf-8') as f:
@@ -348,6 +359,30 @@ def pred_eval_new(dataset, result_path):
             assert qs_list[idx]['qs_id'] == result['qs_id']
             # outputs = process_gene_results(dataset, [result['response']], code_prompt=qs_list[idx]['question'])
             outputs = [result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```','')]
+            # todo: PNE只需要提取出完成的程序即可
+            if 'codellama' in model:
+                print(result['qs_id'])
+                # first remove space at the front of generation, only happen in PNE
+                if result['response'].startswith(' '): result['response'] = result['response'][1:]
+                assert not result['response'].startswith(' ')
+                # remove last generation sign " package"
+                result['response'] = result['response'].replace(' package', '')
+                # then try to split and get only the code
+                try:
+                    outputs = [result['response'].split('```', 1)[1].split('```', 1)[0]]
+                except:
+                    if 'return' in result['response'] or 'print' in result['response']:
+                        lines = result['response'].split('\n')
+                        lines = [line for line in lines if not line.strip().startswith('#') ]
+                        outputs = []
+                        for line in lines:
+                            outputs.append(line)
+                            if line.strip().startswith('return') or line.strip().startswith('print'): break
+                        outputs = ['\n'.join(outputs)]
+                        print(outputs)
+                    else:
+                        outputs = [result['response']]
+                        print(outputs[0])
             _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
         scores, eval_records = loader.eval_passk(_gene_results, k_list=[1])
         syntax_error_count = 0

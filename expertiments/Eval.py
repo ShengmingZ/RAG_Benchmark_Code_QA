@@ -5,6 +5,10 @@ from generator.pred_eval import pred_eval_new
 
 
 if __name__ == '__main__':
+    model_names_for_path = {"gpt-4o-mini": "gpt-4o-mini",
+                            "gpt-3.5-turbo-0125": "gpt-3-5-turbo",
+                            "codellama/CodeLlama-13b-Instruct-hf": "codellama-13b"}
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', required=True, help='Dataset (conala, DS1000)')
     parser.add_argument('--model', required=True, help='Model (openai-new, claude)')
@@ -20,13 +24,14 @@ if __name__ == '__main__':
     elif args.model == 'llama-old-qa': args.model = 'meta-llama/Llama-2-13b-chat-hf'
     else: raise Exception('unknown model')
 
+    model_name_for_path = model_names_for_path[args.model]
     if args.mode == 'single':
-        result_path = f'../data/{args.dataset}/new_results/single_{args.model}.json'
-    elif args.mode == 'oracle':
-        result_path = f'../data/{args.dataset}/new_results/oracle_{args.model}.json'
-    elif args.model == 'recall':
+        result_path = f'../data/{args.dataset}/new_results/single_{model_name_for_path}.json'
+    elif args.mode == 'oracle' or args.mode == 'recall' and args.recall == 1:
+        result_path = f'../data/{args.dataset}/new_results/oracle_{model_name_for_path}.json'
+    elif args.mode == 'recall':
         if args.recall == 0: args.recall = int(args.recall)
-        result_path = f'../data/{args.dataset}/new_results/recall-{args.recall}_{args.model}.json'
+        result_path = f'../data/{args.dataset}/new_results/recall-{args.recall}_{model_name_for_path}.json'
 
-    pred_eval_new(dataset=args.dataset, result_path=result_path)
+    pred_eval_new(model=args.model, dataset=args.dataset, result_path=result_path)
 

@@ -27,7 +27,7 @@ class LLMOracleEvaluator:
         elif model == 'llama-old-code': self.model_config = LLMSettings().LLAMAConfigs().llama_old_code
         elif model == 'llama-old-qa': self.model_config = LLMSettings().LLAMAConfigs().llama_old_qa
         else: raise Exception('Unknown model')
-        if dataset in ['NQ', 'TriviaQA', 'HotpotQA']: self.max_tokens = 200     # todo: do not consider prompting method!
+        if dataset in ['NQ', 'TriviaQA', 'HotpotQA']: self.max_tokens = 100     # todo: do not consider prompting method!
         elif dataset == 'DS1000': self.max_tokens = 1000
         else: self.max_tokens = 500
         if self.model_config.organization == 'openai':
@@ -43,13 +43,17 @@ class LLMOracleEvaluator:
                                               temperature=self.model_config.temperature,
                                               max_tokens=self.max_tokens,
                                               is_async=self.model_config.is_async,
-                                              stop=['</code>', '</answer>'])
+                                              stop=['</code>', '</answer>', 'package com'])
 
         self.dataset = dataset
 
         self.doc_loader = RetrievalProvider(self.dataset)
 
         self.oracle_docs = self.doc_loader.get_oracle_docs()
+
+        self.model_names_for_path = {"gpt-4o-mini": "gpt-4o-mini",
+                                     "gpt-3.5-turbo-0125": "gpt-3-5-turbo",
+                                     "codellama/CodeLlama-13b-Instruct-hf": "codellama-13b"}
 
         if self.dataset == 'conala':
             self.problems = ConalaLoader().load_qs_list()
@@ -76,7 +80,9 @@ class LLMOracleEvaluator:
 
     def generate_single_llm(self, result_path=None, test_prompt=False):
         # default result path for SINGLE llm
-        if result_path is None: result_path = f'../data/{self.dataset}/new_results/single_{self.model_config.model}.json'
+        if result_path is None:
+            model_name_for_path = self.model_names_for_path[self.model_config.model]
+            result_path = f'../data/{self.dataset}/new_results/single_{model_name_for_path}.json'
 
         # Prepare messages
         prompts = []
@@ -140,7 +146,9 @@ class LLMOracleEvaluator:
 
     def generate_with_oracle(self, result_path=None, test_prompt=False):
         # default result path for SINGLE llm
-        if result_path is None: result_path = f'../data/{self.dataset}/new_results/oracle_{self.model_config.model}.json'
+        if result_path is None:
+            model_name_for_path = self.model_names_for_path[self.model_config.model]
+            result_path = f'../data/{self.dataset}/new_results/oracle_{model_name_for_path}.json'
 
         """Generate responses using single LLM only"""
         print(f"🤖 Generating Oracle LLM responses for {len(self.problems)} questions...")
@@ -198,7 +206,7 @@ class LLMOracleEvaluator:
                 'logprobs': response.get('logprobs', []),
             })
 
-        print(f"✅ Generated {len(results)} Single LLM responses")
+        print(f"✅ Generated {len(results)} Oracle LLM responses")
 
         os.makedirs(result_path.rsplit('/', 1)[0], exist_ok=True)
         with open(result_path, 'w+') as f:
@@ -212,8 +220,15 @@ class LLMOracleEvaluator:
         assert recall in self.recall_range
 
         if recall == 0: recall = int(recall)    # turn 0.0 to 0
-        if result_path is None and recall != 1.0: result_path = f'../data/{self.dataset}/new_results/recall-{recall}_{self.model_config.model}.json'
-        elif result_path is None and recall == 1.0: result_path = f'../data/{self.dataset}/new_results/oracle_{self.model_config.model}.json'
+        # default result path for SINGLE llm
+        if result_path is None and recall != 1.0:
+            model_name_for_path = self.model_names_for_path[self.model_config.model]
+            result_path = f'../data/{self.dataset}/new_results/recall-{recall}_{model_name_for_path}.json'
+        elif result_path is None and recall == 1.0:
+            model_name_for_path = self.model_names_for_path[self.model_config.model]
+            result_path = f'../data/{self.dataset}/new_results/oracle_{model_name_for_path}.json'
+        # if result_path is None and recall != 1.0: result_path = f'../data/{self.dataset}/new_results/recall-{recall}_{self.model_config.model}.json'
+        # elif result_path is None and recall == 1.0: result_path = f'../data/{self.dataset}/new_results/oracle_{self.model_config.model}.json'
         if os.path.exists(result_path):
             print('result already exists in path {}, if want to overwrite, please delete it first'.format(result_path))
             # pred_eval_new(self.dataset, result_path=result_path)
@@ -270,7 +285,7 @@ class LLMOracleEvaluator:
                 'logprobs': response.get('logprobs', []),
             })
 
-        print(f"✅ Generated {len(results)} Single LLM responses")
+        print(f"✅ Generated {len(results)} Recall Analysis LLM responses")
 
         os.makedirs(result_path.rsplit('/', 1)[0], exist_ok=True)
         with open(result_path, 'w+') as f:
