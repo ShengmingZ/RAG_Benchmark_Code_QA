@@ -14,6 +14,7 @@ if __name__ == '__main__':
     parser.add_argument('--model', required=True, help='Model (openai-new, claude)')
     parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'recall'])
     parser.add_argument('--recall', type=float, default=1, help='Recall, only effective if mode is "recall"')
+    parser.add_argument('--k', type=int, default=1, help='Doc Num, only effective if mode is "DocNum"')
 
     args = parser.parse_args()
 
@@ -32,6 +33,8 @@ if __name__ == '__main__':
     elif args.mode == 'recall':
         if args.recall == 0: args.recall = int(args.recall)
         result_path = f'../data/{args.dataset}/new_results/recall-{args.recall}_{model_name_for_path}.json'
+    elif args.mode == 'DocNum':
+        result_path = f'../data/{args.dataset}/new_results/DocNum/{args.k}_{model_name_for_path}.json'
 
     pred_eval_new(model=args.model, dataset=args.dataset, result_path=result_path)
 
