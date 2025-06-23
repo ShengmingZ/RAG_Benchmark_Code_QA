@@ -12,7 +12,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', required=True, help='Dataset (conala, DS1000)')
     parser.add_argument('--model', required=True, help='Model (openai-new, claude)')
-    parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'recall'])
+    parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'recall', 'DocNum'])
     parser.add_argument('--recall', type=float, default=1, help='Recall, only effective if mode is "recall"')
     parser.add_argument('--k', type=int, default=1, help='Doc Num, only effective if mode is "DocNum"')
 

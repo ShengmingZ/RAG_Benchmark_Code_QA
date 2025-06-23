@@ -1,7 +1,7 @@
 # script for LLAMA2 + CODE dataset + Single Oracle analyze
 
 DATASET='conala'
-MODEL='openai-old'
+MODEL='openai-new'
 
 python RunOracleSingle.py --dataset $DATASET --model $MODEL --mode single &
 python RunOracleSingle.py --dataset $DATASET --model $MODEL --mode oracle &

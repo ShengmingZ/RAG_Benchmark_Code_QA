@@ -59,22 +59,27 @@ class LLMOracleEvaluator:
             self.problems = ConalaLoader().load_qs_list()
             self.prompt_generator = conala_prompt.prompt_0shot
             self.prompt_generator_no_ret = conala_prompt.prompt_0shot_no_ret
+            self.prompt_utils = conala_prompt
         elif self.dataset == 'DS1000':
             self.problems = DS1000Loader().load_qs_list()
             self.prompt_generator = DS1000_prompt.prompt_0shot
             self.prompt_generator_no_ret = DS1000_prompt.prompt_0shot_no_ret
+            self.prompt_utils = DS1000_prompt
         elif self.dataset == 'pandas_numpy_eval':
             self.problems = PandasNumpyEvalLoader().load_qs_list()
             self.prompt_generator = pandas_numpy_eval_prompt.prompt_0shot
             self.prompt_generator_no_ret = pandas_numpy_eval_prompt.prompt_0shot_no_ret
+            self.prompt_utils = pandas_numpy_eval_prompt
         elif self.dataset == 'NQ' or self.dataset == 'TriviaQA':
             self.problems = NQTriviaQAUtils(dataset=self.dataset).load_qs_list()
             self.prompt_generator = NQ_TriviaQA_prompt.prompt_0shot
             self.prompt_generator_no_ret = NQ_TriviaQA_prompt.prompt_0shot_no_ret
+            self.prompt_utils = NQ_TriviaQA_prompt
         elif self.dataset == 'hotpotQA':
             self.problems = HotpotQAUtils().load_qs_list()
             self.prompt_generator = hotpotQA_prompt.prompt_0shot
             self.prompt_generator_no_ret = hotpotQA_prompt.prompt_0shot_no_ret
+            self.prompt_utils = hotpotQA_prompt
         else:
             raise Exception('unsupported dataset')
 
@@ -296,9 +301,9 @@ class LLMOracleEvaluator:
 
     def generate_with_k(self, k, result_path=None, test_prompt=False):
         if self.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
-            self.k_range = [1, 3, 5, 7, 10, 13, 15]
+            self.k_range = [1, 3, 5, 7, 10, 13, 16, 20]
         else:
-            self.k_range = [1, 3, 5, 10, 15, 20, 30]
+            self.k_range = [1, 3, 5, 10, 15, 20, 30, 40]
         assert k in self.k_range
 
         # default result path for different k
@@ -320,8 +325,14 @@ class LLMOracleEvaluator:
 
         ret_docs = self.doc_loader.get_ret_docs()
 
-        for problem, qs_id in zip(self.problems, ret_docs):
-            assert qs_id == problem['qs_id']
+        for problem in self.problems:
+            ret_docs_exist = False
+            # ret docs' qs_id may be different from oracle
+            for qs_id in ret_docs:
+                if qs_id == problem['qs_id']:
+                    ret_docs_exist = True
+                    break
+            if not ret_docs_exist: raise Exception(f'no ret docs for problem: {qs_id}')
             # use top-k docs as retrieved docs
             truncated_docs = truncate_docs(ret_docs[qs_id][:k], model='gpt-3.5-turbo-0125', max_length=500)
             prompt = self.prompt_generator(question=problem['question'], model=self.model_config.model, ret_docs=truncated_docs)
@@ -371,14 +382,103 @@ class LLMOracleEvaluator:
 
 
 
+    def generate_with_prompt_method(self, prompt_method, result_path=None, test_prompt=False):
+        if self.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
+            k = 5
+        else:
+            k = 10
+        self.prompt_methods = ['few-shot']
+        assert prompt_method in self.prompt_methods
+
+        if prompt_method == 'few-shot':
+            self.prompt_generator = self.prompt_utils.prompt_3shot
+        else:
+            raise Exception(f'Unsupported Prompt Method {prompt_method}')
+
+        # default result path for different k
+        if result_path is None:
+            model_name_for_path = self.model_names_for_path[self.model_config.model]
+            result_path = f'../data/{self.dataset}/new_results/Prompt/{prompt_method}_{model_name_for_path}.json'
+            os.makedirs(result_path.rsplit('/', 1)[0], exist_ok=True)
+        if os.path.exists(result_path):
+            print('result already exists in path {}, if want to overwrite, please delete it first'.format(result_path))
+            # pred_eval_new(self.dataset, result_path=result_path)
+            return
+
+        f"""Generate responses using RAG with {prompt_method} only"""
+        print(f"🤖 Generating RAG wth {prompt_method} responses for {len(self.problems)} questions...")
+
+        # Prepare messages
+        prompts = []
+        problem_ids = []
+
+        ret_docs = self.doc_loader.get_ret_docs()
+
+        for problem in self.problems:
+            ret_docs_exist = False
+            # ret docs' qs_id may be different from oracle
+            for qs_id in ret_docs:
+                if qs_id == problem['qs_id']:
+                    ret_docs_exist = True
+                    break
+            if not ret_docs_exist: raise Exception(f'no ret docs for problem: {qs_id}')
+            # use top-k docs as retrieved docs
+            truncated_docs = truncate_docs(ret_docs[qs_id][:k], model='gpt-3.5-turbo-0125', max_length=500)
+            prompt = self.prompt_generator(question=problem['question'], model=self.model_config.model, ret_docs=truncated_docs)
+            prompts.append(prompt)
+            problem_ids.append(problem['qs_id'])
+
+        if test_prompt:
+            if 'gpt' in self.model_config.model:
+                print(prompts[0][0]['content'])
+                print(prompts[0][1]['content'])
+            elif 'llama' in self.model_config.model.lower():
+                print(prompts[0])
+            return
+
+        # Batch API call
+        if 'gpt' in self.model_config.model:
+            llm_responses = self.llm_provider.batch_generate(
+                prompts=prompts,
+                return_type="text",
+                include_logits=True,
+                custom_id_prefix=f"single_{self.dataset}_{self.model_config.model}"
+            )
+        elif 'llama' in self.model_config.model.lower():
+            llm_responses = self.llm_provider.generate_batch(
+                prompts=prompts,
+                return_type="text",
+                include_logits=True
+            )
+        else:
+            raise Exception('unsupported model')
+
+        # Process results
+        results = []
+        for problem_id, response in zip(problem_ids , llm_responses):
+            results.append({
+                'qs_id': problem_id,
+                'method': 'recall_llm',
+                'response': response.get('text', ''),
+                'logprobs': response.get('logprobs', []),
+            })
+
+        print(f"✅ Generated {len(results)} Recall Analysis LLM responses")
+
+        os.makedirs(result_path.rsplit('/', 1)[0], exist_ok=True)
+        with open(result_path, 'w+') as f:
+            json.dump(results, f, indent=2)
+
+
 # Usage
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', required=True, help='Dataset (conala, DS1000)')
     parser.add_argument('--model', required=True, help='Model (openai-new, claude)')
-    parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'recall', 'DocNum'])
+    parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'recall', 'DocNum', 'prompt'])
     parser.add_argument('--recall', type=float, default=1, help='Recall, only effective if mode is "recall"')
     parser.add_argument('--k', type=int, default=1, help='Doc Num, only effective if mode is "DocNum"')
+    parser.add_argument('--prompt', type=str, default='zero-shot', choices=['few-shot'])
     parser.add_argument('--test-prompt', action='store_true')
 
     args = parser.parse_args()
@@ -393,4 +493,6 @@ if __name__ == "__main__":
         evaluator.generate_with_recall(test_prompt=args.test_prompt, recall=args.recall)
     elif args.mode == 'DocNum':
         evaluator.generate_with_k(k=args.k, test_prompt=args.test_prompt)
+    elif args.mode == 'prompt':
+        evaluator.generate_with_prompt_method(prompt_method=args.prompt, test_prompt=args.test_prompt)
 
