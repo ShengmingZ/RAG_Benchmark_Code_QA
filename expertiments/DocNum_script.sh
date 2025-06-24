@@ -1,6 +1,6 @@
 # script for LLAMA2 + CODE dataset + Single Oracle analyze
 
-MODEL='openai-old'
+MODEL='llama-old-code'
 
 DATASET='conala'
 
