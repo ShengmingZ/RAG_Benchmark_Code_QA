@@ -28,16 +28,13 @@ class LLMProvider(ABC):
     @staticmethod
     def prompt_validation(prompt):
         # validate the format of prompt
-        if isinstance(prompt, str):
-            ...
-        else:
-            assert prompt[0]['role'] in ['system', 'user'], print('first message must be system or user, not {}'.format(prompt))
-            assert prompt[-1]['role'] == 'user', print('last message must be user')
-            for i in range(1, len(prompt)):
-                if prompt[i]['role'] not in ['assistant', 'user']:
-                    raise Exception(f'invalid role in prompt: {prompt[i]["role"]}')
-                if prompt[i]['role'] == 'assistant' and prompt[i - 1]['role'] != 'user':
-                    raise Exception('invalid prompt format: assistant message should follow user message')
+        assert prompt[0]['role'] in ['system', 'user'], print('first message must be system or user, not {}'.format(prompt))
+        assert prompt[-1]['role'] == 'user', print('last message must be user')
+        for i in range(1, len(prompt)):
+            if prompt[i]['role'] not in ['assistant', 'user']:
+                raise Exception(f'invalid role in prompt: {prompt[i]["role"]}')
+            if prompt[i]['role'] == 'assistant' and prompt[i - 1]['role'] != 'user':
+                raise Exception('invalid prompt format: assistant message should follow user message')
         return True
 
     # @abstractmethod
