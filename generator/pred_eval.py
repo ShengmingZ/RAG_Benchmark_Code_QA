@@ -312,7 +312,7 @@ def parsing_for_conala_new(qs_list, model, prompt_method, results):
         # outputs = process_gene_results(dataset, [result['response']])   # only one response is in the key: response
         outputs = [result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')]
         # todo：conala parsing没什么大问题，提取出完整程序就行
-        if prompt_method in ['CoT', 'Least-to-Most', 'self-refine']:
+        if prompt_method in ['CoT', 'Least-to-Most', 'self-refine', 'CoN']:
             outputs = [result['response'].split('```python', 1)[1].split('```', 1)[0]]
         if 'gpt-3.5' in model:
             result['response'] = result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')
