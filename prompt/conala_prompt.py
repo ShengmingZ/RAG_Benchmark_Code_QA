@@ -35,12 +35,26 @@ Output Rules:
 2. Only output the complete code in <code> and </code> tags
 """
 
+
+SYS_PROMPT_ZERO_SHOT = """Input:
+- useful api documents tagged `## API Documents`
+- a program description with uncompleted code tagged `## Description`.
+
+Task:
+Follow the program description to complete the python program.
+
+Output Rules:
+1. Generate the complete python function, keep existing code exactly the same
+2. Only output the complete code, in <code> and </code> tags
+"""
+
+
 # # todo: OG no ret prompt:
 # LLAMA_SYS_PROMPT_NO_RET = """You are a senior python programmer, given a program description with uncompleted code tagged `## Description`, your task is to complete the python program.
 #  You should generate the complete python function, and the function should start with <code> and end with </code>
 # """
 
-SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last problem"""
+# SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last problem"""
 
 
 
@@ -94,99 +108,238 @@ def prompt_0shot_no_ret(question, model, pads=''):
     return prompt_template
 
 
+def prompt_emotion(ret_docs, question, model):
+    system_prompt_emotion = """This is very important to my career.
+
+Input:
+- useful api documents tagged `## API Documents`
+- a program description with uncompleted code tagged `## Description`.
+
+Task:
+Follow the program description to complete the python program. 
+
+Output Rules:
+1. Generate the complete python function, keep existing code exactly the same
+2. Only output the complete code, in <code> and </code> tags
+"""
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc + '\n\n'
+
+    user_prompt = f"""## API Documents: 
+{potential_docs}
+\n
+## Description: 
+{question}
+"""
+    prompt_template = ensemble_prompt(sys_prompt=system_prompt_emotion, user_prompt=user_prompt, model=model)
+    return prompt_template
+
+
+
+
+def prompt_zero_shot_cot(ret_docs, question, model):
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc + '\n\n'
+
+    user_prompt = f"""## API Documents: 
+{potential_docs}
+\n
+## Description: 
+{question}
+
+Let's think it step by step.
+"""
+    prompt_template = ensemble_prompt(sys_prompt=SYS_PROMPT_ZERO_SHOT, user_prompt=user_prompt, model=model)
+    return prompt_template
+
+
+
 def prompt_cot(ret_docs, question, model, existing_output=None):
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc + '\n\n'
 
-    cot_prompt = """
-## API Documents:
-0: 
-
+    cot_prompt = """## API Documents:
+0: outer(a, b, out=None)
+    Compute the outer product of two vectors.
+    
+    Given two vectors, ``a = [a0, a1, ..., aM]`` and
+    ``b = [b0, b1, ..., bN]``,
+    the outer product [1]_ is::
+    
+      [[a0*b0  a0*b1 ... a0*bN ]
+       [a1*b0    .
+       [ ...          .
+       [aM*b0            aM*bN ]]
+    
+    Parameters
+    ----------
+    a : (M,) array_like
+        First input vector.  Input is flattened if
+        not already 1-dimensional.
+    b : (N,) array_like
+        Second input vector.  Input is flattened if
+        not already 1-dimensional.
+    out : (M, N) ndarray, optional
+        A location where the result is stored
+    
+        .. versionadded:: 1.9.0
+    
+    Returns
+    -------
+    out : (M, N) ndarray
+        ``out[i, j] = a[i] * b[j]``
+    
+    See also
+    --------
+    inner
+    einsum : ``einsum('i,j->ij', a.ravel(), b.ravel())`` is the equivalent.
+    ufunc.outer : A generalization to dimensions other than 1D and other
+                  operations. ``np.multiply.outer(a.ravel(), b.ravel())``
+                  is the equivalent.
+    tensordot : ``np.tensordot(a.ravel(), b.ravel(), axes=((), ()))``
+                is the equivalent.
+    
+    References
+    ----------
+    .. [1] : G. H. Golub and C. F. Van Loan, *Matrix Computations*, 3rd
+             ed., Baltimore, MD, Johns Hopkins University Press, 1996,
+             pg. 8.
+    
+    Examples
+    --------
+    Make a (*very* coarse) grid for computing a Mandelbrot set:
+    
+    >>> rl = np.outer(np.ones((5,)), np.linspace(-2, 2, 5))
+    >>> rl
+    array([[-2., -1.,  0.,  1.,  2.],
+           [-2., -1.,  0.,  1.,  2.],
+           [-2., -1.,  0.,  1.,
+           
 ## Description: 
 multiplication of two 1-dimensional arrays  in numpy
 
-## Code Generation:
-We first identify two 1-d arrays `a` and `b`,
-then we can use python function `numpy.outer` to do multiplication
-So the code is:
-```
-numpy.outer(a,b)
-```
+def f_23566515(a, b):\n\treturn 
 
 
 
-## Potential documents
-0: fromtimestamp()     timestamp[, tz] -> tz's local time from POSIX timestamp.  
-1: strftime()     format -> strftime() style string.  
+According to the description, I need to multiply two 1-dimensional arrays in numpy.
+The document shows outer(a, b) which computes the outer product of two vectors.
+Since outer product is multiplication of 1D arrays, I should use np.outer(a, b).
+Based on this, I implement to complete function:
+<code>
+def f_23566515(a, b):
+    return np.outer(a, b)
+</code>
 
-## Code Description: 
+
+
+
+## API Documents:
+0: fromtimestamp()
+    timestamp[, tz] -> tz's local time from POSIX timestamp.
+    
+    
+1: strftime()
+    format -> strftime() style string. 
+
+
+
+## Description: 
 convert epoch time represented as milliseconds `s` to string using format '%Y-%m-%d %H:%M:%S.%f'
 
-## Code Generation:
-We first use python function fromtimestamp() to convert epoch time s to local time.
-Then we use python function strftime() to convert the format of local time to '%Y-%m-%d %H:%M:%S.%f'
-So the code is:
-```
-datetime.datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S.%f')
-```
+def f_21787496(s):\n\treturn
 
 
 
-## Potential documents:
-0: loadtxt(fname, dtype=<class 'float'>, comments='#', delimiter=None, converters=None, skiprows=0, usecols=None, unpack=False, ndmin=0, encoding='bytes', max_rows=None, *, like=None)     Load data from a text file.          Each row in the text file must have the same number of values.          Parameters     ----------     fname : file, str, or pathlib.Path         File, filename, or generator to read.  If the filename extension is         ``.gz`` or ``.bz2``, the file is first decompressed. Note that         generators should return byte strings.     dtype : data-type, optional         Data-type of the resulting array; default: float.  If this is a         structured data-type, the resulting array will be 1-dimensional, and         each row will be interpreted as an element of the array.  In this         case, the number of columns used must match the number of fields in         the data-type.     comments : str or sequence of str, optional         The characters or list of characters used to indicate the start of a         comment. None implies no comments. For backwards compatibility, byte         strings will be decoded as 'latin1'. The default is '#'.     delimiter : str, optional         The string used to separate values. For backwards compatibility, byte         strings will be decoded as 'latin1'. The default is whitespace.     converters : dict, optional         A dictionary mapping column number to a function that will parse the         column string into the desired value.  E.g., if column 0 is a date         string: ``converters = {0: datestr2num}``.  Converters can also be         used to provide a default value for missing data (but see also         `genfromtxt`): ``converters = {3: lambda s: float(s.strip() or 0)}``.         Default: None.     skiprows : int, optional         Skip the first `skiprows` lines, including comments; default: 0.     usecols : int or sequence, optional         Which columns to read, with 0 being the first. For example,         ``usecols = (1,4,5)`` will extract the 2nd, 5th and 6th columns.         The default, None, results in all columns being read.              .. versionchanged:: 1.11.0             When a single column has to be read it is possible to use             an integer instead of a tuple. E.g ``usecols = 3`` reads the             fourth column the same way as ``usecols = (3,)`` would.     unpack : bool, optional         If True, the returned array is transposed, so that arguments may be         unpacked using ``x, y, z = loadtxt(...)``.  When used with a         structured data-type, arrays are returned for each field.         Default is False.     ndmin : int, optional         The returned array will have at least `ndmin` dimensions.         Otherwise mono-dimensional axes will be squeezed.         Legal values: 0 (default), 1 or 2.              .. versionadded:: 1.6.0     encoding : str, optional         Encoding used to decode the inputfile. Does not apply to input streams.         The special value 'bytes' enables backward compatibility workarounds         that ensures you receive byte arrays as results if possible and passes         'latin1' encoded strings to converters. Override this value to receive         unicode arrays and pass strings as input to converters.  If set to None         the system default is used. The default value is 'bytes'.              .. versionadded:: 1.14.0     max_rows : int, optional         Read `max_rows` lines of content after `skiprows` lines. The default         is to read all the lines.              .. versionadded:: 1.16.0     like : array_like         Reference object to allow the creation of arrays which are not         NumPy arrays. If an array-like passed in as ``like`` supports         the ``__array_function__`` protocol, the result will be defined         by it. In this case, it ensures the creation of an array object         compatible with that passed in via this argument.              .. versionadded:: 1.20.0          Returns     -------     out : ndarray         Data read from the text file.          See Also     --------     load, fromstring, fromregex     genfromtxt : Load data with missing values handled as specified.     scipy.io.loadmat : reads MATLAB data files          Notes     -----     This function aims to be a fast reader for simply formatted files.  The     `genfromtxt` function provides more sophisticated handling of, e.g.,     lines with missing values.          .. versionadded:: 1
+According to the description, I need to convert epoch time in milliseconds to a formatted string.
+The document shows fromtimestamp() which converts POSIX timestamp to local time.
+The document also shows strftime() which formats time as a string.
+Since I need to convert timestamp then format it, I should use datetime.fromtimestamp(s) then .strftime('%Y-%m-%d %H:%M:%S.%f').
+Based on this, I implement to complete function:
+<code>
+def f_21787496(s):
+    return datetime.datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S.%f')
+</code>
 
-## Code Description: 
+
+
+## API Documents:
+0: loadtxt(fname, dtype=<class 'float'>, comments='#', delimiter=None, converters=None, skiprows=0, usecols=None, unpack=False, ndmin=0, encoding='bytes', max_rows=None, *, like=None)
+    Load data from a text file.
+    
+    Each row in the text file must have the same number of values.
+    
+    Parameters
+    ----------
+    fname : file, str, or pathlib.Path
+        File, filename, or generator to read.  If the filename extension is
+        ``.gz`` or ``.bz2``, the file is first decompressed. Note that
+        generators should return byte strings.
+    dtype : data-type, optional
+        Data-type of the resulting array; default: float.  If this is a
+        structured data-type, the resulting array will be 1-dimensional, and
+        each row will be interpreted as an element of the array.  In this
+        case, the number of columns used must match the number of fields in
+        the data-type.
+    comments : str or sequence of str, optional
+        The characters or list of characters used to indicate the start of a
+        comment. None implies no comments. For backwards compatibility, byte
+        strings will be decoded as 'latin1'. The default is '#'.
+    delimiter : str, optional
+        The string used to separate values. For backwards compatibility, byte
+        strings will be decoded as 'latin1'. The default is whitespace.
+    converters : dict, optional
+        A dictionary mapping column number to a function that will parse the
+        column string into the desired value.  E.g., if column 0 is a date
+        string: ``converters = {0: datestr2num}``.  Converters can also be
+        used to provide a default value for missing data (but see also
+        `genfromtxt`): ``converters = {3: lambda s: float(s.strip() or 0)}``.
+        Default: None.
+    skiprows : int, optional
+        Skip the first `skiprows` lines, including comments; default: 0.
+    usecols : int or sequence, optional
+        Which columns to read, with 0 being the first. For example,
+        ``usecols = (1,4,5)`` will extract the 2nd, 5th and 6th columns.
+        The
+        
+        
+## Description: 
 convert csv file 'test.csv' into two-dimensional matrix
 
-## Code Generation:
-We can use python function `numpy.loadtxt` to load the data from 'test.csv'.
-So the code is:
-```
-numpy.loadtxt('test.csv', delimiter=',')
-```
+def f_4315506():\n\treturn
+
+
+
+According to the description, I need to convert a CSV file 'test.csv' into a two-dimensional matrix.
+The document shows loadtxt() which loads data from a text file into an array.
+Since CSV files have comma-separated values, I need to set delimiter=',' parameter.
+CSV files often have headers, so I should use skiprows=1 to skip the first row.
+Based on this, I implement to complete function:
+<code>
+def f_4315506():
+    return numpy.loadtxt(open('test.csv', 'rb'), delimiter=',', skiprows=1)
+</code>
 """
 
     user_prompt = f"""
 {cot_prompt}
-\n
-## Potential documents: 
+\n\n
+## API Documents: 
 {potential_docs}
-## Code Description: 
+\n
+## Description: 
 {question}
-
-## Code Generation:
 """
 
     if existing_output is not None: user_prompt = user_prompt + '\n' + existing_output
 
-    if 'gpt' in model:
-        prompt = ['', user_prompt]
-    else:
-        prompt = user_prompt
+    if 'gpt' in model: prompt = [dict(role='user', content=user_prompt)]
+    else: prompt = f"<s>[INST] {user_prompt} [/INST]"
     return prompt
 
-
-def prompt_con(ret_docs, question, model):
-    potential_docs = ''
-    for idx, ret_doc in enumerate(ret_docs):
-        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
-    user_prompt = f"""
-## Potential documents:
-{potential_docs}
-## Code Description: 
-{question}
-"""
-    SYS_PROMPT_CON = """follow the instruction to solve the problem.
-Instruction:
-1. Read the given code description and potential documents to gather relevant information.
-2. Write reading notes summarizing the key points from these API documents.
-3. Discuss the relevance of the given code description and documents.
-4. If some documents are relevant to the given code description, generate a one line code tagged with ``` based on the code description and the documents.
-5. If no document is relevant, directly generate a one line code tagged with ``` without considering the documents.
-"""
-    prompt = ensemble_prompt(SYS_PROMPT_CON, user_prompt, model)
-    return prompt
 
 
 def prompt_3shot(ret_docs, question, model):
@@ -368,118 +521,226 @@ if __name__ == '__main__':
 
 
 
-examples_least_to_most = """
-## Potential documents:
-0: outer(a, b, out=None)     Compute the outer product of two vectors.          Given two vectors, ``a = [a0, a1, ..., aM]`` and     ``b = [b0, b1, ..., bN]``,     the outer product [1]_ is::            [[a0*b0  a0*b1 ... a0*bN ]        [a1*b0    .        [ ...          .        [aM*b0            aM*bN ]]          Parameters     ----------     a : (M,) array_like         First input vector.  Input is flattened if         not already 1-dimensional.     b : (N,) array_like         Second input vector.  Input is flattened if         not already 1-dimensional.     out : (M, N) ndarray, optional         A location where the result is stored              .. versionadded:: 1.9.0          Returns     -------     out : (M, N) ndarray         ``out[i, j] = a[i] * b[j]``          See also     --------     inner     einsum : ``einsum('i,j->ij', a.ravel(), b.ravel())`` is the equivalent.     ufunc.outer : A generalization to dimensions other than 1D and other                   operations. ``np.multiply.outer(a.ravel(), b.ravel())``                   is the equivalent.     tensordot : ``np.tensordot(a.ravel(), b.ravel(), axes=((), ()))``                 is the equivalent.          References     ----------     .. [1] : G. H. Golub and C. F. Van Loan, *Matrix Computations*, 3rd              ed., Baltimore, MD, Johns Hopkins University Press, 1996,              pg. 8.          Examples     --------     Make a (*very* coarse) grid for computing a Mandelbrot set:          >>> rl = np.outer(np.ones((5,)), np.linspace(-2, 2, 5))     >>> rl     array([[-2., -1.,  0.,  1.,  2.],            [-2., -1.,  0.,  1.,  2.],            [-2., -1.,  0.,  1.,  2.],            [-2., -1.,  0.,  1.,  2.],            [-2., -1.,  0.,  1.,  2.]])     >>> im = np.outer(1j*np.linspace(2, -2, 5), np.ones((5,)))     >>> im     array([[0.+2.j, 0.+2.j, 0.+2.j, 0.+2.j, 0.+2.j],            [0.+1.j, 0.+1.j, 0.+1.j, 0.+1.j, 0.+1.j],            [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],            [0.-1.j, 0.-1.j, 0.-1.j, 0.-1.j, 0.-1.j],            [0.-2.j, 0.-2.j, 0.-2.j, 0.-2.j, 0.-2.j]])     >>> grid = rl + im     >>> grid     array([[-2.+2.j, -1.+2.j,  0.+2.j,  1.+2.j,  2.+2.j],            [-2.+1.j, -1.+1.j,  0.+1.j,  1.+1.j,  2.+1.j],            [-2.+0.j, -1.+0.j,  0.+0.j,  1.+0.j,  2.+0.j],            [-2.-1.j, -1.-1.j,  0.-1.j,  1.-1.j,  2.-1.j],            [-2.-2.j, -1.-2.j,  0.-2.j,  1.-2.j,  2.-2.j]])          An example using a "vector" of letters:          >>> x = np.array(['a', 'b', 'c'], dtype=object)     >>> np.outer(x, [1, 2, 3])     array([['a', 'aa', 'aaa'],            ['b', 'bb', 'bbb'],            ['c', 'cc', 'ccc']], dtype=object)  
-
-## Code Description: 
-multiplication of two 1-dimensional arrays  in numpy
-
-## Code Generation:
-Step1: To generate the code satisfying the Description "multiplication of two 1-dimensional arrays  in numpy", we can decompose it into subquestions:
-1. which numpy function can compute multiplication of two 1-d arrays?
-
-Step2: Answer each subquestion
-1. which numpy function can compute multiplication of two 1-d arrays?
-    - `numpy.outer()` can be used to compute the outer product of two vectors.
-
-Step3: Write the final program in one line:
-To compute the outer product of two 1-dimensional arrays `a` and `b` using `numpy.outer()`:
-```
-np.outer(a, b)
-```
-
-
-
-## Potential documents
-0: fromtimestamp()     timestamp[, tz] -> tz's local time from POSIX timestamp.  
-1: strftime()     format -> strftime() style string.  
-
-## Code Description: 
-convert epoch time represented as milliseconds `s` to string using format '%Y-%m-%d %H:%M:%S.%f'
-
-## Code Generation:
-Step 1: Decompose the problem into subquestions:
-1. Which function can be used to convert an epoch time to a local time?
-2. Which function can format a datetime object to a specific string format?
-
-Step 2: Answer each subquestion:
-1. Which function can be used to convert an epoch time to local time?
-    - `datetime.datetime.fromtimestamp()` can convert an epoch timestamp to local time, but the input should be in seconds.
-
-2. Which function can format a datetime object to a specific string format?
-    - `datetime.datetime.strftime()` can format a datetime object to a specified string format.
-
-Step 3: Write the final program in one line:
-To use `datetime.datetime.fromtimestamp()`, we need to convert `s` from milliseconds to seconds. Then, `datetime.datetime.strftime()` will be used for formatting:
-```
-datetime.datetime.fromtimestamp(s / 1000).strftime('%Y-%m-%d %H:%M:%S.%f')
-```
-
-
-
-## Potential documents:
-0: loadtxt(fname, dtype=<class 'float'>, comments='#', delimiter=None, converters=None, skiprows=0, usecols=None, unpack=False, ndmin=0, encoding='bytes', max_rows=None, *, like=None)     Load data from a text file.          Each row in the text file must have the same number of values.          Parameters     ----------     fname : file, str, or pathlib.Path         File, filename, or generator to read.  If the filename extension is         ``.gz`` or ``.bz2``, the file is first decompressed. Note that         generators should return byte strings.     dtype : data-type, optional         Data-type of the resulting array; default: float.  If this is a         structured data-type, the resulting array will be 1-dimensional, and         each row will be interpreted as an element of the array.  In this         case, the number of columns used must match the number of fields in         the data-type.     comments : str or sequence of str, optional         The characters or list of characters used to indicate the start of a         comment. None implies no comments. For backwards compatibility, byte         strings will be decoded as 'latin1'. The default is '#'.     delimiter : str, optional         The string used to separate values. For backwards compatibility, byte         strings will be decoded as 'latin1'. The default is whitespace.     converters : dict, optional         A dictionary mapping column number to a function that will parse the         column string into the desired value.  E.g., if column 0 is a date         string: ``converters = {0: datestr2num}``.  Converters can also be         used to provide a default value for missing data (but see also         `genfromtxt`): ``converters = {3: lambda s: float(s.strip() or 0)}``.         Default: None.     skiprows : int, optional         Skip the first `skiprows` lines, including comments; default: 0.     usecols : int or sequence, optional         Which columns to read, with 0 being the first. For example,         ``usecols = (1,4,5)`` will extract the 2nd, 5th and 6th columns.         The default, None, results in all columns being read.              .. versionchanged:: 1.11.0             When a single column has to be read it is possible to use             an integer instead of a tuple. E.g ``usecols = 3`` reads the             fourth column the same way as ``usecols = (3,)`` would.     unpack : bool, optional         If True, the returned array is transposed, so that arguments may be         unpacked using ``x, y, z = loadtxt(...)``.  When used with a         structured data-type, arrays are returned for each field.         Default is False.     ndmin : int, optional         The returned array will have at least `ndmin` dimensions.         Otherwise mono-dimensional axes will be squeezed.         Legal values: 0 (default), 1 or 2.              .. versionadded:: 1.6.0     encoding : str, optional         Encoding used to decode the inputfile. Does not apply to input streams.         The special value 'bytes' enables backward compatibility workarounds         that ensures you receive byte arrays as results if possible and passes         'latin1' encoded strings to converters. Override this value to receive         unicode arrays and pass strings as input to converters.  If set to None         the system default is used. The default value is 'bytes'.              .. versionadded:: 1.14.0     max_rows : int, optional         Read `max_rows` lines of content after `skiprows` lines. The default         is to read all the lines.              .. versionadded:: 1.16.0     like : array_like         Reference object to allow the creation of arrays which are not         NumPy arrays. If an array-like passed in as ``like`` supports         the ``__array_function__`` protocol, the result will be defined         by it. In this case, it ensures the creation of an array object         compatible with that passed in via this argument.              .. versionadded:: 1.20.0          Returns     -------     out : ndarray         Data read from the text file.          See Also     --------     load, fromstring, fromregex     genfromtxt : Load data with missing values handled as specified.     scipy.io.loadmat : reads MATLAB data files          Notes     -----     This function aims to be a fast reader for simply formatted files.  The     `genfromtxt` function provides more sophisticated handling of, e.g.,     lines with missing values.          .. versionadded:: 1
-
-## Code Description: 
-convert csv file 'test.csv' into two-dimensional matrix
-
-## Code Generation:
-Step 1: Decompose the problem into subquestions:
-1. Which function from numpy can be used to load data from a file, such as a CSV?
-
-Step 2: Answer each subquestion:
-1. Which function from numpy can be used to load data from a file, such as a CSV?
-    - `numpy.loadtxt()` can be used to load data from a text file.
-
-Step 3: Write the final program in one line:
-To read the content of 'test.csv' into a two-dimensional numpy array using `numpy.loadtxt()`, specify the filename and the delimiter as ','.
-```
-numpy.loadtxt(open('test.csv', 'rb'), delimiter=',', skiprows=1)
-```
-"""
 
 
 def prompt_least_to_most(ret_docs, question, model):
+    examples_least_to_most = """## API Documents:
+0: outer(a, b, out=None)
+    Compute the outer product of two vectors.
+    
+    Given two vectors, ``a = [a0, a1, ..., aM]`` and
+    ``b = [b0, b1, ..., bN]``,
+    the outer product [1]_ is::
+    
+      [[a0*b0  a0*b1 ... a0*bN ]
+       [a1*b0    .
+       [ ...          .
+       [aM*b0            aM*bN ]]
+    
+    Parameters
+    ----------
+    a : (M,) array_like
+        First input vector.  Input is flattened if
+        not already 1-dimensional.
+    b : (N,) array_like
+        Second input vector.  Input is flattened if
+        not already 1-dimensional.
+    out : (M, N) ndarray, optional
+        A location where the result is stored
+    
+        .. versionadded:: 1.9.0
+    
+    Returns
+    -------
+    out : (M, N) ndarray
+        ``out[i, j] = a[i] * b[j]``
+    
+    See also
+    --------
+    inner
+    einsum : ``einsum('i,j->ij', a.ravel(), b.ravel())`` is the equivalent.
+    ufunc.outer : A generalization to dimensions other than 1D and other
+                  operations. ``np.multiply.outer(a.ravel(), b.ravel())``
+                  is the equivalent.
+    tensordot : ``np.tensordot(a.ravel(), b.ravel(), axes=((), ()))``
+                is the equivalent.
+    
+    References
+    ----------
+    .. [1] : G. H. Golub and C. F. Van Loan, *Matrix Computations*, 3rd
+             ed., Baltimore, MD, Johns Hopkins University Press, 1996,
+             pg. 8.
+    
+    Examples
+    --------
+    Make a (*very* coarse) grid for computing a Mandelbrot set:
+    
+    >>> rl = np.outer(np.ones((5,)), np.linspace(-2, 2, 5))
+    >>> rl
+    array([[-2., -1.,  0.,  1.,  2.],
+           [-2., -1.,  0.,  1.,  2.],
+           [-2., -1.,  0.,  1.,
+           
+## Description: 
+multiplication of two 1-dimensional arrays  in numpy
+
+def f_23566515(a, b):\n\treturn 
+    
+    
+    
+Let me break this down into simpler sub problems and solve them step by step:
+
+Sub problem 1: What is the main task?
+I need to perform multiplication of two 1-dimensional arrays in numpy.
+
+Sub problem 2: Which API function can multiply 1D arrays?
+From the documentation, outer(a, b) computes the outer product of two vectors, which is a form of multiplication between 1D arrays.
+
+Now combining all solutions to generate the complete code:
+<code>
+def f_23566515(a, b):
+    return np.outer(a, b)
+</code>
+
+
+
+
+## API Documents
+0: fromtimestamp()
+    timestamp[, tz] -> tz's local time from POSIX timestamp.
+    
+    
+1: strftime()
+    format -> strftime() style string.
+    
+    
+
+## Description: 
+convert epoch time represented as milliseconds `s` to string using format '%Y-%m-%d %H:%M:%S.%f'
+
+def f_21787496(s):\n\treturn
+
+
+
+Let me break this down into simpler sub problems and solve them step by step:
+
+Sub problem 1: What is the main task?
+I need to convert epoch time in milliseconds to a formatted string.
+
+Sub problem 2: Which API functions can help with time conversion?
+From the documentation, fromtimestamp() converts POSIX timestamp to local time, and strftime() formats time as a string.
+
+Sub problem 3: How do I chain these functions together?
+I need to first convert the timestamp using fromtimestamp(s), then format it using strftime() with the given format '%Y-%m-%d %H:%M:%S.%f'.
+
+Now combining all solutions to generate the complete code:
+<code>
+def f_21787496(s):
+    return datetime.datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S.%f')
+</code>
+
+
+
+
+## API Documents:
+0: loadtxt(fname, dtype=<class 'float'>, comments='#', delimiter=None, converters=None, skiprows=0, usecols=None, unpack=False, ndmin=0, encoding='bytes', max_rows=None, *, like=None)
+    Load data from a text file.
+    
+    Each row in the text file must have the same number of values.
+    
+    Parameters
+    ----------
+    fname : file, str, or pathlib.Path
+        File, filename, or generator to read.  If the filename extension is
+        ``.gz`` or ``.bz2``, the file is first decompressed. Note that
+        generators should return byte strings.
+    dtype : data-type, optional
+        Data-type of the resulting array; default: float.  If this is a
+        structured data-type, the resulting array will be 1-dimensional, and
+        each row will be interpreted as an element of the array.  In this
+        case, the number of columns used must match the number of fields in
+        the data-type.
+    comments : str or sequence of str, optional
+        The characters or list of characters used to indicate the start of a
+        comment. None implies no comments. For backwards compatibility, byte
+        strings will be decoded as 'latin1'. The default is '#'.
+    delimiter : str, optional
+        The string used to separate values. For backwards compatibility, byte
+        strings will be decoded as 'latin1'. The default is whitespace.
+    converters : dict, optional
+        A dictionary mapping column number to a function that will parse the
+        column string into the desired value.  E.g., if column 0 is a date
+        string: ``converters = {0: datestr2num}``.  Converters can also be
+        used to provide a default value for missing data (but see also
+        `genfromtxt`): ``converters = {3: lambda s: float(s.strip() or 0)}``.
+        Default: None.
+    skiprows : int, optional
+        Skip the first `skiprows` lines, including comments; default: 0.
+    usecols : int or sequence, optional
+        Which columns to read, with 0 being the first. For example,
+        ``usecols = (1,4,5)`` will extract the 2nd, 5th and 6th columns.
+        The
+        
+## Description: 
+convert csv file 'test.csv' into two-dimensional matrix
+
+def f_4315506():\n\treturn
+
+
+Let me break this down into simpler subproblems and solve them step by step:
+
+Sub problem 1: What is the main task?
+I need to convert a CSV file into a two-dimensional matrix.
+
+Sub problem 2: Which API function can load data from text files?
+From the documentation, loadtxt() can load data from a text file.
+
+Sub problem 3: What parameters do I need for CSV files?
+For CSV files, I need to set delimiter=',' to handle comma-separated values.
+CSV files often have headers, so I should use skiprows=1 to skip the first row.
+
+Now combining all solutions to generate the complete code:
+<code>
+def f_4315506():
+    return numpy.loadtxt(open('test.csv', 'rb'), delimiter=',', skiprows=1)
+</code>
+"""
+
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
-        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc + '\n\n'
 
     user_prompt = f"""
 {examples_least_to_most}
 \n
-## Potential documents: 
+## API Documents:
 {potential_docs}
-## Code Description: 
+\n
+## Description: 
 {question}
-
-## Code Generation:
 """
     # sys_prompt = 'You should generate the code in one line'
     # prompt = ensemble_prompt(sys_prompt, user_prompt, model)
-    prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt] if 'gpt' in model else user_prompt
+    if 'gpt' in model: prompt = [dict(role='user', content=user_prompt)]
+    else: prompt = f"<s>[INST] {user_prompt} [/INST]"
     return prompt
 
 
 def prompt_plan_and_solve(ret_docs, question, model):
-    plan_and_solve_prompt = """You are a senior Python programmer, given some Potential Documents and a Code Description,
-Your task is to first understand the description and devise a plan to generate code according to the description.
-Second, you should carry out the plan, and generate one line Python statement tagged with ```"""
-
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
-        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
-    user_prompt = f"""
-## Potential documents:
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc + '\n\n'
+
+    user_prompt = f"""## API Documents: 
 {potential_docs}
 \n
-## Code Description: 
+## Description: 
 {question}
+
+Let's first understand the problem and devise a plan to solve the problem. Then, let's carry out the plan to solve the problem step by step.
 """
-    sys_prompt = plan_and_solve_prompt
-    prompt = ensemble_prompt(sys_prompt, user_prompt, model)
-    # prompt = ['', user_prompt] if 'gpt' in model else user_prompt
-    return prompt
+    prompt_template = ensemble_prompt(sys_prompt=SYS_PROMPT_ZERO_SHOT, user_prompt=user_prompt, model=model)
+    return prompt_template
 
 
 
@@ -544,24 +805,24 @@ Second, you should carry out the plan, and generate one line Python statement ta
 #     print(result)
 #     print(demo_fn)
 
-def prompt_RaR(ret_docs, question, model):
-    RaR_prompt = """You are a senior python programmer, given some Potential Documents and a Code Description
-Your task is to first rephrase and expand the Problem, then you should generate only one line Python statement tagged with ```"""
-
-    potential_docs = ''
-    for idx, ret_doc in enumerate(ret_docs):
-        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
-    user_prompt = f"""
-## Potential documents:
-{potential_docs}
-
-## Code Description: 
-{question}
-"""
-    sys_prompt = RaR_prompt
-    prompt = ensemble_prompt(sys_prompt, user_prompt, model)
-    # prompt = ['', user_prompt] if 'gpt' in model else user_prompt
-    return prompt
+# def prompt_RaR(ret_docs, question, model):
+#     RaR_prompt = """You are a senior python programmer, given some Potential Documents and a Code Description
+# Your task is to first rephrase and expand the Problem, then you should generate only one line Python statement tagged with ```"""
+#
+#     potential_docs = ''
+#     for idx, ret_doc in enumerate(ret_docs):
+#         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+#     user_prompt = f"""
+# ## Potential documents:
+# {potential_docs}
+#
+# ## Code Description:
+# {question}
+# """
+#     sys_prompt = RaR_prompt
+#     prompt = ensemble_prompt(sys_prompt, user_prompt, model)
+#     # prompt = ['', user_prompt] if 'gpt' in model else user_prompt
+#     return prompt
 
 
 def prompt_self_refine(ret_docs, question, model, initial_output):
@@ -569,103 +830,242 @@ def prompt_self_refine(ret_docs, question, model, initial_output):
     for idx, ret_doc in enumerate(ret_docs):
         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
 
-    self_refine_prompt = """## Potential documents:
-0: outer(a, b, out=None)     Compute the outer product of two vectors.          Given two vectors, ``a = [a0, a1, ..., aM]`` and     ``b = [b0, b1, ..., bN]``,     the outer product [1]_ is::            [[a0*b0  a0*b1 ... a0*bN ]        [a1*b0    .        [ ...          .        [aM*b0            aM*bN ]]          Parameters     ----------     a : (M,) array_like         First input vector.  Input is flattened if         not already 1-dimensional.     b : (N,) array_like         Second input vector.  Input is flattened if         not already 1-dimensional.     out : (M, N) ndarray, optional         A location where the result is stored              .. versionadded:: 1.9.0          Returns     -------     out : (M, N) ndarray         ``out[i, j] = a[i] * b[j]``          See also     --------     inner     einsum : ``einsum('i,j->ij', a.ravel(), b.ravel())`` is the equivalent.     ufunc.outer : A generalization to dimensions other than 1D and other                   operations. ``np.multiply.outer(a.ravel(), b.ravel())``                   is the equivalent.     tensordot : ``np.tensordot(a.ravel(), b.ravel(), axes=((), ()))``                 is the equivalent.          References     ----------     .. [1] : G. H. Golub and C. F. Van Loan, *Matrix Computations*, 3rd              ed., Baltimore, MD, Johns Hopkins University Press, 1996,              pg. 8.          Examples     --------     Make a (*very* coarse) grid for computing a Mandelbrot set:          >>> rl = np.outer(np.ones((5,)), np.linspace(-2, 2, 5))     >>> rl     array([[-2., -1.,  0.,  1.,  2.],            [-2., -1.,  0.,  1.,  2.],            [-2., -1.,  0.,  1.,  2.],            [-2., -1.,  0.,  1.,  2.],            [-2., -1.,  0.,  1.,  2.]])     >>> im = np.outer(1j*np.linspace(2, -2, 5), np.ones((5,)))     >>> im     array([[0.+2.j, 0.+2.j, 0.+2.j, 0.+2.j, 0.+2.j],            [0.+1.j, 0.+1.j, 0.+1.j, 0.+1.j, 0.+1.j],            [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],            [0.-1.j, 0.-1.j, 0.-1.j, 0.-1.j, 0.-1.j],            [0.-2.j, 0.-2.j, 0.-2.j, 0.-2.j, 0.-2.j]])     >>> grid = rl + im     >>> grid     array([[-2.+2.j, -1.+2.j,  0.+2.j,  1.+2.j,  2.+2.j],            [-2.+1.j, -1.+1.j,  0.+1.j,  1.+1.j,  2.+1.j],            [-2.+0.j, -1.+0.j,  0.+0.j,  1.+0.j,  2.+0.j],            [-2.-1.j, -1.-1.j,  0.-1.j,  1.-1.j,  2.-1.j],            [-2.-2.j, -1.-2.j,  0.-2.j,  1.-2.j,  2.-2.j]])          An example using a "vector" of letters:          >>> x = np.array(['a', 'b', 'c'], dtype=object)     >>> np.outer(x, [1, 2, 3])     array([['a', 'aa', 'aaa'],            ['b', 'bb', 'bbb'],            ['c', 'cc', 'ccc']], dtype=object)  
-
-## Code Description: 
+    self_refine_prompt = """## API Documents:
+0: outer(a, b, out=None)
+    Compute the outer product of two vectors.
+    
+    Given two vectors, ``a = [a0, a1, ..., aM]`` and
+    ``b = [b0, b1, ..., bN]``,
+    the outer product [1]_ is::
+    
+      [[a0*b0  a0*b1 ... a0*bN ]
+       [a1*b0    .
+       [ ...          .
+       [aM*b0            aM*bN ]]
+    
+    Parameters
+    ----------
+    a : (M,) array_like
+        First input vector.  Input is flattened if
+        not already 1-dimensional.
+    b : (N,) array_like
+        Second input vector.  Input is flattened if
+        not already 1-dimensional.
+    out : (M, N) ndarray, optional
+        A location where the result is stored
+    
+        .. versionadded:: 1.9.0
+    
+    Returns
+    -------
+    out : (M, N) ndarray
+        ``out[i, j] = a[i] * b[j]``
+    
+    See also
+    --------
+    inner
+    einsum : ``einsum('i,j->ij', a.ravel(), b.ravel())`` is the equivalent.
+    ufunc.outer : A generalization to dimensions other than 1D and other
+                  operations. ``np.multiply.outer(a.ravel(), b.ravel())``
+                  is the equivalent.
+    tensordot : ``np.tensordot(a.ravel(), b.ravel(), axes=((), ()))``
+                is the equivalent.
+    
+    References
+    ----------
+    .. [1] : G. H. Golub and C. F. Van Loan, *Matrix Computations*, 3rd
+             ed., Baltimore, MD, Johns Hopkins University Press, 1996,
+             pg. 8.
+    
+    Examples
+    --------
+    Make a (*very* coarse) grid for computing a Mandelbrot set:
+    
+    >>> rl = np.outer(np.ones((5,)), np.linspace(-2, 2, 5))
+    >>> rl
+    array([[-2., -1.,  0.,  1.,  2.],
+           [-2., -1.,  0.,  1.,  2.],
+           [-2., -1.,  0.,  1.,
+           
+## Description: 
 multiplication of two 1-dimensional arrays  in numpy
 
-## Generated Code:
-```
-a*b
-```
+def f_23566515(a, b):\n\treturn 
 
 
-## Feedback and refine: Does the generated code align with code description? If not, refines the generated code
-No, The code above is incorrect because it performs element-wise multiplication using `a * b`, which only works when `a` and `b` are of the same shape.
-This is not what the task asked for, as we need the outer product of the two vectors. 
-The outer product creates a matrix where each element in the output is the product of an element from `a` with an element from `b`.
+## Initial Code Solution:
+<code>
+def f_23566515(a, b):
+    return a * b
+</code>
 
-Let's rewrite this using the correct `numpy.outer` function, and ensure that the solution is a one-liner.
-```
-numpy.outer(a, b)
-```
+Please first provide feedback on this solution and then refine it based on the feedback.
 
-*** END ***
+Feedback: The current solution uses element-wise multiplication (a * b), which only works if arrays have the same shape and produces a 1D result.
+However, the task requires multiplication of two 1-dimensional arrays to create an outer product, which should produce a 2D matrix.
+
+Refined solution:
+<code>
+def f_23566515(a, b):
+    return np.outer(a, b)
+</code>
 
 
-## Potential documents
-0: fromtimestamp()     timestamp[, tz] -> tz's local time from POSIX timestamp.  
-1: strftime()     format -> strftime() style string.  
 
-## Code Description: 
+
+
+## API Documents
+0: fromtimestamp()
+    timestamp[, tz] -> tz's local time from POSIX timestamp.
+    
+    
+1: strftime()
+    format -> strftime() style string.
+    
+    
+
+## Description: 
 convert epoch time represented as milliseconds `s` to string using format '%Y-%m-%d %H:%M:%S.%f'
 
-## Code Generation:
-```
-datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S.%f')
-```
-
-## Feedback and refine: Does the generated code align with code description? If not, refines the generated code
-No, the code above is incorrect because `datetime.datetime.strptime()` is used to parse strings into datetime objects, but here `s` represents an epoch time in milliseconds, not a formatted string.
-The correct approach is to convert the epoch time into a datetime object using `fromtimestamp()`, and then format it using `strftime()`.
-Additionally, since the epoch time is in milliseconds, we need to divide it by 1000 to get seconds.
-
-Let's refine the code to use `datetime.datetime.fromtimestamp()` for the conversion and `strftime()` for formatting, and ensure that the solution is a one-liner.
-```
-datetime.datetime.fromtimestamp(s / 1000).strftime('%Y-%m-%d %H:%M:%S.%f')
-```
-
-*** END ***
+def f_21787496(s):\n\treturn
 
 
-## Potential documents:
-0: loadtxt(fname, dtype=<class 'float'>, comments='#', delimiter=None, converters=None, skiprows=0, usecols=None, unpack=False, ndmin=0, encoding='bytes', max_rows=None, *, like=None)     Load data from a text file.          Each row in the text file must have the same number of values.          Parameters     ----------     fname : file, str, or pathlib.Path         File, filename, or generator to read.  If the filename extension is         ``.gz`` or ``.bz2``, the file is first decompressed. Note that         generators should return byte strings.     dtype : data-type, optional         Data-type of the resulting array; default: float.  If this is a         structured data-type, the resulting array will be 1-dimensional, and         each row will be interpreted as an element of the array.  In this         case, the number of columns used must match the number of fields in         the data-type.     comments : str or sequence of str, optional         The characters or list of characters used to indicate the start of a         comment. None implies no comments. For backwards compatibility, byte         strings will be decoded as 'latin1'. The default is '#'.     delimiter : str, optional         The string used to separate values. For backwards compatibility, byte         strings will be decoded as 'latin1'. The default is whitespace.     converters : dict, optional         A dictionary mapping column number to a function that will parse the         column string into the desired value.  E.g., if column 0 is a date         string: ``converters = {0: datestr2num}``.  Converters can also be         used to provide a default value for missing data (but see also         `genfromtxt`): ``converters = {3: lambda s: float(s.strip() or 0)}``.         Default: None.     skiprows : int, optional         Skip the first `skiprows` lines, including comments; default: 0.     usecols : int or sequence, optional         Which columns to read, with 0 being the first. For example,         ``usecols = (1,4,5)`` will extract the 2nd, 5th and 6th columns.         The default, None, results in all columns being read.              .. versionchanged:: 1.11.0             When a single column has to be read it is possible to use             an integer instead of a tuple. E.g ``usecols = 3`` reads the             fourth column the same way as ``usecols = (3,)`` would.     unpack : bool, optional         If True, the returned array is transposed, so that arguments may be         unpacked using ``x, y, z = loadtxt(...)``.  When used with a         structured data-type, arrays are returned for each field.         Default is False.     ndmin : int, optional         The returned array will have at least `ndmin` dimensions.         Otherwise mono-dimensional axes will be squeezed.         Legal values: 0 (default), 1 or 2.              .. versionadded:: 1.6.0     encoding : str, optional         Encoding used to decode the inputfile. Does not apply to input streams.         The special value 'bytes' enables backward compatibility workarounds         that ensures you receive byte arrays as results if possible and passes         'latin1' encoded strings to converters. Override this value to receive         unicode arrays and pass strings as input to converters.  If set to None         the system default is used. The default value is 'bytes'.              .. versionadded:: 1.14.0     max_rows : int, optional         Read `max_rows` lines of content after `skiprows` lines. The default         is to read all the lines.              .. versionadded:: 1.16.0     like : array_like         Reference object to allow the creation of arrays which are not         NumPy arrays. If an array-like passed in as ``like`` supports         the ``__array_function__`` protocol, the result will be defined         by it. In this case, it ensures the creation of an array object         compatible with that passed in via this argument.              .. versionadded:: 1.20.0          Returns     -------     out : ndarray         Data read from the text file.          See Also     --------     load, fromstring, fromregex     genfromtxt : Load data with missing values handled as specified.     scipy.io.loadmat : reads MATLAB data files          Notes     -----     This function aims to be a fast reader for simply formatted files.  The     `genfromtxt` function provides more sophisticated handling of, e.g.,     lines with missing values.          .. versionadded:: 1
+## Initial Code Solution:
+<code>
+def f_21787496(s):
+    return s.strptime('%Y-%m-%d %H:%M:%S.%f')
+</code>
 
-## Code Description: 
+Please first provide feedback on this solution and then refine it based on the feedback.
+
+Feedback: The current solution uses strptime() which parses a string into a datetime object, but `s` is a numeric timestamp, not a string.
+However, the task requires converting epoch time (numeric) to a formatted string, which needs fromtimestamp() to convert the number to datetime.
+
+Refined solution:
+<code>
+def f_21787496(s):
+    return datetime.datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S.%f')
+</code>
+
+
+
+## API Documents:
+0: loadtxt(fname, dtype=<class 'float'>, comments='#', delimiter=None, converters=None, skiprows=0, usecols=None, unpack=False, ndmin=0, encoding='bytes', max_rows=None, *, like=None)
+    Load data from a text file.
+    
+    Each row in the text file must have the same number of values.
+    
+    Parameters
+    ----------
+    fname : file, str, or pathlib.Path
+        File, filename, or generator to read.  If the filename extension is
+        ``.gz`` or ``.bz2``, the file is first decompressed. Note that
+        generators should return byte strings.
+    dtype : data-type, optional
+        Data-type of the resulting array; default: float.  If this is a
+        structured data-type, the resulting array will be 1-dimensional, and
+        each row will be interpreted as an element of the array.  In this
+        case, the number of columns used must match the number of fields in
+        the data-type.
+    comments : str or sequence of str, optional
+        The characters or list of characters used to indicate the start of a
+        comment. None implies no comments. For backwards compatibility, byte
+        strings will be decoded as 'latin1'. The default is '#'.
+    delimiter : str, optional
+        The string used to separate values. For backwards compatibility, byte
+        strings will be decoded as 'latin1'. The default is whitespace.
+    converters : dict, optional
+        A dictionary mapping column number to a function that will parse the
+        column string into the desired value.  E.g., if column 0 is a date
+        string: ``converters = {0: datestr2num}``.  Converters can also be
+        used to provide a default value for missing data (but see also
+        `genfromtxt`): ``converters = {3: lambda s: float(s.strip() or 0)}``.
+        Default: None.
+    skiprows : int, optional
+        Skip the first `skiprows` lines, including comments; default: 0.
+    usecols : int or sequence, optional
+        Which columns to read, with 0 being the first. For example,
+        ``usecols = (1,4,5)`` will extract the 2nd, 5th and 6th columns.
+        The
+        
+## Description: 
 convert csv file 'test.csv' into two-dimensional matrix
 
-## Code Generation:
-```
-with open('test.csv', 'r') as file:
-    matrix = file.read().splitlines()
-```
+def f_4315506():\n\treturn
 
 
-## Feedback and refine: Does the generated code align with code description? If not, refines the generated code
-No, The code above is incorrect because:
-1. It reads the file as lines of text, not as a matrix of numbers.
-2. The task requires NumPy, but this code doesn’t use NumPy.
-3. We are supposed to generate a one-liner solution.
+## Initial Code Solution:
+<code>
+def f_4315506():
+    return numpy.loadtxt('test.csv')
+</code>
 
-Let's refine the code to use `numpy.loadtxt()` to load the data as a two-dimensional matrix, and ensure that we correctly specify the delimiter for the CSV file.
-```
-numpy.loadtxt('test.csv', delimiter=',')
-```
+Please first provide feedback on this solution and then refine it based on the feedback.
 
-*** END ***
+Feedback: The current solution doesn't specify the delimiter, so it will try to use whitespace as the default delimiter instead of commas.
+However, the task requires loading a CSV file, which needs delimiter=',' to properly parse comma-separated values, and likely skiprows=1 to handle headers.
+
+Refined solution:
+<code>
+def f_4315506():
+    return numpy.loadtxt(open('test.csv', 'rb'), delimiter=',', skiprows=1)
+</code>
 """
+
+    initial_output = f"<code>\n{initial_output}\n</code>"
 
     user_prompt = f"""
 {self_refine_prompt}
-\n
-## Potential documents: 
+\n\n\n
+## API Documents: 
 {potential_docs}
-## Code Description: 
+\n
+## Description: 
 {question}
 
-## Code Generation:
+## Initial Code Solution:
 {initial_output}
 
-## Feedback and refine: Does the generated code align with code description? If not, refines the generated code
+Please first provide feedback on this solution and then refine it based on the feedback.
 """
 
-
-    if 'gpt' in model:
-        prompt = ['', user_prompt]
-    else:
-        prompt = user_prompt
+    if 'gpt' in model: prompt = [dict(role='user', content=user_prompt)]
+    else: prompt = f"<s>[INST] {user_prompt} [/INST]"
     return prompt
+
+
+
+def prompt_con(ret_docs, question, model):
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc + '\n\n'
+    user_prompt = f"""## API Documents:
+{potential_docs}
+\n
+## Description: 
+{question}
+"""
+    sys_prompt_con = """Input:
+- Useful API documents tagged `## API Documents`
+- A program description with uncompleted code tagged `## Description`
+
+Task:
+Follow the program description to complete the python program by:
+1. Reading the program description and API documents to gather relevant information
+2. Writing brief reading notes summarizing key points from the API documents
+3. Assessing the relevance between the program requirements and available API functions
+4. Using relevant API functions to complete the python function, or implementing without the given APIs if none are relevant
+
+Output Format:
+Reading notes: [Brief summary of key API functions and their purposes]
+Relevance assessment: [How the APIs relate to the program requirements]
+<code>
+[Complete python function with existing code unchanged]
+</code>
+"""
+    prompt = ensemble_prompt(sys_prompt_con, user_prompt, model)
+    return prompt
+
 
 
 # if __name__ == '__main__':

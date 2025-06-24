@@ -305,42 +305,108 @@ def process_ds1000_outputs(pid: str, outputs: List[str], existing_code: str):
     return processed_outputs
 
 
-def pred_eval_new(model, dataset, result_path):
+def parsing_for_conala_new(qs_list, model, prompt_method, results):
+    _gene_results = list()
+    for idx, result in enumerate(results):
+        assert qs_list[idx]['qs_id'] == result['qs_id']
+        # outputs = process_gene_results(dataset, [result['response']])   # only one response is in the key: response
+        outputs = [result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')]
+        # todo：conala parsing没什么大问题，提取出完整程序就行
+        if prompt_method in ['CoT', 'Least-to-Most', 'self-refine']:
+            outputs = [result['response'].split('```python', 1)[1].split('```', 1)[0]]
+        if 'gpt-3.5' in model:
+            result['response'] = result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')
+            # if llm output both api + description + code
+            lines = result['response'].split('\n')
+            first_code_line_index = 0
+            for idx, line in enumerate(lines):
+                if line.startswith('import ') or line.startswith('def '):
+                    first_code_line_index = idx
+                    break
+            outputs = ['\n'.join(lines[first_code_line_index:])]
+            # # if description is inside the code
+            # lines = outputs[0].split('\n')
+            # description_index = -1
+            # for idx, line in enumerate(lines):
+            #     if line.startswith('## Description'):
+            #         description_index = idx + 1
+            #         break
+            # if description_index != -1: del lines[description_index]
+            # outputs = ['\n'.join(lines)]
+        if 'codellama' in model:
+            print(result['qs_id'])
+            try:
+                outputs = [result['response'].split('```', 1)[1].split('```', 1)[0]]
+            except:
+                outputs = [result['response'].split('[PYTHON]', 1)[1].split('[/PYTHON]', 1)[0]]
+        _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
+    return _gene_results
+
+
+def parsing_for_ds1000_new(qs_list, model, prompt_method, results):
+    _gene_results = list()
+    for idx, result in enumerate(results):
+        assert qs_list[idx]['qs_id'] == result['qs_id']
+        # outputs = process_gene_results(dataset, [result['response']], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
+        outputs = [result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')]
+        # todo: ds1000 主要需要匹配删除已有的prompt code, llm在recall很小的时候可能反而生成的code和原有prompt code更一致
+        if 'codellama' in model:
+            print(result['qs_id'])
+            try:
+                outputs = [result['response'].split('```', 1)[1].split('```', 1)[0]]
+            except:
+                if not result['qs_id'] == 'Scipy_50':  # todo: doc num k = 1
+                    outputs = [result['response'].split('[PYTHON]', 1)[1].split('[/PYTHON]', 1)[0]]
+        outputs = process_ds1000_outputs(pid=result['qs_id'], outputs=outputs, existing_code=qs_list[idx]['question'].split('\nA:')[1])
+        # results[idx]['parsed_response'] = outputs[0]    # use LLM as parser, save the parsing results
+        _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
+    return _gene_results
+
+
+def parsing_for_pne_new(qs_list, model, prompt_method, results):
+    _gene_results = []
+    for idx, result in enumerate(results):
+        assert qs_list[idx]['qs_id'] == result['qs_id']
+        # outputs = process_gene_results(dataset, [result['response']], code_prompt=qs_list[idx]['question'])
+        outputs = [result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')]
+        # todo: PNE只需要提取出完成的程序即可
+        if 'codellama' in model:
+            print(result['qs_id'])
+            # first remove space at the front of generation, only happen in PNE
+            if result['response'].startswith(' '): result['response'] = result['response'][1:]
+            assert not result['response'].startswith(' ')
+            # remove last generation sign " package"
+            result['response'] = result['response'].replace(' package', '')
+            # then try to split and get only the code
+            try:
+                outputs = [result['response'].split('```', 1)[1].split('```', 1)[0]]
+            except:
+                # remove content after response
+                if 'return' in result['response'] or 'print' in result['response']:
+                    lines = result['response'].split('\n')
+                    lines = [line for line in lines if not line.strip().startswith('#')]
+                    outputs = []
+                    for line in lines:
+                        outputs.append(line)
+                        if line.strip().startswith('return') or line.strip().startswith('print'): break
+                    outputs = ['\n'.join(outputs)]
+                    print(outputs)
+                # todo: else just use the entire code
+                else:
+                    outputs = [result['response']]
+                    print(outputs[0])
+        _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
+    return _gene_results
+
+
+
+def pred_eval_new(model, dataset, prompt_method, result_path):
     eval_save_file = result_path.replace('.json', '_eval.json')
     results = json.load(open(result_path, 'r'))
     if dataset == 'conala':
         loader = ConalaLoader()
-        _gene_results = list()
-        for idx, result in enumerate(results):
-            # outputs = process_gene_results(dataset, [result['response']])   # only one response is in the key: response
-            outputs = [result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')]
-            # todo：conala parsing没什么大问题，提取出完整程序就行
-            if 'gpt-3.5' in model:
-                result['response'] = result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')
-                # if llm output both api + description + code
-                lines = result['response'].split('\n')
-                first_code_line_index = 0
-                for idx, line in enumerate(lines):
-                    if line.startswith('import ') or line.startswith('def '):
-                        first_code_line_index = idx
-                        break
-                outputs = ['\n'.join(lines[first_code_line_index:])]
-                # # if description is inside the code
-                # lines = outputs[0].split('\n')
-                # description_index = -1
-                # for idx, line in enumerate(lines):
-                #     if line.startswith('## Description'):
-                #         description_index = idx + 1
-                #         break
-                # if description_index != -1: del lines[description_index]
-                # outputs = ['\n'.join(lines)]
-            if 'codellama' in model:
-                print(result['qs_id'])
-                try:
-                    outputs = [result['response'].split('```', 1)[1].split('```', 1)[0]]
-                except:
-                    outputs = [result['response'].split('[PYTHON]', 1)[1].split('[/PYTHON]', 1)[0]]
-            _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
+        qs_list = loader.load_qs_list()
+        _gene_results = parsing_for_conala_new(qs_list=qs_list, model=model, prompt_method=prompt_method, results=results)
         scores, eval_records = loader.eval_passk(_gene_results, top_k=[1])
         syntax_error_count = 0
         for qid in eval_records:
@@ -350,24 +416,7 @@ def pred_eval_new(model, dataset, result_path):
     elif dataset == 'DS1000':
         loader = DS1000Loader()
         qs_list = loader.load_qs_list()
-        _gene_results = list()
-        for idx, result in enumerate(results):
-            assert qs_list[idx]['qs_id'] == result['qs_id']
-            # outputs = process_gene_results(dataset, [result['response']], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
-            outputs = [result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')]
-            # todo: ds1000 主要需要匹配删除已有的prompt code, llm在recall很小的时候可能反而生成的code和原有prompt code更一致
-            if 'codellama' in model:
-                print(result['qs_id'])
-                try:
-                    outputs = [result['response'].split('```', 1)[1].split('```', 1)[0]]
-                except:
-                    if not result['qs_id'] == 'Scipy_50':   # todo: doc num k = 1
-                        outputs = [result['response'].split('[PYTHON]', 1)[1].split('[/PYTHON]', 1)[0]]
-            outputs = process_ds1000_outputs(pid=result['qs_id'], outputs=outputs, existing_code=qs_list[idx]['question'].split('\nA:')[1])
-            # results[idx]['parsed_response'] = outputs[0]    # use LLM as parser, save the parsing results
-            _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
-        # with open(result_path, 'w+', encoding='utf-8') as f:
-        #     json.dump(results, f, indent=2)
+        _gene_results = parsing_for_ds1000_new(qs_list=qs_list, model=model, prompt_method=prompt_method, results=results)
         scores, eval_records = loader.eval_passk(_gene_results, k_list=[1])
         syntax_error_count = 0
         for idx, qid in enumerate(eval_records):
@@ -378,38 +427,7 @@ def pred_eval_new(model, dataset, result_path):
     elif dataset == 'pandas_numpy_eval':
         loader = PandasNumpyEvalLoader()
         qs_list = loader.load_qs_list()
-        _gene_results = []
-        for idx, result in enumerate(results):
-            assert qs_list[idx]['qs_id'] == result['qs_id']
-            # outputs = process_gene_results(dataset, [result['response']], code_prompt=qs_list[idx]['question'])
-            outputs = [result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```','')]
-            # todo: PNE只需要提取出完成的程序即可
-            if 'codellama' in model:
-                print(result['qs_id'])
-                # first remove space at the front of generation, only happen in PNE
-                if result['response'].startswith(' '): result['response'] = result['response'][1:]
-                assert not result['response'].startswith(' ')
-                # remove last generation sign " package"
-                result['response'] = result['response'].replace(' package', '')
-                # then try to split and get only the code
-                try:
-                    outputs = [result['response'].split('```', 1)[1].split('```', 1)[0]]
-                except:
-                    # remove content after response
-                    if 'return' in result['response'] or 'print' in result['response']:
-                        lines = result['response'].split('\n')
-                        lines = [line for line in lines if not line.strip().startswith('#') ]
-                        outputs = []
-                        for line in lines:
-                            outputs.append(line)
-                            if line.strip().startswith('return') or line.strip().startswith('print'): break
-                        outputs = ['\n'.join(outputs)]
-                        print(outputs)
-                    # todo: else just use the entire code
-                    else:
-                        outputs = [result['response']]
-                        print(outputs[0])
-            _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
+        _gene_results = parsing_for_pne_new(qs_list=qs_list, model=model, prompt_method=prompt_method, results=results)
         scores, eval_records = loader.eval_passk(_gene_results, k_list=[1])
         syntax_error_count = 0
         for qid in eval_records:

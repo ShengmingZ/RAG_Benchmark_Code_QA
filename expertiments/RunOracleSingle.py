@@ -306,19 +306,6 @@ class LLMOracleEvaluator:
             self.k_range = [1, 3, 5, 10, 15, 20, 30, 40]
         assert k in self.k_range
 
-        # default result path for different k
-        if result_path is None:
-            model_name_for_path = self.model_names_for_path[self.model_config.model]
-            result_path = f'../data/{self.dataset}/new_results/DocNum/{k}_{model_name_for_path}.json'
-            os.makedirs(result_path.rsplit('/', 1)[0], exist_ok=True)
-        if os.path.exists(result_path):
-            print('result already exists in path {}, if want to overwrite, please delete it first'.format(result_path))
-            # pred_eval_new(self.dataset, result_path=result_path)
-            return
-
-        f"""Generate responses using RAG with {k} only"""
-        print(f"🤖 Generating RAG wth {k} responses for {len(self.problems)} questions...")
-
         # Prepare messages
         prompts = []
         problem_ids = []
@@ -346,6 +333,21 @@ class LLMOracleEvaluator:
             elif 'llama' in self.model_config.model.lower():
                 print(prompts[0])
             return
+
+        # default result path for different k
+        if result_path is None:
+            model_name_for_path = self.model_names_for_path[self.model_config.model]
+            result_path = f'../data/{self.dataset}/new_results/DocNum/{k}_{model_name_for_path}.json'
+            os.makedirs(result_path.rsplit('/', 1)[0], exist_ok=True)
+        if os.path.exists(result_path):
+            print('result already exists in path {}, if want to overwrite, please delete it first'.format(
+                result_path))
+            # pred_eval_new(self.dataset, result_path=result_path)
+            return
+
+        f"""Generate responses using RAG with {k} only"""
+        print(f"🤖 Generating RAG wth {k} responses for {len(self.problems)} questions...")
+
 
         # Batch API call
         if 'gpt' in self.model_config.model:
@@ -387,15 +389,66 @@ class LLMOracleEvaluator:
             k = 5
         else:
             k = 10
-        self.prompt_methods = ['few-shot']
+        self.prompt_methods = ['few-shot', 'emotion', 'CoT', 'zero-shot-CoT', 'Least-to-Most', 'Plan-and-Solve', 'self-refine', 'CoN']
         assert prompt_method in self.prompt_methods
 
         if prompt_method == 'few-shot':
             self.prompt_generator = self.prompt_utils.prompt_3shot
+        elif prompt_method == 'emotion':
+            self.prompt_generator = self.prompt_utils.prompt_emotion
+        elif prompt_method == 'CoT':
+            self.prompt_generator = self.prompt_utils.prompt_cot
+        elif prompt_method == 'zero-shot-CoT':
+            self.prompt_generator = self.prompt_utils.prompt_zero_shot_cot
+        elif prompt_method == 'Least-to-Most':
+            self.prompt_generator = self.prompt_utils.prompt_least_to_most
+        elif prompt_method == 'Plan-and-Solve':
+            self.prompt_generator = self.prompt_utils.prompt_plan_and_solve
+        elif prompt_method == 'self-refine':
+            self.prompt_generator = self.prompt_utils.prompt_self_refine
+        elif prompt_method == 'CoN':
+            self.prompt_generator = self.prompt_utils.prompt_con
         else:
             raise Exception(f'Unsupported Prompt Method {prompt_method}')
 
-        # default result path for different k
+        # Prepare messages
+        prompts = []
+        problem_ids = []
+
+        ret_docs = self.doc_loader.get_ret_docs()
+
+        # if prompt method is self-refine, load initial results from doc num results
+        if prompt_method == 'self-refine':
+            from generator.pred_eval import parsing_for_conala_new as result_parser
+            initial_results = json.load(open(f'../data/{self.dataset}/new_results/DocNum/{k}_{self.model_names_for_path[self.model_config.model]}.json', 'r'))
+            initial_results = result_parser(qs_list=self.problems, model=self.model_config.model, prompt_method=prompt_method, results=initial_results)
+
+        for idx, problem in enumerate(self.problems):
+            ret_docs_exist = False
+            # ret docs' qs_id may be different from oracle
+            for qs_id in ret_docs:
+                if qs_id == problem['qs_id']:
+                    ret_docs_exist = True
+                    break
+            if not ret_docs_exist: raise Exception(f'no ret docs for problem: {qs_id}')
+            # use top-k docs as retrieved docs
+            truncated_docs = truncate_docs(ret_docs[qs_id][:k], model='gpt-3.5-turbo-0125', max_length=500)
+            if prompt_method == 'self-refine':
+                assert problem['qs_id'] == initial_results[idx]['qs_id']
+                prompt = self.prompt_generator(question=problem['question'], model=self.model_config.model, ret_docs=truncated_docs, initial_output=initial_results[idx]['outputs'][0])
+            else:
+                prompt = self.prompt_generator(question=problem['question'], model=self.model_config.model, ret_docs=truncated_docs)
+            prompts.append(prompt)
+            problem_ids.append(problem['qs_id'])
+
+        if test_prompt:
+            if 'gpt' in self.model_config.model:
+                print(prompts[0][0]['content'])
+                print(prompts[0][1]['content'])
+            elif 'llama' in self.model_config.model.lower():
+                print(prompts[0])
+            return
+
         if result_path is None:
             model_name_for_path = self.model_names_for_path[self.model_config.model]
             result_path = f'../data/{self.dataset}/new_results/Prompt/{prompt_method}_{model_name_for_path}.json'
@@ -408,33 +461,6 @@ class LLMOracleEvaluator:
         f"""Generate responses using RAG with {prompt_method} only"""
         print(f"🤖 Generating RAG wth {prompt_method} responses for {len(self.problems)} questions...")
 
-        # Prepare messages
-        prompts = []
-        problem_ids = []
-
-        ret_docs = self.doc_loader.get_ret_docs()
-
-        for problem in self.problems:
-            ret_docs_exist = False
-            # ret docs' qs_id may be different from oracle
-            for qs_id in ret_docs:
-                if qs_id == problem['qs_id']:
-                    ret_docs_exist = True
-                    break
-            if not ret_docs_exist: raise Exception(f'no ret docs for problem: {qs_id}')
-            # use top-k docs as retrieved docs
-            truncated_docs = truncate_docs(ret_docs[qs_id][:k], model='gpt-3.5-turbo-0125', max_length=500)
-            prompt = self.prompt_generator(question=problem['question'], model=self.model_config.model, ret_docs=truncated_docs)
-            prompts.append(prompt)
-            problem_ids.append(problem['qs_id'])
-
-        if test_prompt:
-            if 'gpt' in self.model_config.model:
-                print(prompts[0][0]['content'])
-                print(prompts[0][1]['content'])
-            elif 'llama' in self.model_config.model.lower():
-                print(prompts[0])
-            return
 
         # Batch API call
         if 'gpt' in self.model_config.model:
@@ -478,7 +504,7 @@ if __name__ == "__main__":
     parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'recall', 'DocNum', 'prompt'])
     parser.add_argument('--recall', type=float, default=1, help='Recall, only effective if mode is "recall"')
     parser.add_argument('--k', type=int, default=1, help='Doc Num, only effective if mode is "DocNum"')
-    parser.add_argument('--prompt', type=str, default='zero-shot', choices=['few-shot'])
+    parser.add_argument('--prompt', type=str, default='zero-shot', choices=['few-shot', 'emotion', 'CoT', 'zero-shot-CoT', 'Least-to-Most', 'Plan-and-Solve', 'self-refine', 'CoN'])
     parser.add_argument('--test-prompt', action='store_true')
 
     args = parser.parse_args()

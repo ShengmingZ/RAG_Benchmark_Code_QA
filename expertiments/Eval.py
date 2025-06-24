@@ -15,7 +15,7 @@ if __name__ == '__main__':
     parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'recall', 'DocNum', 'prompt'])
     parser.add_argument('--recall', type=float, default=1, help='Recall, only effective if mode is "recall"')
     parser.add_argument('--k', type=int, default=1, help='Doc Num, only effective if mode is "DocNum"')
-    parser.add_argument('--prompt', type=str, default='zero-shot', choices=['few-shot'])
+    parser.add_argument('--prompt', type=str, default='zero-shot', choices=['few-shot', 'emotion', 'CoT', 'zero-shot-CoT', 'Least-to-Most', 'Plan-and-Solve', 'self-refine', 'CoN'])
 
     args = parser.parse_args()
 
@@ -39,5 +39,5 @@ if __name__ == '__main__':
     elif args.mode == 'prompt':
         result_path = f'../data/{args.dataset}/new_results/Prompt/{args.prompt}_{model_name_for_path}.json'
 
-    pred_eval_new(model=args.model, dataset=args.dataset, result_path=result_path)
+    pred_eval_new(model=args.model, dataset=args.dataset, result_path=result_path, prompt_method=args.prompt)
 
