@@ -43,7 +43,7 @@ class LLMOracleEvaluator:
                                               temperature=self.model_config.temperature,
                                               max_tokens=self.max_tokens,
                                               is_async=self.model_config.is_async,
-                                              stop=['</code>', '</answer>', 'package com'])
+                                              stop=['package com'])
 
         self.dataset = dataset
 
@@ -419,9 +419,16 @@ class LLMOracleEvaluator:
 
         # if prompt method is self-refine, load initial results from doc num results
         if prompt_method == 'self-refine':
-            from generator.pred_eval import parsing_for_conala_new as result_parser
+            if self.dataset == 'conala':
+                from generator.pred_eval import parsing_for_conala_new as result_parser
+            elif self.dataset == 'DS1000':
+                from generator.pred_eval import parsing_for_ds1000_new as result_parser
+            elif self.dataset == 'pandas_numpy_eval':
+                from generator.pred_eval import parsing_for_pne_new as result_parser
+            else:
+                raise Exception('Unsupported Dataset')
             initial_results = json.load(open(f'../data/{self.dataset}/new_results/DocNum/{k}_{self.model_names_for_path[self.model_config.model]}.json', 'r'))
-            initial_results = result_parser(qs_list=self.problems, model=self.model_config.model, prompt_method=prompt_method, results=initial_results)
+            initial_results = result_parser(qs_list=self.problems, model=self.model_config.model, prompt_method='initial_output', results=initial_results)
 
         for idx, problem in enumerate(self.problems):
             ret_docs_exist = False

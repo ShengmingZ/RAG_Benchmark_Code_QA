@@ -2,7 +2,7 @@
 
 MODEL='llama-old-code'
 
-DATASET='conala'
+DATASET='DS1000'
 
 python RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt few-shot &
 python RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt emotion &

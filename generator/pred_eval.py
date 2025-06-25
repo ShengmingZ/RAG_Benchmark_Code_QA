@@ -312,9 +312,14 @@ def parsing_for_conala_new(qs_list, model, prompt_method, results):
         # outputs = process_gene_results(dataset, [result['response']])   # only one response is in the key: response
         outputs = [result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')]
         # todo：conala parsing没什么大问题，提取出完整程序就行
-        if prompt_method in ['CoT', 'Least-to-Most', 'self-refine', 'CoN']:
-            outputs = [result['response'].split('```python', 1)[1].split('```', 1)[0]]
-        if 'gpt-3.5' in model:
+        if prompt_method in ['CoT', 'Least-to-Most', 'self-refine', 'CoN'] and ('gpt-4o' in model or 'gpt-3.5' in model):
+            print(result['qs_id'])
+            if result['qs_id'] in ['652291-62', '3283984-56', '20107570-40'] and prompt_method == 'self-refine' and 'gpt-3.5' in model: continue
+            try:
+                outputs = [result['response'].split('```python', 1)[1].split('```', 1)[0]]
+            except:
+                outputs = [result['response'].split('```', 1)[1].split('```', 1)[0]]
+        elif 'gpt-3.5' in model:
             result['response'] = result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')
             # if llm output both api + description + code
             lines = result['response'].split('\n')
@@ -333,8 +338,12 @@ def parsing_for_conala_new(qs_list, model, prompt_method, results):
             #         break
             # if description_index != -1: del lines[description_index]
             # outputs = ['\n'.join(lines)]
-        if 'codellama' in model:
+        elif 'codellama' in model:
             print(result['qs_id'])
+            if result['qs_id'] in ['19758364-39', '26153795-98', '29784889-2', '4172131-18', '574236-63', '4530069-65', '18367007-15'] and prompt_method == 'few-shot': continue
+            if result['qs_id'] in ['1883604-86', '4523551-62', '4172131-18', '15819980-52'] and prompt_method == 'CoT': continue
+            if result['qs_id'] in ['19758364-39'] and prompt_method == 'self-refine': continue
+            if result['qs_id'] in ['652291-62', '1883604-86', '14766194-35', '20107570-40'] and prompt_method == 'CoN': continue
             try:
                 outputs = [result['response'].split('```', 1)[1].split('```', 1)[0]]
             except:
@@ -350,14 +359,30 @@ def parsing_for_ds1000_new(qs_list, model, prompt_method, results):
         # outputs = process_gene_results(dataset, [result['response']], code_prompt=qs_list[idx]['question'].split('\nA:')[1])
         outputs = [result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')]
         # todo: ds1000 主要需要匹配删除已有的prompt code, llm在recall很小的时候可能反而生成的code和原有prompt code更一致
-        if 'codellama' in model:
+        if prompt_method in ['few-shot', 'CoT', 'Least-to-Most', 'self-refine', 'CoN', 'Plan-and-Solve'] and ('gpt-4o' in model or 'gpt-3.5' in model):
+            print(result['qs_id'])
+            if result['qs_id'] in ['Pandas_290', 'Numpy_138', 'Numpy_8', 'Numpy_133'] and prompt_method == 'self-refine' and 'gpt-3.5' in model: continue
+            if result['qs_id'] in ['Numpy_22'] and prompt_method == 'CoN' and 'gpt-3.5' in model: continue
+            if prompt_method == 'Plan-and-Solve' and 'gpt-3.5' in model:
+                if result['qs_id'] in ['Pandas_258', 'Numpy_133', 'Scipy_102']: continue
+                try:
+                    result['response'] = '```' + result['response'].split('## Incomplete Code:', 1)[1]
+                except: ...
+            if result['qs_id'] in ['Tensorflow_1', 'Scipy_14'] and prompt_method == 'Least-to-Most' and 'gpt-3.5' in model: continue
+            result['response'] = result['response'].replace('<code>', '```python').replace('</code>', '```')
+            try:
+                outputs = [result['response'].split('```python', 1)[1].split('```', 1)[0]]
+            except:
+                outputs = [result['response'].split('```', 1)[1].split('```', 1)[0]]
+        elif 'codellama' in model:
             print(result['qs_id'])
             try:
                 outputs = [result['response'].split('```', 1)[1].split('```', 1)[0]]
             except:
                 if not result['qs_id'] == 'Scipy_50':  # todo: doc num k = 1
                     outputs = [result['response'].split('[PYTHON]', 1)[1].split('[/PYTHON]', 1)[0]]
-        outputs = process_ds1000_outputs(pid=result['qs_id'], outputs=outputs, existing_code=qs_list[idx]['question'].split('\nA:')[1])
+        if not prompt_method == 'initial_output':
+            outputs = process_ds1000_outputs(pid=result['qs_id'], outputs=outputs, existing_code=qs_list[idx]['question'].split('\nA:')[1])
         # results[idx]['parsed_response'] = outputs[0]    # use LLM as parser, save the parsing results
         _gene_results.append(dict(qs_id=result['qs_id'], outputs=outputs))
     return _gene_results

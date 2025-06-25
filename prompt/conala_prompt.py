@@ -228,11 +228,11 @@ def f_23566515(a, b):\n\treturn
 According to the description, I need to multiply two 1-dimensional arrays in numpy.
 The document shows outer(a, b) which computes the outer product of two vectors.
 Since outer product is multiplication of 1D arrays, I should use np.outer(a, b).
-Based on this, I implement to complete function:
-<code>
+Based on this, I implement the complete function while existing code exactly the same:
+```
 def f_23566515(a, b):
     return np.outer(a, b)
-</code>
+```
 
 
 
@@ -258,11 +258,11 @@ According to the description, I need to convert epoch time in milliseconds to a 
 The document shows fromtimestamp() which converts POSIX timestamp to local time.
 The document also shows strftime() which formats time as a string.
 Since I need to convert timestamp then format it, I should use datetime.fromtimestamp(s) then .strftime('%Y-%m-%d %H:%M:%S.%f').
-Based on this, I implement to complete function:
-<code>
+Based on this, I implement the complete function while existing code exactly the same:
+```
 def f_21787496(s):
     return datetime.datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S.%f')
-</code>
+```
 
 
 
@@ -317,11 +317,11 @@ According to the description, I need to convert a CSV file 'test.csv' into a two
 The document shows loadtxt() which loads data from a text file into an array.
 Since CSV files have comma-separated values, I need to set delimiter=',' parameter.
 CSV files often have headers, so I should use skiprows=1 to skip the first row.
-Based on this, I implement to complete function:
-<code>
+Based on this, I implement the complete function while existing code exactly the same:
+```
 def f_4315506():
     return numpy.loadtxt(open('test.csv', 'rb'), delimiter=',', skiprows=1)
-</code>
+```
 """
 
     user_prompt = f"""
@@ -410,10 +410,10 @@ multiplication of two 1-dimensional arrays  in numpy
 def f_23566515(a, b):\n\treturn 
 
 
-<code>
+```
 def f_23566515(a, b):
     return np.outer(a, b)
-</code>
+```
 
 
 
@@ -433,10 +433,10 @@ convert epoch time represented as milliseconds `s` to string using format '%Y-%m
 def f_21787496(s):\n\treturn
 
 
-<code>
+```
 def f_21787496(s):
     return datetime.datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S.%f')
-</code>
+```
 
 
 
@@ -486,10 +486,10 @@ def f_4315506():\n\treturn
 
 
 
-<code>
+```
 def f_4315506():
     return numpy.loadtxt(open('test.csv', 'rb'), delimiter=',', skiprows=1)
-</code>
+```
 """
 
     user_prompt = f"""
@@ -596,11 +596,11 @@ I need to perform multiplication of two 1-dimensional arrays in numpy.
 Sub problem 2: Which API function can multiply 1D arrays?
 From the documentation, outer(a, b) computes the outer product of two vectors, which is a form of multiplication between 1D arrays.
 
-Now combining all solutions to generate the complete code:
-<code>
+Now combining all solutions to generate the complete code while keeping existing code exactly the same:
+```
 def f_23566515(a, b):
     return np.outer(a, b)
-</code>
+```
 
 
 
@@ -633,11 +633,11 @@ From the documentation, fromtimestamp() converts POSIX timestamp to local time, 
 Sub problem 3: How do I chain these functions together?
 I need to first convert the timestamp using fromtimestamp(s), then format it using strftime() with the given format '%Y-%m-%d %H:%M:%S.%f'.
 
-Now combining all solutions to generate the complete code:
-<code>
+Now combining all solutions to generate the complete code while keeping existing code exactly the same:
+```
 def f_21787496(s):
     return datetime.datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S.%f')
-</code>
+```
 
 
 
@@ -699,11 +699,11 @@ Sub problem 3: What parameters do I need for CSV files?
 For CSV files, I need to set delimiter=',' to handle comma-separated values.
 CSV files often have headers, so I should use skiprows=1 to skip the first row.
 
-Now combining all solutions to generate the complete code:
-<code>
+Now combining all solutions to generate the complete code while keeping existing code exactly the same:
+```
 def f_4315506():
     return numpy.loadtxt(open('test.csv', 'rb'), delimiter=',', skiprows=1)
-</code>
+```
 """
 
     potential_docs = ''
@@ -736,8 +736,6 @@ def prompt_plan_and_solve(ret_docs, question, model):
 \n
 ## Description: 
 {question}
-
-Let's first understand the problem and devise a plan to solve the problem. Then, let's carry out the plan to solve the problem step by step.
 """
     prompt_template = ensemble_prompt(sys_prompt=SYS_PROMPT_ZERO_SHOT, user_prompt=user_prompt, model=model)
     return prompt_template
@@ -894,10 +892,10 @@ def f_23566515(a, b):\n\treturn
 
 
 ## Initial Code Solution:
-<code>
+```
 def f_23566515(a, b):
     return a * b
-</code>
+```
 
 Please first provide feedback on this solution and then refine it based on the feedback.
 
@@ -905,10 +903,10 @@ Feedback: The current solution uses element-wise multiplication (a * b), which o
 However, the task requires multiplication of two 1-dimensional arrays to create an outer product, which should produce a 2D matrix.
 
 Refined solution:
-<code>
+```
 def f_23566515(a, b):
     return np.outer(a, b)
-</code>
+```
 
 
 
@@ -931,10 +929,10 @@ def f_21787496(s):\n\treturn
 
 
 ## Initial Code Solution:
-<code>
+```
 def f_21787496(s):
     return s.strptime('%Y-%m-%d %H:%M:%S.%f')
-</code>
+```
 
 Please first provide feedback on this solution and then refine it based on the feedback.
 
@@ -942,10 +940,10 @@ Feedback: The current solution uses strptime() which parses a string into a date
 However, the task requires converting epoch time (numeric) to a formatted string, which needs fromtimestamp() to convert the number to datetime.
 
 Refined solution:
-<code>
+```
 def f_21787496(s):
     return datetime.datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S.%f')
-</code>
+```
 
 
 
@@ -995,10 +993,10 @@ def f_4315506():\n\treturn
 
 
 ## Initial Code Solution:
-<code>
+```
 def f_4315506():
     return numpy.loadtxt('test.csv')
-</code>
+```
 
 Please first provide feedback on this solution and then refine it based on the feedback.
 
@@ -1006,13 +1004,13 @@ Feedback: The current solution doesn't specify the delimiter, so it will try to 
 However, the task requires loading a CSV file, which needs delimiter=',' to properly parse comma-separated values, and likely skiprows=1 to handle headers.
 
 Refined solution:
-<code>
+```
 def f_4315506():
     return numpy.loadtxt(open('test.csv', 'rb'), delimiter=',', skiprows=1)
-</code>
+```
 """
 
-    initial_output = f"<code>\n{initial_output}\n</code>"
+    initial_output = f"```\n{initial_output}\n```"
 
     user_prompt = f"""
 {self_refine_prompt}
@@ -1059,9 +1057,9 @@ Follow the program description to complete the python program by:
 Output Format:
 Reading notes: [Brief summary of key API functions and their purposes]
 Relevance assessment: [How the APIs relate to the program requirements]
-<code>
+```
 [Complete python function with existing code unchanged]
-</code>
+```
 """
     prompt = ensemble_prompt(sys_prompt_con, user_prompt, model)
     return prompt
