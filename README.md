@@ -1,1 +1,1 @@
-# Code_RAG_Benchmark
+# RAG_Benchmark_Code_QA
