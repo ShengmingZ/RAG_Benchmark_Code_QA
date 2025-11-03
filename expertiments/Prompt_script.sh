@@ -1,23 +1,63 @@
 # script for LLAMA2 + CODE dataset + Single Oracle analyze
 
-MODEL='llama-old-code'
+MODEL='openai-new'
 
-DATASET='DS1000'
+DATASET='NQ'
 
-python RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt few-shot &
-python RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt emotion &
-wait
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt few-shot &
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt emotion &
+# wait
 
-python RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt CoT &
-python RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt zero-shot-CoT &
-wait
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt CoT &
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt zero-shot-CoT &
+# wait
 
-python RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt Least-to-Most &
-python RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt Plan-and-Solve &
-wait
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt Least-to-Most &
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt Plan-and-Solve &
+# wait
 
-python RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt self-refine &
-python RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt CoN &
-wait
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt self-refine &
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt CoN &
+# wait
 
 
+
+
+DATASET='TriviaQA'
+
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt few-shot &
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt emotion &
+# wait
+
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt CoT &
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt zero-shot-CoT &
+# wait
+
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt Least-to-Most &
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt Plan-and-Solve &
+# wait
+
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt self-refine &
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt CoN &
+# wait
+
+
+
+
+DATASET='hotpotQA'
+
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt few-shot &
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt emotion &
+# wait
+
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt CoT &
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt zero-shot-CoT &
+# wait
+
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt Least-to-Most &
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt Plan-and-Solve &
+# wait
+
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt self-refine &
+/opt/homebrew/bin/python3.8 RunOracleSingle.py --dataset $DATASET --model $MODEL --mode prompt --prompt CoN &
+# wait

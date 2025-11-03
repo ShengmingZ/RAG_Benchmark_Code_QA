@@ -17,7 +17,7 @@ hotpotQA_cot_prompt = """
 0: Danielle Prendergast (born September 8, 1990), better known by her stage name Elle Royal (formerly known as Patwa), is an independent Hip-Hop artist hailing from The Bronx, New York. Her breakthrough came in 2010 when her video "What Can I Say" went viral after WorldStarHipHop featured her as the “Female Artist of the Week”. Elle Royal later released the mixtape One Gyal Army under Patwa in 2010, followed by the singles “Jammin”, “Lights”, and “Statements” in 2015 under her current stage name, Elle Royal.
 1: WorldStarHipHop is a content-aggregating video blog. Founded in 2005, the site averages 528,726 unique visitors a day. Alexa ranks the site 342nd in site traffic in the United States and 1,212th for worldwide traffic. The site, operated by Worldstar, LLC, was founded at age 33 by Lee "Q" O' Denat, a Hollis, Queens-based hip-hop fan and Grover Cleveland High School dropout. Described by "Vibe" as a "remnant of the Geocities generation," the site regularly features public fighting caught on video, music videos and assorted content targeted to young audiences. O'Denat refers to the site as the "CNN of the ghetto." In 2012, Alexa Internet stated "Compared with all Internet users, its users are disproportionately young people and they tend to be childless, moderately educated men 18–21 who browse from school and work."
 
-## Question: 
+## Question:
 Elle Royal's video "What Can I Say" went viral after she was featured as “Female Artist of the Week” by a video blog founded in what year?
 
 ## Answer:
@@ -31,12 +31,12 @@ So the answer is ```2005```.
 0: The 2003 LSU Tigers football team represented Louisiana State University (LSU) during the 2003 NCAA Division I-A football season. Coached by Nick Saban, the LSU Tigers played their home games at Tiger Stadium in Baton Rouge, Louisiana. The Tigers compiled an 11–1 regular season record and then defeated the No. 5 Georgia Bulldogs in the SEC Championship Game, Afterward, LSU was invited to play the Oklahoma Sooners in the Sugar Bowl for the Bowl Championship Series (BCS) national title. LSU won the BCS National Championship Game, the first national football championship for LSU since 1958.
 1: The 2004 Nokia Sugar Bowl, the BCS title game for the 2003 college football season, was played on January 4, 2004 at the Louisiana Superdome in New Orleans, Louisiana. The teams were the LSU Tigers and the Oklahoma Sooners. The Tigers won the BCS National Championship, their second championship, defeating the Sooners by a score of 21-14.
 
-## Question: 
+## Question:
 What game did the team with an 11-1 regular season record play in for the BCS title game?
 
 ## Answer:
-The document mentions that the LSU Tigers, who had an 11-1 regular season record, played in the 2004 Nokia Sugar Bowl for the BCS title game. 
-The game was played on January 4, 2004, at the Louisiana Superdome in New Orleans, Louisiana, where the Tigers defeated the Oklahoma Sooners by a score of 21-14. 
+The document mentions that the LSU Tigers, who had an 11-1 regular season record, played in the 2004 Nokia Sugar Bowl for the BCS title game.
+The game was played on January 4, 2004, at the Louisiana Superdome in New Orleans, Louisiana, where the Tigers defeated the Oklahoma Sooners by a score of 21-14.
 So the answer is ```2004 Nokia Sugar Bowl```
 
 
@@ -45,12 +45,12 @@ So the answer is ```2004 Nokia Sugar Bowl```
 0: The 2011 Teen Choice Awards ceremony, hosted by Kaley Cuoco, aired live on August 7, 2011 at 8/7c on Fox. This was the first time that the ceremonies were aired live since the 2007 show.
 1: Kaley Christine Cuoco ( ; born November 30, 1985) is an American actress. After a series of supporting film and television roles in the late 1990s, she landed her breakthrough role as Bridget Hennessy on the ABC sitcom "8 Simple Rules", on which she starred from 2002 to 2005. Thereafter, Cuoco appeared as Billie Jenkins on the final season of the television series "Charmed" (2005–2006). Since 2007, she has starred as Penny on the CBS sitcom "The Big Bang Theory", for which she has received Satellite, Critics' Choice, and People's Choice Awards. Cuoco's film work includes roles in "To Be Fat like Me" (2007), "Hop" (2011) and "Authors Anonymous" (2014). She received a star on the Hollywood Walk of Fame in 2014.
 
-## Question: 
+## Question:
 What show does the host of The 2011 Teen Choice Awards ceremony currently star on?
 
 ## Answer:
-The documents mention that Kaley Cuoco hosted the 2011 Teen Choice Awards ceremony and has starred in various roles. 
-Specifically, since 2007, she has starred as Penny on the CBS sitcom "The Big Bang Theory." 
+The documents mention that Kaley Cuoco hosted the 2011 Teen Choice Awards ceremony and has starred in various roles.
+Specifically, since 2007, she has starred as Penny on the CBS sitcom "The Big Bang Theory."
 So the answer is ```The Big Bang Theory```
 """
 
@@ -60,7 +60,7 @@ hotpotQA_3shot_prompt = """
 0: Danielle Prendergast (born September 8, 1990), better known by her stage name Elle Royal (formerly known as Patwa), is an independent Hip-Hop artist hailing from The Bronx, New York. Her breakthrough came in 2010 when her video "What Can I Say" went viral after WorldStarHipHop featured her as the “Female Artist of the Week”. Elle Royal later released the mixtape One Gyal Army under Patwa in 2010, followed by the singles “Jammin”, “Lights”, and “Statements” in 2015 under her current stage name, Elle Royal.
 1: WorldStarHipHop is a content-aggregating video blog. Founded in 2005, the site averages 528,726 unique visitors a day. Alexa ranks the site 342nd in site traffic in the United States and 1,212th for worldwide traffic. The site, operated by Worldstar, LLC, was founded at age 33 by Lee "Q" O' Denat, a Hollis, Queens-based hip-hop fan and Grover Cleveland High School dropout. Described by "Vibe" as a "remnant of the Geocities generation," the site regularly features public fighting caught on video, music videos and assorted content targeted to young audiences. O'Denat refers to the site as the "CNN of the ghetto." In 2012, Alexa Internet stated "Compared with all Internet users, its users are disproportionately young people and they tend to be childless, moderately educated men 18–21 who browse from school and work."
 
-## Question: 
+## Question:
 Elle Royal's video "What Can I Say" went viral after she was featured as “Female Artist of the Week” by a video blog founded in what year?
 
 ## Answer:
@@ -72,7 +72,7 @@ Elle Royal's video "What Can I Say" went viral after she was featured as “Fema
 0: The 2003 LSU Tigers football team represented Louisiana State University (LSU) during the 2003 NCAA Division I-A football season. Coached by Nick Saban, the LSU Tigers played their home games at Tiger Stadium in Baton Rouge, Louisiana. The Tigers compiled an 11–1 regular season record and then defeated the No. 5 Georgia Bulldogs in the SEC Championship Game, Afterward, LSU was invited to play the Oklahoma Sooners in the Sugar Bowl for the Bowl Championship Series (BCS) national title. LSU won the BCS National Championship Game, the first national football championship for LSU since 1958.
 1: The 2004 Nokia Sugar Bowl, the BCS title game for the 2003 college football season, was played on January 4, 2004 at the Louisiana Superdome in New Orleans, Louisiana. The teams were the LSU Tigers and the Oklahoma Sooners. The Tigers won the BCS National Championship, their second championship, defeating the Sooners by a score of 21-14.
 
-## Question: 
+## Question:
 What game did the team with an 11-1 regular season record play in for the BCS title game?
 
 ## Answer:
@@ -84,7 +84,7 @@ What game did the team with an 11-1 regular season record play in for the BCS ti
 0: The 2011 Teen Choice Awards ceremony, hosted by Kaley Cuoco, aired live on August 7, 2011 at 8/7c on Fox. This was the first time that the ceremonies were aired live since the 2007 show.
 1: Kaley Christine Cuoco ( ; born November 30, 1985) is an American actress. After a series of supporting film and television roles in the late 1990s, she landed her breakthrough role as Bridget Hennessy on the ABC sitcom "8 Simple Rules", on which she starred from 2002 to 2005. Thereafter, Cuoco appeared as Billie Jenkins on the final season of the television series "Charmed" (2005–2006). Since 2007, she has starred as Penny on the CBS sitcom "The Big Bang Theory", for which she has received Satellite, Critics' Choice, and People's Choice Awards. Cuoco's film work includes roles in "To Be Fat like Me" (2007), "Hop" (2011) and "Authors Anonymous" (2014). She received a star on the Hollywood Walk of Fame in 2014.
 
-## Question: 
+## Question:
 What show does the host of The 2011 Teen Choice Awards ceremony currently star on?
 
 ## Answer:
@@ -108,7 +108,7 @@ def prompt_3shot(ret_docs, question, model):
 """
 
     # prompt_template = ensemble_prompt('', user_prompt, model)
-    if 'gpt' in model: prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt]
+    if 'gpt' in model: prompt = [dict(role='user', content=user_prompt)]
     else: prompt = user_prompt
     # prompt = ensemble_prompt(sys_prompt=SYS_PROMPT_3SHOT, user_prompt=user_prompt, model=model)
     return prompt
@@ -198,7 +198,7 @@ So the refined answer is:
 """
 
     # prompt_template = ensemble_prompt('', user_prompt, model)
-    if 'gpt' in model: prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt]
+    if 'gpt' in model: prompt = [dict(role='user', content=user_prompt)]
     else: prompt = user_prompt
     # prompt = ensemble_prompt(sys_prompt=SYS_PROMPT_3SHOT, user_prompt=user_prompt, model=model)
     return prompt
@@ -220,8 +220,8 @@ def prompt_cot(ret_docs, question, model, existing_output=None):
 """
 
     # prompt_template = ensemble_prompt('', user_prompt, model)
-    if existing_output is not None: user_prompt = user_prompt + '\n' + existing_output
-    if 'gpt' in model: prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt]
+    # if existing_output is not None: user_prompt = user_prompt + '\n' + existing_output
+    if 'gpt' in model: prompt = [dict(role='user', content=user_prompt)]
     else: prompt = user_prompt
     # prompt = ensemble_prompt(sys_prompt=SYS_PROMPT_3SHOT, user_prompt=user_prompt, model=model)
     return prompt
@@ -275,6 +275,50 @@ def prompt_0shot_no_ret(question, model, pads=''):
     sys_prompt = LLAMA_SYS_PROMPT_NO_RET
     prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
     return prompt_template
+
+
+
+def prompt_emotion(ret_docs, question, model):
+    emotion_prompt = """This is very important to my career:
+
+You are a helpful assistant, given some potential documents starts with `## Potential documents` and a question starts with `## Question`, 
+you should first read the potential documents, and then use the knowledge in documents to answer the question.
+You should only output the exact answer, and the answer should starts with <answer> and ends with </answer>
+"""
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+\n
+## Question: 
+{question}
+"""
+    sys_prompt = emotion_prompt
+    prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
+    return prompt_template
+
+
+def prompt_zero_shot_cot(ret_docs, question, model):
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+\n
+## Question: 
+{question}
+
+Let's think it step by step.
+"""
+    sys_prompt = LLAMA_SYS_PROMPT
+    prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
+    return prompt_template
+
+
 
 
 examples_of_least_to_most = """
@@ -376,7 +420,8 @@ def prompt_least_to_most(ret_docs, question, model):
 
     # prompt_template = ensemble_prompt('', user_prompt, model)
     if 'gpt' in model:
-        prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt]
+        prompt = [dict(role='system', content=SYS_PROMPT_LEAST_TO_MOST),
+                  dict(role='user', content=user_prompt)]
     else:
         prompt = user_prompt
     # prompt = ensemble_prompt(sys_prompt=SYS_PROMPT_LEAST_TO_MOST, user_prompt=user_prompt, model=model)
@@ -407,7 +452,7 @@ Finally, you should extract the exact answer tagged with <answer>"""
 ## Answer:
 {gpt_plan_and_solve_prompt}
 """
-        prompt = ['', user_prompt] if 'gpt' in model else user_prompt
+        prompt = [dict(role='user', content=user_prompt)]
     else:
         user_prompt = f"""
 ## Potential documents:

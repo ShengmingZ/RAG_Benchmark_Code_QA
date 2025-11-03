@@ -161,7 +161,7 @@ def pandas_numpy_eval_result_process(prompt_type, output, code_prompt, output_be
     return pred
 
 
-def process_gene_results(dataset, outputs, prompt_type=None, code_prompt=None, outputs_before=None):
+def process_gene_results(qs_id, dataset, outputs, prompt_type=None, code_prompt=None, outputs_before=None):
     preds = []
     if dataset == 'conala':
         for idx, output in enumerate(outputs):
@@ -190,11 +190,16 @@ def process_gene_results(dataset, outputs, prompt_type=None, code_prompt=None, o
     elif dataset == 'NQ' or dataset == 'TriviaQA' or dataset == 'hotpotQA':
         for idx, output in enumerate(outputs):
             pred = output
-            if prompt_type == 'RaR':
-                try: pred = pred.split('Answer:\n')[1]
-                except: ...
-                try: pred = pred.split('the answer')[1]
-                except: ...
+            # if prompt_type == 'RaR':
+            #     try: pred = pred.split('Answer:\n')[1]
+            #     except: ...
+            #     try: pred = pred.split('the answer')[1]
+            #     except: ...
+            # if prompt_type == 'self-refine':
+            #     if not '<answer>' in output and not '```' in output:
+            #         pred = outputs_before[idx]
+            # try: pred = pred.split('Potential documents')[0]
+            # except: ...
             if prompt_type == 'self-refine':
                 if not '<answer>' in output and not '```' in output:
                     pred = outputs_before[idx]
@@ -425,9 +430,39 @@ def parsing_for_pne_new(qs_list, model, prompt_method, results):
 
 
 
+def parsing_for_qa_new(qs_list, model, prompt_method, results):
+    _gene_results = []
+    for idx, result in enumerate(results):
+        assert qs_list[idx]['qs_id'] == result['qs_id']
+
+        # outputs = [result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')]
+        pred = result['response']
+        try:
+            assert '<answer>' in pred and '</answer>' in pred
+            pred = pred.split('<answer>')[1].split('</answer>')[0]
+        except:
+            try:
+                assert pred.count('```') == 2
+                pred = pred.split('```')[1].split('```')[0]
+            except:
+                ...
+
+        _gene_results.append(dict(qs_id=result['qs_id'], outputs=[pred]))
+    return _gene_results
+
+model_names_for_path = {"gpt-4o-mini": "gpt-4o-mini",
+                                     "gpt-3.5-turbo-0125": "gpt-3-5-turbo",
+                                     "codellama/CodeLlama-13b-Instruct-hf": "codellama-13b",
+                                     "meta-llama/Llama-2-13b-chat-hf": 'llama2-13b'}
+
 def pred_eval_new(model, dataset, prompt_method, result_path):
     eval_save_file = result_path.replace('.json', '_eval.json')
     results = json.load(open(result_path, 'r'))
+    if dataset in ['CoNaLa', 'DS1000', 'pandas_numpy_eval']: k = 5
+    else: k = 10
+    results_before = json.load(open(f'../data/{dataset}/new_results/DocNum/{k}_{model_names_for_path[model]}.json', 'r'))
+    # results_before = json.load(open(f'../data/{dataset}/new_results/Prompt/few-shot_{model_names_for_path[model]}.json', 'r'))
+
     if dataset == 'conala':
         loader = ConalaLoader()
         qs_list = loader.load_qs_list()
@@ -465,7 +500,11 @@ def pred_eval_new(model, dataset, prompt_method, result_path):
         preds, answers_list = [], []
         for idx, (result, oracle) in enumerate(zip(results, oracle_list)):
             assert str(result['qs_id']) == str(oracle['qs_id'])
-            pred = process_gene_results(dataset, [result['response']])[0]   # no k trial for QA datasets
+            if 'response' in result.keys():
+                pred = process_gene_results(result['qs_id'], dataset, [result['response']], prompt_type=prompt_method, outputs_before=[results_before[idx]['response']])[0]   # no k trial for QA datasets
+            else:
+                assert len(result['outputs']) == 1
+                pred = process_gene_results(result['qs_id'], dataset, result['outputs'], prompt_type=prompt_method, outputs_before=[results_before[idx]['response']])[0]
             preds.append(pred)
             answers_list.append(oracle['answers'])
         scores, _eval_records = loader.pred_eval(preds=preds, answers_list=answers_list)
@@ -477,7 +516,11 @@ def pred_eval_new(model, dataset, prompt_method, result_path):
         oracle_list = loader.load_oracle_list()
         pred_list = []
         for idx, result in enumerate(results):
-            output = process_gene_results(dataset, [result['response']])[0]   # Todo: now only 1 inference
+            if 'response' in result.keys():
+                output = process_gene_results(result['qs_id'], dataset, [result['response']], prompt_type=prompt_method, outputs_before=[results_before[idx]['response']])[0]   # Todo: now only 1 inference
+            else:
+                assert len(result['outputs']) == 1
+                output = process_gene_results(result['qs_id'], dataset, result['outputs'], prompt_type=prompt_method, outputs_before=[results_before[idx]['response']])[0]
             pred_list.append(dict(qs_id=result['qs_id'], output=output))    # format for eval_pred()
         scores, eval_records = loader.eval_pred(pred_list=pred_list, oracle_list=oracle_list)
     else:

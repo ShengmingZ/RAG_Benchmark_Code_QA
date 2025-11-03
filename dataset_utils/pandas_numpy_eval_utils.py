@@ -52,13 +52,13 @@ class PandasNumpyEvalLoader:
                     break
         return _qs_list
 
-    # def load_oracle_list(self):
-    #     """
-    #     {'qs_id': str, 'oracle_docs': a list of libs}
-    #     """
-    #     oracle_list = json.load(open(self.oracle_docs_matched_file, 'r'))
-    #     oracle_list = [dict(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'], output=oracle['output']) for oracle in oracle_list]
-    #     return oracle_list
+    def load_oracle_list(self):
+        """
+        {'qs_id': str, 'oracle_docs': a list of libs}
+        """
+        oracle_list = json.load(open(self.oracle_docs_matched_file, 'r'))
+        oracle_list = [dict(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'], output=oracle['output']) for oracle in oracle_list]
+        return oracle_list
 
     # def test_helper(self, problem_code_pair):
     #     data, outputs = problem_code_pair

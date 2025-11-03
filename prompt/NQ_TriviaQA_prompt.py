@@ -11,76 +11,31 @@ LLAMA_SYS_PROMPT_NO_RET = """You are a helpful assistant, given a question start
 You should only output the exact answer, and the answer should starts with <answer> and ends with </answer>
 """
 
-SYS_PROMPT_PRETEND = """You are a helpful assistant, given some potential documents starts with `## Potential documents` and a question starts with `## Question`, 
+
+SYS_PROMPT_PRETEND = """You are a helpful assistant, given some potential documents starts with `## Potential documents` and a question starts with `## Question`,
 Your should first pretend that the documents contains useful information to answer the question, then use the knowledge in the documents to answer the question.
 You should only output the exact answer, and the answer should starts with <answer> and ends with </answer>
 """
 
-SYS_PROMPT_SELF_GENE = """You are a helpful assistant. Given a question starts with `## Question`, 
-your should first use your own knowledge to generate some documents that are helpful to answer the question, the documents should start with <Documents> and end with </Documents>,  
+SYS_PROMPT_SELF_GENE = """You are a helpful assistant. Given a question starts with `## Question`,
+your should first use your own knowledge to generate some documents that are helpful to answer the question, the documents should start with <Documents> and end with </Documents>,
 then use these documents to answer the question, the exact answer should start with <answer> and ends with </answer>
 """
 
-SYS_PROMPT_SELF_GENE_2 = """You are a helpful assistant. Given a question starts with `## Question`, 
-You can generate whatever you want at first, then generate the exact answer of the question at the end of your generation, 
+SYS_PROMPT_SELF_GENE_2 = """You are a helpful assistant. Given a question starts with `## Question`,
+You can generate whatever you want at first, then generate the exact answer of the question at the end of your generation,
 the exact answer should start with <answer> and ends with </answer>
 """
 
 SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last question"""
 
 
-# SYS_PROMPT_PLAN_AND_SOLVE = """You are a helpful assistant, given a question starts with `## Question` and some potential documents to help you answer the question starts with `## Potential documents`,
-# Let’s first understand the problem and devise a plan to solve the problem.
-# Then, let’s carry out the plan and solve the problem step by step.
-# Finally, output the exact answer tagged with ```
-# """
-
-
-def prompt_pretend(ret_docs, question, model):
-    potential_docs = ''
-    for idx, ret_doc in enumerate(ret_docs):
-        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
-    user_prompt = f"""
-## Potential documents:
-{potential_docs}
-\n
-## Question: 
-{question}
+SYS_PROMPT_PLAN_AND_SOLVE = """You are a helpful assistant, given a question starts with `## Question` and some potential documents to help you answer the question starts with `## Potential documents`,
+Let’s first understand the problem and devise a plan to solve the problem.
+Then, let’s carry out the plan and solve the problem step by step.
+Finally, output the exact answer tagged with ```
 """
-    sys_prompt = SYS_PROMPT_PRETEND
-    prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
-    return prompt_template
 
-
-def prompt_self_gene(question, model):
-    user_prompt = f"""
-## Question: 
-{question}
-"""
-    sys_prompt = SYS_PROMPT_SELF_GENE
-    prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
-    return prompt_template
-
-def prompt_self_gene_2(question, model):
-    user_prompt = f"""
-## Question: 
-{question}
-"""
-    sys_prompt = SYS_PROMPT_SELF_GENE_2
-    prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
-    return prompt_template
-
-
-# def prompt_self_pad(ellipses, question, model):
-#     user_prompt = f"""
-# {ellipses}
-#
-# ## Question:
-# {question}
-# """
-#     sys_prompt = LLAMA_SYS_PROMPT_NO_RET
-#     prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
-#     return prompt_template
 
 
 def prompt_0shot(ret_docs, question, model):
@@ -108,6 +63,99 @@ def prompt_0shot_no_ret(question, model, pads=''):
     sys_prompt = LLAMA_SYS_PROMPT_NO_RET
     prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
     return prompt_template
+
+
+
+def prompt_emotion(ret_docs, question, model):
+    emotion_prompt = """This is very important to my career:
+
+You are a helpful assistant, given some potential documents starts with `## Potential documents` and a question starts with `## Question`, 
+you should first read the potential documents, and then use the knowledge in documents to answer the question.
+You should only output the exact answer, and the answer should starts with <answer> and ends with </answer>
+"""
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+\n
+## Question: 
+{question}
+"""
+    sys_prompt = emotion_prompt
+    prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
+    return prompt_template
+
+
+
+def prompt_zero_shot_cot(ret_docs, question, model):
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+\n
+## Question: 
+{question}
+
+Let's think it step by step.
+"""
+    sys_prompt = LLAMA_SYS_PROMPT
+    prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
+    return prompt_template
+
+
+# def prompt_pretend(ret_docs, question, model):
+#     potential_docs = ''
+#     for idx, ret_doc in enumerate(ret_docs):
+#         potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+#     user_prompt = f"""
+# ## Potential documents:
+# {potential_docs}
+# \n
+# ## Question:
+# {question}
+# """
+#     sys_prompt = SYS_PROMPT_PRETEND
+#     prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
+#     return prompt_template
+#
+#
+# def prompt_self_gene(question, model):
+#     user_prompt = f"""
+# ## Question:
+# {question}
+# """
+#     sys_prompt = SYS_PROMPT_SELF_GENE
+#     prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
+#     return prompt_template
+#
+# def prompt_self_gene_2(question, model):
+#     user_prompt = f"""
+# ## Question:
+# {question}
+# """
+#     sys_prompt = SYS_PROMPT_SELF_GENE_2
+#     prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
+#     return prompt_template
+
+
+# def prompt_self_pad(ellipses, question, model):
+#     user_prompt = f"""
+# {ellipses}
+#
+# ## Question:
+# {question}
+# """
+#     sys_prompt = LLAMA_SYS_PROMPT_NO_RET
+#     prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
+#     return prompt_template
+
+
+
 
 
 NQ_3shot_prompt = """
@@ -207,7 +255,7 @@ def prompt_3shot(ret_docs, question, model):
     #                                   # examples=NQ_3shot_examples,
     #                                   # answers=NQ_3shot_answers
     #                                   )
-    if 'gpt' in model: prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt]
+    if 'gpt' in model: prompt = [dict(role='user', content=user_prompt)]
     else: prompt = user_prompt
     return prompt
 
@@ -292,7 +340,7 @@ So the refined answer is:
 ## Feedback and refine: Is the answer really correct? If not, refine the answer.
 """
 
-    if 'gpt' in model: prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt]
+    if 'gpt' in model: prompt = [dict(role='user', content=user_prompt)]
     else: prompt = user_prompt
     return prompt
 
@@ -392,7 +440,8 @@ Conclusion: Thus, the answer to the question is ```prokaryote```.
 
 
     if 'gpt' in model:
-        prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt]
+        prompt = [dict(role='system', content=SYS_PROMPT_LEAST_TO_MOST),
+                  dict(role='user', content=user_prompt)]
     else:
         prompt = user_prompt
     # prompt = ensemble_prompt(sys_prompt=SYS_PROMPT_LEAST_TO_MOST, user_prompt=user_prompt, model=model)
@@ -423,7 +472,7 @@ Finally, you should extract the exact answer tagged with <answer>"""
 ## Answer:
 {gpt_plan_and_solve_prompt}
 """
-        prompt = ['', user_prompt] if 'gpt' in model else user_prompt
+        prompt = [dict(role='user', content=user_prompt)]
     else:
         user_prompt = f"""
 ## Potential documents:
@@ -451,10 +500,14 @@ def prompt_cot(ret_docs, question, model, existing_output=None):
 
 ## Answer:
 """
-    if existing_output is not None: user_prompt = user_prompt + '\n' + existing_output
+    # if existing_output is not None: user_prompt = user_prompt + '\n' + existing_output
     # sys_prompt = SYS_PROMPT_PLAN_AND_SOLVE
     # prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
-    prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt] if 'gpt' in model else user_prompt
+    # prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt] if 'gpt' in model else user_prompt
+    if 'gpt' in model:
+        prompt = [dict(role='user', content=user_prompt)]
+    else:
+        prompt = user_prompt
     return prompt
 
 

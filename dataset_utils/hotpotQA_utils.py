@@ -155,29 +155,29 @@ class HotpotQAUtils:
     #
     #     return new_sampled_qs_list
     #
-    # @staticmethod
-    # def eval_sp(preds, golds, top_k):
-    #     """
-    #     evaluate retrieval doc acc
-    #     :param preds:
-    #     :param golds:
-    #     :param top_k:
-    #     :return:
-    #     """
-    #     assert len(preds) == len(golds)
-    #     metrics = dict()
-    #     for k in top_k:
-    #         metrics[k] = {'sp_em': 0, 'sp_f1': 0, 'sp_prec': 0, 'sp_recall': 0}
-    #         for pred, gold in zip(preds, golds):
-    #             _update_sp(metrics=metrics[k], prediction=pred[:k], gold=gold)
-    #         N = len(golds)
-    #         for key in metrics[k].keys():
-    #             metrics[k][key] /= N
-    #     _metrics = dict()
-    #     for k in top_k:
-    #         _metrics[k] = round(metrics[k]['sp_recall'], 3)
-    #     print(_metrics)
-    #     return metrics
+    @staticmethod
+    def eval_sp(preds, golds, top_k):
+        """
+        evaluate retrieval doc acc
+        :param preds:
+        :param golds:
+        :param top_k:
+        :return:
+        """
+        assert len(preds) == len(golds)
+        metrics = dict()
+        for k in top_k:
+            metrics[k] = {'sp_em': 0, 'sp_f1': 0, 'sp_prec': 0, 'sp_recall': 0}
+            for pred, gold in zip(preds, golds):
+                _update_sp(metrics=metrics[k], prediction=pred[:k], gold=gold)
+            N = len(golds)
+            for key in metrics[k].keys():
+                metrics[k][key] /= N
+        _metrics = dict()
+        for k in top_k:
+            _metrics[k] = round(metrics[k]['sp_recall'], 3)
+        print(_metrics)
+        return metrics
 
     @staticmethod
     def eval_pred(pred_list, oracle_list):

@@ -40,15 +40,15 @@ class DS1000Loader:
                     break
         return qs_list
 
-    # def load_oracle_list(self):
-    #     """
-    #     {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
-    #     """
-    #     oracle_list = json.load(open(self.oracle_doc_file, 'r'))
-    #     _oracle_list = list()
-    #     for oracle in oracle_list:
-    #         _oracle_list.append(dict(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'], output=oracle['output']))
-    #     return json.load(open(self.oracle_doc_file))
+    def load_oracle_list(self):
+        """
+        {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
+        """
+        oracle_list = json.load(open(self.oracle_doc_file, 'r'))
+        _oracle_list = list()
+        for oracle in oracle_list:
+            _oracle_list.append(dict(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'], output=oracle['output']))
+        return json.load(open(self.oracle_doc_file))
     #
     # # sample 20%
     # def sample_dataset(self):

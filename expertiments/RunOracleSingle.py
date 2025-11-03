@@ -27,7 +27,7 @@ class LLMOracleEvaluator:
         elif model == 'llama-old-code': self.model_config = LLMSettings().LLAMAConfigs().llama_old_code
         elif model == 'llama-old-qa': self.model_config = LLMSettings().LLAMAConfigs().llama_old_qa
         else: raise Exception('Unknown model')
-        if dataset in ['NQ', 'TriviaQA', 'HotpotQA']: self.max_tokens = 100     # todo: do not consider prompting method!
+        if dataset in ['NQ', 'TriviaQA', 'HotpotQA']: self.max_tokens = 500     # todo: do not consider prompting method!
         elif dataset == 'DS1000': self.max_tokens = 1000
         else: self.max_tokens = 500
         if self.model_config.organization == 'openai':
@@ -53,7 +53,8 @@ class LLMOracleEvaluator:
 
         self.model_names_for_path = {"gpt-4o-mini": "gpt-4o-mini",
                                      "gpt-3.5-turbo-0125": "gpt-3-5-turbo",
-                                     "codellama/CodeLlama-13b-Instruct-hf": "codellama-13b"}
+                                     "codellama/CodeLlama-13b-Instruct-hf": "codellama-13b",
+                                     "meta-llama/Llama-2-13b-chat-hf": 'llama2-13b'}
 
         if self.dataset == 'conala':
             self.problems = ConalaLoader().load_qs_list()
@@ -321,7 +322,10 @@ class LLMOracleEvaluator:
                     break
             if not ret_docs_exist: raise Exception(f'no ret docs for problem: {qs_id}')
             # use top-k docs as retrieved docs
-            truncated_docs = truncate_docs(ret_docs[qs_id][:k], model='gpt-3.5-turbo-0125', max_length=500)
+            if self.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
+                truncated_docs = truncate_docs(ret_docs[qs_id][:k], model='gpt-3.5-turbo-0125', max_length=500)
+            else:
+                truncated_docs = [item['doc'] for item in ret_docs[qs_id][:k]]
             prompt = self.prompt_generator(question=problem['question'], model=self.model_config.model, ret_docs=truncated_docs)
             prompts.append(prompt)
             problem_ids.append(problem['qs_id'])
@@ -425,6 +429,8 @@ class LLMOracleEvaluator:
                 from generator.pred_eval import parsing_for_ds1000_new as result_parser
             elif self.dataset == 'pandas_numpy_eval':
                 from generator.pred_eval import parsing_for_pne_new as result_parser
+            elif self.dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
+                from generator.pred_eval import parsing_for_qa_new as result_parser
             else:
                 raise Exception('Unsupported Dataset')
             initial_results = json.load(open(f'../data/{self.dataset}/new_results/DocNum/{k}_{self.model_names_for_path[self.model_config.model]}.json', 'r'))
@@ -439,7 +445,10 @@ class LLMOracleEvaluator:
                     break
             if not ret_docs_exist: raise Exception(f'no ret docs for problem: {qs_id}')
             # use top-k docs as retrieved docs
-            truncated_docs = truncate_docs(ret_docs[qs_id][:k], model='gpt-3.5-turbo-0125', max_length=500)
+            if self.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
+                truncated_docs = truncate_docs(ret_docs[qs_id][:k], model='gpt-3.5-turbo-0125', max_length=500)
+            else:
+                truncated_docs = [item['doc'] for item in ret_docs[qs_id][:k]]
             if prompt_method == 'self-refine':
                 assert problem['qs_id'] == initial_results[idx]['qs_id']
                 prompt = self.prompt_generator(question=problem['question'], model=self.model_config.model, ret_docs=truncated_docs, initial_output=initial_results[idx]['outputs'][0])

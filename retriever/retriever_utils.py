@@ -115,7 +115,7 @@ def ret_eval(args, top_k=None):
         for key in ret_results.keys():
             ret_results[key] = ret_results[key][:-2]
 
-    if top_k is None: top_k = [1, 3, 5, 10, 20, 50, 100]
+    if top_k is None: top_k = [1, 3, 5, 7, 10, 13, 15, 16, 20, 30, 40]
     if dataset == 'hotpotQA':
         oracle_list = loader.load_oracle_list()
         golds, preds = list(), list()
@@ -129,7 +129,11 @@ def ret_eval(args, top_k=None):
         for oracle in oracle_list:
             answers_list.append(oracle['answers'])
             ret_doc_keys_list.append([tmp['doc_key'] for tmp in ret_results[oracle['qs_id']]][:top_k[-1]])
-        ret_docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list, dataset)
+        # ret_docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list, dataset)
+        ret_docs = json.load(open(f'../data/{dataset}/persist_ret_docs.json', 'r'))
+        ret_docs_list = []
+        for qid in ret_docs:
+            ret_docs_list.append([item['doc'] for item in ret_docs[qid]])
         print('load docs done')
         metrics = loader.retrieval_eval(docs_list=ret_docs_list, answers_list=answers_list, top_k=top_k)
     elif dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
@@ -144,6 +148,7 @@ def ret_eval(args, top_k=None):
 
 
 
+
 def ret_eval_by_doc_keys(dataset, oracle_list, ret_doc_keys_list):
     ret_doc_key_flags_list = dict()     # correspond to ret_doc_keys_list: each element record if the ret doc if oracle or not
     ret_recall_list = []    # record ret recall for each sample
@@ -151,22 +156,24 @@ def ret_eval_by_doc_keys(dataset, oracle_list, ret_doc_keys_list):
     oracle_percent_list = []    # record oracle doc percentage for each sample
     if dataset == 'NQ' or dataset == 'TriviaQA':
         from dataset_utils.NQ_TriviaQA_utils import has_answer
-        ret_docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list, dataset)
-        for ret_docs, oracle in zip(ret_docs_list, oracle_list):
+        # ret_docs_list = WikiCorpusLoader().get_docs(ret_doc_keys_list, dataset)
+        ret_docs_dicts = json.load(open(f'../data/{dataset}/persist_ret_docs.json', 'r'))
+        for ret_docs, oracle in zip(ret_docs_dicts, oracle_list):
             ret_doc_key_flags = []
-            oracle_doc_rank = -1
-            oracle_doc_count = 0
+            # oracle_doc_rank = -1
+            # oracle_doc_count = 0
             for idx, ret_doc in enumerate(ret_docs):
-                if has_answer(oracle['answers'], ret_doc):
+                # if has_answer(oracle['answers'], ret_doc):
+                if ret_doc['has_answer']:
                     ret_doc_key_flags.append(True)
-                    if oracle_doc_rank == -1: oracle_doc_rank = idx
-                    oracle_doc_count += 1
+                    # if oracle_doc_rank == -1: oracle_doc_rank = idx
+                    # oracle_doc_count += 1
                 else: ret_doc_key_flags.append(False)
             if True in ret_doc_key_flags:  ret_recall_list.append(1)
             else: ret_recall_list.append(0)
-            if oracle_doc_rank == -1: oracle_rank_list.append([])
-            else: oracle_rank_list.append([oracle_doc_rank])
-            oracle_percent_list.append(oracle_doc_count / len(ret_doc_key_flags))
+            # if oracle_doc_rank == -1: oracle_rank_list.append([])
+            # else: oracle_rank_list.append([oracle_doc_rank])
+            # oracle_percent_list.append(oracle_doc_count / len(ret_doc_key_flags))
             ret_doc_key_flags_list[oracle['qs_id']] = ret_doc_key_flags
     else:
         for ret_doc_keys, oracle in zip(ret_doc_keys_list, oracle_list):
@@ -200,9 +207,9 @@ def ret_eval_by_doc_keys(dataset, oracle_list, ret_doc_keys_list):
 
 
 if __name__ == '__main__':
-    in_program_call = '--dataset TriviaQA --retriever openai-embedding'
+    in_program_call = '--dataset hotpotQA --retriever openai-embedding'
     args = retriever_config(in_program_call)
-    verify_ret_docs(args)
+    ret_eval(args)
 
     # dataset = args.dataset
     # loader = HotpotQAUtils()
