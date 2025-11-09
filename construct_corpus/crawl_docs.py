@@ -116,9 +116,9 @@ if __name__ == '__main__':
     # api_sign_file = '../data/python_docs/api_sign_builtin.txt'
     # api_doc_file = '../data/python_docs/api_doc_builtin.json'
 
-    func_list = list()  # store each function's full name
-    module_list = list()    # store each module
-    api_doc_dict = dict()   # store api docs in a dict, key is full name, value is docs
+    func_list = list()      # global var, store each function's full name
+    module_list = list()    # global var, store each module
+    api_doc_dict = dict()   # global var, store api docs in a dict, key is full name, value is docs
 
     crawl_python_doc(library_list)
 

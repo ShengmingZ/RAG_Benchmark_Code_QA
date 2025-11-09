@@ -11,11 +11,11 @@ from tqdm import tqdm
 import platform, sys
 system = platform.system()
 if system == 'Darwin':
-    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/'
 elif system == 'Linux':
-    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
 sys.path.insert(0, root_path)
-from generator.generate_utils import get_docs_tokens, _get_generate_func, truncate_docs, get_docs_for_ret_results
+from generator_deprecated.generate_utils import get_docs_tokens, _get_generate_func, truncate_docs, get_docs_for_ret_results
 from dataset_utils.corpus_utils import WikiCorpusLoader, PythonDocsLoader
 
 openai.api_key = os.getenv("OPENAI_API_KEY", "")

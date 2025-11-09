@@ -8,14 +8,15 @@ from io import StringIO
 import sys, platform
 system = platform.system()
 if system == 'Darwin':
-    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/Users/zhaoshengming/RAG_Benchmark_Code_QA'
 elif system == 'Linux':
-    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
 sys.path.insert(0, root_path)
 from data.DS1000.ds1000 import DS1000Dataset
 
 random.seed(0)
 
+# ignore common functions
 common_func_list = ['copy', 'format', 'lower', 'len', 'int', 'str', 'open']
 # common_func_list = ['sum', 'replace', 'lower', 'search', 'sort', 'pow', 'append', 'sub', 'sqrt', 'split', 'add', 'keys', 'items', 'join', 'extend', 'copy', 'remove', 'index', 'pop']
 
@@ -505,6 +506,16 @@ def main(dataset_name):
 
 
 if __name__ == '__main__':
+
+    main('conala')
+    # main('DS1000')
+    # main('pandas-numpy-eval')
+
+
+
+    """
+    test code, deprecated
+    """
     # data_file = os.path.join(root_path, 'data/DS1000/sampled_data.json')
     # dataset = json.load(open(data_file, 'r'))
     # data = dataset[30]
@@ -559,10 +570,6 @@ if __name__ == '__main__':
     #                     potential_func_full_name_list.append(full_name)
     # print(list(set(potential_func_full_name_list)))
 
-
-    main('conala')
-    # main('DS1000')
-    # main('pandas-numpy-eval')
 
     # import os
     # os.environ["HF_ALLOW_CODE_EVAL"] = "1"
@@ -666,7 +673,7 @@ if __name__ == '__main__':
     # module_attributes = dir(scipy)
     # print(len(module_attributes))
 
-    # pandas_eval_file = '/Users/zhaoshengming/Code_RAG_Benchmark/data/pandas-numpy-eval/data/PandasEval.jsonl.gz'
+    # pandas_eval_file = '/Users/zhaoshengming/RAG_Benchmark_Code_QA/data/pandas-numpy-eval/data/PandasEval.jsonl.gz'
     # numpy_eval_file = pandas_eval_file.replace('PandasEval', 'NumpyEval')
     #
     # import gzip

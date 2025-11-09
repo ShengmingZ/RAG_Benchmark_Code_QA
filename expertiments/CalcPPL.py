@@ -2,7 +2,7 @@ import argparse
 import json
 import sys
 import math
-sys.path.append('../../Code_RAG_Benchmark')
+sys.path.append('..')
 
 
 def calc_ppl(logprobs_list):

@@ -1,7 +1,7 @@
 import argparse
 import json
 import sys
-sys.path.append('../../Code_RAG_Benchmark')
+sys.path.append('..')
 import numpy as np
 from statsmodels.stats.contingency_tables import mcnemar
 from scipy.stats import chi2_contingency

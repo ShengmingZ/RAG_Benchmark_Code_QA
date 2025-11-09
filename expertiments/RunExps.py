@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List, Dict, Tuple
 import argparse
 import sys
-sys.path.append('../../Code_RAG_Benchmark')
+sys.path.append('..')
 from prompt import conala_prompt, DS1000_prompt, pandas_numpy_eval_prompt, hotpotQA_prompt, NQ_TriviaQA_prompt
 from retriever.RetrievalProvider import RetrievalProvider
 from dataset_utils.conala_utils import ConalaLoader
@@ -15,8 +15,8 @@ from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from llms.LLMConfig import LLMConfig, LLMSettings
 from llms.OpenAIProvider import OpenAIProvider
 from llms.LLAMAProvider import LlamaProvider
-from generator.pred_eval import pred_eval_new
-from generator.generate_utils import truncate_docs
+from generator_deprecated.pred_eval import pred_eval_new
+from generator_deprecated.generate_utils import truncate_docs
 
 
 class LLMOracleEvaluator:
@@ -424,13 +424,13 @@ class LLMOracleEvaluator:
         # if prompt method is self-refine, load initial results from doc num results
         if prompt_method == 'self-refine':
             if self.dataset == 'conala':
-                from generator.pred_eval import parsing_for_conala_new as result_parser
+                from generator_deprecated.pred_eval import parsing_for_conala_new as result_parser
             elif self.dataset == 'DS1000':
-                from generator.pred_eval import parsing_for_ds1000_new as result_parser
+                from generator_deprecated.pred_eval import parsing_for_ds1000_new as result_parser
             elif self.dataset == 'pandas_numpy_eval':
-                from generator.pred_eval import parsing_for_pne_new as result_parser
+                from generator_deprecated.pred_eval import parsing_for_pne_new as result_parser
             elif self.dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
-                from generator.pred_eval import parsing_for_qa_new as result_parser
+                from generator_deprecated.pred_eval import parsing_for_qa_new as result_parser
             else:
                 raise Exception('Unsupported Dataset')
             initial_results = json.load(open(f'../data/{self.dataset}/new_results/DocNum/{k}_{self.model_names_for_path[self.model_config.model]}.json', 'r'))

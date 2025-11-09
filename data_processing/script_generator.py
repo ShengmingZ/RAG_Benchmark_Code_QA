@@ -31,7 +31,7 @@ batch = batches[1]
 if file == 'generate.py':
     # script = ''
     # for retriever in retrievers:
-    #     script_temp = (f"python generator/{file} --action {action} --model {model} --temperature 0 --n {n} --dataset {dataset} "
+    #     script_temp = (f"python generator_deprecated/{file} --action {action} --model {model} --temperature 0 --n {n} --dataset {dataset} "
     #                 f"--retriever {retriever} --analysis_type {analysis_type} --ret_doc_type none")
     #     print(script_temp)
     #     if batch: script += script_temp + ' --batch  &    '
@@ -51,7 +51,7 @@ elif file == 'transfer':
         script = (f"scp -P 10389 zhaoshengming@129.128.209.149:~/Code_RAG_Benchmark/data/{dataset}/results/model_{model}_n_1_{analysis_type}_RaR.json "
                   f"data/{dataset}/results")
         print(script)
-        # script = (f"scp -P 10389 zhaoshengming@129.128.209.149:~/Code_RAG_Benchmark/data/{dataset}/results/model_{model}_n_1_{analysis_type}_3shot.json "
+        # script = (f"scp -P 10389 zhaoshengming@129.128.209.149:~/RAG_Benchmark_Code_QA/data/{dataset}/results/model_{model}_n_1_{analysis_type}_3shot.json "
         #           f"data/{dataset}/results")
         # print(script)
 

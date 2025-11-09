@@ -7,9 +7,9 @@ import json
 from tqdm import tqdm
 system = platform.system()
 if system == 'Darwin':
-    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/'
 elif system == 'Linux':
-    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
 sys.path.insert(0, root_path)
 from retriever.retriever_utils import get_ret_results, retriever_config, ret_eval
 from dataset_utils.corpus_utils import WikiCorpusLoader, PythonDocsLoader
@@ -18,8 +18,8 @@ from dataset_utils.hotpotQA_utils import HotpotQAUtils
 from dataset_utils.DS1000_utils import DS1000Loader
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
-from generator.generate_utils import truncate_docs
-from generator.run_model import chatgpt
+from generator_deprecated.generate_utils import truncate_docs
+from generator_deprecated.run_model import chatgpt
 
 COHERE_API_KEY = 'fYEeEiZr5jloupFJyBxbZr0FCrHCkpabEIsCNplm'
 COHERE_API_KEY = os.getenv('COHERE_API_KEY', '')

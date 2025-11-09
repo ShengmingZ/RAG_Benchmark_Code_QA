@@ -3,10 +3,10 @@ provide an inferface for retrieval, isolating old retrieving codes
 """
 import random
 import sys
-sys.path.append('../../Code_RAG_Benchmark')
+sys.path.append('..')
 import json
 import openai
-from generator.generate_utils import get_docs_tokens
+from generator_deprecated.generate_utils import get_docs_tokens
 from retriever.retriever_utils import retriever_config, get_ret_results
 import re
 from collections import defaultdict

@@ -7,12 +7,12 @@ import numpy as np
 from typing import List
 system = platform.system()
 if system == 'Darwin':
-    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/'
 elif system == 'Linux':
-    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
 sys.path.insert(0, root_path)
 from dataset_utils.conala_utils import ConalaLoader
-from generator.generate_utils import generate_config, get_docs_tokens
+from generator_deprecated.generate_utils import generate_config, get_docs_tokens
 from dataset_utils.DS1000_utils import DS1000Loader
 from data.DS1000.ds1000 import DS1000Dataset
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader

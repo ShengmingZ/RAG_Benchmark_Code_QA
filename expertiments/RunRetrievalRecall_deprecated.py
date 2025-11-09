@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List, Dict, Tuple
 import argparse
 import sys
-sys.path.append('../../Code_RAG_Benchmark')
+sys.path.append('..')
 from prompt import conala_prompt, DS1000_prompt, pandas_numpy_eval_prompt, hotpotQA_prompt, NQ_TriviaQA_prompt
 from retriever.RetrievalProvider import RetrievalProvider
 from dataset_utils.conala_utils import ConalaLoader
@@ -14,8 +14,8 @@ from dataset_utils.hotpotQA_utils import HotpotQAUtils
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from llms.LLMConfig import LLMConfig, LLMSettings
 from llms.OpenAIProvider import OpenAIProvider
-from generator.pred_eval import pred_eval_new
-from generator.generate_utils import truncate_docs
+from generator_deprecated.pred_eval import pred_eval_new
+from generator_deprecated.generate_utils import truncate_docs
 
 
 class LLMOracleEvaluator:
