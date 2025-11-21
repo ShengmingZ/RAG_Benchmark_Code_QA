@@ -69,6 +69,7 @@ class LlamaProvider(LLMProvider):
         results = list()
         for prompt in prompts:
             result = self.generate(prompt=prompt, return_type=return_type, include_logits=include_logits, print_generation_time=print_generation_time)
+            print(result['text'])
             results.append(result)
         return results
 
@@ -99,18 +100,20 @@ class LlamaProvider(LLMProvider):
 
         # Add stop tokens if provided
         if self.stop:
-            stop_token_ids = []
-            for stop_word in self.stop:
-                stop_ids = self.tokenizer.encode(stop_word, add_special_tokens=False)
-                stop_token_ids.extend(stop_ids)
-            if stop_token_ids:
-                generation_kwargs["eos_token_id"] = stop_token_ids
+            # stop_token_ids = []
+            # for stop_word in self.stop:
+            #     stop_ids = self.tokenizer.encode(stop_word, add_special_tokens=False)
+            #     stop_token_ids.extend(stop_ids)
+            # if stop_token_ids:
+            #     generation_kwargs["eos_token_id"] = stop_token_ids
+            generation_kwargs["stop_strings"] = self.stop
 
         # Generate
         with torch.no_grad():
             outputs = self.model.generate(
                 input_ids=inputs.input_ids,
                 attention_mask=inputs.attention_mask,
+                tokenizer=self.tokenizer,
                 **generation_kwargs
             )
 

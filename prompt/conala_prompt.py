@@ -736,6 +736,8 @@ def prompt_plan_and_solve(ret_docs, question, model):
 \n
 ## Description: 
 {question}
+
+Let's first understand the problem and devise a plan to solve the problem. Then, let's carry out the plan to solve the problem step by step.
 """
     prompt_template = ensemble_prompt(sys_prompt=SYS_PROMPT_ZERO_SHOT, user_prompt=user_prompt, model=model)
     return prompt_template

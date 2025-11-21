@@ -7,7 +7,8 @@ from generator.pred_eval import pred_eval_new
 if __name__ == '__main__':
     model_names_for_path = {"gpt-4o-mini": "gpt-4o-mini",
                             "gpt-3.5-turbo-0125": "gpt-3-5-turbo",
-                            "codellama/CodeLlama-13b-Instruct-hf": "codellama-13b"}
+                            "codellama/CodeLlama-13b-Instruct-hf": "codellama-13b",
+                            "meta-llama/Llama-2-13b-chat-hf": 'llama2-13b'}
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', required=True, help='Dataset (conala, DS1000)')
