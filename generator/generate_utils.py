@@ -12,7 +12,7 @@ from functools import partial
 from copy import deepcopy
 system = platform.system()
 if system == 'Darwin':
-    root_path = '/'
+    root_path = '/Users/zhaoshengming/RAG_Benchmark_Code_QA'
 elif system == 'Linux':
     root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
 sys.path.insert(0, root_path)
