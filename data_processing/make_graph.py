@@ -913,11 +913,225 @@ def make_ret_recall_analysis(dataset_perf_data, dataset_baseline_data, llm_names
     # fig.suptitle('Model Performance Comparison Across Datasets\n(Solid lines: With Retrieval, Dashed lines: No Retrieval)',
     #     fontsize=20, fontweight='bold', y=0.98)
 
+
+# Alternative refactored version with helper functions
+def create_subplot(ax, perf_datas, dataset_names, colors, markers, x_positions, ret_recalls, title, ylabel, yticks, yticklabels):
+    """Helper function to create individual subplots"""
+    for idx, (perf_data, dataset_name) in enumerate(zip(perf_datas, dataset_names)):
+        ax.plot(x_positions, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=dataset_name, color=colors[idx])
+
+    ax.set_xlabel('Retrieval Recall', fontsize=22)
+    ax.set_ylabel(ylabel, fontsize=22)
+    ax.set_yticks(yticks)
+    ax.set_yticklabels(yticklabels, fontsize=20)
+    ax.set_xticks(x_positions)
+    ax.set_xticklabels(ret_recalls, fontsize=20)
+    ax.set_title(title, fontsize=22)
+    ax.grid(True, alpha=0.3)
+
+
+def make_ret_recall_analysis():
+    """
+    Refactored version with helper functions for better code organization
+    """
+    # Configuration
+    graph_name = 'ret_recall_analysis.pdf'
+    qa_metric = 'has_answer'
+    code_metric = 'pass@1'
+
+    # Colors and styling
+    colors = ['#DC143C', '#FF8C00', '#DAA520', '#FFB6C1',
+              '#228B22', '#4169E1', '#8B4513', '#C71585']
+    markers = ['D', 'o', '^']
+    qa_colors = colors[:4]
+    code_colors = colors[4:]
+
+    # Data extraction (same as above)
+    gpt_perf_datas = []
+    for dataset_name in qa_dataset_names:
+        gpt_perf_datas.append([
+            results.qa_ret_recall_gpt_n_1[dataset_name][ret_recall][qa_metric]
+            for ret_recall in ret_recalls
+        ])
+    for dataset_name in code_dataset_names:
+        gpt_perf_datas.append([
+            results.code_ret_recall_gpt_n_1[dataset_name][ret_recall][code_metric]
+            for ret_recall in ret_recalls
+        ])
+
+    llama_perf_datas = []
+    for dataset_name in qa_dataset_names:
+        llama_perf_datas.append([
+            results.qa_ret_recall_llama_n_1[dataset_name][ret_recall][qa_metric]
+            for ret_recall in ret_recalls
+        ])
+    for dataset_name in code_dataset_names:
+        llama_perf_datas.append([
+            results.code_ret_recall_llama_n_1[dataset_name][ret_recall][code_metric]
+            for ret_recall in ret_recalls
+        ])
+
+    # Create figure
+    plt.style.use('ggplot')
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 12))
+    x_positions = range(len(ret_recalls))
+
+    # Create subplots using helper function
+    create_subplot(ax1, llama_perf_datas[:3], auth_qa_dataset_names,
+                   qa_colors, markers, x_positions, ret_recalls,
+                   'a. Llama2-13B, QA Tasks', 'Accuracy',
+                   [0, 0.2, 0.4, 0.6, 0.8, 1.0], [0, 0.2, 0.4, 0.6, 0.8, 1.0])
+
+    create_subplot(ax2, llama_perf_datas[3:], auth_code_dataset_names,
+                   code_colors, markers, x_positions, ret_recalls,
+                   'b. Llama2-13B, Code Tasks', 'Pass@1',
+                   [0, 0.2, 0.4, 0.6], [0, 0.2, 0.4, 0.6])
+
+    create_subplot(ax3, gpt_perf_datas[:3], auth_qa_dataset_names,
+                   qa_colors, markers, x_positions, ret_recalls,
+                   'c. GPT-3.5, QA Tasks', 'Accuracy',
+                   [0, 0.2, 0.4, 0.6, 0.8, 1.0], [0, 0.2, 0.4, 0.6, 0.8, 1.0])
+
+    create_subplot(ax4, gpt_perf_datas[3:], auth_code_dataset_names,
+                   code_colors, markers, x_positions, ret_recalls,
+                   'd. GPT-3.5, Code Tasks', 'Pass@1',
+                   [0.2, 0.4, 0.6, 0.8], [0.2, 0.4, 0.6, 0.8])
+
+    # Create shared legend
+    ax1_handles, ax1_labels = ax1.get_legend_handles_labels()
+    ax2_handles, ax2_labels = ax2.get_legend_handles_labels()
+
+    fig.legend(ax1_handles + ax2_handles, ax1_labels + ax2_labels,
+               loc='lower center', ncol=3, fontsize=24,
+               bbox_to_anchor=(0.5, -0.12))
+
     plt.tight_layout()
     plt.savefig(f'graph/{graph_name}', bbox_inches='tight', dpi=300)
     plt.show()
 
 
+
+# def make_ret_recall_analysis():
+#     graph_name = 'ret_recall_analysis.pdf'
+#     qa_metric = 'has_answer'; code_metric = 'pass@1'
+#     gpt_perf_datas = []
+#     for dataset_name in qa_dataset_names:
+#         gpt_perf_datas.append(
+#             [results.qa_ret_recall_gpt_n_1[dataset_name][ret_recall][qa_metric] for ret_recall in ret_recalls])
+#     for dataset_name in code_dataset_names:
+#         gpt_perf_datas.append(
+#             [results.code_ret_recall_gpt_n_1[dataset_name][ret_recall][code_metric] for ret_recall in ret_recalls])
+#     llama_perf_datas = []
+#     for dataset_name in qa_dataset_names:
+#         llama_perf_datas.append(
+#             [results.qa_ret_recall_llama_n_1[dataset_name][ret_recall][qa_metric] for ret_recall in ret_recalls])
+#     for dataset_name in code_dataset_names:
+#         llama_perf_datas.append(
+#             [results.code_ret_recall_llama_n_1[dataset_name][ret_recall][code_metric] for ret_recall in ret_recalls])
+#     gpt_perf_none = [results.qa_ret_doc_type_gpt_n_1[dataset_name]['none'][qa_metric] for dataset_name in qa_dataset_names]
+#     gpt_perf_none.extend([results.code_ret_doc_type_gpt_n_1[dataset_name]['none'][code_metric] for dataset_name in code_dataset_names])
+#     llama_perf_none = [results.qa_ret_doc_type_llama_n_1[dataset_name]['none'][qa_metric] for dataset_name in qa_dataset_names]
+#     llama_perf_none.extend([results.code_ret_doc_type_llama_n_1[dataset_name]['none'][code_metric] for dataset_name in code_dataset_names])
+#     x = range(len(gpt_perf_datas[0]))
+#     plt.style.use('ggplot')
+#     # colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#17becf']
+#     colors = ['#DC143C', '#FF8C00', '#DAA520', '#FFB6C1', '#228B22', '#4169E1', '#8B4513', '#C71585']
+#     markers = ['D', 'o', '^']
+#     qa_colors, code_colors = colors[:4], colors[4:]
+#     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 12))  # ax1: qa, ax2: code
+#     for idx, (perf_data, dataset_name) in enumerate(zip(llama_perf_datas[:3], qa_dataset_names)):
+#         line, = ax1.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
+#         # ax1.axhline(y=llama_perf_none[:3][idx], color=line.get_color(), linestyle='--', linewidth=3)  # plot none result
+#     ax1.set_xlabel('Retrieval Recall', fontsize=22)
+#     ax1.set_ylabel('Accuracy', fontsize=22)
+#     ax1.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+#     ax1.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=20)
+#     ax1.set_xticks(x, ret_recalls)
+#     ax1.set_xticklabels(ret_recalls, fontsize=20)
+#     ax1.set_title('a. Llama2-13B, QA Tasks', fontsize=22)
+#     for idx, (perf_data, dataset_name) in enumerate(zip(llama_perf_datas[3:], code_dataset_names)):
+#         line, = ax2.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
+#         # ax2.axhline(y=llama_perf_none[3:][idx], color=line.get_color(), linestyle='--', linewidth=3)  # plot none result
+#     ax2.set_xlabel('Retrieval Recall', fontsize=22)
+#     ax2.set_ylabel('Pass@1', fontsize=22)
+#     ax2.set_yticks([0, 0.2, 0.4, 0.6])
+#     ax2.set_yticklabels([0, 0.2, 0.4, 0.6], fontsize=20)
+#     ax2.set_xticks(x, ret_recalls)
+#     ax2.set_xticklabels(ret_recalls, fontsize=20)
+#     ax2.set_title('b. Llama2-13B, Code Tasks', fontsize=22)
+#     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas[:3], qa_dataset_names)):
+#         line, = ax3.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_qa_dataset_names[idx], color=qa_colors[idx])
+#         # ax3.axhline(y=gpt_perf_none[:3][idx], color=line.get_color(), linestyle='--', linewidth=3)   # plot none result
+#     ax3.set_xlabel('Retrieval Recall', fontsize=22)
+#     ax3.set_ylabel('Accuracy', fontsize=22)
+#     ax3.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+#     ax3.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontsize=20)
+#     ax3.set_xticks(x, ret_recalls)
+#     ax3.set_xticklabels(ret_recalls, fontsize=20)
+#     ax3.set_title('c. GPT-3.5, QA Tasks', fontsize=22)
+#     for idx, (perf_data, dataset_name) in enumerate(zip(gpt_perf_datas[3:], code_dataset_names)):
+#         line, = ax4.plot(x, perf_data, marker=markers[idx], markersize=10, linestyle='-', label=auth_code_dataset_names[idx], color=code_colors[idx])
+#         # ax4.axhline(y=gpt_perf_none[3:][idx], color=line.get_color(), linestyle='--', linewidth=3)   # plot none result
+#     ax4.set_xlabel('Retrieval Recall', fontsize=22)
+#     ax4.set_ylabel('Pass@1', fontsize=22)
+#     ax4.set_yticks([0.2, 0.4, 0.6, 0.8])
+#     ax4.set_yticklabels([0.2, 0.4, 0.6, 0.8], fontsize=20)
+#     ax4.set_xticks(x, ret_recalls)
+#     ax4.set_xticklabels(ret_recalls, fontsize=20)
+#     ax4.set_title('d. GPT-3.5, Code Tasks', fontsize=22)
+#
+#     ax1_handles, ax1_labels = ax1.get_legend_handles_labels()
+#     ax2_handles, ax2_labels = ax2.get_legend_handles_labels()
+#     handles, labels = ax1_handles+ax2_handles, ax1_labels+ax2_labels
+#     fig.legend(handles, labels, loc='lower center', ncol=3, fontsize=24, bbox_to_anchor=(0.5, -0.12))
+#     plt.tight_layout()
+#     plt.savefig('graph/' + graph_name, bbox_inches='tight')
+#     plt.show()
+
+
+def make_qa_code_retriever_perf():
+    graph_name = 'qa_code_perf_on_retriever.pdf'
+    gpt_qa_retriever_perf_datas, llama_qa_retriever_perf_datas = dict(), dict()
+    gpt_code_retriever_perf_datas, llama_code_retriever_perf_datas = dict(), dict()
+    for retriever_name in retriever_names:
+        if retriever_name == 'contriever':
+            gpt_qa_retriever_perf_datas[retriever_name] = sum([results.retriever_perf_gpt[qa_name][retriever_name]['recall'] for qa_name in qa_dataset_names])/3 # get mean perf of qa dataset
+            llama_qa_retriever_perf_datas[retriever_name] = sum([results.retriever_perf_llama[qa_name][retriever_name]['recall'] for qa_name in qa_dataset_names])/3
+        elif retriever_name == 'codeT5':
+            gpt_code_retriever_perf_datas[retriever_name] = sum([results.retriever_perf_gpt[code_name][retriever_name]['pass@1'] for code_name in code_dataset_names])/3
+            llama_code_retriever_perf_datas[retriever_name] = sum([results.retriever_perf_llama[code_name][retriever_name]['pass@1'] for code_name in code_dataset_names])/3
+        else:
+            gpt_qa_retriever_perf_datas[retriever_name] = sum([results.retriever_perf_gpt[qa_name][retriever_name]['recall'] for qa_name in qa_dataset_names])/3
+            llama_qa_retriever_perf_datas[retriever_name] = sum([results.retriever_perf_llama[qa_name][retriever_name]['recall'] for qa_name in qa_dataset_names])/3
+            gpt_code_retriever_perf_datas[retriever_name] = sum([results.retriever_perf_gpt[code_name][retriever_name]['pass@1'] for code_name in code_dataset_names])/3
+            llama_code_retriever_perf_datas[retriever_name] = sum([results.retriever_perf_llama[code_name][retriever_name]['pass@1'] for code_name in code_dataset_names])/3
+
+    plt.style.use('ggplot')
+    bar_width = 0.8 / 4
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(12, 2))  # ax1: qa, ax2: code
+    colors = plt.cm.viridis(np.linspace(0, 1, len(retriever_names)))
+    axs = [ax1, ax2, ax3, ax4]
+    retriever_data_list = [llama_qa_retriever_perf_datas, gpt_qa_retriever_perf_datas, llama_code_retriever_perf_datas, gpt_code_retriever_perf_datas]
+    for ax_idx, (ax, retriever_data) in enumerate(zip(axs, retriever_data_list)):
+        for idx, retriever_name in enumerate(retriever_names):
+            if retriever_name in retriever_data.keys():
+                ax.bar(idx*bar_width if retriever_name != 'codeT5' else (idx-1)*bar_width, retriever_data[retriever_name], width=bar_width, label=retriever_name, color=colors[idx])
+        ax.set_ylabel('Performance')
+        ax.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        if ax_idx == 0: ax.set_title('QA Datasets, llama2-13b', fontsize=10)
+        elif ax_idx == 1: ax.set_title('QA Datasets, gpt-3.5', fontsize=10)
+        elif ax_idx == 2: ax.set_title('Code Datasets, llama2-13b', fontsize=10)
+        else: ax.set_title('Code Datasets, gpt-3.5', fontsize=10)
+    # for idx, retriever_name in enumerate(retriever_names):
+    #     if retriever_name in llama_qa_retriever_perf_datas.keys():
+    #         ax1.bar(idx*bar_width, llama_qa_retriever_perf_datas[retriever_name], width=bar_width, label=retriever_name, color=colors[idx])
+
+    ax1_handles, ax1_labels = ax1.get_legend_handles_labels()
+    ax3_handles, ax3_labels = ax3.get_legend_handles_labels()
+    handles, labels = list(dict.fromkeys(ax1_handles + ax3_handles)), list(dict.fromkeys(ax1_labels + ax3_labels))
+    fig.legend(handles, labels, loc='lower center', ncol=5, fontsize=10, bbox_to_anchor=(0.5, -0.15))
+    plt.savefig('graph/' + graph_name, bbox_inches='tight')
+    plt.show()
 
 
 
@@ -1954,6 +2168,7 @@ if __name__ == '__main__':
 
     # make_qa_code_ret_recall()
 
+    make_ret_recall_analysis()
     # recall_perf_data = dict(NQ=      [[0.213, 0.322, 0.421, 0.527, 0.635, 0.735],
     #                                   [0.158, 0.275, 0.401, 0.526, 0.648, 0.770],
     #                                   [0.273, 0.380, 0.486, 0.592, 0.696, 0.787]],

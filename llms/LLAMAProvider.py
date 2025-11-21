@@ -69,6 +69,7 @@ class LlamaProvider(LLMProvider):
         results = list()
         for prompt in prompts:
             result = self.generate(prompt=prompt, return_type=return_type, include_logits=include_logits, print_generation_time=print_generation_time)
+            print(result['text'])
             results.append(result)
         return results
 
@@ -112,6 +113,7 @@ class LlamaProvider(LLMProvider):
             outputs = self.model.generate(
                 input_ids=inputs.input_ids,
                 attention_mask=inputs.attention_mask,
+                tokenizer=self.tokenizer,
                 **generation_kwargs
             )
 

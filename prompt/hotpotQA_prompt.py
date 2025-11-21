@@ -92,6 +92,78 @@ What show does the host of The 2011 Teen Choice Awards ceremony currently star o
 """
 
 
+def prompt_0shot(ret_docs, question, model):
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+\n
+## Question: 
+{question}
+"""
+    sys_prompt = LLAMA_SYS_PROMPT
+    prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
+    return prompt_template
+
+
+def prompt_0shot_no_ret(question, model, pads=''):
+    user_prompt = f"""
+{pads}\n
+## Question: 
+{question}
+"""
+    sys_prompt = LLAMA_SYS_PROMPT_NO_RET
+    prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
+    return prompt_template
+
+
+
+def prompt_emotion(ret_docs, question, model):
+    emotion_prompt = """This is very important to my career:
+
+You are a helpful assistant, given some potential documents starts with `## Potential documents` and a question starts with `## Question`, 
+you should first read the potential documents, and then use the knowledge in documents to answer the question.
+You should only output the exact answer, and the answer should starts with <answer> and ends with </answer>
+"""
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+\n
+## Question: 
+{question}
+"""
+    sys_prompt = emotion_prompt
+    prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
+    return prompt_template
+
+
+
+def prompt_zero_shot_cot(ret_docs, question, model):
+    potential_docs = ''
+    for idx, ret_doc in enumerate(ret_docs):
+        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
+
+    user_prompt = f"""
+## Potential documents:
+{potential_docs}
+\n
+## Question: 
+{question}
+
+Let's think it step by step.
+"""
+    sys_prompt = LLAMA_SYS_PROMPT
+    prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
+    return prompt_template
+
+
+
+
 def prompt_3shot(ret_docs, question, model):
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
@@ -250,31 +322,7 @@ Instruction:
     return prompt
 
 
-def prompt_0shot(ret_docs, question, model):
-    potential_docs = ''
-    for idx, ret_doc in enumerate(ret_docs):
-        potential_docs = potential_docs + f'{idx}: ' + ret_doc.replace('\n', ' ') + '\n'
-    user_prompt = f"""
-## Potential documents:
-{potential_docs}
-\n
-## Question: 
-{question}
-"""
-    sys_prompt = LLAMA_SYS_PROMPT
-    prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
-    return prompt_template
 
-
-def prompt_0shot_no_ret(question, model, pads=''):
-    user_prompt = f"""
-{pads}\n
-## Question: 
-{question}
-"""
-    sys_prompt = LLAMA_SYS_PROMPT_NO_RET
-    prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
-    return prompt_template
 
 
 
