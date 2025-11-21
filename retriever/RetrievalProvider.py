@@ -4,9 +4,16 @@ provide an inferface for retrieval, isolating old retrieving codes
 import random
 import sys
 sys.path.append('..')
+# import platform
+# system = platform.system()
+# if system == 'Darwin':
+#     root_path = '/'
+# elif system == 'Linux':
+#     root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
+# sys.path.insert(0, root_path)
 import json
 import openai
-from generator_deprecated.generate_utils import get_docs_tokens
+from generator.generate_utils import get_docs_tokens
 from retriever.retriever_utils import retriever_config, get_ret_results
 import re
 from collections import defaultdict
@@ -29,7 +36,7 @@ class RetrievalProvider:
             self.oracle_doc_keys_path = f'../data/{dataset}/oracle_docs_matched_processed.json'
 
         self.oracle_docs_path = f'../data/{dataset}/persist_oracle_docs.json'
-        self.ret_docs_path = f'../data/{dataset}/persist_ret_docs.json'
+        self.ret_docs_path = f'../data/{dataset}/persist_ret_docs_{self.retriever}.json'
 
         # retrieval recall
         self.recall_range = [1.0, 0.8, 0.6, 0.4, 0.2, 0]
@@ -117,7 +124,7 @@ class RetrievalProvider:
 
     def persist_ret_docs(self):
         """
-        load and store retrieval documents for each dataset
+        load and store oracle documents for each dataset
         :return:
         """
         ret_docs = dict()
@@ -125,53 +132,78 @@ class RetrievalProvider:
             ret_doc_keys = json.load(open(self.ret_results_path, 'r'))
             doc_loader = PythonDocsLoader()
             for qs_id in ret_doc_keys:
-                ret_docs[qs_id] = doc_loader.get_docs([elem['doc_key'] for elem in ret_doc_keys[qs_id]])
-        elif self.dataset in ['NQ']:
-            original_ret_doc_path = f'../data/{self.dataset}/ret_results_docs_openai-embedding.json'
-            original_ret_docs = json.load(open(original_ret_doc_path, 'r'))
-            original_ret_doc_keys_path = f'../data/{self.dataset}/ret_result_openai-embedding.json'
-            original_ret_doc_keys = json.load(open(original_ret_doc_keys_path, 'r'))
-            ret_docs = dict()
-            for idx, pid in enumerate(original_ret_docs):
-                ret_doc = []
-                for doc_idx, doc_item in enumerate(original_ret_docs[pid]):
-                    assert original_ret_doc_keys[pid][doc_idx]['doc_key'] == original_ret_docs[pid][doc_idx]['doc_key']
-                    ret_doc.append(dict(doc=original_ret_docs[pid][doc_idx]['doc'], golden=original_ret_doc_keys[pid][doc_idx]['has_answer']))
-                ret_docs[pid] = ret_doc
-        elif self.dataset == 'hotpotQA':
-            original_ret_doc_path = f'../data/{self.dataset}/ret_results_docs_openai-embedding.json'
-            original_ret_docs = json.load(open(original_ret_doc_path, 'r'))
-            original_ret_doc_keys_path = f'../data/{self.dataset}/ret_result_openai-embedding.json'
-            original_ret_doc_keys = json.load(open(original_ret_doc_keys_path, 'r'))
-            qs_list = json.load(open('../data/hotpotQA/sampled_data.json', 'r'))
-            ret_docs = dict()
-            for idx, pid in enumerate(original_ret_docs):
-                ret_doc = []
-                assert qs_list[idx]['_id'] == pid
-                golden_keys = list(set([sp[0] for sp in qs_list[idx]['supporting_facts']]))
-                for doc_idx, doc_item in enumerate(original_ret_docs[pid]):
-                    assert original_ret_doc_keys[pid][doc_idx]['doc_key'] == original_ret_docs[pid][doc_idx]['doc_key']
-                    if original_ret_doc_keys[pid][doc_idx]['doc_key'] in golden_keys: has_answer = True
-                    else: has_answer = False
-                    ret_doc.append(dict(doc=original_ret_docs[pid][doc_idx]['doc'], golden=has_answer))
-                ret_docs[pid] = ret_doc
-
-        elif self.dataset == 'TriviaQA':
+                ret_docs[qs_id] = doc_loader.get_docs([item['doc_key'] for item in ret_doc_keys[qs_id]])
+        else:
             doc_loader = WikiCorpusLoader()
-            ret_doc_keys_path = '../data/TriviaQA/ret_result_openai-embedding.json'
-            ret_doc_keys_with_answer = json.load(open(ret_doc_keys_path, 'r', encoding='utf-8'))
-            ret_doc_keys = list()
-            for pid in ret_doc_keys_with_answer:
-                ret_doc_keys.append([item['doc_key'] for item in ret_doc_keys_with_answer[pid]])
-            ret_docs_list = doc_loader.get_docs(doc_keys_list=ret_doc_keys, dataset=self.dataset, num_procs=16)
-            ret_docs = dict()
-            for docs, pid in zip(ret_docs_list, ret_doc_keys_with_answer):
-                assert len(docs) == len(ret_doc_keys_with_answer[pid])
-                pid_doc_list = [dict(doc=doc, golden=item['has_answer']) for doc, item in zip(docs, ret_doc_keys_with_answer[pid])]
-                ret_docs[pid] = pid_doc_list
+            ret_doc_keys = json.load(open(self.ret_results_path, 'r', encoding='utf-8'))
+            for qs_id in ret_doc_keys:
+                ret_doc_keys[qs_id] = [item['doc_key'] for item in ret_doc_keys[qs_id]]
+            ret_doc_keys_list = [ret_doc_keys[key] for key in ret_doc_keys]     # transform to the format to doc_loader
+            ret_docs_list = doc_loader.get_docs(doc_keys_list=ret_doc_keys_list, dataset=self.dataset, num_procs=8)
+            for docs, data_id in zip(ret_docs_list, ret_doc_keys):
+                ret_docs[data_id] = docs
 
         with open(self.ret_docs_path, 'w+', encoding='utf-8') as f:
             json.dump(ret_docs, f, indent=2)
+
+
+    # def persist_ret_docs(self):
+    #     """
+    #     load and store retrieval documents for each dataset
+    #     :return:
+    #     """
+    #     ret_docs = dict()
+    #     if self.dataset in ['pandas_numpy_eval', 'DS1000', 'conala']:
+    #         ret_doc_keys = json.load(open(self.ret_results_path, 'r'))
+    #         doc_loader = PythonDocsLoader()
+    #         for qs_id in ret_doc_keys:
+    #             ret_docs[qs_id] = doc_loader.get_docs([elem['doc_key'] for elem in ret_doc_keys[qs_id]])
+    #     elif self.dataset in ['NQ']:
+    #         original_ret_doc_path = f'../data/{self.dataset}/ret_results_docs_openai-embedding.json'
+    #         original_ret_docs = json.load(open(original_ret_doc_path, 'r'))
+    #         original_ret_doc_keys_path = f'../data/{self.dataset}/ret_result_openai-embedding.json'
+    #         original_ret_doc_keys = json.load(open(original_ret_doc_keys_path, 'r'))
+    #         ret_docs = dict()
+    #         for idx, pid in enumerate(original_ret_docs):
+    #             ret_doc = []
+    #             for doc_idx, doc_item in enumerate(original_ret_docs[pid]):
+    #                 assert original_ret_doc_keys[pid][doc_idx]['doc_key'] == original_ret_docs[pid][doc_idx]['doc_key']
+    #                 ret_doc.append(dict(doc=original_ret_docs[pid][doc_idx]['doc'], golden=original_ret_doc_keys[pid][doc_idx]['has_answer']))
+    #             ret_docs[pid] = ret_doc
+    #     elif self.dataset == 'hotpotQA':
+    #         original_ret_doc_path = f'../data/{self.dataset}/ret_results_docs_openai-embedding.json'
+    #         original_ret_docs = json.load(open(original_ret_doc_path, 'r'))
+    #         original_ret_doc_keys_path = f'../data/{self.dataset}/ret_result_openai-embedding.json'
+    #         original_ret_doc_keys = json.load(open(original_ret_doc_keys_path, 'r'))
+    #         qs_list = json.load(open('../data/hotpotQA/sampled_data.json', 'r'))
+    #         ret_docs = dict()
+    #         for idx, pid in enumerate(original_ret_docs):
+    #             ret_doc = []
+    #             assert qs_list[idx]['_id'] == pid
+    #             golden_keys = list(set([sp[0] for sp in qs_list[idx]['supporting_facts']]))
+    #             for doc_idx, doc_item in enumerate(original_ret_docs[pid]):
+    #                 assert original_ret_doc_keys[pid][doc_idx]['doc_key'] == original_ret_docs[pid][doc_idx]['doc_key']
+    #                 if original_ret_doc_keys[pid][doc_idx]['doc_key'] in golden_keys: has_answer = True
+    #                 else: has_answer = False
+    #                 ret_doc.append(dict(doc=original_ret_docs[pid][doc_idx]['doc'], golden=has_answer))
+    #             ret_docs[pid] = ret_doc
+    #
+    #     elif self.dataset == 'TriviaQA':
+    #         doc_loader = WikiCorpusLoader()
+    #         ret_doc_keys_path = '../data/TriviaQA/ret_result_openai-embedding.json'
+    #         ret_doc_keys_with_answer = json.load(open(ret_doc_keys_path, 'r', encoding='utf-8'))
+    #         ret_doc_keys = list()
+    #         for pid in ret_doc_keys_with_answer:
+    #             ret_doc_keys.append([item['doc_key'] for item in ret_doc_keys_with_answer[pid]])
+    #         ret_docs_list = doc_loader.get_docs(doc_keys_list=ret_doc_keys, dataset=self.dataset, num_procs=16)
+    #         ret_docs = dict()
+    #         for docs, pid in zip(ret_docs_list, ret_doc_keys_with_answer):
+    #             assert len(docs) == len(ret_doc_keys_with_answer[pid])
+    #             pid_doc_list = [dict(doc=doc, golden=item['has_answer']) for doc, item in zip(docs, ret_doc_keys_with_answer[pid])]
+    #             ret_docs[pid] = pid_doc_list
+    #
+    #     with open(self.ret_docs_path, 'w+', encoding='utf-8') as f:
+    #         json.dump(ret_docs, f, indent=2)
 
 
     def calculate_recall(self, oracle_docs, ret_docs, controlled_docs):
@@ -282,7 +314,7 @@ class RetrievalProvider:
 
 
 if __name__ == '__main__':
-    ret_provider = RetrievalProvider(dataset='TriviaQA')
+    ret_provider = RetrievalProvider(dataset='hotpotQA', retriever='BM25')
 
     # ret_provider.filter_ret_results()
 
@@ -290,13 +322,19 @@ if __name__ == '__main__':
 
     # ret_provider.get_oracle_docs()
 
-    # ret_provider.persist_ret_docs()
+    ret_provider.persist_ret_docs()
 
     # ret_provider.creat_controlled_recall_docs()
 
-    ret_provider.verify_recall_control()
+    # ret_provider.verify_recall_control() # 记得用服务器上的数据覆盖一下！
 
 
+
+
+
+"""
+re-process python documents, remove document that direct to another document (e.g. Alias)
+"""
 
 def analyze_python_docs(python_docs_path='../data/python_docs/proc_python_docs.json', model='gpt-3.5-turbo', token_threshold=20):
     with open(python_docs_path, 'r', encoding='utf-8') as file:
