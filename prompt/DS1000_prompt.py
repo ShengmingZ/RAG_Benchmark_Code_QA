@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/home/zhaoshengming/Code_RAG_Benchmark')
+sys.path.append('/home/zhaoshengming/RAG_Benchmark_Code_QA')
 from prompt.prompt_utils import ensemble_prompt
 
 
@@ -571,7 +571,7 @@ print(result)
 if __name__ == '__main__':
     example_doc = "add_prefix(prefix: 'str')\n    Prefix labels with string `prefix`.\n    \n    For Series, the row labels are prefixed.\n    For DataFrame, the column labels are prefixed.\n    \n    Parameters\n    ----------\n    prefix : str\n        The string to add before each label.\n    \n    Returns\n    -------\n    Series or DataFrame\n        New Series or DataFrame with updated labels.\n    \n    See Also\n    --------\n    Series.add_suffix: Suffix row labels with string `suffix`.\n    DataFrame.add_suffix: Suffix column labels with string `suffix`.\n    \n    Examples\n    --------\n    >>> s = pd.Series([1, 2, 3, 4])\n    >>> s\n    0    1\n    1    2\n    2    3\n    3    4\n    dtype: int64\n    \n    >>> s.add_prefix('item_')\n    item_0    1\n    item_1    2\n    item_2    3\n    item_3    4\n    dtype: int64\n    \n    >>> df = pd.DataFrame({'A': [1, 2, 3, 4], 'B': [3, 4, 5, 6]})\n    >>> df\n       A  B\n    0  1  3\n    1  2  4\n    2  3  5\n    3  4  6\n    \n    >>> df.add_prefix('col_')\n         col_A  col_B\n    0       1       3\n    1       2       4\n    2       3       5\n    3       4       6\n\n"
 
-    from generator.generate_utils import truncate_docs
+    from generator_deprecated.generate_utils import truncate_docs
     print(truncate_docs([example_doc], 'gpt-3.5-turbo-0125', 500)[0])
 
 
@@ -2137,12 +2137,12 @@ if __name__ == '__main__':
 
     system = platform.system()
     if system == 'Darwin':
-        root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+        root_path = '/'
     elif system == 'Linux':
-        root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+        root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
     sys.path.insert(0, root_path)
     from dataset_utils.DS1000_utils import DS1000Loader
-    from generator.generate_utils import truncate_docs
+    from generator_deprecated.generate_utils import truncate_docs
     from dataset_utils.corpus_utils import PythonDocsLoader
     from data.DS1000.ds1000 import DS1000Dataset, DS1000Problem
     ds1000 = DS1000Dataset(source_dir=root_path + '/data/DS1000/ds1000_data', mode='Insertion', libs='all')

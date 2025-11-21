@@ -10,9 +10,9 @@ import random
 import ast
 system = platform.system()
 if system == 'Darwin':
-    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/'
 elif system == 'Linux':
-    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
 sys.path.insert(0, root_path)
 os.environ["HF_ALLOW_CODE_EVAL"] = "1"
 
@@ -50,15 +50,15 @@ class ConalaLoader:
                     break
         return qs_list
 
-    # def load_oracle_list(self):
-    #     """
-    #     {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
-    #     """
-    #     dataset = json.load(open(self.oracle_doc_file, 'r'))
-    #     oracle_list = []
-    #     for data in dataset:
-    #         oracle_list.append(dict(qs_id=data['qs_id'], output=data['output'], oracle_docs=data['oracle_docs']))
-    #     return oracle_list
+    def load_oracle_list(self):
+        """
+        {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
+        """
+        dataset = json.load(open(self.oracle_doc_file, 'r'))
+        oracle_list = []
+        for data in dataset:
+            oracle_list.append(dict(qs_id=data['qs_id'], output=data['output'], oracle_docs=data['oracle_docs']))
+        return oracle_list
     #
     # def split_qs(self):
     #     train_oracle = json.load(open(self.train_oracle_file, 'r'))

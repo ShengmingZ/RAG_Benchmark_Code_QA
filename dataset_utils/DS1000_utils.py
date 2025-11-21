@@ -10,9 +10,9 @@ from tqdm import tqdm
 from typing import List, Tuple
 system = platform.system()
 if system == 'Darwin':
-    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/'
 elif system == 'Linux':
-    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
 sys.path.insert(0, root_path)
 from data.DS1000.ds1000 import DS1000Dataset, DS1000Problem
 
@@ -40,15 +40,15 @@ class DS1000Loader:
                     break
         return qs_list
 
-    # def load_oracle_list(self):
-    #     """
-    #     {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
-    #     """
-    #     oracle_list = json.load(open(self.oracle_doc_file, 'r'))
-    #     _oracle_list = list()
-    #     for oracle in oracle_list:
-    #         _oracle_list.append(dict(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'], output=oracle['output']))
-    #     return json.load(open(self.oracle_doc_file))
+    def load_oracle_list(self):
+        """
+        {'qs_id': str, 'doc_keys': a list of libs, 'output': output}
+        """
+        oracle_list = json.load(open(self.oracle_doc_file, 'r'))
+        _oracle_list = list()
+        for oracle in oracle_list:
+            _oracle_list.append(dict(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'], output=oracle['output']))
+        return json.load(open(self.oracle_doc_file))
     #
     # # sample 20%
     # def sample_dataset(self):

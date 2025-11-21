@@ -13,9 +13,9 @@ from typing import List
 from tqdm import tqdm
 system = platform.system()
 if system == 'Darwin':
-    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/'
 elif system == 'Linux':
-    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
 sys.path.insert(0, root_path)
 
 random.seed(0)

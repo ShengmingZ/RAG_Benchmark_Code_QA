@@ -12,9 +12,9 @@ from functools import partial
 from copy import deepcopy
 system = platform.system()
 if system == 'Darwin':
-    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/'
 elif system == 'Linux':
-    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
 sys.path.insert(0, root_path)
 from prompt import conala_prompt, DS1000_prompt, pandas_numpy_eval_prompt, NQ_TriviaQA_prompt, hotpotQA_prompt
 from retriever.retriever_utils import retriever_config, get_ret_results

@@ -10,12 +10,12 @@ import tempfile
 import subprocess
 system = platform.system()
 if system == 'Darwin':
-    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/'
 elif system == 'Linux':
-    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
 sys.path.insert(0, root_path)
 from dataset_utils.conala_utils import ConalaLoader
-from generator.generate_utils import generate_config, get_docs_tokens
+from generator_deprecated.generate_utils import generate_config, get_docs_tokens
 from dataset_utils.DS1000_utils import DS1000Loader
 from data.DS1000.ds1000 import DS1000Dataset
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
@@ -198,15 +198,6 @@ def process_gene_results(qs_id, dataset, outputs, prompt_type=None, code_prompt=
             #     except: ...
             #     try: pred = pred.split('the answer')[1]
             #     except: ...
-            if prompt_type == 'self-refine':
-                if not '<answer>' in output and not '```' in output:
-                    pred = outputs_before[idx]
-            try: pred = pred.split('Potential documents')[0]
-            except: ...
-            try: pred = pred.split('<answer>')[1].split('</answer>')[0]
-            except: ...
-            try: pred = pred.split('```')[1].split('```')[0]
-            except: ...
             preds.append(pred)
 
     else:
@@ -782,6 +773,31 @@ model_names_for_path = {"gpt-4o-mini": "gpt-4o-mini",
                                      "meta-llama/Llama-2-13b-chat-hf": 'llama2-13b'}
 
 
+def parsing_for_qa_new(qs_list, model, prompt_method, results):
+    _gene_results = []
+    for idx, result in enumerate(results):
+        assert qs_list[idx]['qs_id'] == result['qs_id']
+
+        # outputs = [result['response'].replace('<code>', '').replace('</code>', '').replace('```python', '').replace('```', '')]
+        pred = result['response']
+        try:
+            assert '<answer>' in pred and '</answer>' in pred
+            pred = pred.split('<answer>')[1].split('</answer>')[0]
+        except:
+            try:
+                assert pred.count('```') == 2
+                pred = pred.split('```')[1].split('```')[0]
+            except:
+                ...
+
+        _gene_results.append(dict(qs_id=result['qs_id'], outputs=[pred]))
+    return _gene_results
+
+model_names_for_path = {"gpt-4o-mini": "gpt-4o-mini",
+                                     "gpt-3.5-turbo-0125": "gpt-3-5-turbo",
+                                     "codellama/CodeLlama-13b-Instruct-hf": "codellama-13b",
+                                     "meta-llama/Llama-2-13b-chat-hf": 'llama2-13b'}
+
 def pred_eval_new(model, dataset, prompt_method, result_path):
     eval_save_file = result_path.replace('.json', '_eval.json')
     results = json.load(open(result_path, 'r'))
@@ -789,6 +805,7 @@ def pred_eval_new(model, dataset, prompt_method, result_path):
     else: k = 10
     # results_before = json.load(open(f'../data/{self.dataset}/new_results/DocNum/{k}_{self.model_names_for_path[self.model_config.model]}.json', 'r'))
     results_before = json.load(open(f'../data/{dataset}/new_results/Prompt/few-shot_{model_names_for_path[model]}.json', 'r'))
+
     if dataset == 'conala':
         loader = ConalaLoader()
         qs_list = loader.load_qs_list()

@@ -8,23 +8,23 @@ import platform
 import sys
 system = platform.system()
 if system == 'Darwin':
-    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/'
 elif system == 'Linux':
-    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
 sys.path.insert(0, root_path)
-from generator.run_model import chatgpt, llama, chatgpt_batch, run_model_for_ir_cot, run_model_for_flare
+from generator_deprecated.run_model import chatgpt, llama, chatgpt_batch, run_model_for_ir_cot, run_model_for_flare
 from prompt import conala_prompt
 from retriever.retriever_utils import retriever_config, get_ret_results
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
 from dataset_utils.corpus_utils import PythonDocsLoader, WikiCorpusLoader
-from generator.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs, approximate_token, perturb_ret_doc_type, select_retrieval_docs, gene_prompts_for_pl_analysis, gene_prompts_for_pl_analysis_type2, gene_prompts_by_prompt_length, get_docs_for_ret_results
+from generator_deprecated.generate_utils import control_ret_acc, save_results_to_files, generate_prompts, generate_config, truncate_docs, approximate_token, perturb_ret_doc_type, select_retrieval_docs, gene_prompts_for_pl_analysis, gene_prompts_for_pl_analysis_type2, gene_prompts_by_prompt_length, get_docs_for_ret_results
 from dataset_utils.DS1000_utils import DS1000Loader
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from dataset_utils.hotpotQA_utils import HotpotQAUtils
 from prompt import NQ_TriviaQA_prompt
 from retriever.retriever_utils import retriever_config, ret_eval_by_doc_keys
-from generator.pred_eval import pred_eval
+from generator_deprecated.pred_eval import pred_eval
 
 
 class Generator:
@@ -320,7 +320,7 @@ if __name__ == '__main__':
     # in_program_call = '--model gpt-3.5-turbo-0125 --temperature 0 --n 1 --dataset hotpotQA --retriever openai-embedding --analysis_type prompt_method --prompt_type ir-cot --action gene_responses'
     args = generate_config(in_program_call)
     generator = Generator(args)
-    # generator.test_prompt()
+    # generator_deprecated.test_prompt()
 
     if args.action == 'gene_prompts':
         generator.save_prompts()

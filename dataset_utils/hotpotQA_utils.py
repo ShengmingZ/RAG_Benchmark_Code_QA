@@ -10,9 +10,9 @@ from collections import Counter
 from typing import List
 system = platform.system()
 if system == 'Darwin':
-    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/'
 elif system == 'Linux':
-    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
 sys.path.insert(0, root_path)
 from dataset_utils.NQ_TriviaQA_utils import has_answer
 
@@ -155,29 +155,29 @@ class HotpotQAUtils:
     #
     #     return new_sampled_qs_list
     #
-    # @staticmethod
-    # def eval_sp(preds, golds, top_k):
-    #     """
-    #     evaluate retrieval doc acc
-    #     :param preds:
-    #     :param golds:
-    #     :param top_k:
-    #     :return:
-    #     """
-    #     assert len(preds) == len(golds)
-    #     metrics = dict()
-    #     for k in top_k:
-    #         metrics[k] = {'sp_em': 0, 'sp_f1': 0, 'sp_prec': 0, 'sp_recall': 0}
-    #         for pred, gold in zip(preds, golds):
-    #             _update_sp(metrics=metrics[k], prediction=pred[:k], gold=gold)
-    #         N = len(golds)
-    #         for key in metrics[k].keys():
-    #             metrics[k][key] /= N
-    #     _metrics = dict()
-    #     for k in top_k:
-    #         _metrics[k] = round(metrics[k]['sp_recall'], 3)
-    #     print(_metrics)
-    #     return metrics
+    @staticmethod
+    def eval_sp(preds, golds, top_k):
+        """
+        evaluate retrieval doc acc
+        :param preds:
+        :param golds:
+        :param top_k:
+        :return:
+        """
+        assert len(preds) == len(golds)
+        metrics = dict()
+        for k in top_k:
+            metrics[k] = {'sp_em': 0, 'sp_f1': 0, 'sp_prec': 0, 'sp_recall': 0}
+            for pred, gold in zip(preds, golds):
+                _update_sp(metrics=metrics[k], prediction=pred[:k], gold=gold)
+            N = len(golds)
+            for key in metrics[k].keys():
+                metrics[k][key] /= N
+        _metrics = dict()
+        for k in top_k:
+            _metrics[k] = round(metrics[k]['sp_recall'], 3)
+        print(_metrics)
+        return metrics
 
     @staticmethod
     def eval_pred(pred_list, oracle_list):

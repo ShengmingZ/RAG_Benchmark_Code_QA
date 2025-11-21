@@ -13,9 +13,9 @@ import copy
 from typing import List
 system = platform.system()
 if system == 'Darwin':
-    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/'
 elif system == 'Linux':
-    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
 sys.path.insert(0, root_path)
 from dataset_utils.corpus_utils import WikiCorpusLoader
 
@@ -319,30 +319,30 @@ class NQTriviaQAUtils:
     #     # answers = [_normalize(answer) for answer in answers]
     #     return has_answer(answers, doc)
 
-    # @staticmethod
-    # def retrieval_eval(docs_list, answers_list, top_k):
-    #     """
-    #     follow DPR: if answer is in retrieval docs, then retrieval right, and randomly set one text as oracle
-    #     :param docs_list: a list of docs, each one is a list of retrieved docs of a sample
-    #     :return: hits_list: a list of list, each list corresponds to the retrieved docs of a sample
-    #             hits_rate: a dict records the recall of top_k retrieval
-    #     """
-    #     from tqdm import tqdm
-    #     hits_list = list()
-    #     for docs, answers in tqdm(zip(docs_list, answers_list), total=len(docs_list)):
-    #         # docs = wiki_loader.get_docs(doc_keys)
-    #         hits = [has_answer(answers, doc) for doc in docs]
-    #         hits_list.append(hits)
-    #
-    #     hits_rate = dict()
-    #     for k in top_k:
-    #         hits_rate[k] = 0
-    #         for hits in hits_list:
-    #             if True in hits[:k]:
-    #                 hits_rate[k] += 1
-    #         hits_rate[k] = hits_rate[k] / len(hits_list)
-    #     print(hits_rate)
-    #     return hits_rate
+    @staticmethod
+    def retrieval_eval(docs_list, answers_list, top_k):
+        """
+        follow DPR: if answer is in retrieval docs, then retrieval right, and randomly set one text as oracle
+        :param docs_list: a list of docs, each one is a list of retrieved docs of a sample
+        :return: hits_list: a list of list, each list corresponds to the retrieved docs of a sample
+                hits_rate: a dict records the recall of top_k retrieval
+        """
+        from tqdm import tqdm
+        hits_list = list()
+        for docs, answers in tqdm(zip(docs_list, answers_list), total=len(docs_list)):
+            # docs = wiki_loader.get_docs(doc_keys)
+            hits = [has_answer(answers, doc) for doc in docs]
+            hits_list.append(hits)
+
+        hits_rate = dict()
+        for k in top_k:
+            hits_rate[k] = 0
+            for hits in hits_list:
+                if True in hits[:k]:
+                    hits_rate[k] += 1
+            hits_rate[k] = hits_rate[k] / len(hits_list)
+        print(hits_rate)
+        return hits_rate
 
     @staticmethod
     def pred_eval(preds, answers_list):

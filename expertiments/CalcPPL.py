@@ -1,22 +1,30 @@
 import argparse
 import json
 import sys
+<<<<<<< HEAD
 sys.path.append('../../Code_RAG_Benchmark')
 import math
 import numpy as np
 from scipy import stats
 import matplotlib.pyplot as plt
+=======
+import math
+sys.path.append('..')
+>>>>>>> e57823b1ee6648088d20c43077da1343c194faf9
 
 
 def calc_ppl(logprobs_list):
     perplexities = []
     for logprobs in logprobs_list:
+<<<<<<< HEAD
         if len(logprobs) == 1: logprobs = logprobs[0]
         if len(logprobs) == 1: logprobs = logprobs[0]
         # for idx, data in enumerate(logprobs):
         #     if data == 0:
         #         logprobs = logprobs[:idx]
         #         break
+=======
+>>>>>>> e57823b1ee6648088d20c43077da1343c194faf9
         # Calculate perplexity for this sequence
         # Perplexity = exp(-1/N * sum(log_probs))
         avg_log_prob = sum(logprobs) / len(logprobs)
@@ -28,6 +36,7 @@ def calc_ppl(logprobs_list):
 
 
 
+<<<<<<< HEAD
 
 
 def analyze_correlation(data1, data2, labels=None):
@@ -94,10 +103,13 @@ def analyze_correlation(data1, data2, labels=None):
 
 
 
+=======
+>>>>>>> e57823b1ee6648088d20c43077da1343c194faf9
 if __name__ == '__main__':
     model_names_for_path = {"gpt-4o-mini": "gpt-4o-mini",
                             "gpt-3.5-turbo-0125": "gpt-3-5-turbo",
                             "codellama/CodeLlama-13b-Instruct-hf": "codellama-13b",
+<<<<<<< HEAD
                             "meta-llama/Llama-2-13b-chat-hf": "llama2-13b"}
     
     parser = argparse.ArgumentParser()
@@ -122,11 +134,37 @@ if __name__ == '__main__':
         ks = [1,5,10,15,20]
         # ks = [3]
     
+=======
+                            "meta-llama/Llama-2-13b-chat-hf": 'llama2-13b'}
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset', required=True, help='Dataset (conala, DS1000)')
+    parser.add_argument('--model', required=True, help='Model (openai-new, claude)')
+    parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'DocNum'])
+    parser.add_argument('--recall', type=float, default=1, help='Recall, only effective if mode is "recall"')
+
+    args = parser.parse_args()
+
+    if args.model == 'openai-new': args.model = 'gpt-4o-mini'
+    elif args.model == 'openai-old': args.model = 'gpt-3.5-turbo'
+    elif args.model == 'llama-new': args.model = 'meta-llama/Llama-3.1-8B-Instruct'
+    elif args.model == 'llama-old-code': args.model = 'codellama-13b'
+    elif args.model == 'llama-old-qa': args.model = 'llama2-13b'
+    else: raise Exception('unknown model')
+
+    if args.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
+        ks = [1, 3, 5, 7, 10, 13, 16, 20]
+    else:
+        ks = [1, 3, 5, 10, 15, 20, 30, 40]
+        if args.dataset == 'llama2-13b': ks = [1, 3, 5, 10, 15, 20]
+
+>>>>>>> e57823b1ee6648088d20c43077da1343c194faf9
     model_name_for_path = model_names_for_path[args.model]
     if args.mode == 'DocNum':
         for k in ks:
             result_path = f'../data/{args.dataset}/new_results/DocNum/{k}_{model_name_for_path}.json'
             logprobs_list = [item['logprobs'] for item in json.load(open(result_path, 'r'))]
+<<<<<<< HEAD
             print(f'for {args.dataset} k={k}, AVG PPL: {round(calc_ppl(logprobs_list), 5)}')
 
     # doc_num_ppl_data = dict(NQ=[[0.435, 0.400, 0.544, 0.559, 0.552, 0.546, 0.400, 0.400],
@@ -181,3 +219,6 @@ if __name__ == '__main__':
 
     #         print(result)
 
+=======
+            print(f'for {args.dataset} k={k}, AVG PPL: {round(calc_ppl(logprobs_list), 5)}')
+>>>>>>> e57823b1ee6648088d20c43077da1343c194faf9

@@ -12,9 +12,9 @@ import platform
 from tqdm import tqdm
 system = platform.system()
 if system == 'Darwin':
-    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/'
 elif system == 'Linux':
-    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
 sys.path.insert(0, root_path)
 from data.pandas_numpy_eval.pandas_numpy_eval.execution import check_correctness
 
@@ -52,13 +52,13 @@ class PandasNumpyEvalLoader:
                     break
         return _qs_list
 
-    # def load_oracle_list(self):
-    #     """
-    #     {'qs_id': str, 'oracle_docs': a list of libs}
-    #     """
-    #     oracle_list = json.load(open(self.oracle_docs_matched_file, 'r'))
-    #     oracle_list = [dict(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'], output=oracle['output']) for oracle in oracle_list]
-    #     return oracle_list
+    def load_oracle_list(self):
+        """
+        {'qs_id': str, 'oracle_docs': a list of libs}
+        """
+        oracle_list = json.load(open(self.oracle_docs_matched_file, 'r'))
+        oracle_list = [dict(qs_id=oracle['qs_id'], oracle_docs=oracle['oracle_docs'], output=oracle['output']) for oracle in oracle_list]
+        return oracle_list
 
     # def test_helper(self, problem_code_pair):
     #     data, outputs = problem_code_pair

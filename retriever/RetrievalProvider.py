@@ -3,10 +3,10 @@ provide an inferface for retrieval, isolating old retrieving codes
 """
 import random
 import sys
-sys.path.append('../../Code_RAG_Benchmark')
+sys.path.append('..')
 import json
 import openai
-from generator.generate_utils import get_docs_tokens
+from generator_deprecated.generate_utils import get_docs_tokens
 from retriever.retriever_utils import retriever_config, get_ret_results
 import re
 from collections import defaultdict
@@ -126,26 +126,87 @@ class RetrievalProvider:
             doc_loader = PythonDocsLoader()
             for qs_id in ret_doc_keys:
                 ret_docs[qs_id] = doc_loader.get_docs([elem['doc_key'] for elem in ret_doc_keys[qs_id]])
+        elif self.dataset in ['NQ']:
+            original_ret_doc_path = f'../data/{self.dataset}/ret_results_docs_openai-embedding.json'
+            original_ret_docs = json.load(open(original_ret_doc_path, 'r'))
+            original_ret_doc_keys_path = f'../data/{self.dataset}/ret_result_openai-embedding.json'
+            original_ret_doc_keys = json.load(open(original_ret_doc_keys_path, 'r'))
+            ret_docs = dict()
+            for idx, pid in enumerate(original_ret_docs):
+                ret_doc = []
+                for doc_idx, doc_item in enumerate(original_ret_docs[pid]):
+                    assert original_ret_doc_keys[pid][doc_idx]['doc_key'] == original_ret_docs[pid][doc_idx]['doc_key']
+                    ret_doc.append(dict(doc=original_ret_docs[pid][doc_idx]['doc'], golden=original_ret_doc_keys[pid][doc_idx]['has_answer']))
+                ret_docs[pid] = ret_doc
+        elif self.dataset == 'hotpotQA':
+            original_ret_doc_path = f'../data/{self.dataset}/ret_results_docs_openai-embedding.json'
+            original_ret_docs = json.load(open(original_ret_doc_path, 'r'))
+            original_ret_doc_keys_path = f'../data/{self.dataset}/ret_result_openai-embedding.json'
+            original_ret_doc_keys = json.load(open(original_ret_doc_keys_path, 'r'))
+            qs_list = json.load(open('../data/hotpotQA/sampled_data.json', 'r'))
+            ret_docs = dict()
+            for idx, pid in enumerate(original_ret_docs):
+                ret_doc = []
+                assert qs_list[idx]['_id'] == pid
+                golden_keys = list(set([sp[0] for sp in qs_list[idx]['supporting_facts']]))
+                for doc_idx, doc_item in enumerate(original_ret_docs[pid]):
+                    assert original_ret_doc_keys[pid][doc_idx]['doc_key'] == original_ret_docs[pid][doc_idx]['doc_key']
+                    if original_ret_doc_keys[pid][doc_idx]['doc_key'] in golden_keys: has_answer = True
+                    else: has_answer = False
+                    ret_doc.append(dict(doc=original_ret_docs[pid][doc_idx]['doc'], golden=has_answer))
+                ret_docs[pid] = ret_doc
+
+        elif self.dataset == 'TriviaQA':
+            doc_loader = WikiCorpusLoader()
+            ret_doc_keys_path = '../data/TriviaQA/ret_result_openai-embedding.json'
+            ret_doc_keys_with_answer = json.load(open(ret_doc_keys_path, 'r', encoding='utf-8'))
+            ret_doc_keys = list()
+            for pid in ret_doc_keys_with_answer:
+                ret_doc_keys.append([item['doc_key'] for item in ret_doc_keys_with_answer[pid]])
+            ret_docs_list = doc_loader.get_docs(doc_keys_list=ret_doc_keys, dataset=self.dataset, num_procs=16)
+            ret_docs = dict()
+            for docs, pid in zip(ret_docs_list, ret_doc_keys_with_answer):
+                assert len(docs) == len(ret_doc_keys_with_answer[pid])
+                pid_doc_list = [dict(doc=doc, golden=item['has_answer']) for doc, item in zip(docs, ret_doc_keys_with_answer[pid])]
+                ret_docs[pid] = pid_doc_list
 
         with open(self.ret_docs_path, 'w+', encoding='utf-8') as f:
             json.dump(ret_docs, f, indent=2)
 
 
-    @staticmethod
-    def calculate_recall(oracle_docs, controlled_docs):
+    def calculate_recall(self, oracle_docs, ret_docs, controlled_docs):
         """Calculate average retrieval recall"""
         total_recall = 0
         count = 0
 
         for qid in oracle_docs:
-            golden_docs = set(oracle_docs[qid])
-            current_docs = set(controlled_docs[qid])
+            if self.dataset in ['conala', 'DS1000', 'PNE', 'hotpotQA']:
+                golden_docs = set(oracle_docs[qid])
+                current_docs = set(controlled_docs[qid])
 
-            if len(golden_docs) > 0:
-                retrieved_golden = golden_docs.intersection(current_docs)
-                recall = len(retrieved_golden) / len(golden_docs)
+                if len(golden_docs) > 0:
+                    retrieved_golden = golden_docs.intersection(current_docs)
+                    recall = len(retrieved_golden) / len(golden_docs)
+                    total_recall += recall
+                    count += 1
+
+            else:
+                recall = 0
+                for doc in controlled_docs[qid]:    # 对于每一个doc
+                    doc_in_ret_docs = False
+                    if doc in oracle_docs[qid]: # 如果存在与oracle docs中，则直接返回
+                        recall = 1
+                        break
+                    for item in ret_docs[qid]:  # 检查他是否存在与ret docs中
+                        if doc == item['doc']:
+                            if item['golden']: recall = 1   # 如果存在且has answer，recall设置为1
+                            doc_in_ret_docs = True
+                            break
+                    assert doc_in_ret_docs
                 total_recall += recall
                 count += 1
+
+
 
         return total_recall / count if count > 0 else 0
 
@@ -157,14 +218,18 @@ class RetrievalProvider:
         ret_docs = self.get_ret_docs()
         for qid in oracle_docs:
             golden_docs = set(oracle_docs[qid])
-            retrieved_docs = set(ret_docs[qid])
-            distractors = retrieved_docs - golden_docs
+            if self.dataset in ['conala', 'DS1000', 'PNE']:
+                retrieved_docs = set(ret_docs[qid])
+                distractors = retrieved_docs - golden_docs
+            else:
+                distractors = [item['doc'] for item in ret_docs[qid] if item['golden'] is False]   # for QA, those not golden docs are distractors
+
             # construct controlled docs
             controlled_recall_docs[qid] = list(golden_docs) + list(distractors)
 
         for target_recall in self.recall_range[1:]:     # first one is all oracle
             while True:
-                current_recall = self.calculate_recall(oracle_docs, controlled_recall_docs)
+                current_recall = self.calculate_recall(oracle_docs, ret_docs, controlled_recall_docs)
 
                 if current_recall <= target_recall: break
 
@@ -188,9 +253,25 @@ class RetrievalProvider:
                 oracle_length = len(oracle_docs[qid])
                 truncated_docs[qid] = controlled_recall_docs[qid][:oracle_length]
             # verify recall
-            print(self.calculate_recall(oracle_docs, truncated_docs))
+            print(self.calculate_recall(oracle_docs, ret_docs, truncated_docs))
             with open(persist_path, 'w+') as f:
                 json.dump(truncated_docs, f, indent=2)
+
+    def verify_recall_control(self):
+        controlled_recall_docs_path = f'../data/{self.dataset}/controlled_docs_recall-{0.8}.json'
+        controlled_recall_docs = json.load(open(controlled_recall_docs_path, 'r'))
+        oracle_docs = self.get_oracle_docs()
+        total_recall = 0
+        count = 0
+        for qid in oracle_docs:
+            oracle_doc = set(oracle_docs[qid])
+            ret_doc = set(controlled_recall_docs[qid])
+            retrieved_golden = oracle_doc.intersection(ret_doc)
+            recall = len(retrieved_golden) / len(oracle_doc)
+            print(recall)
+            total_recall += recall
+            count += 1
+        print(total_recall/count)
 
     def get_recall_controlled_docs(self, recall):
         assert recall in self.recall_range
@@ -201,7 +282,7 @@ class RetrievalProvider:
 
 
 if __name__ == '__main__':
-    ret_provider = RetrievalProvider(dataset='pandas_numpy_eval')
+    ret_provider = RetrievalProvider(dataset='TriviaQA')
 
     # ret_provider.filter_ret_results()
 
@@ -211,7 +292,9 @@ if __name__ == '__main__':
 
     # ret_provider.persist_ret_docs()
 
-    ret_provider.creat_controlled_recall_docs()
+    # ret_provider.creat_controlled_recall_docs()
+
+    ret_provider.verify_recall_control()
 
 
 

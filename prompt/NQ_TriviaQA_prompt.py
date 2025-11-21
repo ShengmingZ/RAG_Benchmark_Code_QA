@@ -29,11 +29,11 @@ You should only output the exact answer, and the answer should starts with <answ
 SYS_PROMPT_LEAST_TO_MOST = """Follow the examples to solve the last question"""
 
 
-# SYS_PROMPT_PLAN_AND_SOLVE = """You are a helpful assistant, given a question starts with `## Question` and some potential documents to help you answer the question starts with `## Potential documents`,
-# Let’s first understand the problem and devise a plan to solve the problem.
-# Then, let’s carry out the plan and solve the problem step by step.
-# Finally, output the exact answer tagged with ```
-# """
+SYS_PROMPT_PLAN_AND_SOLVE = """You are a helpful assistant, given a question starts with `## Question` and some potential documents to help you answer the question starts with `## Potential documents`,
+Let’s first understand the problem and devise a plan to solve the problem.
+Then, let’s carry out the plan and solve the problem step by step.
+Finally, output the exact answer tagged with ```
+"""
 
 
 
@@ -89,6 +89,7 @@ You should only output the exact answer, and the answer should starts with <answ
     return prompt_template
 
 
+
 def prompt_zero_shot_cot(ret_docs, question, model):
     potential_docs = ''
     for idx, ret_doc in enumerate(ret_docs):
@@ -117,7 +118,6 @@ Let's think it step by step.
 # ## Potential documents:
 # {potential_docs}
 # \n
-# ## Question: 
 # {question}
 # """
 #     sys_prompt = SYS_PROMPT_PRETEND
@@ -125,23 +125,24 @@ Let's think it step by step.
 #     return prompt_template
 
 
-def prompt_self_gene(question, model):
-    user_prompt = f"""
-## Question: 
-{question}
-"""
-    sys_prompt = SYS_PROMPT_SELF_GENE
-    prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
-    return prompt_template
+# def prompt_self_gene(question, model):
+#     user_prompt = f"""
+# ## Question:
+# {question}
+# """
+#     sys_prompt = SYS_PROMPT_SELF_GENE
+#     prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
+#     return prompt_template
+#
+# def prompt_self_gene_2(question, model):
+#     user_prompt = f"""
+# ## Question:
+# {question}
+# """
+#     sys_prompt = SYS_PROMPT_SELF_GENE_2
+#     prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
+#     return prompt_template
 
-def prompt_self_gene_2(question, model):
-    user_prompt = f"""
-## Question: 
-{question}
-"""
-    sys_prompt = SYS_PROMPT_SELF_GENE_2
-    prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
-    return prompt_template
 
 
 # def prompt_self_pad(ellipses, question, model):
@@ -341,7 +342,7 @@ So the refined answer is:
 ## Feedback and refine: Is the answer really correct? If not, refine the answer.
 """
 
-    if 'gpt' in model: prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt]
+    if 'gpt' in model: prompt = [dict(role='user', content=user_prompt)]
     else: prompt = user_prompt
     return prompt
 
@@ -441,7 +442,8 @@ Conclusion: Thus, the answer to the question is ```prokaryote```.
 
 
     if 'gpt' in model:
-        prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt]
+        prompt = [dict(role='system', content=SYS_PROMPT_LEAST_TO_MOST),
+                  dict(role='user', content=user_prompt)]
     else:
         prompt = user_prompt
     # prompt = ensemble_prompt(sys_prompt=SYS_PROMPT_LEAST_TO_MOST, user_prompt=user_prompt, model=model)
@@ -472,7 +474,7 @@ Finally, you should extract the exact answer tagged with <answer>"""
 ## Answer:
 {gpt_plan_and_solve_prompt}
 """
-        prompt = ['', user_prompt] if 'gpt' in model else user_prompt
+        prompt = [dict(role='user', content=user_prompt)]
     else:
         user_prompt = f"""
 ## Potential documents:
@@ -500,10 +502,14 @@ def prompt_cot(ret_docs, question, model, existing_output=None):
 
 ## Answer:
 """
-    if existing_output is not None: user_prompt = user_prompt + '\n' + existing_output
+    # if existing_output is not None: user_prompt = user_prompt + '\n' + existing_output
     # sys_prompt = SYS_PROMPT_PLAN_AND_SOLVE
     # prompt_template = ensemble_prompt(sys_prompt, user_prompt, model)
-    prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt] if 'gpt' in model else user_prompt
+    # prompt = [SYS_PROMPT_LEAST_TO_MOST, user_prompt] if 'gpt' in model else user_prompt
+    if 'gpt' in model:
+        prompt = [dict(role='user', content=user_prompt)]
+    else:
+        prompt = user_prompt
     return prompt
 
 
@@ -512,9 +518,9 @@ def prompt_cot(ret_docs, question, model, existing_output=None):
 #     import random
 #     system = platform.system()
 #     if system == 'Darwin':
-#         root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+#         root_path = '/Users/zhaoshengming/RAG_Benchmark_Code_QA'
 #     elif system == 'Linux':
-#         root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+#         root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
 #     sys.path.insert(0, root_path)
 #     from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
 #     from dataset_utils.corpus_utils import WikiCorpusLoader
@@ -577,9 +583,9 @@ if __name__ == '__main__':
     import json
     system = platform.system()
     if system == 'Darwin':
-        root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+        root_path = '/'
     elif system == 'Linux':
-        root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+        root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
     sys.path.insert(0, root_path)
     from dataset_utils.NQ_TriviaQA_utils import NQTriviaQAUtils
     from dataset_utils.corpus_utils import WikiCorpusLoader

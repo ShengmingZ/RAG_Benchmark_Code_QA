@@ -6,11 +6,11 @@ import sys, platform
 from scipy.spatial.distance import hamming
 system = platform.system()
 if system == 'Darwin':
-    root_path = '/Users/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/'
 elif system == 'Linux':
-    root_path = '/home/zhaoshengming/Code_RAG_Benchmark'
+    root_path = '/home/zhaoshengming/RAG_Benchmark_Code_QA'
 sys.path.insert(0, root_path)
-from generator.generate_utils import generate_config
+from generator_deprecated.generate_utils import generate_config
 from dataset_utils.conala_utils import ConalaLoader
 from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from dataset_utils.DS1000_utils import DS1000Loader

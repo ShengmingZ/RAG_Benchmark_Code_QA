@@ -1,12 +1,10 @@
 import argparse
 import json
 import sys
-sys.path.append('../../Code_RAG_Benchmark')
+sys.path.append('..')
 import numpy as np
 from statsmodels.stats.contingency_tables import mcnemar
 from scipy.stats import chi2_contingency
-
-
 
 
 
@@ -38,6 +36,7 @@ def pred_distribution_analysis(pred_list_a, pred_list_b, alpha=0.05):
     print('Percentage of mutual correctly solve: ', round(mutual_correct_count/len(pred_list_a), 3))
     # print('percentage of only correct in k=1 samples: ', round(only_a_correct_count/len(pred_list_a)*100, 3))
 
+
     contingency_table = np.array([
         [mutual_correct_count, only_a_correct_count],
         [only_b_correct_count, both_wrong_count]
@@ -48,7 +47,29 @@ def pred_distribution_analysis(pred_list_a, pred_list_b, alpha=0.05):
 
     # table = [[0, only_a_correct_count],
     #          [only_b_correct_count, 0]]
-    
+
+    if n > 20 and all(count >= 5 for count in
+                      [mutual_correct_count, only_a_correct_count, only_b_correct_count, both_wrong_count]):
+        chi2, p_value, dof, expected = chi2_contingency(contingency_table)
+        print(f"Chi-square test: {'Significant' if p_value < alpha else 'Not Significant'}")
+    else:
+        print("Chi-square test: Sample size too small or expected frequencies < 5")
+
+    #
+    # result = mcnemar(contingency_table, exact=False)
+    # p_value = result.pvalue
+    # if p_value < 0.01:
+    #     significance = "Highly significant"
+    # elif p_value < 0.05:
+    #     significance = "Significant"
+    # else:
+    #     significance = "Not significant"
+    #
+    # print(f"McNemar's test: {significance}")
+
+    # table = [[0, only_a_correct_count],
+    #          [only_b_correct_count, 0]]
+    #
     # result = mcnemar(table, exact=True)
     # p_value = result.pvalue / 2
     # if only_b_correct_count <= only_a_correct_count:
@@ -59,7 +80,6 @@ def pred_distribution_analysis(pred_list_a, pred_list_b, alpha=0.05):
     #     significance = "Significant"
     # else:
     #     significance = "Not significant"
-    
     # print(f"McNemar's test: {significance}")
     # print(f"McNemar p-value: {result.pvalue:.6f}")
 
@@ -110,6 +130,9 @@ def pred_distribution_analysis(pred_list_a, pred_list_b, alpha=0.05):
         # print(f"Pearson test: {'Significant' if p_value_pearson < alpha else 'Not Significant'} (p = {p_value_pearson:.6f})")
     else:
         print("Chi-square test: Sample size too small or expected frequencies < 5")
+    #
+    # print(f"McNemar's test: {significance}")
+    # print(f"McNemar p-value: {result.pvalue:.6f}")
 
 
 if __name__ == '__main__':
@@ -117,7 +140,7 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', required=True, help='Dataset (conala, DS1000)')
     parser.add_argument('--model', required=True, help='Model (openai-new, claude)')
     parser.add_argument('--mode', required=True, choices=['single-oracle', 'prompt-methods', 'DocNum', 'DocError'])
-    # parser.add_argument('--recall', type=float, default=1, help='Recall, only effective if mode is "recall"')
+    parser.add_argument('--recall', type=float, default=1, help='Recall, only effective if mode is "recall"')
 
     args = parser.parse_args()
 
@@ -141,6 +164,19 @@ if __name__ == '__main__':
 
     elif args.mode == 'DocNum':
         ks = [1,3,5,10,15,20,30,40]
+        qid_list = list(single_results.keys())
+        if args.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
+            single_pred_list = [single_results[pid]['passed'] for pid in single_results]
+            oracle_pred_list = [oracle_results[pid]['passed'] for pid in oracle_results]
+        else:
+            single_pred_list = [single_results[pid]['has_answer'] for pid in single_results]
+            oracle_pred_list = [oracle_results[pid]['has_answer'] for pid in oracle_results]
+        print('Single LLM v.s. Oracle RAG Prediction Distribution Difference:')
+        pred_distribution_analysis(single_pred_list, oracle_pred_list, qid_list)
+
+
+    elif args.mode == 'DocNum':
+        ks = [1, 3, 5, 10, 15, 20, 30, 40]
         # ks = [1,5,10,15,20]
         a_ks = ks[:-1]
         b_ks = ks[1:]
@@ -153,7 +189,7 @@ if __name__ == '__main__':
             b_pred_list = [b_results[pid]['has_answer'] for pid in b_results]
             print(f'\n\n{a_k} v.s. {b_k} RAG Prediction Distribution Difference:')
             pred_distribution_analysis(a_pred_list, b_pred_list)
-    
+
     elif args.mode == 'DocError':
         ks = [3, 5, 7, 10, 13, 16, 20]
         base_result_path = f'../data/{args.dataset}/new_results/DocNum/1_{args.model}_eval.json'
@@ -181,3 +217,4 @@ if __name__ == '__main__':
             method_pred_list = [method_results[pid]['has_answer'] for pid in method_results]
             print(f'zero-shot baseline prompt v.s. {method} Prediction Distribution Difference:')
             pred_distribution_analysis(baseline_pred_list, method_pred_list)
+

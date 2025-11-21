@@ -1,7 +1,7 @@
 import argparse
 import sys
-sys.path.append('../../Code_RAG_Benchmark')
-from generator.pred_eval import pred_eval_new
+sys.path.append('..')
+from generator_deprecated.pred_eval import pred_eval_new
 
 
 if __name__ == '__main__':
