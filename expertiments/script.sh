@@ -173,27 +173,81 @@ python RunExps.py --dataset NQ --model openai-new --retriever openai-embedding -
 python RunExps.py --dataset NQ --model openai-new --retriever openai-embedding --mode realistic_recall --recall 1.0 &
 
 
-python RunExps.py --dataset TriviaQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0 &
+#python RunExps.py --dataset TriviaQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0 &
+#
+#python RunExps.py --dataset TriviaQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.2 &
+#
+#python RunExps.py --dataset TriviaQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.4 &
+#
+#python RunExps.py --dataset TriviaQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.6  &
+#
+#python RunExps.py --dataset TriviaQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.8 &
+#
+#python RunExps.py --dataset TriviaQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 1.0 &
+#
+#
+#python RunExps.py --dataset hotpotQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0 &
+#
+#python RunExps.py --dataset hotpotQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.2 &
+#
+#python RunExps.py --dataset hotpotQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.4 &
+#
+#python RunExps.py --dataset hotpotQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.6  &
+#
+#python RunExps.py --dataset hotpotQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.8 &
+#
+#python RunExps.py --dataset hotpotQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 1.0 &
 
-python RunExps.py --dataset TriviaQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.2 &
-
-python RunExps.py --dataset TriviaQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.4 &
-
-python RunExps.py --dataset TriviaQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.6  &
-
-python RunExps.py --dataset TriviaQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.8 &
-
-python RunExps.py --dataset TriviaQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 1.0 &
 
 
-python RunExps.py --dataset hotpotQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0 &
 
-python RunExps.py --dataset hotpotQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.2 &
+#python Eval.py --dataset conala --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0 &
+#
+#python Eval.py --dataset conala --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.2 &
+#
+#python Eval.py --dataset conala --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.4 &
+#
+#python Eval.py --dataset conala --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.6 &
+#
+#python Eval.py --dataset conala --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.8 &
+#
+#python Eval.py --dataset conala --model openai-new --retriever openai-embedding --mode realistic_recall --recall 1.0 &
 
-python RunExps.py --dataset hotpotQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.4 &
 
-python RunExps.py --dataset hotpotQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.6  &
+#python Eval.py --dataset DS1000 --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0 &
+#
+#python Eval.py --dataset DS1000 --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.2 &
+#
+#python Eval.py --dataset DS1000 --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.4 &
+#
+#python Eval.py --dataset DS1000 --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.6 &
+#
+#python Eval.py --dataset DS1000 --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.8 &
+#
+#python Eval.py --dataset DS1000 --model openai-new --retriever openai-embedding --mode realistic_recall --recall 1.0 &
 
-python RunExps.py --dataset hotpotQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.8 &
 
-python RunExps.py --dataset hotpotQA --model openai-new --retriever openai-embedding --mode realistic_recall --recall 1.0 &
+#python Eval.py --dataset pandas_numpy_eval --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0 &
+#
+#python Eval.py --dataset pandas_numpy_eval --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.2 &
+#
+#python Eval.py --dataset pandas_numpy_eval --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.4 &
+#
+#python Eval.py --dataset pandas_numpy_eval --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.6 &
+#
+#python Eval.py --dataset pandas_numpy_eval --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.8 &
+#
+#python Eval.py --dataset pandas_numpy_eval --model openai-new --retriever openai-embedding --mode realistic_recall --recall 1.0 &
+
+
+#python Eval.py --dataset NQ --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0 &
+#
+#python Eval.py --dataset NQ --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.2 &
+#
+#python Eval.py --dataset NQ --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.4 &
+#
+#python Eval.py --dataset NQ --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.6 &
+#
+#python Eval.py --dataset NQ --model openai-new --retriever openai-embedding --mode realistic_recall --recall 0.8 &
+#
+#python Eval.py --dataset NQ --model openai-new --retriever openai-embedding --mode realistic_recall --recall 1.0 &

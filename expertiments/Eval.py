@@ -13,7 +13,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', required=True, help='Dataset (conala, DS1000)')
     parser.add_argument('--model', required=True, help='Model (openai-new, claude)')
-    parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'recall', 'DocNum', 'prompt'])
+    parser.add_argument('--retriever', required=True, choices=['openai-embedding', 'BM25', 'miniLM'])
+    parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'recall', 'DocNum', 'prompt', 'realistic_recall'])
     parser.add_argument('--recall', type=float, default=1, help='Recall, only effective if mode is "recall"')
     parser.add_argument('--k', type=int, default=1, help='Doc Num, only effective if mode is "DocNum"')
     parser.add_argument('--prompt', type=str, default='zero-shot', choices=['few-shot', 'emotion', 'CoT', 'zero-shot-CoT', 'Least-to-Most', 'Plan-and-Solve', 'self-refine', 'CoN'])
@@ -28,6 +29,7 @@ if __name__ == '__main__':
     else: raise Exception('unknown model')
 
     model_name_for_path = model_names_for_path[args.model]
+    if args.recall == 0: args.recall = int(args.recall)
     if args.mode == 'single':
         result_path = f'../data/{args.dataset}/new_results/single_{model_name_for_path}.json'
     elif args.mode == 'oracle' or args.mode == 'recall' and args.recall == 1:
@@ -39,6 +41,8 @@ if __name__ == '__main__':
         result_path = f'../data/{args.dataset}/new_results/DocNum/{args.k}_{model_name_for_path}.json'
     elif args.mode == 'prompt':
         result_path = f'../data/{args.dataset}/new_results/Prompt/{args.prompt}_{model_name_for_path}.json'
+    elif args.mode == 'realistic_recall':
+        result_path = f'../data/{args.dataset}/new_results/realistic_recall-{args.recall}_{model_name_for_path}.json'
 
     pred_eval_new(model=args.model, dataset=args.dataset, result_path=result_path, prompt_method=args.prompt)
 
