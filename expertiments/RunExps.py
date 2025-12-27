@@ -15,12 +15,12 @@ from dataset_utils.pandas_numpy_eval_utils import PandasNumpyEvalLoader
 from llms.LLMConfig import LLMConfig, LLMSettings
 from llms.OpenAIProvider import OpenAIProvider
 from llms.LLAMAProvider import LlamaProvider
-from generator_deprecated.pred_eval import pred_eval_new
-from generator_deprecated.generate_utils import truncate_docs
+from generator.pred_eval import pred_eval_new
+from generator.generate_utils import truncate_docs
 
 
 class LLMOracleEvaluator:
-    def __init__(self, model, dataset):
+    def __init__(self, model, dataset, retriever):
         if model == 'openai-old': self.model_config = LLMSettings().OpenAIConfigs().openai_old
         elif model == 'openai-new': self.model_config = LLMSettings().OpenAIConfigs().openai_new
         elif model == 'llama-new': self.model_config = LLMSettings().LLAMAConfigs().llama_new
@@ -47,7 +47,9 @@ class LLMOracleEvaluator:
 
         self.dataset = dataset
 
-        self.doc_loader = RetrievalProvider(self.dataset)
+        self.retriever = retriever
+
+        self.doc_loader = RetrievalProvider(self.dataset, self.retriever)
 
         self.oracle_docs = self.doc_loader.get_oracle_docs()
 
@@ -299,6 +301,79 @@ class LLMOracleEvaluator:
 
 
 
+    def generate_with_realistic_recall(self, recall, result_path=None, test_prompt=False):
+        self.recall_range = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
+        assert recall in self.recall_range
+
+        if recall == 0: recall = int(recall)    # turn 0.0 to 0
+        # default result path for SINGLE llm
+        if result_path is None:
+            model_name_for_path = self.model_names_for_path[self.model_config.model]
+            result_path = f'../data/{self.dataset}/new_results/realistic_recall-{recall}_{model_name_for_path}.json'
+        if os.path.exists(result_path):
+            print('result already exists in path {}, if want to overwrite, please delete it first'.format(result_path))
+            # pred_eval_new(self.dataset, result_path=result_path)
+            return
+
+        """Generate responses using single LLM only"""
+        print(f"🤖 Generating Oracle LLM responses for {len(self.problems)} questions...")
+
+        # Prepare messages
+        prompts = []
+        problem_ids = []
+
+        controlled_docs = self.doc_loader.get_realistic_recall_controlled_docs(recall=recall)
+
+        for problem, qs_id in zip(self.problems, controlled_docs):
+            assert qs_id == problem['qs_id']
+            truncated_docs = truncate_docs(controlled_docs[qs_id], model='gpt-3.5-turbo-0125', max_length=500)
+            prompt = self.prompt_generator(question=problem['question'], model=self.model_config.model, ret_docs=truncated_docs)
+            prompts.append(prompt)
+            problem_ids.append(problem['qs_id'])
+
+        if test_prompt:
+            if 'gpt' in self.model_config.model:
+                print(prompts[0][0]['content'])
+                print(prompts[0][1]['content'])
+            elif 'llama' in self.model_config.model.lower():
+                print(prompts[0])
+            return
+
+        # Batch API call
+        if 'gpt' in self.model_config.model:
+            llm_responses = self.llm_provider.batch_generate(
+                prompts=prompts,
+                return_type="text",
+                include_logits=True,
+                custom_id_prefix=f"single_{self.dataset}_{self.model_config.model}"
+            )
+        elif 'llama' in self.model_config.model.lower():
+            llm_responses = self.llm_provider.generate_batch(
+                prompts=prompts,
+                return_type="text",
+                include_logits=True
+            )
+        else:
+            raise Exception('unsupported model')
+
+        # Process results
+        results = []
+        for problem_id, response in zip(problem_ids , llm_responses):
+            results.append({
+                'qs_id': problem_id,
+                'method': 'recall_llm',
+                'response': response.get('text', ''),
+                'logprobs': response.get('logprobs', []),
+            })
+
+        print(f"✅ Generated {len(results)} Recall Analysis LLM responses")
+
+        os.makedirs(result_path.rsplit('/', 1)[0], exist_ok=True)
+        with open(result_path, 'w+') as f:
+            json.dump(results, f, indent=2)
+
+
+
 
     def generate_with_k(self, k, result_path=None, test_prompt=False):
         if self.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
@@ -323,12 +398,13 @@ class LLMOracleEvaluator:
                 if qs_id == problem['qs_id']:
                     ret_docs_exist = True
                     break
-            if not ret_docs_exist: raise Exception(f'no ret docs for problem: {qs_id}')
+
+            if not ret_docs_exist: raise Exception(f'no ret docs for problem: {problem["qs_id"]}')
             # use top-k docs as retrieved docs
             if self.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
                 truncated_docs = truncate_docs(ret_docs[qs_id][:k], model='gpt-3.5-turbo-0125', max_length=500)
             else:
-                truncated_docs = [item['doc'] for item in ret_docs[qs_id][:k]]
+                truncated_docs = [item for item in ret_docs[qs_id][:k]]
             prompt = self.prompt_generator(question=problem['question'], model=self.model_config.model, ret_docs=truncated_docs)
             prompts.append(prompt)
             problem_ids.append(problem['qs_id'])
@@ -350,7 +426,7 @@ class LLMOracleEvaluator:
         # default result path for different k
         if result_path is None:
             model_name_for_path = self.model_names_for_path[self.model_config.model]
-            result_path = f'../data/{self.dataset}/new_results/DocNum/{k}_{model_name_for_path}.json'
+            result_path = f'../data/{self.dataset}/new_results/DocNum/{k}_{model_name_for_path}_{self.retriever}.json'
             os.makedirs(result_path.rsplit('/', 1)[0], exist_ok=True)
         if os.path.exists(result_path):
             print('result already exists in path {}, if want to overwrite, please delete it first'.format(
@@ -433,13 +509,13 @@ class LLMOracleEvaluator:
         # if prompt method is self-refine, load initial results from doc num results
         if prompt_method == 'self-refine':
             if self.dataset == 'conala':
-                from generator_deprecated.pred_eval import parsing_for_conala_new as result_parser
+                from generator.pred_eval import parsing_for_conala_new as result_parser
             elif self.dataset == 'DS1000':
-                from generator_deprecated.pred_eval import parsing_for_ds1000_new as result_parser
+                from generator.pred_eval import parsing_for_ds1000_new as result_parser
             elif self.dataset == 'pandas_numpy_eval':
-                from generator_deprecated.pred_eval import parsing_for_pne_new as result_parser
+                from generator.pred_eval import parsing_for_pne_new as result_parser
             elif self.dataset in ['NQ', 'TriviaQA', 'hotpotQA']:
-                from generator_deprecated.pred_eval import parsing_for_qa_new as result_parser
+                from generator.pred_eval import parsing_for_qa_new as result_parser
             else:
                 raise Exception('Unsupported Dataset')
             initial_results = json.load(open(f'../data/{self.dataset}/new_results/DocNum/{k}_{self.model_names_for_path[self.model_config.model]}.json', 'r'))
@@ -526,7 +602,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', required=True, help='Dataset (conala, DS1000)')
     parser.add_argument('--model', required=True, help='Model (openai-new, claude)')
-    parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'recall', 'DocNum', 'prompt'])
+    parser.add_argument('--retriever', required=True, choices=['openai-embedding', 'BM25', 'miniLM'])
+    parser.add_argument('--mode', required=True, choices=['single', 'oracle', 'recall', 'DocNum', 'prompt', 'realistic_recall'])
     parser.add_argument('--recall', type=float, default=1, help='Recall, only effective if mode is "recall"')
     parser.add_argument('--k', type=int, default=1, help='Doc Num, only effective if mode is "DocNum"')
     parser.add_argument('--prompt', type=str, default='zero-shot', choices=['few-shot', 'emotion', 'CoT', 'zero-shot-CoT', 'Least-to-Most', 'Plan-and-Solve', 'self-refine', 'CoN'])
@@ -534,7 +611,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    evaluator = LLMOracleEvaluator(dataset=args.dataset, model=args.model)
+    evaluator = LLMOracleEvaluator(dataset=args.dataset, model=args.model, retriever=args.retriever)
 
     if args.mode == 'single':
         evaluator.generate_single_llm(test_prompt=args.test_prompt)
@@ -546,4 +623,6 @@ if __name__ == "__main__":
         evaluator.generate_with_k(k=args.k, test_prompt=args.test_prompt)
     elif args.mode == 'prompt':
         evaluator.generate_with_prompt_method(prompt_method=args.prompt, test_prompt=args.test_prompt)
+    elif args.mode == 'realistic_recall':
+        evaluator.generate_with_realistic_recall(test_prompt=args.test_prompt, recall=args.recall)
 

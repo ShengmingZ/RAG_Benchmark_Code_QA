@@ -22,7 +22,7 @@ from copy import deepcopy
 
 
 class RetrievalProvider:
-    def __init__(self, dataset, retriever='openai-embedding'):  # dataset in ['conala', 'DS1000', 'pandas_numpy_eval', 'hotpotQA', 'NQ', 'TriviaQA']
+    def __init__(self, dataset, retriever):  # dataset in ['conala', 'DS1000', 'pandas_numpy_eval', 'hotpotQA', 'NQ', 'TriviaQA']
         assert dataset in ['conala', 'DS1000', 'pandas_numpy_eval', 'hotpotQA', 'NQ', 'TriviaQA']
         self.dataset = dataset
         self.python_docs_path = '../data/python_docs/redirected_filtered_docs.json'
@@ -289,6 +289,48 @@ class RetrievalProvider:
             with open(persist_path, 'w+') as f:
                 json.dump(truncated_docs, f, indent=2)
 
+
+    def creat_controlled_realistic_recall_docs(self):
+        random.seed = 0
+
+        used_distractors_dict = json.load(open(f'../data/{self.dataset}/controlled_docs_recall-0.json'))
+        distractors_dict = dict()
+
+        oracle_docs = self.get_oracle_docs()
+        ret_docs = self.get_ret_docs()
+        for qid in oracle_docs:
+            golden_docs = set(oracle_docs[qid])
+            if self.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
+                retrieved_docs = set(ret_docs[qid])
+                distractors = retrieved_docs - golden_docs
+            else:
+                distractors = [item['doc'] for item in ret_docs[qid] if item['golden'] is False]  # for QA, those not golden docs are distractors
+            distractors_dict[qid] = [doc for doc in distractors if doc not in set(used_distractors_dict[qid])]
+
+        import numpy as np
+
+        controlled_recall_docs_list = []
+        for recall in self.recall_range:
+            controlled_recall_docs_list.append(json.load(open(f'../data/{self.dataset}/controlled_docs_recall-{recall}.json')))
+        for qid in controlled_recall_docs_list[0]:
+            # add more distracting docs
+            for i in range(len(controlled_recall_docs_list)):
+                controlled_recall_docs_list[i][qid] = controlled_recall_docs_list[i][qid] + distractors_dict[qid][:5]
+
+            # shuffle
+            n = len(controlled_recall_docs_list[0][qid])
+            perm = np.random.permutation(n)
+            for i in range(len(controlled_recall_docs_list)):
+                controlled_recall_docs_list[i][qid] = [controlled_recall_docs_list[i][qid][j] for j in perm]
+
+        for i, recall in enumerate(self.recall_range):
+            persist_path = f'../data/{self.dataset}/controlled_docs_realistic_recall-{recall}.json'
+            with open(persist_path, 'w+') as f:
+                json.dump(controlled_recall_docs_list[i], f, indent=2)
+
+
+
+
     def verify_recall_control(self):
         controlled_recall_docs_path = f'../data/{self.dataset}/controlled_docs_recall-{0.8}.json'
         controlled_recall_docs = json.load(open(controlled_recall_docs_path, 'r'))
@@ -305,16 +347,23 @@ class RetrievalProvider:
             count += 1
         print(total_recall/count)
 
+
     def get_recall_controlled_docs(self, recall):
         assert recall in self.recall_range
         persist_path = f'../data/{self.dataset}/controlled_docs_recall-{recall}.json'
         return json.load(open(persist_path, 'r'))
 
 
+    def get_realistic_recall_controlled_docs(self, recall):
+        assert recall in self.recall_range
+        persist_path = f'../data/{self.dataset}/controlled_docs_realistic_recall-{recall}.json'
+        return json.load(open(persist_path, 'r'))
+
+
 
 
 if __name__ == '__main__':
-    ret_provider = RetrievalProvider(dataset='hotpotQA', retriever='BM25')
+    ret_provider = RetrievalProvider(dataset='TriviaQA', retriever='openai-embedding')
 
     # ret_provider.filter_ret_results()
 
@@ -322,9 +371,11 @@ if __name__ == '__main__':
 
     # ret_provider.get_oracle_docs()
 
-    ret_provider.persist_ret_docs()
+    # ret_provider.persist_ret_docs()
 
     # ret_provider.creat_controlled_recall_docs()
+
+    ret_provider.creat_controlled_realistic_recall_docs()
 
     # ret_provider.verify_recall_control() # 记得用服务器上的数据覆盖一下！
 

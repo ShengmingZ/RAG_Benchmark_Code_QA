@@ -162,18 +162,6 @@ if __name__ == '__main__':
         print('Single LLM v.s. Oracle RAG Prediction Distribution Difference:')
         pred_distribution_analysis(single_pred_list, oracle_pred_list, qid_list)
 
-    elif args.mode == 'DocNum':
-        ks = [1,3,5,10,15,20,30,40]
-        qid_list = list(single_results.keys())
-        if args.dataset in ['conala', 'DS1000', 'pandas_numpy_eval']:
-            single_pred_list = [single_results[pid]['passed'] for pid in single_results]
-            oracle_pred_list = [oracle_results[pid]['passed'] for pid in oracle_results]
-        else:
-            single_pred_list = [single_results[pid]['has_answer'] for pid in single_results]
-            oracle_pred_list = [oracle_results[pid]['has_answer'] for pid in oracle_results]
-        print('Single LLM v.s. Oracle RAG Prediction Distribution Difference:')
-        pred_distribution_analysis(single_pred_list, oracle_pred_list, qid_list)
-
 
     elif args.mode == 'DocNum':
         ks = [1, 3, 5, 10, 15, 20, 30, 40]
@@ -217,4 +205,5 @@ if __name__ == '__main__':
             method_pred_list = [method_results[pid]['has_answer'] for pid in method_results]
             print(f'zero-shot baseline prompt v.s. {method} Prediction Distribution Difference:')
             pred_distribution_analysis(baseline_pred_list, method_pred_list)
+
 

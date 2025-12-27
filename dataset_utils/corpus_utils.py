@@ -196,43 +196,75 @@ class WikiCorpusLoader:
                     id_list.append(row[0])
         return id_list
 
+    # def _get_docs_hotpot(self, doc_keys_list):
+    #     """
+    #     get docs for a list of lists of doc key, [[doc_key1, doc_key2, ...], ...]
+    #     :param doc_keys_list:
+    #     :return:
+    #     """
+    #     doc_keys_list_placeholder = []  # record the sequence of all doc keys, [ith, jth, key]
+    #     docs_list = []
+    #     for i, doc_keys in enumerate(doc_keys_list):
+    #         doc_keys_list_placeholder.extend([[i, idx, key] for idx, key in enumerate(doc_keys)])
+    #         docs_list.append([None]*len(doc_keys))
+    #     # file_paths = self._get_hotpot_corpus_file_paths()
+    #     # for file_path in file_paths:
+    #     #     with bz2.open(file_path, 'rt') as f:
+    #     #         contents = f.read().split('\n')
+    #     #         for content in contents:
+    #     #             if content != '':
+    #     #                 data = json.loads(content)
+    #     #                 target_key = unicodedata.normalize('NFD', data['title'])
+    #     #                 for item in doc_keys_placeholder:
+    #     #                     if item[1] == target_key:
+    #     #                         docs[item[0]] = data['text']
+    #     #                         doc_keys_placeholder.remove(item)
+    #     #                         if len(doc_keys_placeholder) == 0: return docs
+    #     #                         break
+    #     for data in tqdm(self.load_wiki_corpus_iter('hotpotQA'), total=5233235):
+    #         target_key = unicodedata.normalize('NFD', data['id'])
+    #         matched_doc_keys = []
+    #         for item in doc_keys_list_placeholder:
+    #             if item[2] == target_key:
+    #                 docs_list[item[0]][item[1]] = data['text']
+    #                 matched_doc_keys.append(item)
+    #         if len(matched_doc_keys) > 0:
+    #             for item in matched_doc_keys:
+    #                 doc_keys_list_placeholder.remove(item)
+    #         if len(doc_keys_list_placeholder) == 0: return docs_list
+    #     raise Exception(f'not fully match for doc_keys: {doc_keys_list}')
+
     def _get_docs_hotpot(self, doc_keys_list):
         """
         get docs for a list of lists of doc key, [[doc_key1, doc_key2, ...], ...]
         :param doc_keys_list:
         :return:
         """
-        doc_keys_list_placeholder = []  # record the sequence of all doc keys, [ith, jth, key]
-        docs_list = []
+        key_to_positions = {}  # record the sequence of all doc keys, [ith, jth, key]
         for i, doc_keys in enumerate(doc_keys_list):
-            doc_keys_list_placeholder.extend([[i, idx, key] for idx, key in enumerate(doc_keys)])
-            docs_list.append([None]*len(doc_keys))
-        # file_paths = self._get_hotpot_corpus_file_paths()
-        # for file_path in file_paths:
-        #     with bz2.open(file_path, 'rt') as f:
-        #         contents = f.read().split('\n')
-        #         for content in contents:
-        #             if content != '':
-        #                 data = json.loads(content)
-        #                 target_key = unicodedata.normalize('NFD', data['title'])
-        #                 for item in doc_keys_placeholder:
-        #                     if item[1] == target_key:
-        #                         docs[item[0]] = data['text']
-        #                         doc_keys_placeholder.remove(item)
-        #                         if len(doc_keys_placeholder) == 0: return docs
-        #                         break
+            for j, key in enumerate(doc_keys):
+                if key not in key_to_positions:
+                    key_to_positions[key] = []
+                key_to_positions[key].append((i, j))
+
+        # Create empty slots: [[None, None], [None, None], ...]
+        docs_list = []
+        for doc_keys in doc_keys_list:
+            docs_list.append([None] * len(doc_keys))
+
         for data in tqdm(self.load_wiki_corpus_iter('hotpotQA'), total=5233235):
             target_key = unicodedata.normalize('NFD', data['id'])
-            matched_doc_keys = []
-            for item in doc_keys_list_placeholder:
-                if item[2] == target_key:
-                    docs_list[item[0]][item[1]] = data['text']
-                    matched_doc_keys.append(item)
-            if len(matched_doc_keys) > 0:
-                for item in matched_doc_keys:
-                    doc_keys_list_placeholder.remove(item)
-            if len(doc_keys_list_placeholder) == 0: return docs_list
-        raise Exception(f'not fully match for doc_keys: {doc_keys_list}')
+            if target_key in key_to_positions:
+                for i, j in key_to_positions[target_key]:
+                    docs_list[i][j] = data['text']
+                del key_to_positions[target_key]
+                if len(key_to_positions) == 0:
+                    return docs_list
+
+        if len(key_to_positions) > 0:
+            missing_keys = list(key_to_positions.keys())
+            raise Exception(f'Documents not found: {missing_keys}')
+
 
     def _get_docs_NQ(self, doc_keys):
         # build index
